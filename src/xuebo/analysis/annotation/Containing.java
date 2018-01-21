@@ -49,24 +49,30 @@ public class Containing {
             int i = 0;
 
             String L11 = null,
-                    L12 = null,
-                    L13 = null,
-                    L14 = null;
+            L12 = null,
+            L13 = null,
+            L14 = null;
+ 
             String L21 = null,
                     L22 = null,
                     L23 = null,
                     L24 = null;
 
+            
             int L2t = 0;
-
+            int aa = 0;
+            int bb = 0;
+            int cc = 0;
+            int dd = 0;
+            
             while ((temp1 = br1.readLine()) != null
                     && (temp2 = br2.readLine()) != null) {
 //                System.out.println(temp1.substring(0 ,1)); 
 //                System.out.println(i++); 
 
                 ++i;
-
-                if (i % 200000 == 0) {
+                
+                if (i % 2 == 0) {
 
                     System.out.println("Filtering " + i + "....");
 
@@ -81,8 +87,13 @@ public class Containing {
 
                 }
                 if (i % 4 == 2) {
-
                     int len = temp1.length();
+                    
+                    aa = temp1.indexOf("TTAA");
+                    bb = temp2.indexOf("AGATCT");
+                
+                    cc = temp2.indexOf("TTAA");
+                    dd = temp1.indexOf("AGATCT");
 
                     String a1, a2, a3, a4;
 
@@ -92,21 +103,61 @@ public class Containing {
                     a4 = temp2.substring(79, 83);
 
                     if (a1.equals("AGATCT") && a4.equals("TTAA")) {
-
-                        L12 = temp1.substring(78);
-                        L22 = temp2.substring(83);
-                        L2t = 1;
+                        
+                        if(temp1.contains("TTAA") && temp2.contains("AGATCT")){
+//                            int aa = temp1.indexOf("TTAACC");
+//                            int bb = temp2.indexOf("AGATCT");
+                            L12 = temp1.substring(78, aa);
+                            L22 = temp2.substring(83, bb);
+                            if (L12.length() == L22.length()){
+                                L2t = 11;
+                                
+                            }                          
+                        }
+                        
+//                        if(temp2.contains("AGATCT")){
+//                            int bb = temp2.indexOf("AGATCT");
+//                            L22 = temp2.substring(83, bb);
+//                            L2t = 12;
+//                        }
+                        
+                        else{ 
+                            L12 = temp1.substring(78,len);
+                            L22 = temp2.substring(83,len);
+                            L2t = 1;
+                        }
+                        
 
                     } //                       if((temp1.contains("TTAA") && temp2.contains("AGATCT"))  || 
                     //                               (temp1.contains("AGATCT") && temp2.contains("TTAA"))){                              
                     //                       }        
                     //                       else{
                     //                           String d2 = temp1;
+                    
                     else if (a2.equals("AGATCT") && a3.equals("TTAA")) {
+                        
+                        if(temp2.contains("TTAA") && temp1.contains("AGATCT")){
+//                            int cc = temp2.indexOf("TTAACC");
+//                            int dd = temp1.indexOf("AGATCT");
+                            L12 = temp2.substring(78, cc);
+                            L22 = temp1.substring(83, dd);
+                            if (L12.length() == L22.length()){
+                                L2t = 13;
+                            }                         
+                        }
+                        
+//                        if(temp1.contains("AGATCT")){
+//                            int bb = temp1.indexOf("AGATCT");
+//                            L22 = temp1.substring(83, bb);
+//                            L2t = 14;
+//                        }
 
-                        L12 = temp1.substring(83, len);
-                        L22 = temp2.substring(78, len);
-                        L2t = 2;
+                        else {
+                         
+                            L12 = temp1.substring(83, len);                       
+                            L22 = temp2.substring(78, len);
+                            L2t = 2;
+                        }
 
                     }
                 }
@@ -177,7 +228,9 @@ public class Containing {
                             outWrite = true;
 
                         }
-                    } else if (L2t == 2) {
+                    } 
+                    
+                    if (L2t == 2) {
 
                         L140 = temp1.substring(83, l1);
                         L240 = temp2.substring(78, l2);
@@ -208,6 +261,24 @@ public class Containing {
 
                         }
                     }
+                    
+                    if (L2t == 11){
+                        
+                        L14 = temp1.substring(78, aa);
+                        L24 = temp2.substring(83, bb);
+                        
+                        outWrite = true;
+                    }
+                    
+                    if (L2t == 13){
+                        
+                        L14 = temp2.substring(78, cc);
+                        L24 = temp1.substring(83, dd);
+                        
+                        outWrite = true;
+                    }
+                    L2t = 0;
+                    
                 }
 
                 if (outWrite) {
