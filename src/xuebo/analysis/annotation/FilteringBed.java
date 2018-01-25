@@ -14,9 +14,9 @@ import java.util.HashMap;
  * @author xuebozhao
  */
 
-public class Filtering {
+public class FilteringBed {
     
-    Filtering(String infileS,String outfileS) {
+    FilteringBed(String infileS,String outfileS) {
         
         this.readBed(infileS,outfileS);
         

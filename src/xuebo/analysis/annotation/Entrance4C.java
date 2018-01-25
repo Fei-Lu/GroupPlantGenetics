@@ -44,7 +44,7 @@ public class Entrance4C{
         
             String infileS = "/Users/xuebozhao/Documents/4Cdata/Library/1.txt";
             String outfileS = "/Users/xuebozhao/Documents/4Cdata/Library/11111.txt";
-            new ReducedLibrary(infileS,outfileS);
+            new ReducedLibrary(infileS,"TTAA","AGATCT",outfileS);
         }
         
 }

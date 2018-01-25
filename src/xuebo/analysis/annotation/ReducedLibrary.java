@@ -23,41 +23,53 @@ import org.apache.commons.lang.ArrayUtils;
  */
 public class ReducedLibrary {
     
-    ReducedLibrary(String infileS, String outfileS) {
+    ReducedLibrary(String infileS,String cutter1,String cutter2, String outfileS) {
 
-        this.SecondFiltering(infileS, outfileS);
+        this.SecondFiltering(infileS,cutter1,cutter2,outfileS);
 //        this.outputFiles(outfileS1, outfileS2);
     }
 
-    public void SecondFiltering(String infileS, String outfileS) {
+    public void SecondFiltering(String infileS, String cutter1,String cutter2,String outfileS) {
         try{
             
            BufferedReader br;            
            br = IOUtils.getTextReader(infileS);
            
             String temp = null;
-            String temp1 = null;
+//            String temp1 = null;
             String temp2 = "";
-            String temp3 = null;
+//            String temp3 = null;
            
             int i = 0;
            
-            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
-           
-           
+            try{
+                BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+                bw.write("");
+                bw.flush();  
+                bw.close(); 
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+            String chr ="";
+            List <Integer> getPos = null;
             while (( temp = br.readLine()) != null) {
 //               System.out.println(tem[0]);
                
                 if(temp.startsWith(">")){
                     if(i > 0){
-                       
-                       bw.write(temp2+"\n");
-//                       i = 0;
+//                       String chr = Integer.toString(Integer.valueOf(temp.substring(1,2)) - 1);       
+                        chr = Integer.toString(i);  
+                        
+                        getPos = posSearching(temp2,cutter1,cutter2);
+                        getReducedLibrary(chr,getPos,temp2,outfileS);
+//                       getReducedLibraryi = 0;
                     }
-                    String[] tem = temp.split(" ");
-                    temp1 = tem[0];                   
+                    i++;
+//                    String[] tem = temp.split(" ");
+//                    temp1 = tem[0];                   
                     temp2 = "";
-                    bw.write(tem[0] + "\n");
+//                    bw.write(tem[0] + "\n");
                 }
                 else {
 //                   while (temp.startsWith("A") || temp.startsWith("T")|| temp.startsWith("C")|| temp.startsWith("G")) {
@@ -68,12 +80,16 @@ public class ReducedLibrary {
 //                   temp2 = temp;
 //                   temp3 = temp2;
                     temp2 = temp2+temp;
-                    i = 1;
+                    
                 }
+                
             }
-            bw.write(temp2+"\n");
-            bw.flush();  
-            bw.close(); 
+            chr = Integer.toString(i);
+            getPos = posSearching(temp2,cutter1,cutter2);
+            getReducedLibrary(chr,getPos,temp2,outfileS);
+//            bw.write(temp2+"\n");
+//            bw.flush();  
+//            bw.close(); 
         }
         catch (Exception e){
             e.printStackTrace();
@@ -83,8 +99,8 @@ public class ReducedLibrary {
     public List<Integer> binaryCutter(String inChr,String cutter){
         String query = null;
         List<Integer> pos = new ArrayList<>();
-        for(int i = 0 ; i < inChr.length() ; i++){
-            query = inChr.substring(i, i+cutter.length());
+        for(int i = 0 ; i < inChr.length()-cutter.length() ; i++){
+            query = inChr.substring(i, i + cutter.length());
             if(query.equals(cutter)){
                 pos.add(i);
             }       
@@ -104,7 +120,9 @@ public class ReducedLibrary {
     
     public List<Integer> posSearching(String inChr,String cutter1,String cutter2){
         
-        List<Integer> aa = new ArrayList<>(this.binaryCutter(inChr,cutter1));
+        List<Integer> aa = new ArrayList();
+//        System.out.println(inChr.length());
+        aa = (binaryCutter(inChr,cutter1));
         
         List<Integer> bb = new ArrayList<>(this.binaryCutter(inChr, cutter2));
         
@@ -131,23 +149,17 @@ public class ReducedLibrary {
         
         for(int i = 0; i<cc.size();i++){
             if(j >= aa.size()){
-                cc.add(-1);
+                aa.add(-1);
             }
-            else if(j<aa.size()){
+//            if(j<aa.size()){
                 
-                if(cc.get(i) == aa.get(i)){
+                if(cc.get(i) == aa.get(j)){
                     ispos1 = true;  
                     pos1V = cc.get(i);
                     j++;
                     if(ispos1 && ispos2){                       
-                        if(pos1V<=pos2V){
-                            getpos.add(pos1V);
-                            getpos.add(pos2V);
-                        }
-                        else{
-                            getpos.add(pos2V);
-                            getpos.add(pos1V);
-                        }
+                        getpos.add(pos2V);
+                        getpos.add(pos1V+cutter1.length());
                         ispos2 = false;
                     }
                 }
@@ -157,19 +169,15 @@ public class ReducedLibrary {
                     ispos2 = true;
                     pos2V = cc.get(i);
                     if(ispos1 && ispos2){                       
-                        if(pos1V<=pos2V){
+                      
                             getpos.add(pos1V);
-                            getpos.add(pos2V);
-                        }
-                        else{
-                            getpos.add(pos2V);
-                            getpos.add(pos1V);
-                        }
+                            getpos.add(pos2V+cutter2.length());
+                        
                         ispos1 = false;
                     }
                 } 
             }
-        }
+//        }
         return getpos;     
     }
      
@@ -182,7 +190,7 @@ public class ReducedLibrary {
 //        BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             for(int i = 0;i<getpos.size();i = i+2){
 
-                cutterinChr = inChr.substring(getpos.get(i),getpos.get(i+2));
+                cutterinChr = inChr.substring(getpos.get(i),getpos.get(i+1));
                 headcutterinchr = ">" + Chr + "\t" + getpos.get(i) + "\t" + getpos.get(i+1) + "\n";
                 getWriteStreamAppend(outfileS,headcutterinchr);
                 getWriteStreamAppend(outfileS,cutterinChr+"\n");
@@ -194,7 +202,9 @@ public class ReducedLibrary {
         }
         catch (Exception e){
             e.printStackTrace();
-        }       
+        }
+        
+        
     }
     
    

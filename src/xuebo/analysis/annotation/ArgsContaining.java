@@ -9,7 +9,7 @@ package xuebo.analysis.annotation;
  *
  * @author xuebozhao
  */
-public class Args {
+public class ArgsContaining {
     /**
      * @param args the command line arguments
      * -i: input file name 1
