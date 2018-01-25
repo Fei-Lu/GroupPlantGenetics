@@ -33,22 +33,22 @@ public class ArgsReducedLibrary {
             if (null != args[i])switch (args[i]) {
                 case "-i":
                     infileS = args[i+1];
-                    i = i + 4 ;
+                    i++;
                     break;
                     
                 case "-p":
                     cutter1 = args[i+1];
-                    i = i + 4 ;
+                    i++;
                     break; 
                     
                 case "-q":
                     cutter2 = args[i+1];
-                    i = i + 4 ;
+                    i++;
                     break; 
                     
                 case "-o":
                     outfileS = args[i+1];
-                    i = i + 4;
+                    i++;
                     break;
                     
                 default:
@@ -59,11 +59,11 @@ public class ArgsReducedLibrary {
         
         if(outfileS.equals("")){
             String[] temp = infileS.split("/");
-            outfileS = temp[temp.length -1].split("\\.")[0] + ".reducedlibrary.fa.gz";
+            outfileS = temp[temp.length -1].split("\\.")[0] + ".reducedlibrary.fas";
         }
         
         
-        new Containing(infileS ,cutter1 , cutter2, outfileS); 
+        new ReducedLibrary(infileS ,cutter1 , cutter2, outfileS); 
         
     }
 }

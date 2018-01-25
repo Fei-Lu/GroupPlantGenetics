@@ -38,13 +38,13 @@ package xuebo.analysis.annotation;
 //    }
 //}
 
-public class Entrance4C{
-   
-        public static void main (String[] args) {
-        
-            String infileS = "/Users/xuebozhao/Documents/4Cdata/Library/1.txt";
-            String outfileS = "/Users/xuebozhao/Documents/4Cdata/Library/11111.txt";
-            new ReducedLibrary(infileS,"TTAA","AGATCT",outfileS);
-        }
-        
-}
+//public class Entrance4C{
+//   
+//        public static void main (String[] args) {
+//        
+//            String infileS = "/Users/xuebozhao/Documents/4Cdata/Library/1.txt";
+//            String outfileS = "/Users/xuebozhao/Documents/4Cdata/Library/11111.txt";
+//            new ReducedLibrary(infileS,"TTAA","AGATCT",outfileS);
+//        }
+//        
+//}

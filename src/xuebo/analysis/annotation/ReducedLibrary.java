@@ -54,6 +54,7 @@ public class ReducedLibrary {
             String chr ="";
             List <Integer> getPos = null;
             while (( temp = br.readLine()) != null) {
+                
 //               System.out.println(tem[0]);
                
                 if(temp.startsWith(">")){
