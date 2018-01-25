@@ -225,7 +225,7 @@ public class Containing {
                             L14 = L140;
                             L24 = L240;
 
-                            outWrite = true;
+                            outWrite = true;        
 
                         }
                     } 
