@@ -83,7 +83,7 @@ public class SubStringSearch {
 
         for (int q = 0; q < index.size(); q++){
 //                BufferedWriter bw = IOUtils.getTextWriter("test.txt");
-            System.out.println(index.get(q));
+//            System.out.println(index.get(q));
             int aa = index.get(q);
 //                bw.write(aa+"\n");
 //                bw.flush();

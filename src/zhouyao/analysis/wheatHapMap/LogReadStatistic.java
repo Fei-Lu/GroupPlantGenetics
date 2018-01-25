@@ -17,7 +17,9 @@ public class LogReadStatistic {
     }
     public void ReadPrint(String inFile){
         try {
-            BufferedReader br = IOUtils.getTextReader(inFile);
+            BufferedReader br ;
+            if(inFile.endsWith("gz"))  br = IOUtils.getTextGzipReader(inFile);
+            else  br = IOUtils.getTextReader(inFile);
             String temp;
             int read = 0;
             while ((temp = br.readLine()) != null) {
