@@ -192,7 +192,7 @@ public class ReducedLibrary {
 //        BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             for(int i = 0;i<getpos.size();i = i+2){
                 cutterinChr = inChr.substring(getpos.get(i),getpos.get(i+1));
-                bed = "Chr"+ Chr + "\t" + getpos.get(i) + "\t" + getpos.get(i+1);
+                bed = "Chr"+ Chr + ":" + getpos.get(i) + "_" + getpos.get(i+1);
                 headcutterinchr = ">" + bed + "\n";
                 getWriteStreamAppend(outFileg,headcutterinchr);
 //                getWriteStreamAppend(outFileg,Chr);
