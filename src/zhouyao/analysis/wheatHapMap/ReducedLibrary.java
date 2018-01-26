@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 import org.apache.commons.lang.ArrayUtils;
 
 /**
@@ -35,16 +36,17 @@ public class ReducedLibrary {
             BufferedReader br ;
             if(inFile.endsWith("gz"))  br = IOUtils.getTextGzipReader(inFile);
             else  br = IOUtils.getTextReader(inFile);
-            outFile = outFile + ".reduced.gz";
+            String outFileg = outFile + ".reduced.gz";
             String temp = null;
 //            String temp1 = null;
-            String temp2 = "";
+//            String temp2 = "";
 //            String temp3 = null;
-           
+            StringBuilder temp2 = new StringBuilder();
+//            temp2.append("");
             int i = 0;
            
             try{
-                BufferedWriter bw = IOUtils.getTextWriter(outFile);
+                BufferedWriter bw = IOUtils.getTextGzipWriter(outFileg);
                 bw.write("");
                 bw.flush();  
                 bw.close(); 
@@ -52,42 +54,49 @@ public class ReducedLibrary {
             catch (Exception e){
                 e.printStackTrace();
             }
+            String outFiles = outFile +".stat.gz";
+            try{
+                BufferedWriter bws = IOUtils.getTextGzipWriter(outFiles);
+                bws.write("");
+                bws.flush();  
+                bws.close(); 
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
             String chr ="";
             List <Integer> getPos = null;
+//            long startTime,endTime;
             while (( temp = br.readLine()) != null) {
-               
-               
                 if(temp.startsWith(">")){
                     System.out.println("Processing chromosome " + i + "...");
                     if(i > 0){
 //                       String chr = Integer.toString(Integer.valueOf(temp.substring(1,2)) - 1);       
                         chr = Integer.toString(i);  
                         getPos = posSearching(temp2,cutter1,cutter2);
-                        getReducedLibrary(chr,getPos,temp2,outFile);
+//                        startTime = System.currentTimeMillis();
+                        getReducedLibrary(chr,getPos,temp2,outFiles,outFileg);
+//                        endTime = System.currentTimeMillis();
+//                        System.out.println("Testing time is "+(endTime-startTime)/1000+ " seconds");
 //                       getReducedLibraryi = 0;
                     }
                     i++;
 //                    String[] tem = temp.split(" ");
 //                    temp1 = tem[0];                   
-                    temp2 = "";
+//                    StringBuilder temp2 = new StringBuilder();
 //                    bw.write(tem[0] + "\n");
+                    
+                    temp2.delete(0, temp2.length());
+                    
                 }
                 else {
-//                   while (temp.startsWith("A") || temp.startsWith("T")|| temp.startsWith("C")|| temp.startsWith("G")) {
-//                   temp3 = temp2 + temp;
-//                   temp2 = temp; 
-//                   } 
-//                   bw.write(temp3 + "\n");   
-//                   temp2 = temp;
-//                   temp3 = temp2;
-                    temp2 = temp2+temp;
-                    
+                    temp2.append(temp);
                 }
                 
             }
             chr = Integer.toString(i);
             getPos = posSearching(temp2,cutter1,cutter2);
-            getReducedLibrary(chr,getPos,temp2,outFile);
+            getReducedLibrary(chr,getPos,temp2,outFiles,outFileg);
 //            bw.write(temp2+"\n");
 //            bw.flush();  
 //            bw.close(); 
@@ -97,11 +106,11 @@ public class ReducedLibrary {
         }
     }
        
-    public List<Integer> binaryCutter(String inChr,String cutter){
+    public List<Integer> binaryCutter(StringBuilder inChr,String cutter){
         String query = null;
         List<Integer> pos = new ArrayList<>();
         for(int i = 0 ; i < inChr.length()-cutter.length() ; i++){
-            if (i%1000000==0){
+            if (i % 100000000 == 0){
                 System.out.println("Processing "+i+" bp");
             }
             query = inChr.substring(i, i + cutter.length());
@@ -111,7 +120,7 @@ public class ReducedLibrary {
         }
         return pos;
     }
-    public List<Integer> posSearching(String inChr,String cutter1,String cutter2){
+    public List<Integer> posSearching(StringBuilder inChr,String cutter1,String cutter2){
         
         List<Integer> aa = new ArrayList();
 //        System.out.println(inChr.length());
@@ -150,23 +159,22 @@ public class ReducedLibrary {
                     ispos1 = true;  
                     pos1V = cc.get(i);
                     j++;
-                    if(ispos1 && ispos2){                       
-                        getpos.add(pos2V);
-                        getpos.add(pos1V+cutter1.length());
-                        ispos2 = false;
+                    if(ispos1 && ispos2){  
+                        if ((pos1V - pos2V)< 600){
+                           getpos.add(pos2V);
+                            getpos.add(pos1V+cutter1.length());
+                            ispos2 = false; 
+                        }
                     }
-                }
-                
-                
-                else{
+                }else{
                     ispos2 = true;
                     pos2V = cc.get(i);
-                    if(ispos1 && ispos2){                       
-                      
+                    if(ispos1 && ispos2){
+                        if ((pos2V - pos1V)< 600){
                             getpos.add(pos1V);
                             getpos.add(pos2V+cutter2.length());
-                        
-                        ispos1 = false;
+                            ispos1 = false; 
+                        }
                     }
                 } 
             }
@@ -175,20 +183,31 @@ public class ReducedLibrary {
     }
      
 
-    public void getReducedLibrary(String Chr,List<Integer> getpos,String inChr,
-            String outfileS){
+    public void getReducedLibrary(String Chr,List<Integer> getpos,StringBuilder inChr,
+            String outFiles,String outFileg){
         try{
         String cutterinChr = null;
         String headcutterinchr =null;
+        String bed = "";
 //        BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             for(int i = 0;i<getpos.size();i = i+2){
-
                 cutterinChr = inChr.substring(getpos.get(i),getpos.get(i+1));
-                headcutterinchr = ">" + Chr + "\t" + getpos.get(i) + "\t" + getpos.get(i+1) + "\n";
-                getWriteStreamAppend(outfileS,headcutterinchr);
-                getWriteStreamAppend(outfileS,cutterinChr+"\n");
+                bed = "Chr"+ Chr + "\t" + getpos.get(i) + "\t" + getpos.get(i+1);
+                headcutterinchr = ">" + bed + "\n";
+                getWriteStreamAppend(outFileg,headcutterinchr);
+//                getWriteStreamAppend(outFileg,Chr);
+//                getWriteStreamAppend(outFileg,"\t");
+//                getWriteStreamAppend(outFileg,String.valueOf(getpos.get(i)));
+//                getWriteStreamAppend(outFileg,"\t");
+//                getWriteStreamAppend(outFileg,String.valueOf(getpos.get(i+1)));
+//                getWriteStreamAppend(outFileg,"\n");
+                getWriteStreamAppend(outFileg,cutterinChr+"\n");
+//                getWriteStreamAppend(outFileg,"\n");
 //                bw.write(cutterinChr);
 //                bw.write(headcutterinchr);
+               
+                getWriteStreamAppend(outFiles,bed + String.valueOf(getpos.get(i+1)-getpos.get(i))+"\n");
+//                getWriteStreamAppend(outFiles,"\n");
             }
 //            bw.flush();  
 //            bw.close(); 
@@ -204,8 +223,8 @@ public class ReducedLibrary {
     public static void getWriteStreamAppend(String file, String conent) {                         
         BufferedWriter out = null;                                                   
         try {                                                                        
-            out = new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream(file, true)));                              
+            out = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(
+                    new FileOutputStream(file, true),65536)),65536);                              
             out.write(conent);                                                      
         } 
         catch (Exception e) {                                                     
@@ -219,7 +238,4 @@ public class ReducedLibrary {
             }                                                                       
         }                                                                           
     }   
-    
-    
-    
 }

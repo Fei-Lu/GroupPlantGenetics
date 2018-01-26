@@ -72,25 +72,19 @@ public class WheatHmpEntraince {
             System.out.println("GenoDist is working...");
             new GenomeDistribute(inFile,outFile);
         }
-        if(model.equals("testing")){
-            String genome = "ATGGATGCATGCAGGGGGCATGCATGCATGGATGCATGGG";
-            String cutter1 = "GGG";
-            String cutter2 = "ATGG";
-            new SubStringSearch(genome,cutter1,cutter2);
+        if(model.equals("test")){
+            new ReducedStat(inFile,outFile);
         }
         if(model.equals("ReducedLib")){
             //Generate a new fasta format file, only contain sequence between 2 REs;
-            
-            if(outFile.equals("")){
-                String[] temp = inFile.split("/");
-                outFile = temp[temp.length -1].split("\\.")[0];
-            }
             new ReducedLibrary(inFile,RE1,RE2,outFile);
-            
+        }
+        if(model.equals("ReduceLib_single")){
+            new ReducedLibrarySigle(inFile,RE1,RE2,outFile);
         }
         long endTime = System.currentTimeMillis();
         int timeLast = (int) ((endTime-startTime)/1000);
-        System.out.println("Process finished in： "+ timeLast + "seconds");
+        System.out.println("Process finished in： "+ timeLast + " seconds");
     }
   
 }
