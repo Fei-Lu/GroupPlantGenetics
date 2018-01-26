@@ -37,9 +37,9 @@ public class ReducedLibrary {
            
             String temp = null;
 //            String temp1 = null;
-            String temp2 = "";
+//            String temp2 = "";
 //            String temp3 = null;
-           
+            StringBuilder temp2 = new StringBuilder();
             int i = 0;
            
             try{
@@ -69,7 +69,7 @@ public class ReducedLibrary {
                     i++;
 //                    String[] tem = temp.split(" ");
 //                    temp1 = tem[0];                   
-                    temp2 = "";
+                    temp2.delete(0, temp2.length());
 //                    bw.write(tem[0] + "\n");
                 }
                 else {
@@ -80,7 +80,7 @@ public class ReducedLibrary {
 //                   bw.write(temp3 + "\n");   
 //                   temp2 = temp;
 //                   temp3 = temp2;
-                    temp2 = temp2+temp;
+                    temp2.append(temp);
                     
                 }
                 
@@ -97,7 +97,7 @@ public class ReducedLibrary {
         }
     }
        
-    public List<Integer> binaryCutter(String inChr,String cutter){
+    public List<Integer> binaryCutter(StringBuilder inChr,String cutter){
         String query = null;
         List<Integer> pos = new ArrayList<>();
         for(int i = 0 ; i < inChr.length()-cutter.length() ; i++){
@@ -119,7 +119,7 @@ public class ReducedLibrary {
 //        System.out.println(index);
 //    }
     
-    public List<Integer> posSearching(String inChr,String cutter1,String cutter2){
+    public List<Integer> posSearching(StringBuilder inChr,String cutter1,String cutter2){
         
         List<Integer> aa = new ArrayList();
 //        System.out.println(inChr.length());
@@ -183,7 +183,7 @@ public class ReducedLibrary {
     }
      
 
-    public void getReducedLibrary(String Chr,List<Integer> getpos,String inChr,
+    public void getReducedLibrary(String Chr,List<Integer> getpos,StringBuilder inChr,
             String outfileS){
         try{
         String cutterinChr = null;
@@ -192,7 +192,7 @@ public class ReducedLibrary {
             for(int i = 0;i<getpos.size();i = i+2){
 
                 cutterinChr = inChr.substring(getpos.get(i),getpos.get(i+1));
-                headcutterinchr = ">" + Chr + "\t" + getpos.get(i) + "\t" + getpos.get(i+1) + "\n";
+                headcutterinchr = ">" + Chr + "_" + getpos.get(i) + "_" + getpos.get(i+1) + "\n";
                 getWriteStreamAppend(outfileS,headcutterinchr);
                 getWriteStreamAppend(outfileS,cutterinChr+"\n");
 //                bw.write(cutterinChr);

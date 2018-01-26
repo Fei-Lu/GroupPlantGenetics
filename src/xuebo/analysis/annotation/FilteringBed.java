@@ -44,39 +44,48 @@ public class FilteringBed {
             
             while (( temp = br.readLine()) != null) {
                 
-                ++i;
+                    ++i;
+                    if (i % 500000 == 0) {
+
+                    System.out.println("Filtering " + i + "....");
+
+                    }
+
 
                 String[] tem = temp.split("\t");
+                
+                if(tem[0].equals(1) || tem[0].equals(2) || tem[0].equals(3) || tem[0].equals(4) || tem[0].equals(5)){
 
-                a1 = 7.1 * Double.parseDouble(tem[0]);
-                a2 = 100 * Integer.parseInt(tem[1]);
-                a3 = 1000 * Integer.parseInt(tem[2]);
-                f = a1 + a2 + a3 ;
-                L1 = "chr" + tem[0] + "\t" + tem[1] + "\t" + tem[2] + "\t";
+                    a1 = 7.1 * Double.parseDouble(tem[0]);
+                    a2 = 100 * Integer.parseInt(tem[1]);
+                    a3 = 1000 * Integer.parseInt(tem[2]);
+                    f = a1 + a2 + a3 ;
+                    L1 = "chr" + tem[0] + "\t" + tem[1] + "\t" + tem[2] + "\t";
 
-                if(f == fo){
-                    
-                    count  = count + 1;
-                    L2 = L1;
-                }
-                else{ 
-                    
-                    fo = f; 
-                    
-                    if(i > 1) {                       
-                        bw.write(L2 + count + "\n"); 
-                        bw.flush(); 
+                    if(f == fo){
+
+                        count  = count + 1;
                         L2 = L1;
-                        count = 1;
                     }
+                    else{ 
+
+                        fo = f; 
+
+                        if(i > 1) {                       
+                            bw.write(L2 + count + "\n"); 
+                            bw.flush(); 
+                            L2 = L1;
+                            count = 1;
+                        }
                     
+                    }
                 }
             }
-            bw.write(L2 + count + "\n"); 
-            bw.flush();  
-            bw.close(); 
-        
-        }
+                bw.write(L2 + count + "\n"); 
+                bw.flush(); 
+                bw.close();
+            
+            }
         catch (Exception e){
             e.printStackTrace();
         }

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package xuebo.analysis.annotation;
+//package xuebo.analysis.annotation;
 
 /**
  *
@@ -25,18 +25,17 @@ package xuebo.analysis.annotation;
 //public class Entrance4C{
 //    
 //    public static void main (String[] args) {
-        
-//        String infileS = "/Users/xuebozhao/Documents/4Cdata/4C_data_1/containning_results/C4_L3.bed";
-//        String outfileS = "/Users/xuebozhao/Documents/4Cdata/4C_data_1/containning_results/C4_L3_Filtering.txt";
-//        new Filtering(infileS,outfileS);
-
-
-//        String a  = "agatct";
-//        int b = a.indexOf("atct");
-//        System.out.println( b );
-        
+//        
+//        String infileS = "/Users/xuebozhao/Documents/4Cdata/Library/C4_L3.bed";
+//        String outfileS = "/Users/xuebozhao/Documents/4Cdata/Library/C4_L3_Filllll.txt";
+//        new FilteringBed(infileS,outfileS);
+//
+//
+////        String a  = "agatct";
+////        int b = a.indexOf("atct");
+////        System.out.println( b );
+//        
 //    }
-//}
 
 //public class Entrance4C{
 //   

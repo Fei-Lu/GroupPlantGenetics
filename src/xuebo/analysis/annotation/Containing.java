@@ -72,7 +72,7 @@ public class Containing {
 
                 ++i;
                 
-                if (i % 2 == 0) {
+                if (i % 500000 == 0) {
 
                     System.out.println("Filtering " + i + "....");
 
@@ -107,8 +107,10 @@ public class Containing {
                         if(temp1.contains("TTAA") && temp2.contains("AGATCT")){
 //                            int aa = temp1.indexOf("TTAACC");
 //                            int bb = temp2.indexOf("AGATCT");
+                            if(aa > 78 && bb>83){
                             L12 = temp1.substring(78, aa);
                             L22 = temp2.substring(83, bb);
+                            }
                             if (L12.length() == L22.length()){
                                 L2t = 11;
                                 
@@ -139,8 +141,10 @@ public class Containing {
                         if(temp2.contains("TTAA") && temp1.contains("AGATCT")){
 //                            int cc = temp2.indexOf("TTAACC");
 //                            int dd = temp1.indexOf("AGATCT");
+                            if(cc > 78 && dd > 83){
                             L12 = temp2.substring(78, cc);
                             L22 = temp1.substring(83, dd);
+                            }
                             if (L12.length() == L22.length()){
                                 L2t = 13;
                             }                         
@@ -264,18 +268,23 @@ public class Containing {
                     
                     if (L2t == 11){
                         
+                        if(aa > 78 && bb > 83){
+                            
                         L14 = temp1.substring(78, aa);
                         L24 = temp2.substring(83, bb);
                         
                         outWrite = true;
+                        }
                     }
                     
                     if (L2t == 13){
-                        
+                        if(cc > 78 && dd > 83){
+                            
                         L14 = temp2.substring(78, cc);
                         L24 = temp1.substring(83, dd);
                         
                         outWrite = true;
+                        }
                     }
                     L2t = 0;
                     
