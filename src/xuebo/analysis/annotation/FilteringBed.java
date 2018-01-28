@@ -36,6 +36,7 @@ public class FilteringBed {
             double a1 = 0;
             int a2 = 0;
             int a3 = 0;
+            int a4 = 0;
             double f = 0;
             double fo = 0;
             int count = 1;
@@ -45,7 +46,8 @@ public class FilteringBed {
             while (( temp = br.readLine()) != null) {
                 
                     ++i;
-                    if (i % 500000 == 0) {
+                    
+                    if (i % 5 == 0) {
 
                     System.out.println("Filtering " + i + "....");
 
@@ -53,14 +55,18 @@ public class FilteringBed {
 
 
                 String[] tem = temp.split("\t");
-                
-                if(tem[0].equals(1) || tem[0].equals(2) || tem[0].equals(3) || tem[0].equals(4) || tem[0].equals(5)){
+                String[] temfirst = tem[0].split("_");
+       
 
-                    a1 = 7.1 * Double.parseDouble(tem[0]);
-                    a2 = 100 * Integer.parseInt(tem[1]);
-                    a3 = 1000 * Integer.parseInt(tem[2]);
-                    f = a1 + a2 + a3 ;
-                    L1 = "chr" + tem[0] + "\t" + tem[1] + "\t" + tem[2] + "\t";
+                    a1 = 7.1 * Double.parseDouble(temfirst[0]);
+                    a2 = 100 * Integer.parseInt(temfirst[1]);
+                    a3 = 1000 * Integer.parseInt(tem[1]);
+                    a4 = 10000 * Integer.parseInt(tem[2]);
+                    f = a1 + a2 + a3 + a4;
+                    int aa = Integer.valueOf(temfirst[1]) + Integer.valueOf(tem[1]);
+                    int bb = Integer.valueOf(temfirst[1]) + Integer.valueOf(tem[2]);
+                    L1 = "chr" + temfirst[0] + "\t" + aa
+                            + "\t" + bb + "\t";
 
                     if(f == fo){
 
@@ -79,7 +85,7 @@ public class FilteringBed {
                         }
                     
                     }
-                }
+                
             }
                 bw.write(L2 + count + "\n"); 
                 bw.flush(); 
