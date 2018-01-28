@@ -58,6 +58,7 @@ public class ReducedLibrary {
 //               System.out.println(tem[0]);
                
                 if(temp.startsWith(">")){
+                    System.out.println("Processing chromosome " + i + "...");
                     if(i > 0){
 //                       String chr = Integer.toString(Integer.valueOf(temp.substring(1,2)) - 1);       
                         chr = Integer.toString(i);  
