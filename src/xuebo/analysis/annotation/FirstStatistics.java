@@ -7,62 +7,59 @@ package xuebo.analysis.annotation;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.util.HashMap;
 
 /**
  *
  * @author xuebozhao
  */
-
-public class FilteringBed {
+public class FirstStatistics {
     
-    FilteringBed(String infileS,String outfileS) {
+
+    FirstStatistics(String infileS,String outfileS) {
         
         this.readBed(infileS,outfileS);
         
     }
     
+    @SuppressWarnings("empty-statement")
     public void readBed (String infileS,String outfileS){
         try{
             
             BufferedReader br;            
             br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             
             String temp = null;
             String L1 = null;
             String L2 = null;
-            
             int i = 0;
             double a1 = 0;
             int a2 = 0;
             int a3 = 0;
-      
             double f = 0;
             double fo = 0;
             int count = 1;
-            
-            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
-            
+            int count0 =0;
             while (( temp = br.readLine()) != null) {
                 
                     ++i;
                     
-                    if (i % 100 == 0) {
+                    if (i % 1000 == 0) {
 
-                    System.out.println("Filtering " + i + "....");
+                        System.out.println("Filtering " + i + "....");
 
                     }
 
 
-                    String[] tem = temp.split("\t"); 
-                    int aaa = Integer.valueOf(tem[0]);
-                    
-                if ( aaa < 6){
+                    String[] tem = temp.split("\t");
+                    count0 = Integer.valueOf(tem[3]);
+
+//                if ( count > 1){
 
                     a1 = 7.1 * Double.parseDouble(tem[0]);
                     a2 = 100 * Integer.parseInt(tem[1]);
                     a3 = 1000 * Integer.parseInt(tem[2]);
-                    
+                                   
                     f = a1 + a2 + a3;
                     
                     L1 = "chr" + tem[0] + "\t" + tem[1] + "\t" + tem[2] + "\t";
@@ -72,21 +69,23 @@ public class FilteringBed {
 
                         count  = count + 1;
                         L2 = L1;
+                        
                     }
                     else{ 
 
                         fo = f; 
-
+                        
                         if(i > 1) {                       
+                            
                             bw.write(L2 + count + "\n"); 
                             bw.flush(); 
-                            L2 = L1;
-                            count = 1;
+                            count = Integer.valueOf(tem[3]);
                         }
-                    
-                    }                  
+                        L2 = L1;
+                        count = count0;
+                    }                 
     //                bw.close();
-                }
+//                }
             }
             bw.write(L2 + count + "\n"); 
             bw.flush(); 
@@ -95,8 +94,6 @@ public class FilteringBed {
         catch (Exception e){
             e.printStackTrace();
         }
-        
-        
     }
     
 }
