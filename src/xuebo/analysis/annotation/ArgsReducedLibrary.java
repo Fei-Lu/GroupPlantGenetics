@@ -26,7 +26,8 @@ public class ArgsReducedLibrary {
         String cutter1 = "";        
         String cutter2 = "";
         
-        String outfileS = "";
+        String outfileS1 = "";
+        String outfileS2 = "";
            
         for (int i = 0; i < len; i++){
             
@@ -47,8 +48,9 @@ public class ArgsReducedLibrary {
                     break; 
                     
                 case "-o":
-                    outfileS = args[i+1];
-                    i++;
+                    outfileS1 = args[i+1];
+                    outfileS2 = args[i+2];
+                    i = i +2 ;
                     break;
                     
                 default:
@@ -57,13 +59,16 @@ public class ArgsReducedLibrary {
         }
         
         
-        if(outfileS.equals("")){
+        if(outfileS1.equals("")){
             String[] temp = infileS.split("/");
-            outfileS = temp[temp.length -1].split("\\.")[0] + ".reducedlibrary.fas";
+            outfileS1 = temp[temp.length -1].split("\\.")[0] + ".reducedlibrary.fas";
         }
         
-        
-        new ReducedLibrary(infileS ,cutter1 , cutter2, outfileS); 
+        if(outfileS2.equals("")){
+            String[] temp = infileS.split("/");
+            outfileS2 = temp[temp.length -1].split("\\.")[0] + ".libraryAll.bed";
+        }
+        new ReducedLibrary(infileS ,cutter1 , cutter2, outfileS1,outfileS2); 
         
     }
 }

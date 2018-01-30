@@ -26,10 +26,17 @@ public class Entrance4C{
     
     public static void main (String[] args) {
         
-        String infileS = "/Users/xuebozhao/Documents/4Cdata/Library/C4_L3.sorted.bed";
-        String outfileS = "/Users/xuebozhao/Documents/4Cdata/Library/C4_L3_Filtering.txt";
+        String infileS = "/Users/xuebozhao/Documents/4Cdata/Library/addL23567.sorted.bed";
+        String outfileS = "/Users/xuebozhao/Documents/4Cdata/Library/addL23567_Filtering.txt";
 //        new FirstStatistics(infileS,outfileS);
         new FilteringBed(infileS,outfileS);
+//        new BedUnSorted(infileS,outfileS);
+//      
+
+//        String infileS = "/Users/xuebozhao/Documents/4Cdata/Library/C4_L7.bed";
+//        String outfileS = "/Users/xuebozhao/Documents/4Cdata/Library/C4_L7_BedUnSorted.txt";
+////        new FirstStatistics(infileS,outfileS);
+////        new FilteringBed(infileS,outfileS);
 //        new BedUnSorted(infileS,outfileS);
 
 //        String a  = "agatct";

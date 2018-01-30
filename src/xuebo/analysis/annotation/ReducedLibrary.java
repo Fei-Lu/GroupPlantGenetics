@@ -23,13 +23,13 @@ import org.apache.commons.lang.ArrayUtils;
  */
 public class ReducedLibrary {
     
-    ReducedLibrary(String infileS,String cutter1,String cutter2, String outfileS) {
+    ReducedLibrary(String infileS,String cutter1,String cutter2, String outfileS1,String outfileS2) {
 
-        this.SecondFiltering(infileS,cutter1,cutter2,outfileS);
+        this.SecondFiltering(infileS,cutter1,cutter2,outfileS1,outfileS2);
 //        this.outputFiles(outfileS1, outfileS2);
     }
 
-    public void SecondFiltering(String infileS, String cutter1,String cutter2,String outfileS) {
+    public void SecondFiltering(String infileS, String cutter1,String cutter2,String outfileS1,String outfileS2) {
         try{
             
            BufferedReader br;            
@@ -43,10 +43,14 @@ public class ReducedLibrary {
             int i = 0;
            
             try{
-                BufferedWriter bw = IOUtils.getTextWriter(outfileS);
-                bw.write("");
-                bw.flush();  
-                bw.close(); 
+                BufferedWriter bw1 = IOUtils.getTextWriter(outfileS1);
+                BufferedWriter bw2 = IOUtils.getTextWriter(outfileS2);
+                bw1.write("");
+                bw2.write("");
+                bw1.flush(); 
+                bw2.flush(); 
+                bw1.close(); 
+                bw2.close(); 
             }
             catch (Exception e){
                 e.printStackTrace();
@@ -64,7 +68,7 @@ public class ReducedLibrary {
                         chr = Integer.toString(i);  
                         
                         getPos = posSearching(temp2,cutter1,cutter2);
-                        getReducedLibrary(chr,getPos,temp2,outfileS);
+                        getReducedLibrary(chr,getPos,temp2,outfileS1,outfileS2);
 //                       getReducedLibraryi = 0;
                     }
                     i++;
@@ -88,7 +92,7 @@ public class ReducedLibrary {
             }
             chr = Integer.toString(i);
             getPos = posSearching(temp2,cutter1,cutter2);
-            getReducedLibrary(chr,getPos,temp2,outfileS);
+            getReducedLibrary(chr,getPos,temp2,outfileS1,outfileS2);
 //            bw.write(temp2+"\n");
 //            bw.flush();  
 //            bw.close(); 
@@ -185,17 +189,21 @@ public class ReducedLibrary {
      
 
     public void getReducedLibrary(String Chr,List<Integer> getpos,StringBuilder inChr,
-            String outfileS){
+            String outfileS1 ,String outfileS2){
         try{
         String cutterinChr = null;
-        String headcutterinchr =null;
+        String headcutterinchr = null;
+        String headcutterbed = null;
 //        BufferedWriter bw = IOUtils.getTextWriter(outfileS);
-            for(int i = 0;i<getpos.size();i = i+2){
+            for(int i = 0;i < getpos.size();i = i+2){
 
                 cutterinChr = inChr.substring(getpos.get(i),getpos.get(i+1));
                 headcutterinchr = ">" + Chr + "_" + getpos.get(i) + "_" + getpos.get(i+1) + "\n";
-                getWriteStreamAppend(outfileS,headcutterinchr);
-                getWriteStreamAppend(outfileS,cutterinChr+"\n");
+                headcutterbed = Chr + "\t" + getpos.get(i) + "\t" + getpos.get(i+1) + "\t0";
+                getWriteStreamAppend(outfileS1,headcutterinchr);
+                getWriteStreamAppend(outfileS1,cutterinChr+"\n");
+                getWriteStreamAppend(outfileS2,headcutterbed +"\n");
+//                getWriteStreamAppend(outfileS1,cutterinChr+"\n");
 //                bw.write(cutterinChr);
 //                bw.write(headcutterinchr);
             }

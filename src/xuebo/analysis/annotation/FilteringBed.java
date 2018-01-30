@@ -47,7 +47,7 @@ public class FilteringBed {
                 
                     ++i;
                     
-                    if (i % 100 == 0) {
+                    if (i % 1000 == 0) {
 
                     System.out.println("Filtering " + i + "....");
 
