@@ -48,9 +48,11 @@ public void test () throws IOException {
         
         nameSet.parallelStream().forEach(p -> {
             String infile1 = new File (inputDirS, p+"_1.clean.fq").getAbsolutePath();
+            String infile2 = new File (inputDirS, p+"_2.clean.fq").getAbsolutePath();
             String seq = null;
             try {
-                BufferedReader br1 = utils.IOUtils.getTextReader(infile1);                              
+                BufferedReader br1 = utils.IOUtils.getTextReader(infile1);  
+                BufferedReader br2 = utils.IOUtils.getTextReader(infile2); 
                 BufferedWriter[] bws = new BufferedWriter[rowNumber];
                 for (int i = 0; i < bws.length; i++) {
                     String outfileS = new File (outputFastaDirS, nameList.get(i)).getAbsolutePath();
@@ -60,17 +62,19 @@ public void test () throws IOException {
                 while ((temp = br1.readLine()) != null){
                     seq=br1.readLine(); 
                     Integer index = barcodeIndexMap.get(seq.substring(0, 8));
-                    if (index == null) {
-                        br1.readLine();br1.readLine();
+                    br1.readLine();br1.readLine();                    
+                    if (index == null) {                        
+                        br2.readLine();br2.readLine();br2.readLine();br2.readLine();
                         continue;
                     }
-                    bws[index].write(temp + "\n");
-                    bws[index].write(seq + "\n");
-                    bws[index].write(br1.readLine() + "\n");
-                    bws[index].write(br1.readLine()+"\n");
+                    bws[index].write(br2.readLine() + "\n");
+                    bws[index].write(br2.readLine() + "\n");
+                    bws[index].write(br2.readLine() + "\n");
+                    bws[index].write(br2.readLine()+"\n");
                     
                 }
                 br1.close();
+                br2.close();
                     
                        
         }
