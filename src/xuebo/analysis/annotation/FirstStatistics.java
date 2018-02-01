@@ -21,7 +21,6 @@ public class FirstStatistics {
         
     }
     
-    @SuppressWarnings("empty-statement")
     public void readBed (String infileS,String outfileS){
         try{
             
@@ -53,6 +52,7 @@ public class FirstStatistics {
 
                     String[] tem = temp.split("\t");
                     count0 = Integer.valueOf(tem[3]);
+                    
 
 //                if ( count > 1){
 

@@ -53,18 +53,17 @@ public class EnzymePosChr {
                 if(temp.startsWith(">")){
                     
                     System.out.println("Processing chromosome " + i + "...");
-                    if(i > 0){
-//                       String chr = Integer.toString(Integer.valueOf(temp.substring(1,2)) - 1);       
+                    if(i > 0){     
+                        
                         chr = Integer.toString(i);  
                         
                         Pos = binaryCutter(temp2,cutter);
-                        
+                        getReducedLibrary(chr,Pos,temp2,outfileS);
                     }
-                    i++;
-//                    String[] tem = temp.split(" ");
-//                    temp1 = tem[0];                   
+                    
+                    i++; 
+                    
                     temp2.delete(0, temp2.length());
-//                    bw.write(tem[0] + "\n")
                 }
                 else {                    
                     temp2.append(temp);                   
@@ -73,6 +72,7 @@ public class EnzymePosChr {
             }
             chr = Integer.toString(i);
             Pos = binaryCutter(temp2,cutter);
+            getReducedLibrary(chr,Pos,temp2,outfileS);
         }
         catch (Exception e){
             e.printStackTrace();
@@ -99,8 +99,8 @@ public class EnzymePosChr {
         String headcutterbed = null;
 //        BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             for(int i = 0;i < pos.size();i = i+1){
-                int aa = Integer.valueOf(pos.get(i)) + 6 ;
-                headcutterbed = Chr + "\t" + pos.get(i) + "\t" + aa + "\t0";
+                int aa = Integer.valueOf(pos.get(i)) + 5 ;
+                headcutterbed = Chr + "\t" + pos.get(i) + "\t" + aa + "\t0" + "\n";
                 getWriteStreamAppend(outfileS,headcutterbed);
             }
         }

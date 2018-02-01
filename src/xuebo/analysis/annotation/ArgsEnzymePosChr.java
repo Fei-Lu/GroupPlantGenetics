@@ -34,7 +34,7 @@ public class ArgsEnzymePosChr {
                     
                 case "-o":
                     outfileS = args[i+1];
-                    i = i + 1 ;
+                    i++ ;
                     break;
                     
                 default:
