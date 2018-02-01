@@ -16,6 +16,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.io. * ;
 import static java.lang.String.format;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
 import jxl. * ;
 import jxl.read.biff.BiffException;
@@ -31,8 +36,11 @@ public class DistinguishSample {
     public String ID;
     Read[] reads=null;
     int phredScale = Integer.MIN_VALUE;
-    public DistinguishSample() throws IOException {
-        this.fastqToFasta();
+    public DistinguishSample() throws IOException, FileNotFoundException, BiffException {
+ //         this.fastqToFasta1();
+//          this.testxlsx();
+//          this.sampleFastq1 ();
+          this.test();
     }
      /**
      * Build a byte converter to convert AscII byte following the BaseCoder rules
@@ -156,10 +164,10 @@ public class DistinguishSample {
     }
      
      public void testxlsx() throws FileNotFoundException, IOException, BiffException{
-         String barcodeFileS="/Users/xujun/Downloads/3'RNAseq barcode.xlsx";
+         String barcodeFileS="E:\\experimental data\\RNA_seq\\3'RNAseq barcode.xlsx";
          InputStream is = new FileInputStream(barcodeFileS); 
-         jxl.Workbook wb = Workbook.getWorkbook(is); //得到工作薄 have some question.but i can not find.
-         jxl.Sheet ft = wb.getSheet(0);
+         Workbook wb = Workbook.getWorkbook(is); //得到工作薄 have some question.but i can not find.
+         Sheet ft = wb.getSheet(0);
          int rownumber =ft.getRows(); 
          int columnumber=ft.getColumns(); 
          HashMap<String,Integer> barcodeIndexMap=new HashMap<>();
@@ -170,53 +178,87 @@ public class DistinguishSample {
          int index=barcodeIndexMap.get(s.subSequence(0,8));
          BufferedWriter[] bwa=new BufferedWriter[rownumber];//BufferedWriter[]这个数组是用于输出的 根据96个barcode我们会输出96个文件 所以建立了一个barcode输出数组      
      }
-     public void test () throws IOException {//区分barcode的最终版本 再优化一下加上index的筛选！！！
-        String barcodeFileS = "/Users/XuJun/Documents/barcodepool.txt";
-        String inputFile="/Users/xujun/Desktop/RNA_seq/twice/clean_data.fq/Test.clean.fq.Txt";
+     public void test () throws IOException {//区分barcode的最终版本 运行时间3min8s
+        String barcodeFileS = "E:\\experimental data\\RNA_seq\\3'RNAseq barcode.txt";
+        String inputDirS ="E:\\experimental data\\RNA_seq\\twice\\clean_data\\";
+        String outputFastaDirS = "E:\\experimental data\\RNA_seq\\twice\\test";        
         RowTable<String> rt = new RowTable<>(barcodeFileS);
         int rowNumber = rt.getRowNumber();
         int columnNumber = rt.getColumnNumber();
         HashMap<String, Integer> barcodeIndexMap = new HashMap<>();
+        List<String> nameList = new ArrayList<>();
         for (int i = 0; i < rt.getRowNumber(); i++) {
             barcodeIndexMap.put(rt.getCell(i, 1), i);
+            nameList.add(rt.getCell(i, 0));
         }
+        File[] fs = new File(inputDirS).listFiles();
+        HashSet<String> nameSet = new HashSet();
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) continue;
+            nameSet.add(fs[i].getName().split("_")[0]);
+        }
+        
+        nameSet.parallelStream().forEach(p -> {
+            String infile1 = new File (inputDirS, p+"_1.clean.fq").getAbsolutePath();
+//            String infile2 = new File (inputDirS, name+"_2.clean.fq").getAbsolutePath();
+//            String outfile1 = new File (outputFastaDirS, name+"_1.fq").getAbsolutePath();
+//            String outfile2 = new File (outputFastaDirS, name+"_2.fq").getAbsolutePath();
+//            String outfile3=new File(outputFastaDirS).getAbsolutePath();
+            String seq = null;
+            try {
+                BufferedReader br1 = utils.IOUtils.getTextReader(infile1);
+//                BufferedReader br2 = utils.IOUtils.getTextReader(infile2);
+//                BufferedWriter bw1 = utils.IOUtils.getTextWriter(outfile1);
+//                BufferedWriter bw2 = utils.IOUtils.getTextWriter(outfile2);
+                
+                
+                BufferedWriter[] bws = new BufferedWriter[rowNumber];//这里只是创建了一个bufferedreader类型的数组 并没有对里面的各个new
+                for (int i = 0; i < bws.length; i++) {
+                    String outfileS = new File (outputFastaDirS, nameList.get(i)).getAbsolutePath();
+                    bws[i] = IOUtils.getTextWriter(outfileS);
+                }
+                String temp=null;
+                //String seq=null;
+                
+                int count = 0;
+                while ((temp = br1.readLine()) != null){
+                    count+=4;
+                    seq=br1.readLine(); 
+                    Integer index = barcodeIndexMap.get(seq.substring(0, 8));
+                    if (index == null) {
+                        br1.readLine();br1.readLine();
+                        continue;
+                    }
+                    bws[index].write(temp + "\n");
+                    bws[index].write(seq + "\n");
+                    bws[index].write(br1.readLine() + "\n");
+                    bws[index].write(br1.readLine()+"\n");
+                    
+                }
+                br1.close();
+                    
+                       
+        }
+        catch (Exception ex) {
+               System.out.println(seq+"\t1234");        
+               ex.printStackTrace();
+               
+        }
+        });
+                
 //        String s = "CACATTCCATTCGCGTAGCCTTA";//fastqc里面的第二行信息 到时候读出来输入即可
-        int index = barcodeIndexMap.get(inputFile.substring(0, 8));
-        BufferedWriter[] bws =new BufferedWriter [rowNumber];
-        for(int i=0;i<rowNumber;i++){
-            if(index==i){
-               bws[i].write(inputFile);
-            }
-        }
+//        BufferedReader br = IOUtils.getTextReader(inputFileS);
+        
+        
+        
         
 //        String seq = "ATGCCGTAGC";
         
-    }
-     public void fastqToFasta() throws IOException {
-         String inputFileS="/Users/xujun/Desktop/RNA_seq/twice/clean_data.fq/s1116-3_HGVHVCCXY_L4_2.clean.fq";
-         String outputFileS="/Users/xujun/Desktop/RNA_seq/twice/clean_data.fq/Test.clean.fq.Txt";
-//         BufferedReader br = new BufferedReader(new FileReader(inputFileS));
-         RowTable<String> rt = new RowTable<>(inputFileS);
-         int rowNumber = rt.getRowNumber();
-         System.out.println(rowNumber);
-         BufferedReader br = IOUtils.getTextReader(inputFileS);
-         String temp=null;
-         BufferedWriter bw = null;
-         String seq;
-         int count = 0;
-         bw = new BufferedWriter(new FileWriter(outputFileS), 65536);
-         while ((temp = br.readLine()) != null) {
-             bw.write(br.readLine());br.readLine();br.readLine();
-             bw.newLine();
-             count++;
-         }
-         bw.flush();
-         bw.close();
-         System.out.println(count);       
-     }
+    }       
+ 
      public void fastqToFasta1() throws IOException {
-         String inputFileS="/Users/xujun/Desktop/RNA_seq/twice/clean_data.fq/s1116-3_HGVHVCCXY_L4_2.clean.fq";
-         String outputFileS="/Users/xujun/Desktop/RNA_seq/twice/clean_data.fq/Test.clean.fq.Txt";
+         String inputFileS="E:\\experimental data\\RNA_seq\\twice\\clean_data.fq\\s1116-1_HGVHVCCXY_L2_1.clean.fq";
+         String outputFileS="E:\\experimental data\\RNA_seq\\twice\\clean_data.fq\\L2_1.clean_test.txt";
 //         BufferedReader br = new BufferedReader(new FileReader(inputFileS));
          BufferedReader br = IOUtils.getTextReader(inputFileS);
          String temp=null;
@@ -232,7 +274,116 @@ public class DistinguishSample {
          bw.close();
          System.out.println(count);
      }
-    public static void main(String[] args) throws IOException{
+     public void sampleFastq () {
+        String infileDirS = "E:\\experimental data\\RNA_seq\\twice\\clean_data.fq";
+        String outputDirS ="E:\\experimental data\\RNA_seq\\twice\\clean_data.fq)";
+        String outputFastaDirS = "E:\\experimental data\\RNA_seq\\twice\\clean_data.fq)";
+        File[] fs = new File(infileDirS).listFiles();
+        HashSet<String> nameSet = new HashSet();
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) continue;
+            nameSet.add(fs[i].getName().split("_")[0]);
+        }
+        nameSet.parallelStream().forEach(name -> {
+            String infile1 = new File (infileDirS, name+"_1.fq.gz").getAbsolutePath();
+            String infile2 = new File (infileDirS, name+"_2.fq.gz").getAbsolutePath();
+            String outfile1 = new File (outputDirS, name+"_1.fq.gz").getAbsolutePath();
+            String outfile2 = new File (outputDirS, name+"_2.fq.gz").getAbsolutePath();
+            String outfileFasta = new File (outputFastaDirS, name+"_1.fa").getAbsolutePath();
+            try {
+                BufferedReader br1 = utils.IOUtils.getTextGzipReader(infile1);
+                BufferedReader br2 = utils.IOUtils.getTextGzipReader(infile2);
+                BufferedWriter bw1 = utils.IOUtils.getTextGzipWriter(outfile1);
+                BufferedWriter bw2 = utils.IOUtils.getTextGzipWriter(outfile2);
+                BufferedWriter bwf = utils.IOUtils.getTextGzipWriter(outfileFasta);
+                String temp = null;
+                while ((temp = br1.readLine()) != null) {
+                    bw1.write(temp);
+                    temp = br1.readLine();bw1.write(temp+"\n");
+                    br1.readLine();br1.readLine();
+                    bw2.write(br2.readLine()+"\n");bw2.write(br2.readLine()+"\n");br2.readLine();br2.readLine();
+                    
+                   
+                    bw1.flush();bw1.close();
+                    bw2.flush();bw2.close();
+                    bwf.flush();bwf.close();
+                    br1.close();
+                    br2.close();
+                    break;      
+                }
+                System.out.println(String.valueOf(1) + " reads are sampled from"+ name);
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        });
+    }
+     
+     private void sampleFastq1 () {
+        String infileDirS = "E:\\experimental data\\RNA_seq\\twice\\clean_data";
+        String outputDirS ="E:\\experimental data\\RNA_seq\\twice\\clean_data\\test";
+        String outputFastaDirS = "E:\\experimental data\\RNA_seq\\twice\\clean_data\\test";
+        int readNum = 1000;
+        int startPoint = 1000;
+        int fastaNum = 1000;
+        File[] fs = new File(infileDirS).listFiles();
+        HashSet<String> nameSet = new HashSet();
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) continue;
+            nameSet.add(fs[i].getName().split("_")[0]);
+        }
+        nameSet.parallelStream().forEach(name -> {
+            String infile1 = new File (infileDirS, name+"_1.clean.fq").getAbsolutePath();
+            String infile2 = new File (infileDirS, name+"_2.clean.fq").getAbsolutePath();
+            String outfile1 = new File (outputDirS, name+"_1.fq").getAbsolutePath();
+            String outfile2 = new File (outputDirS, name+"_2.fq").getAbsolutePath();
+            String outfileFasta = new File (outputFastaDirS, name+"_1.fa").getAbsolutePath();
+            try {
+                BufferedReader br1 = utils.IOUtils.getTextReader(infile1);
+                BufferedReader br2 = utils.IOUtils.getTextReader(infile2);
+                BufferedWriter bw1 = utils.IOUtils.getTextWriter(outfile1);
+                BufferedWriter bw2 = utils.IOUtils.getTextWriter(outfile2);
+                BufferedWriter bwf = utils.IOUtils.getTextWriter(outfileFasta);
+                String temp = null;
+                int cnt = 0;
+                while ((temp = br1.readLine()) != null) {
+                    cnt++;
+                    if (cnt < startPoint) {
+                        br1.readLine();br1.readLine();br1.readLine();
+                        br2.readLine();br2.readLine();br2.readLine();br2.readLine();
+                    }
+                    else {
+                        bw1.write(temp+"\n");bw1.write(br1.readLine()+"\n");bw1.write(br1.readLine()+"\n");bw1.write(br1.readLine()+"\n");
+                        bw2.write(br2.readLine()+"\n");bw2.write(br2.readLine()+"\n");bw2.write(br2.readLine()+"\n");bw2.write(br2.readLine()+"\n");
+                        for (int i = 0; i < readNum-1; i++) {
+                            bw1.write(br1.readLine()+"\n");
+                            temp = br1.readLine();bw1.write(temp+"\n");
+                            bw1.write(br1.readLine()+"\n");bw1.write(br1.readLine()+"\n");
+                            bw2.write(br2.readLine()+"\n");bw2.write(br2.readLine()+"\n");bw2.write(br2.readLine()+"\n");bw2.write(br2.readLine()+"\n");
+                            if (i > fastaNum) continue;
+                            bwf.write(">"+String.valueOf(i));
+                            bwf.newLine();
+                            bwf.write(temp);
+                            bwf.newLine();
+                        }
+                        bw1.flush();bw1.close();
+                        bw2.flush();bw2.close();
+                        bwf.flush();bwf.close();
+                        br1.close();
+                        br2.close();
+                        break;
+                    }
+                }
+                System.out.println(String.valueOf(readNum) + " reads are sampled from"+ name);
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        });
+    }
+    public static void main(String[] args) throws IOException, FileNotFoundException, BiffException{
         new DistinguishSample();
     }
 }
