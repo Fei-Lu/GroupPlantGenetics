@@ -25,12 +25,12 @@ package xuebo.analysis.annotation;
 public class Entrance4C{
     
     public static void main (String[] args) {
-        
-        String infileS = "/Users/xuebozhao/Documents/4Cdata/Library/addL23567.sorted.bed";
-        String outfileS = "/Users/xuebozhao/Documents/4Cdata/Library/addL23567_Filtering.txt";
-//        new FirstStatistics(infileS,outfileS);
-        new FilteringBed(infileS,outfileS);
-//        new BedUnSorted(infileS,outfileS);
+//        
+//        String infileS = "/Users/xuebozhao/Documents/4Cdata/Library/addL23567.sorted.bed";
+//        String outfileS = "/Users/xuebozhao/Documents/4Cdata/Library/addL23567_Filtering.txt";
+////        new FirstStatistics(infileS,outfileS);
+//        new FilteringBed(infileS,outfileS);
+////        new BedUnSorted(infileS,outfileS);
 //      
 
 //        String infileS = "/Users/xuebozhao/Documents/4Cdata/Library/C4_L7.bed";
@@ -39,9 +39,16 @@ public class Entrance4C{
 ////        new FilteringBed(infileS,outfileS);
 //        new BedUnSorted(infileS,outfileS);
 
-//        String a  = "agatct";
-//        int b = a.indexOf("atct");
-//        System.out.println( b );
+        String infileS = "/Users/xuebozhao/Documents/4Cdata/Library/QQPlot/positiveNoadjusted_hits_all.bed";
+        String outfileS = "/Users/xuebozhao/Documents/4Cdata/Library/QQPlot/GetCircosBedNoadjusted.bed";
+//        new FirstStatistics(infileS,outfileS);
+        new GetCircosBed (infileS,outfileS);
+        
+        
+//        String outfileS = "/Users/xuebozhao/Documents/4Cdata/Library/GetArabGenomeForCircosChr1.bed";
+////        new FirstStatistics(infileS,outfileS);
+//        new GetArabGenomeForCircos (outfileS);
+        
     }
 }
 
