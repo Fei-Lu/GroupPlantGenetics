@@ -9,6 +9,7 @@ package xujun.analysis.rnaseq;
  *
  * @author Jun Xu
  */
+import com.koloboke.collect.map.hash.HashByteByteMap;
 import format.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -20,7 +21,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import jxl.read.biff.BiffException;
-import xuebo.analysis.annotation.IOUtils;
+import utils.IOUtils;
 public class DemoSample{
     public DemoSample() throws IOException, FileNotFoundException, BiffException {
 
@@ -46,64 +47,103 @@ public void test () throws IOException {
             nameSet.add(fs[i].getName().split("_")[0]);
         }
         
-        nameSet.parallelStream().forEach(p -> {
+        nameSet.stream().forEach(p -> {
             String infile1 = new File (inputDirS, p+"_1.clean.fq").getAbsolutePath();
-            String infile2 = new File (inputDirS, p+"_2.clean.fq").getAbsolutePath();
-            String output=new File(outputDirS,"wrong").getAbsolutePath();
             String seq = null;
-            String seq2=null;
             try {
-                BufferedReader br1 = utils.IOUtils.getTextReader(infile1);  
-                BufferedReader br2 = utils.IOUtils.getTextReader(infile2); 
-                BufferedWriter[] bws = new BufferedWriter[rowNumber];
-                BufferedWriter bw=utils.IOUtils.getTextWriter(output);
+                BufferedReader br1 = utils.IOUtils.getTextReader(infile1);                               
+                BufferedWriter[] bws = new BufferedWriter[rowNumber];//这里只是创建了一个bufferedreader类型的数组 并没有对里面的各个new
                 for (int i = 0; i < bws.length; i++) {
                     String outfileS = new File (outputDirS, nameList.get(i)).getAbsolutePath();
                     bws[i] = IOUtils.getTextWriter(outfileS);
                 }
-                String temp=null; 
-                String temp2=null;
-                int i=0;
-                while ((temp = br1.readLine()) != null&i<100){
-                    i+=1;
-                    seq=br1.readLine();                    
+                String temp=null;
+                String seq1=null;
+                //String seq=null;
+                int cnt=0;
+                while ((temp = br1.readLine()) != null){
+                    cnt++;                   
+                    seq=br1.readLine(); 
                     Integer index = barcodeIndexMap.get(seq.substring(0, 8));
-                    br1.readLine();br1.readLine();                    
-                    if (index == null) {                        
-                        bw.write(br2.readLine());bw.write(br2.readLine());bw.write(br2.readLine());bw.write(br2.readLine());
+                    if (index == null) {
+                        br1.readLine();br1.readLine();
                         continue;
-                    }else{
-                        temp2=br2.readLine();
-                        seq2=br2.readLine();
-                        int count=0;
-                        for(int a=0;a<seq2.length();a++){
-                            if(seq2.charAt(a)=='A'){
-                                count++;
+                    }
+/*                    int i=0;//用charat的方法 运行31s
+                    for(int a=9;a<seq.length();a++){
+                        if(seq.charAt(a)=='T'){
+                            i++;
+                        }else{
+                            if(i<8){
+                                i++;
                             }else{
-                                count=0;
+                                seq=seq.substring(i+8);
+                                break;
                             }
-                            if(count>7){
-                                seq2=seq2.substring(0, a-7);
-                            }
-                        }                    
-                        bws[index].write(temp2 + "\n");
-                        bws[index].write(seq2 + "\n");
-                        bws[index].write(br2.readLine() + "\n");
-                        bws[index].write(br2.readLine()+"\n");
-                    }                    
+                        }
+                    }*/
+//                    System.out.println(i);
+//                   System.out.println(seq);
+/*                    seq=seq.substring(8);//每一次都取4个碱基变成byte类型 速度很慢 两次都是4min
+                    for(int i=0;i+4<seq.length();i=i+4){
+                        byte[] oriByte = seq.substring(i,i+4).getBytes();
+                        HashByteByteMap ascMap = format.dna.BaseEncoder.getAscIIByteMap();
+                        byte[] tranByte = new byte[oriByte.length];
+                        for (int a = 0; a < oriByte.length; a++) {
+                            tranByte[a] = ascMap.get(oriByte[a]);
+                        }
+                        int v=0;
+                        for (int b = 0; b < tranByte.length; b++) {            
+                            v = (v << 2) + tranByte[b];
+                        }
+                        if(v!=255){
+                            seq=seq.substring(i);
+                            break;
+                        }
+                    }*/
+                    seq=seq.substring(8);//除barcode以外的其他碱基全都变成byte 每次取8个bite 速度要快很多 1min以内
+                    byte[] oriByte = seq.substring(0).getBytes();
+                    HashByteByteMap ascMap = format.dna.BaseEncoder.getAscIIByteMap();
+                    byte[] tranByte = new byte[oriByte.length];
+                    for (int a = 0; a < oriByte.length; a++) {
+                        tranByte[a] = ascMap.get(oriByte[a]);
+                    }
+                    for(int i=0;i+2<seq.length();i+=4){                        
+                        int v=0;
+                        for (int b = i; b < i+4; b++) {            
+                            v = (v << 2) + tranByte[b];
+                        }
+                        if(v!=255){
+                                seq1=seq.substring(i);
+                                break;                           
+                        }
+                    }
+                    if(seq==seq1){
+                        seq1=" ";
+                    }
+
+                    bws[index].write(temp + "\n");
+                    bws[index].write(seq1 + "\n");
+                    bws[index].write(br1.readLine() + "\n");
+                    bws[index].write(br1.readLine()+"\n");
+                    
                 }
                 br1.close();
-                br2.close();
+                for (int i = 0; i < bws.length; i++) {
+                    bws[i].flush();
+                    bws[i].close();
+                }
                     
                        
         }
+                
         catch (Exception ex) {
                System.out.println(seq+"\t1234");        
                ex.printStackTrace();
                
         }
-        });       
-    }
+        });      
+     }
     public static void main(String[] args) throws IOException, FileNotFoundException, BiffException{
         new DemoSample();
     }

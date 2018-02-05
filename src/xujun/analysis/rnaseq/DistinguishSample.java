@@ -5,6 +5,7 @@
  */
 package xujun.analysis.rnaseq;
 
+import com.itextpdf.text.pdf.AcroFields.Item;
 import com.koloboke.collect.map.hash.HashByteByteMap;
 import com.koloboke.collect.map.hash.HashByteByteMaps;
 import format.dna.Fastq;
@@ -16,8 +17,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.io. * ;
 import static java.lang.String.format;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,7 +28,7 @@ import java.util.zip.GZIPOutputStream;
 import jxl. * ;
 import jxl.read.biff.BiffException;
 import utils.IOFileFormat;
-import xuebo.analysis.annotation.IOUtils;
+import utils.IOUtils;
 
 /**
  *
@@ -181,7 +184,7 @@ public class DistinguishSample {
      public void test () throws IOException {//区分barcode的最终版本 运行时间3min8s
         String barcodeFileS = "E:\\experimental data\\RNA_seq\\3'RNAseq barcode.txt";
         String inputDirS ="E:\\experimental data\\RNA_seq\\twice\\clean_data\\";
-        String outputFastaDirS = "E:\\experimental data\\RNA_seq\\twice\\test";        
+        String outputDirS = "E:\\experimental data\\RNA_seq\\twice\\small";        
         RowTable<String> rt = new RowTable<>(barcodeFileS);
         int rowNumber = rt.getRowNumber();
         int columnNumber = rt.getColumnNumber();
@@ -198,64 +201,117 @@ public class DistinguishSample {
             nameSet.add(fs[i].getName().split("_")[0]);
         }
         
-        nameSet.parallelStream().forEach(p -> {
+        nameSet.stream().forEach(p -> {
             String infile1 = new File (inputDirS, p+"_1.clean.fq").getAbsolutePath();
-//            String infile2 = new File (inputDirS, name+"_2.clean.fq").getAbsolutePath();
-//            String outfile1 = new File (outputFastaDirS, name+"_1.fq").getAbsolutePath();
-//            String outfile2 = new File (outputFastaDirS, name+"_2.fq").getAbsolutePath();
-//            String outfile3=new File(outputFastaDirS).getAbsolutePath();
+            String outfile=new File(outputDirS,"count").getAbsolutePath();
             String seq = null;
             try {
-                BufferedReader br1 = utils.IOUtils.getTextReader(infile1);
-//                BufferedReader br2 = utils.IOUtils.getTextReader(infile2);
-//                BufferedWriter bw1 = utils.IOUtils.getTextWriter(outfile1);
-//                BufferedWriter bw2 = utils.IOUtils.getTextWriter(outfile2);
-                
-                
+                BufferedReader br1 = utils.IOUtils.getTextReader(infile1);                               
                 BufferedWriter[] bws = new BufferedWriter[rowNumber];//这里只是创建了一个bufferedreader类型的数组 并没有对里面的各个new
+                BufferedWriter bw = utils.IOUtils.getTextWriter(outfile);                               
                 for (int i = 0; i < bws.length; i++) {
-                    String outfileS = new File (outputFastaDirS, nameList.get(i)).getAbsolutePath();
+                    String outfileS = new File (outputDirS, nameList.get(i)).getAbsolutePath();
                     bws[i] = IOUtils.getTextWriter(outfileS);
                 }
                 String temp=null;
                 //String seq=null;
-                
-                int count = 0;
+                int cnt=0;
+                List w=new ArrayList();//记录T的个数 并从中随机抽取100个数 从2，3，4，5四个里面分别产生100个随机数
                 while ((temp = br1.readLine()) != null){
-                    count+=4;
+                    cnt++;                   
                     seq=br1.readLine(); 
                     Integer index = barcodeIndexMap.get(seq.substring(0, 8));
                     if (index == null) {
                         br1.readLine();br1.readLine();
                         continue;
                     }
+                    int i=0;//用charat的方法 运行31s 试了两次都是30s左右
+                    for(int a=9;a<seq.length();a++){
+                        if(seq.charAt(a)=='T'){
+                            i++;
+                        }else{
+                            if(i<8){
+                                i++;
+                            }else{
+                                seq=seq.substring(i+8);
+                                w.add(i);
+                                break;
+                            }
+                        }
+                    }
+                
+                    
+                    
+//                   System.out.println(seq);
+/*                    seq=seq.substring(8);//每一次都取4个碱基变成byte类型 速度很慢 两次都是4min
+                    for(int i=0;i+4<seq.length();i=i+4){
+                        byte[] oriByte = seq.substring(i,i+4).getBytes();
+                        HashByteByteMap ascMap = format.dna.BaseEncoder.getAscIIByteMap();
+                        byte[] tranByte = new byte[oriByte.length];
+                        for (int a = 0; a < oriByte.length; a++) {
+                            tranByte[a] = ascMap.get(oriByte[a]);
+                        }
+                        int v=0;
+                        for (int b = 0; b < tranByte.length; b++) {            
+                            v = (v << 2) + tranByte[b];
+                        }
+                        if(v!=255){
+                            seq=seq.substring(i);
+                            break;
+                        }
+                    }*/
+/*                    seq=seq.substring(8);//除barcode以外的其他碱基全都变成byte 每次取8个bite 速度要快很多 1min以内
+                    byte[] oriByte = seq.substring(0).getBytes();
+                    HashByteByteMap ascMap = format.dna.BaseEncoder.getAscIIByteMap();
+                    byte[] tranByte = new byte[oriByte.length];
+                    for (int a = 0; a < oriByte.length; a++) {
+                        tranByte[a] = ascMap.get(oriByte[a]);
+                    }
+                    for(int i=0;i+4<seq.length();i+=4){                        
+                        int v=0;
+                        for (int b = i; b < i+4; b++) {            
+                            v = (v << 2) + tranByte[b];
+                        }
+                        if(v!=255){
+                                seq=seq.substring(i);
+                                break;                           
+                        }
+                    }*/
+                    
+                    
                     bws[index].write(temp + "\n");
                     bws[index].write(seq + "\n");
                     bws[index].write(br1.readLine() + "\n");
                     bws[index].write(br1.readLine()+"\n");
                     
                 }
+                Collections.shuffle(w); 
+                int randomSeriesLength = 100;
+                List<Integer> randomSeries = w.subList(0, randomSeriesLength);
+                System.out.println(randomSeries);
+                
                 br1.close();
+                for (int i = 0; i < bws.length; i++) {
+                    bws[i].flush();
+                    bws[i].close();
+                }
                     
                        
         }
+                
         catch (Exception ex) {
-               System.out.println(seq+"\t1234");        
+               System.out.println(seq+"\t1234");
                ex.printStackTrace();
                
         }
-        });
-                
-//        String s = "CACATTCCATTCGCGTAGCCTTA";//fastqc里面的第二行信息 到时候读出来输入即可
-//        BufferedReader br = IOUtils.getTextReader(inputFileS);
-        
-        
-        
-        
-//        String seq = "ATGCCGTAGC";
-        
-    }       
- 
+        });      
+     }
+     public static Item getRandom(ArrayList array) {
+        int index = new Random().nextInt(array.size());
+        Item item = (Item) array.get(index);
+        return item;
+    }
+  
      public void fastqToFasta1() throws IOException {
          String inputFileS="E:\\experimental data\\RNA_seq\\twice\\clean_data.fq\\s1116-1_HGVHVCCXY_L2_1.clean.fq";
          String outputFileS="E:\\experimental data\\RNA_seq\\twice\\clean_data.fq\\L2_1.clean_test.txt";
