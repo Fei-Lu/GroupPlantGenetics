@@ -11,7 +11,7 @@ import utils.IOFileFormat;
  *
  * @author xuebozhao
  */
-public class EntranceTassel {
+public class EntranceTassel {    
     public static void main (String[] args) { 
 //        GeneFeature a = new GeneFeature (args[0]);
 //        a.writeFile("lala.txt");
