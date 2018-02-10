@@ -12,9 +12,8 @@ import java.io.BufferedWriter;
  *
  * @author xuebozhao
  */
-public class GetCircosBed {
-    
-    GetCircosBed(String infileS,String outfileS) {
+public class GetCircosBedMaize {
+    GetCircosBedMaize(String infileS,String outfileS) {
         
         this.readBed(infileS,outfileS);
         
@@ -43,11 +42,19 @@ public class GetCircosBed {
                     }
 
                     String[] tem = temp.split("\t");
+                    String[] tem1 = tem[0].split("_");
+                    String[] tem2 = tem[1].split("_");
                     
-                    int aa = Integer.valueOf(tem[2]) + 10 ;
+                    String aa = tem1[0].substring(1, 2);
+                    String bb = tem2[0].substring(1, 2); 
                     
-                    L1 = "chr" + tem[0] + "\t" + tem[1] + "\t" + aa + "\t" + "chr2" + "\t" + "7808877" + "\t" + "7810811";
+                    int cc  = Integer.valueOf(tem1[1]) + 10;
+                    int dd  = Integer.valueOf(tem2[1]) + 10;
                     
+//                    L1 = "chr" + tem[0] + "\t" + tem[1] + "\t" + aa + "\t" + "chr2" + "\t" + "7808877" + "\t" + "7810811";
+                    
+                    L1 = "chr" + aa + "\t" + tem1[1] + "\t" + cc + "\t" + "chr" + bb + "\t" + tem2[1] + "\t" + dd ;
+                            
                     bw.write(L1 + "\n"); 
             }
             
@@ -58,4 +65,5 @@ public class GetCircosBed {
             e.printStackTrace();
         }
     }
+    
 }

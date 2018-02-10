@@ -39,13 +39,13 @@ public class Entrance4C{
 ////        new FilteringBed(infileS,outfileS);
 //        new BedUnSorted(infileS,outfileS);
 
-        String infileS = "/Users/xuebozhao/Documents/4Cdata/Library/QQPlot/positiveNoadjusted_hits_all.bed";
-        String outfileS = "/Users/xuebozhao/Documents/4Cdata/Library/QQPlot/GetCircosBedNoadjusted.bed";
+        String infileS = "/Users/xuebozhao/Documents/LuLab/4C/4Cdata/Library/realproduct/L7/positiveL7_hits_allNoadjusted.bed";
+        String outfileS = "/Users/xuebozhao/Documents/LuLab/4C/4Cdata/Library/realproduct/L7/GetCircosBedFdrL7.bed";
 //        new FirstStatistics(infileS,outfileS);
         new GetCircosBed (infileS,outfileS);
         
         
-//        String outfileS = "/Users/xuebozhao/Documents/4Cdata/Library/GetArabGenomeForCircosChr1.bed";
+//        String outfileS = "/Users/xuebozhao/Documents/LuLab/Yao/MaizeRcircos/GetMaizeGenomeForCircosChr10.bed";
 ////        new FirstStatistics(infileS,outfileS);
 //        new GetArabGenomeForCircos (outfileS);
         

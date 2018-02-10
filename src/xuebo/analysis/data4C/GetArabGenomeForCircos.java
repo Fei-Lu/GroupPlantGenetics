@@ -28,14 +28,14 @@ public class GetArabGenomeForCircos {
             String L2 = null;
             BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             
-            while (aa < 31000000) { 
-                    int bb = aa + 500000;
-                    L1 = "chr1" + "\t" + aa + "\t" + bb + "\t";
+            while (aa < 150000000) { 
+                    int bb = aa + 5000000;
+                    L1 = "chr10" + "\t" + aa + "\t" + bb + "\t";
                     if(i % 8 == 0){
                         L2 = L1 + "p36.33" + "\t" + "gneg" + "\n";              
                     }
                     if(i % 8 == 1){
-                        L2 = L1 + "p36.31" + "\t" + "gpos75" + "\n";              
+                        L2 = L1 + "p36.31" + "\t" + "green" + "\n";              
                     }
                     if(i % 8 == 2){
                         L2 = L1 + "p36.12" + "\t" + "gpos25" + "\n";              
@@ -55,7 +55,7 @@ public class GetArabGenomeForCircos {
                     if(i % 8 == 7){
                         L2 = L1 + "p36.33" + "\t" + "gpos100" + "\n";              
                     }
-                    aa = aa + 500000;
+                    aa = aa + 5000000;
                     
                     i = i + 1;
                     
