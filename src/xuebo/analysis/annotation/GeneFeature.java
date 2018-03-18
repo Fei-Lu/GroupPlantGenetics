@@ -27,11 +27,12 @@ public class GeneFeature {
     int sortType = 0;
     public GeneFeature () {}
     
-    public GeneFeature (String infileS) {
+    public GeneFeature (String infileS,String outfileS) {
 //        this.readFile(infileS);
-      this.readFromMaizeGFF(infileS);      
+      this.readFromMaizeGFF(infileS);     
+      this.writeFile(outfileS);
     }
-    
+
     /**
      * Read from txt file of gene annotation
      * @param infileS 

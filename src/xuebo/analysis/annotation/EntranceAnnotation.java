@@ -11,15 +11,32 @@ import utils.IOFileFormat;
  *
  * @author xuebozhao
  */
+//public class EntranceAnnotation {    
+//    public static void main (String[] args) { 
+////        GeneFeature a = new GeneFeature (args[0]);
+////        a.writeFile("lala.txt");
+//////          RangeAttribute b = new RangeAttribute(arg[0]);
+//////          b.writeTextFile("lalala");
+//            String infileS = "D:\\FeiLub\\UniquenessScore\\maizeV3\\AP.bfthresh1.1.MNaseHS.Ranges.dat";
+//            String outfileS = "D:\\FeiLub\\UniquenessScore\\maizeV3\\lalala.bed";
+//            new DatToBed (infileS,outfileS);
+////            c.readFile("lalalabed");
+//    }
+//} 
+
+
 public class EntranceAnnotation {    
     public static void main (String[] args) { 
 //        GeneFeature a = new GeneFeature (args[0]);
-//        a.writeFile("lala.txt");
-////          RangeAttribute b = new RangeAttribute(arg[0]);
-////          b.writeTextFile("lalala");
-            String infileS = "D:\\FeiLub\\UniquenessScore\\maizeV3\\AP.bfthresh1.1.MNaseHS.Ranges.dat";
-            String outfileS = "D:\\FeiLub\\UniquenessScore\\maizeV3\\lalala.bed";
-            new DatToBed (infileS,outfileS);
+//        a.readFromMaizeGFF("/Users/xuebozhao/Documents/LuLab/cpScore/Zea_mays.AGPv4.36.gff3.gz");
+//        a.writeFile("lalalaV4.txt");
+//          RangeAttribute b = new RangeAttribute(arg[0]);
+//          b.writeTextFile("lalala");
+            String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/Zea_mays.AGPv4.36.gff3.gz";
+            String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/Zea_mays.AGPv4.bed.gz";
+            new GeneFeature (infileS,outfileS);
+           
+            
 //            c.readFile("lalalabed");
     }
 } 
