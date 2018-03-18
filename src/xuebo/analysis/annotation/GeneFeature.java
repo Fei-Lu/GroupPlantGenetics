@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 //import utils.FStringUtils;
-//import utils.IoUtils;
+import utils.IOUtils;
 
 /**
  *
@@ -39,7 +39,7 @@ public class GeneFeature {
      */
     private void readFile (String infileS) {
         try {
-            BufferedReader br = IoUtils.getTextReader(infileS);
+            BufferedReader br = IOUtils.getTextReader(infileS);
             int geneNumber = Integer.valueOf(br.readLine().split("\t")[1]);
             genes = new Gene[geneNumber];
             String temp;
@@ -91,7 +91,7 @@ public class GeneFeature {
     public void writeCDSSequence (Fasta genomef, String outfileS) {
         genomef.sortRecordByName();
         try {
-            BufferedWriter bw = IoUtils.getTextWriter(outfileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             for (int i = 0; i < this.getGeneNumber(); i++) {
                 String title = String.valueOf(this.getGeneChromosome(i))+"_"+String.valueOf(this.getGeneStart(i)+"_"+String.valueOf(this.getGeneEnd(i))+"_"+String.valueOf(this.getGeneName(i)));
                 int chrIndex = genomef.getIndex(String.valueOf(this.getGeneChromosome(i)));
@@ -127,7 +127,7 @@ public class GeneFeature {
     public void writeGeneSequence (Fasta genomef, String outfileS) {
         genomef.sortRecordByName();
         try {
-            BufferedWriter bw = IoUtils.getTextWriter(outfileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             for (int i = 0; i < this.getGeneNumber(); i++) {
                 String title = String.valueOf(this.getGeneChromosome(i))+"_"+String.valueOf(this.getGeneStart(i)+"_"+String.valueOf(this.getGeneEnd(i))+"_"+String.valueOf(this.getGeneName(i)));
                 int chrIndex = genomef.getIndex(String.valueOf(this.getGeneChromosome(i)));
@@ -155,7 +155,7 @@ public class GeneFeature {
      */
     public void writeFile (String outfileS) {
         try {
-            BufferedWriter bw = IoUtils.getTextWriter(outfileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             bw.write("GeneNumber\t"+String.valueOf(this.getGeneNumber()));
             bw.newLine();
             for (int i = 0; i < this.getGeneNumber(); i++) {
@@ -497,8 +497,8 @@ public class GeneFeature {
     public void readFromCassavaGFF (String infileS) {
         try {
             BufferedReader br;
-            if (infileS.endsWith("gz")) br = IoUtils.getTextGzipReader(infileS);
-            else br = IoUtils.getTextReader(infileS);
+            if (infileS.endsWith("gz")) br = IOUtils.getTextGzipReader(infileS);
+            else br = IOUtils.getTextReader(infileS);
             String temp = br.readLine();
             ArrayList<String> infoList = new ArrayList();
             ArrayList<String> geneList = new ArrayList();
@@ -590,8 +590,8 @@ public class GeneFeature {
     public void readFromMaizeGFF (String infileS) {
         try {
             BufferedReader br;
-            if (infileS.endsWith("gz")) br = IoUtils.getTextGzipReader(infileS);
-            else br = IoUtils.getTextReader(infileS);
+            if (infileS.endsWith("gz")) br = IOUtils.getTextGzipReader(infileS);
+            else br = IOUtils.getTextReader(infileS);
             String temp = br.readLine();
             ArrayList<String> infoList = new ArrayList();
             ArrayList<String> geneList = new ArrayList();

@@ -15,7 +15,7 @@ import java.io.DataOutputStream;
 import java.util.Arrays;
 import java.util.List;
 import utils.IOFileFormat;
-//import utils.IoUtils;
+import utils.IOUtils;
 
 /**
  * Hold range attributes with strand and value in each range, non-overlap ranges
@@ -118,7 +118,7 @@ public class RangeAttribute extends Ranges {
     
     private void readBinaryFile (String infileS) {
         try {
-            DataInputStream dis = IoUtils.getBinaryReader(infileS);
+            DataInputStream dis = IOUtils.getBinaryReader(infileS);
             this.annotation = dis.readUTF();
             this.ranges = new Range[dis.readInt()];
             int noteNumber = dis.readInt();
@@ -139,7 +139,7 @@ public class RangeAttribute extends Ranges {
     
     private void readTextFile (String infileS) {
         try {
-            BufferedReader br = IoUtils.getTextReader(infileS);
+            BufferedReader br = IOUtils.getTextReader(infileS);
             this.annotation = br.readLine();
             int n = Integer.valueOf(br.readLine());
             String temp;
@@ -177,7 +177,7 @@ public class RangeAttribute extends Ranges {
     
     private void writeBinaryFile (String outfileS) {
         try {
-            DataOutputStream dos = IoUtils.getBinaryWriter(outfileS);
+            DataOutputStream dos = IOUtils.getBinaryWriter(outfileS);
             dos.writeUTF(this.annotation);
             dos.writeInt(this.getRangeNumber());
             dos.writeInt(this.note.size());
@@ -199,7 +199,7 @@ public class RangeAttribute extends Ranges {
     
     private void writeTextFile (String outfileS) {
         try {
-            BufferedWriter bw = IoUtils.getTextWriter(outfileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             bw.write(String.valueOf(this.annotation));
             bw.newLine();
             bw.write(String.valueOf(this.getRangeNumber()));

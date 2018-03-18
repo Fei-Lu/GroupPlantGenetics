@@ -7,7 +7,8 @@ package xuebo.analysis.annotation;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-//import utils.IoUtils;
+import utils.IOUtils;
+
 
 /**
  *
@@ -23,10 +24,10 @@ public class DatToBed {
     public void readFile (String infileS,String outfileS) {
         try {
             BufferedReader br;
-            br = IoUtils.getTextReader(infileS);
+            br = IOUtils.getTextReader(infileS);
             String temp = null;
 //          StringBuilder sb = new StringBuilder(temp);
-            BufferedWriter bw = IoUtils.getTextWriter(outfileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             while (( temp = br.readLine()) != null) {
                 temp = "chr"+ temp;
                 bw.write(temp+"\n");
@@ -40,7 +41,7 @@ public class DatToBed {
     }
 //    public void writeFile (String outfileS){
 //        try {
-//            BufferedWriter bw = IoUtils.getTextWriter(outfileS);
+//            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
 //            bw.flush();
 //            bw.close();
 //        }

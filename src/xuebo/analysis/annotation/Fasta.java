@@ -17,7 +17,7 @@ import java.util.Comparator;
 import java.util.List;
 //import net.maizegenetics.dna.BaseEncoder;
 //import utils.FStringUtils;
-//import utils.IoUtils;
+import utils.IOUtils;
 
 /**
  * Holding FastA format sequence, providing functions of sorting, searching and collecting statistics
@@ -181,7 +181,7 @@ public class Fasta {
         ArrayList<FastaRecord> al = new ArrayList();
         try {
             BufferedReader br = null;
-            if (infileS.endsWith("gz")) br = IoUtils.getTextGzipReader(infileS);
+            if (infileS.endsWith("gz")) br = IOUtils.getTextGzipReader(infileS);
             else br = new BufferedReader(new FileReader(infileS), 65536);
             String temp = null, name = null, seq = null;
             StringBuilder sb = new StringBuilder();
