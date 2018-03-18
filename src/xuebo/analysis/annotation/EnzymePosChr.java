@@ -12,6 +12,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import utils.IOUtils;
 import static xuebo.analysis.annotation.ReducedLibrary.getWriteStreamAppend;
 
 /**
