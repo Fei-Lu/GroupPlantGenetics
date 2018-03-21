@@ -22,12 +22,12 @@ import utils.IOUtils;
  *
  * @author xuebozhao
  */
-public class GeneFeature {
+public class GeneFeatureReadGff3 {
     Gene[] genes;
     int sortType = 0;
-    public GeneFeature () {}
+    public GeneFeatureReadGff3 () {}
     
-    public GeneFeature (String infileS,String outfileS) {
+    public GeneFeatureReadGff3 (String infileS,String outfileS) {
 //        this.readFile(infileS);
       this.readFromMaizeGFF(infileS);     
       this.writeFile(outfileS);
