@@ -5,6 +5,7 @@
  */
 package xuebo.analysis.annotation;
 
+import format.dna.FastaByte;
 import utils.IOFileFormat;
 
 /**
@@ -32,15 +33,16 @@ public class EntranceAnnotation {
 //        a.writeFile("lalalaV4.txt");
 //          RangeAttribute b = new RangeAttribute(arg[0]);
 //          b.writeTextFile("lalala");
-            //String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/Zea_mays.AGPv4.36.gff3.gz";
-            //String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/Zea_mays.AGPv4.bed.gz";
-            //new GeneFeature (infileS,outfileS);
+            String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/testtext.txt";
+            String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/GetCDStesttext.txt";
+            FastaByte genomef = new FastaByte(infileS);
+            new GeneFeatureGetGeneCoordinate (infileS, genomef,outfileS);
             
-           String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/test";
-           String outfileS1 = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/test.CpG.bed.gz";
-           String outfileS2 = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/test.CHH.bed.gz";
-           String outfileS3 = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/test.CHG.bed.gz";           
-           new MethylationAnnotation (infileS , outfileS1, outfileS2 , outfileS3 );
+//           String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/test";
+//           String outfileS1 = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/test.CpG.bed.gz";
+//           String outfileS2 = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/test.CHH.bed.gz";
+//           String outfileS3 = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/test.CHG.bed.gz";           
+//           new MethylationAnnotation (infileS , outfileS1, outfileS2 , outfileS3 );
            
            
     }
