@@ -5,6 +5,8 @@
  */
 package feilu;
 
+import com.koloboke.collect.map.hash.HashByteByteMap;
+import format.dna.BaseEncoder;
 import format.table.RowTable;
 import java.io.BufferedWriter;
 import java.util.HashMap;
@@ -21,7 +23,7 @@ public class Start {
     }
     
     public void test () {
-        String barcodeFileS = "/Users/feilu/Downloads/barcode.txt";
+     /*   String barcodeFileS = "/Users/feilu/Downloads/barcode.txt";
         RowTable<String> rt = new RowTable<>(barcodeFileS);
         int rowNumber = rt.getRowNumber();
         int columnNumber = rt.getColumnNumber();
@@ -32,10 +34,18 @@ public class Start {
         String s = null;
         int index = barcodeIndexMap.get(s.substring(0, 8));
         BufferedWriter[] bws = new BufferedWriter[rowNumber];
+        */
+        String ori = "ATGCAGTC";
+        byte[] oriByte = ori.getBytes();
+        HashByteByteMap ascMap = BaseEncoder.getAscIIByteMap();
+        byte[] tranByte = new byte[oriByte.length];
+        for (int i = 0; i < oriByte.length; i++) {
+            tranByte[i] = ascMap.get(oriByte[i]);
+        }
+        int c = BaseEncoder.getShortSeqFromByteArray(tranByte);
+        System.out.println(BaseEncoder.getSequenceFromShort(c));    
         
-        String seq = "ATGCCGTAGC";
-        
-    }
+         }
     
     public static void main (String[] args) {
         new Start();

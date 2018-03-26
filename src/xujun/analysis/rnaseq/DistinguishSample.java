@@ -43,7 +43,9 @@ public class DistinguishSample {
  //         this.fastqToFasta1();
 //          this.testxlsx();
 //          this.sampleFastq1 ();
-          this.test();
+//         this.test();
+ //          this.genecount();
+            this.cut12base();
     }
      /**
      * Build a byte converter to convert AscII byte following the BaseCoder rules
@@ -306,12 +308,6 @@ public class DistinguishSample {
         }
         });      
      }
-     public static Item getRandom(ArrayList array) {
-        int index = new Random().nextInt(array.size());
-        Item item = (Item) array.get(index);
-        return item;
-    }
-  
      public void fastqToFasta1() throws IOException {
          String inputFileS="E:\\experimental data\\RNA_seq\\twice\\clean_data.fq\\s1116-1_HGVHVCCXY_L2_1.clean.fq";
          String outputFileS="E:\\experimental data\\RNA_seq\\twice\\clean_data.fq\\L2_1.clean_test.txt";
@@ -438,6 +434,75 @@ public class DistinguishSample {
             }
 
         });
+    }
+    public static void genecount(){
+        String outputdir="/Users/xujun/Desktop/genecount/count";
+        String inputdir ="/Users/xujun/Desktop/genecount/inputfile";       
+        File[] fs = new File(inputdir).listFiles();
+        HashSet<String> nameSet = new HashSet();
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) continue;
+            nameSet.add(fs[i].getName().split("_")[0]);
+        }
+        nameSet.stream().forEach((String name) -> {
+            String infile = new File (inputdir, name).getAbsolutePath();
+            String outfile = new File (outputdir, name).getAbsolutePath();
+            RowTable<String> rt = new RowTable<>(infile);
+            int rowNumber = rt.getRowNumber();
+            int columnNumber = rt.getColumnNumber();
+            int cnt=0;
+            int sum=0;
+            try {
+                BufferedReader br = utils.IOUtils.getTextReader(infile);
+                BufferedWriter bw = utils.IOUtils.getTextWriter(outfile);
+                br.readLine();br.readLine();br.readLine();br.readLine();                
+                while (br.readLine() != null) {
+                    for (int i = 3; i < rt.getRowNumber(); i++) {
+                        if(!rt.getCell(i, 1).equals("0")){
+                            bw.write(/*rt.getCell(i, 0)+" "+*/rt.getCell(i, 1));
+                            sum=sum+rt.getCellAsInteger(i, 1);
+                            bw.newLine();
+                            cnt=cnt+1;
+                        }else{
+                            br.readLine();
+                        }
+                    }
+                    bw.flush();bw.close();
+                    br.close();
+                    System.out.println(cnt);
+                    System.out.println(sum);
+                    break;      
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        });
+    }
+    public static void cut12base(){
+        String inputfile="/Users/xujun/Desktop/SRR5909940_1.fastq";
+        String outputfile="/Users/xujun/Desktop/SRR5909940cut.fastq";
+        String seq=null;
+        String name=null;
+        try {
+                BufferedReader br = utils.IOUtils.getTextReader(inputfile);
+                BufferedWriter bw = utils.IOUtils.getTextWriter(outputfile);              
+                while ((name=br.readLine()) != null) {
+                    bw.write(name+"\n");
+                    seq=br.readLine().substring(12);
+                    bw.write(seq+"\n");
+                    bw.write(br.readLine()+"\n");bw.write(br.readLine().substring(12)+"\n");
+                         
+                }
+                br.close();
+                bw.flush();bw.close();
+                
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        
     }
     public static void main(String[] args) throws IOException, FileNotFoundException, BiffException{
         new DistinguishSample();
