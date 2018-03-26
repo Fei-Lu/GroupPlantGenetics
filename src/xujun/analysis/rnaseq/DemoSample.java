@@ -31,9 +31,12 @@ public class DemoSample{
       //    this.testL33();
 //           this.mappedread();
 //            this.phred();
-            this.getgenename();
+//            this.getgenename();
 //            this.geneposition();
 //            this.sort();
+           this.genenumber();
+//           this.merge();
+//          this.notSDI();
     }      
 public void test5 () throws IOException {
         String barcodeFileS = "/Users/xujun/Desktop/barcodepool.txt";
@@ -441,8 +444,8 @@ public void test5 () throws IOException {
      public void getgenename(){
          String kfffile="/Users/xujun/Desktop/Zea_mays.AGPv4.38.kgf";
          GeneFeature fs=new GeneFeature(kfffile);
-         String inputfile="/Users/xujun/Desktop/geneposition.text"; 
-         String outputfile="/Users/xujun/Desktop/index.text";
+         String inputfile="/Users/xujun/Desktop/news.fq"; 
+         String outputfile="/Users/xujun/Desktop/notSIDname.text";
          BufferedReader br1 = utils.IOUtils.getTextReader(inputfile);
          BufferedWriter bw = utils.IOUtils.getTextWriter(outputfile);
          String a=null;
@@ -452,25 +455,28 @@ public void test5 () throws IOException {
          try{
             while((a=br1.readLine())!=null){
                 index=fs.getGeneIndex(Integer.parseInt(a.split("\t")[0]),Integer.parseInt(a.split("\t")[1]) );
+                if (index < 0) continue;
                 name=fs.getGeneName(index);
-                bw.write(name);               
-                bw.newLine();                                              
-            }
+                bw.write(name+"\t"+a.split("\t")[2]+"\t"+a.split("\t")[3]);               
+                bw.newLine();
+                }
             br1.close();
             bw.flush();bw.close();
          }
          catch(Exception ex){
+             System.out.println(a);
              ex.printStackTrace();
          }
          
          
          
      }
-     public void geneposition() {
+     public void geneposition() { //get the gene chr and start site  and get the mapped length
         String inputFile1 ="/Users/xujun/Desktop/aligned.text";
-        String inputFile2 ="/Users/xujun/Desktop/index.text";
+        String inputFile2 ="/Users/xujun/Desktop/pos.text";
         String inputFile3 ="/Users/xujun/Desktop/chromosome.text";
-        String outputFile = "/Users/xujun/Desktop/geneposition.text"; 
+        String inputFile4="/Users/xujun/Desktop/normal.fq";
+        String outputFile = "/Users/xujun/Desktop/containSDI/geneposition.text"; 
         String start=null;
         String position=null;
         int end=0;
@@ -478,34 +484,43 @@ public void test5 () throws IOException {
         int count=0;
         int count2=0;
         String a=null;
+        String seq=null;
+        String seq1=null;
+        String phred=null;
+        String phred1=null;
         try {
                 BufferedReader br1 = utils.IOUtils.getTextReader(inputFile1);   
                 BufferedReader br2 = utils.IOUtils.getTextReader(inputFile2);
                 BufferedReader br3 = utils.IOUtils.getTextReader(inputFile3);
+                BufferedReader br4 = utils.IOUtils.getTextReader(inputFile4);
                 BufferedWriter bw = utils.IOUtils.getTextWriter(outputFile);
                 List w=new ArrayList();
                 while ((a= br1.readLine()) != null){ 
-                        count++;
-                        int cont=0;
-                        int cont2=0;
-                        start =br2.readLine();
-                        position=br3.readLine();
-                        for(int i=0;i<a.length();i++){                         
-                            if (!Character.isDigit(a.charAt(i))){ 
-                                if(a.charAt(i)=='N'){                                   
-                                   bw.write(position+"\t"+start);
-                                   bw.newLine();                                                                     
-                                   cont2=cont2+Integer.parseInt(a.substring(cont,i));
-                                   cont=i+1;
-                                   start=String.valueOf(cont2);
-                                   count2++;
-                                }else{                                    
+                     count++;
+                     int cont=0;
+                     int cont2=0;
+                     int cont3=0;
+                     start =br2.readLine();
+                     position=br3.readLine();
+                     for(int i=0;i<a.length();i++){                         
+                        if (!Character.isDigit(a.charAt(i))){ 
+                            if(a.charAt(i)=='N'){ 
+                                bw.write(position+"\t"+start+"\t"+cont2);
+                                bw.newLine();                                                                     
+                                cont2=cont2+Integer.parseInt(a.substring(cont,i));
+                                cont3=cont2;
+                                cont=i+1;
+                                start=String.valueOf(Integer.parseInt(start)+cont2);
+                                count2++;
+                             }else{                                    
                                    cont2=cont2+Integer.parseInt(a.substring(cont,i));
                                    cont=i+1;
                                    if(i==a.length()-1){
-                                       bw.write(position+"\t"+start);
+                                       bw.write(position+"\t"+start+"\t"+(cont2-cont3));
                                        bw.newLine();
                                        count2++;
+                                       
+                                       
                                    }
                                 }                                
                             }else{
@@ -535,27 +550,139 @@ public void test5 () throws IOException {
     
             
     }
-     public void sort(){
-         String inputfile="/Users/xujun/Desktop/geneposition.text";
-         String outputfile="/Users/xujun/Desktop/sortedgeneposition.text";
+     public void genenumber(){//对map到的每个基因上的reads进行计数 第一列基因名 第二列计数 第三列平均长度 再加一个第四列测序质量值的均值
+         String inputfile="/Users/xujun/Desktop/notSIDname.text";
+         String outputfile="/Users/xujun/Desktop/notSDIgenecount.text";
+         String news=null;
+         List w=new ArrayList();
+         int count []=new int[40000];
+         int averagelength[]=new int[40000];
+         int basenumber[]=new int[40000];
+         int averagephred[]=new int[40000];
+         String phred=null;         
+         int location=0;
+         int sum =0;
          try{
              BufferedReader br1 = utils.IOUtils.getTextReader(inputfile);
-             BufferedWriter bw = utils.IOUtils.getTextWriter(outputfile);
-             ArrayList<String> list = new ArrayList<String>();
-             String news=null;
-             while((news= br1.readLine()) != null){                
-                 list.add(news);                
+             BufferedWriter bw = utils.IOUtils.getTextWriter(outputfile);            
+             while((news= br1.readLine()) != null){
+                int phred1=0;
+                if(!w.contains(news.split("\t")[0])){
+                    w.add(news.split("\t")[0]);                    
+                }
+                location=w.indexOf(news.split("\t")[0]);
+                count[location]=count[location]+1;
+                averagelength[location]=averagelength[location]+Integer.parseInt(news.split("\t")[1]);
+                phred=news.split("\t")[2];
+                for(int i=0;i<phred.length();i++){
+                    phred1=phred1+(int)phred.charAt(i)-33;
+                }
+                basenumber[location]=basenumber[location]+phred.length();
+                averagephred[location]=averagephred[location]+phred1;
              }
-             Collections.sort(list.subList(0, 0));
-             bw.write(Arrays.toString(list.toArray())+"\n");
+             for(int i=0;i<w.size();i++){
+                bw.write((String)w.get(i)+"\t"+count[i]+"\t"+averagelength[i]/count[i]+"\t"+averagephred[i]/basenumber[i]);
+                bw.newLine();
+             }
+             for(int i=1;i<count.length;i++){
+                 sum=sum+count[i];
+             }
+             System.out.println(sum);
+             br1.close();
+             bw.flush();bw.close();
+             
          }
          catch(Exception ex){
+ //            System.out.println((String) w.get(i)+"\t"+intArray[i]+"\t"+averagelength[location]/intArray[i]);
              ex.printStackTrace();
          }
      }
-     public void geneindex(){
-         String kfffile="/Users/xujun/Desktop/Zea_mays.AGPv4.38.kgf";
-         GeneFeature fs=new GeneFeature(kfffile);
+     public void merge(){
+        String inputFile1 ="/Users/xujun/Desktop/chromosome.text";
+        String inputFile2 ="/Users/xujun/Desktop/pos.text";
+        String inputFile3 ="/Users/xujun/Desktop/alignednew.text";
+        String outputfile="/Users/xujun/Desktop/news.text";
+        String news=null;
+        try{
+             BufferedReader br1 = utils.IOUtils.getTextReader(inputFile1);
+             BufferedReader br2 = utils.IOUtils.getTextReader(inputFile2);
+             BufferedReader br3 = utils.IOUtils.getTextReader(inputFile3);
+             BufferedWriter bw = utils.IOUtils.getTextWriter(outputfile);            
+             while((news= br1.readLine()) != null){
+                bw.write(news+"\t"+br2.readLine()+"\t"+br3.readLine()+"\n");
+             }
+             
+             br1.close();br2.close();br3.close();
+             bw.flush();bw.close();
+             
+         }
+         catch(Exception ex){
+ //            System.out.println((String) w.get(i)+"\t"+intArray[i]+"\t"+averagelength[location]/intArray[i]);
+             ex.printStackTrace();
+         }
+     }
+     public void notSDI(){
+         String inputfile1="/Users/xujun/Desktop/news.text";
+         String inputfile2="/Users/xujun/Desktop/normal.fq";
+         String outputfile="/Users/xujun/Desktop/news.fq";
+         String a=null;
+         String start=null;
+         String seq=null;
+         String news=null;
+         String q=null;
+         String seq1=null;                   
+         String q1=null;
+         String startpos=null;
+         String chro=null;
+         String cigar=null;
+         try{
+            BufferedReader br1 = utils.IOUtils.getTextReader(inputfile1);
+            BufferedReader br2 = utils.IOUtils.getTextReader(inputfile2);
+            BufferedWriter bw = utils.IOUtils.getTextWriter(outputfile); 
+            while ((a= br1.readLine()) != null){ 
+                startpos=a.split("\t")[1];
+                chro=a.split("\t")[0];
+                cigar=a.split("\t")[2];
+                start=br2.readLine();
+                seq=br2.readLine();
+                news=br2.readLine();
+                q=br2.readLine();
+                int cont=0;
+                int cont2=0;
+                int cont3=0;
+                for(int i=0;i<cigar.length();i++){                           
+                            if (!Character.isDigit(cigar.charAt(i))){ 
+                                if(cigar.charAt(i)=='M'){
+                                    startpos=String.valueOf(Integer.parseInt(startpos)+cont3);
+                                        seq1=seq.substring(cont2,cont2+Integer.parseInt(cigar.substring(cont,i)));  
+                                        q1=q.substring(cont2,cont2+Integer.parseInt(cigar.substring(cont,i)));
+                                        bw.write(chro+"\t");bw.write(startpos+"\t");bw.write(seq1.length()+"\t");bw.write(q1);
+                                        bw.newLine();
+                                        cont2=cont2+Integer.parseInt(cigar.substring(cont,i));
+                                        cont3=cont3+Integer.parseInt(cigar.substring(cont,i));
+                                        cont=i+1;
+                                }else{
+                                    if(cigar.charAt(i)=='D'|cigar.charAt(i)=='N'){
+                                        cont3=cont3+Integer.parseInt(cigar.substring(cont,i));
+                                        cont=i+1;
+                                    }else{                                      
+                                        cont2=cont2+Integer.parseInt(cigar.substring(cont,i));
+                                        cont=i+1;
+                                    }
+                                }                                
+                            }else{
+                                continue;
+                            } 
+                             
+                        }                              
+            }
+            br1.close();br2.close();
+            bw.flush();bw.close();
+         }
+         catch(Exception ex){
+             System.out.println(cigar);
+             ex.printStackTrace();
+         }
      }
     
     public static void main(String[] args) throws IOException, FileNotFoundException, BiffException{
