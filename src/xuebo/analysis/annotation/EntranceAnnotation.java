@@ -33,11 +33,14 @@ public class EntranceAnnotation {
 //        a.writeFile("lalalaV4.txt");
 //          RangeAttribute b = new RangeAttribute(arg[0]);
 //          b.writeTextFile("lalala");
-            String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/testtext.txt";
-            String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/GetCDStesttext.txt";
-            FastaByte genomef = new FastaByte(infileS);
-            new GeneFeatureGetGeneCoordinate (infileS, genomef,outfileS);
-            
+
+//            String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/temptest/GetCDS.txt";
+//            
+//            
+//            String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/temptest/GetCDSSingleGeneFeaturePos.txt";
+//            
+////            FastaByte genomef = new FastaByte(infileS);
+//            new SingleGeneFeaturePos (infileS,outfileS);
 //           String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/test";
 //           String outfileS1 = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/test.CpG.bed.gz";
 //           String outfileS2 = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/test.CHH.bed.gz";
@@ -45,5 +48,17 @@ public class EntranceAnnotation {
 //           new MethylationAnnotation (infileS , outfileS1, outfileS2 , outfileS3 );
            
            
+
+            String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/Zea_mays.AGPv4.38_longestTrans.txt";
+                       
+            String outfileS1 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/SingleGeneFeaturePos/biubiubiu/GeneFeaturePosUpsream.txt";
+            String outfileS2 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/SingleGeneFeaturePos/biubiubiu/GeneFeaturePosDownsream.txt";
+            String outfileS3 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/SingleGeneFeaturePos/biubiubiu/GeneFeaturePos5UTR.txt";
+            String outfileS4 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/SingleGeneFeaturePos/biubiubiu/GeneFeaturePosCDS.txt";
+            String outfileS5 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/SingleGeneFeaturePos/biubiubiu/GeneFeaturePosIntron.txt";
+            String outfileS6 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/SingleGeneFeaturePos/biubiubiu/GeneFeaturePos3UTR.txt";
+            
+            new SingleGeneFeaturePos (infileS,outfileS1,outfileS2,outfileS3,outfileS4,outfileS5,outfileS6);
+
     }
 } 
