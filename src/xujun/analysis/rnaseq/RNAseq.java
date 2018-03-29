@@ -21,8 +21,8 @@ import jxl.read.biff.BiffException;
 public class RNAseq {
     public RNAseq() throws IOException, FileNotFoundException, BiffException {
 //            this.getgenename();
-           this.genenumber();
-//          this.notSDI();
+//           this.genenumber();
+          this.notSDI();
     }      
     public void getgenename(){
          String kfffile="/Users/xujun/Desktop/Zea_mays.AGPv4.38.kgf";
@@ -99,17 +99,21 @@ public class RNAseq {
          }
      }
     public void notSDI(){
-         String inputfile1="/Users/xujun/Desktop/news.text";
+         String inputfile1="/Users/xujun/Desktop/news(MD).text";
          String inputfile2="/Users/xujun/Desktop/normal.fq";
-         String outputfile="/Users/xujun/Desktop/news.fq";
+         String outputfile="/Users/xujun/Desktop/fuck.text";
          String a=null;
          String seq=null;
          String q=null;
          String seq1=null;                   
          String q1=null;
          String startpos=null;
+         String startpos1=null;
          String chro=null;
          String cigar=null;
+         String MD=null;
+         String [][] base=new String[13][];
+         String SNPinsertion [][]=new String[13][];
          try{
             BufferedReader br1 = utils.IOUtils.getTextReader(inputfile1);
             BufferedReader br2 = utils.IOUtils.getTextReader(inputfile2);
@@ -118,6 +122,7 @@ public class RNAseq {
                 startpos=a.split("\t")[1];
                 chro=a.split("\t")[0];
                 cigar=a.split("\t")[2];
+                MD=a.split("\t")[3];
                 br2.readLine();
                 seq=br2.readLine();
                 br2.readLine();
@@ -125,13 +130,18 @@ public class RNAseq {
                 int cont=0;
                 int cont2=0;
                 int cont3=0;
+                int cont4=0;
+                boolean deletion=false;
                 for(int i=0;i<cigar.length();i++){                           
                             if (!Character.isDigit(cigar.charAt(i))){ 
                                 if(cigar.charAt(i)=='M'){
-                                    startpos=String.valueOf(Integer.parseInt(startpos)+cont3);
+                                    startpos1=String.valueOf(Integer.parseInt(startpos)+cont3);
                                         seq1=seq.substring(cont2,cont2+Integer.parseInt(cigar.substring(cont,i)));  
                                         q1=q.substring(cont2,cont2+Integer.parseInt(cigar.substring(cont,i)));
-                                        bw.write(chro+"\t");bw.write(startpos+"\t");bw.write(seq1.length()+"\t");bw.write(q1);
+                                        for(int j=0;j<MD.length();j++){
+                                           
+                                        }
+                                        bw.write(chro+"\t");bw.write(startpos1+"\t");bw.write(seq1.length()+"\t");bw.write(q1);
                                         bw.newLine();
                                         cont2=cont2+Integer.parseInt(cigar.substring(cont,i));
                                         cont3=cont3+Integer.parseInt(cigar.substring(cont,i));
@@ -140,7 +150,16 @@ public class RNAseq {
                                     if(cigar.charAt(i)=='D'|cigar.charAt(i)=='N'){
                                         cont3=cont3+Integer.parseInt(cigar.substring(cont,i));
                                         cont=i+1;
-                                    }else{                                      
+                                    }else{ 
+                                        if(cigar.charAt(i)=='I'){
+//                                            base[Integer.parseInt(chro)][cont4]=seq.substring(cont2+cont,cont2+i);
+//                                            SNPinsertion[Integer.parseInt(chro)][cont4]=String.valueOf(Integer.parseInt(startpos)+cont3);
+//                                            cont4++;
+                                              cont2=cont2+Integer.parseInt(cigar.substring(cont,i));
+                                              cont=i+1;
+                                        }else{
+                                            cont3=cont3+Integer.parseInt(cigar.substring(cont,i));
+                                        }
                                         cont2=cont2+Integer.parseInt(cigar.substring(cont,i));
                                         cont=i+1;
                                     }
