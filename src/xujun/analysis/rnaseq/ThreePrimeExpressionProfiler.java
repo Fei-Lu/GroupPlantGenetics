@@ -79,19 +79,21 @@ public class ThreePrimeExpressionProfiler {
                 String currentBarcode = null;
                 BufferedWriter tw = null;
                 int cnt = 0;
+                int cnt2 = 0;
                 while((temp = br.readLine())!=null){
+                    cnt2++;
                     seq = br.readLine();
                     currentBarcode = seq.substring(0, barcodeLength);
                     int cutIndex = 0;
                     if (barcodeSet.contains(currentBarcode)) {
                         tw = barcodeWriterMap.get(currentBarcode);
-                        for(int i=barcodeLength; i<seq.length(); i+=4){
+                        byte[] seqB = seq.getBytes();
+                        for(int i=barcodeLength; i<seqB.length; i+=4){
                             if (i+4 > seq.length()) {
                                 br.readLine();br.readLine();
                                 continue;
                             }
-                            byte[] seqB = seq.substring(i, i+4).getBytes();
-                            int value = this.getsum(seqB);
+                            int value = this.getsum(seqB, i, i+4);
                             //317 = TTAA
                             if (value < 317) {
                                 cutIndex = i;
@@ -103,7 +105,7 @@ public class ThreePrimeExpressionProfiler {
                                 tw.newLine();
                                 tw.write(br.readLine().substring(cutIndex));
                                 cnt++;
-                                if (cnt%100000 == 0) System.out.println("Wrote " + String.valueOf(cnt) + " sequences. " + f);
+                                if (cnt%1000000 == 0) System.out.println("Wrote " + String.valueOf(cnt) + " sequences. " + f);
                                 break;
                             }              
                         }
@@ -113,6 +115,9 @@ public class ThreePrimeExpressionProfiler {
                         continue;
                     }
                 }
+                StringBuilder sb = new StringBuilder();
+                sb.append(cnt).append(" out of ").append(cnt2).append(", ").append(((float)(double)cnt/cnt2)).append(" of total reads were parsed from " + f);
+                System.out.println(sb.toString());
                 for (int i = 0; i < subFqFileS.length; i++) {
                     bws[i].flush();
                     bws[i].close();
@@ -126,9 +131,9 @@ public class ThreePrimeExpressionProfiler {
         });
     }
     
-    private int getsum(byte[] seqB){
+    private int getsum(byte[] seqB, int startIndex, int endIndex){
         int sum=0;
-        for(int i=0;i<seqB.length;i++){           
+        for(int i = startIndex; i < endIndex; i++){           
             sum+=seqB[i];
         }
         return sum;
