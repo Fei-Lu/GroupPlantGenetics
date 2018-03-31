@@ -87,28 +87,55 @@ public class ThreePrimeExpressionProfiler {
                     int cutIndex = 0;
                     if (barcodeSet.contains(currentBarcode)) {
                         tw = barcodeWriterMap.get(currentBarcode);
-                        byte[] seqB = seq.getBytes();
-                        for(int i=barcodeLength; i<seqB.length; i+=4){
-                            if (i+4 > seq.length()) {
+                        int cont=0;
+                        for(int i= barcodeLength;i<seq.length();i++){
+                            if(i==seq.length()-1){
                                 br.readLine();br.readLine();
                                 continue;
                             }
-                            int value = this.getsum(seqB, i, i+4);
-                            //317 = TTAA
-                            if (value < 317) {
-                                cutIndex = i;
-                                tw.write(temp);
-                                tw.newLine();
-                                tw.write(seq.substring(cutIndex));
-                                tw.newLine();
-                                tw.write(br.readLine());
-                                tw.newLine();
-                                tw.write(br.readLine().substring(cutIndex));
-                                cnt++;
-                                if (cnt%1000000 == 0) System.out.println("Wrote " + String.valueOf(cnt) + " sequences. " + f);
-                                break;
-                            }              
+                            if(seq.charAt(i)=='T'){}
+                            else{
+                                cont++;
+                                if(cont>3){
+                                    cutIndex = i;
+                                    tw.write(temp);
+                                    tw.newLine();
+                                    tw.write(seq.substring(cutIndex-4));
+                                    tw.newLine();
+                                    tw.write(br.readLine());
+                                    tw.newLine();
+                                    tw.write(br.readLine().substring(cutIndex-4));
+                                    tw.newLine();
+                                    cnt++;
+                                    if (cnt%1000000 == 0) System.out.println("Wrote " + String.valueOf(cnt) + " sequences. " + f);
+                                    break;
+                                }
+                            }
+                            
                         }
+//                        byte[] seqB = seq.getBytes();
+//                        for(int i=barcodeLength; i<seqB.length; i+=4){
+//                            if (i+4 > seq.length()) {
+//                                br.readLine();br.readLine();
+//                                continue;
+//                            }
+//                            int value = this.getsum(seqB, i, i+4);
+//                            //317 = TTAA
+//                            if (value < 317) {
+//                                cutIndex = i;
+//                                tw.write(temp);
+//                                tw.newLine();
+//                                tw.write(seq.substring(cutIndex));
+//                                tw.newLine();
+//                                tw.write(br.readLine());
+//                                tw.newLine();
+//                                tw.write(br.readLine().substring(cutIndex));
+//                                tw.newLine();
+//                                cnt++;
+//                                if (cnt%1000000 == 0) System.out.println("Wrote " + String.valueOf(cnt) + " sequences. " + f);
+//                                break;
+//                            }              
+//                        }
                     }
                     else {
                         br.readLine();br.readLine();
