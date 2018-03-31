@@ -29,6 +29,7 @@ public class DataOrginazed {
     }
     public void test(){
         System.out.println("hello");
+        System.out.println("try");
     }
     private void listAllFiles() {
         IOUtils a = new IOUtils();
