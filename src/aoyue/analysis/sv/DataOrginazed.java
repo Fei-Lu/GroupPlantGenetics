@@ -19,13 +19,17 @@ import utils.IOUtils;
  */
 public class DataOrginazed {
     public DataOrginazed(){
-        this.listAllFiles();
-        this.listSpecificalFiles();
-        this.md5();
-        this.checkMd5();
+//        this.listAllFiles();
+//        this.listSpecificalFiles();
+//        this.md5();
+//        this.checkMd5();
+        this.test();
+        
         
     }
-    
+    public void test(){
+        System.out.println("hello");
+    }
     private void listAllFiles() {
         IOUtils a = new IOUtils();
         File b = new File ("/Users/Aoyue/Documents/集群使用前信息整理");
