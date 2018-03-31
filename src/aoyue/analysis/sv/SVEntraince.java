@@ -10,5 +10,15 @@ package aoyue.analysis.sv;
  * @author feilu
  */
 public class SVEntraince {
+    public SVEntraince() {
+        this.dataOrginazed();
+    }
+
+    private void dataOrginazed() {
+        new DataOrginazed();
+    } 
     
+    public static void main (String[] args){
+        new SVEntraince();
+    }  
 }
