@@ -30,6 +30,7 @@ public class DataOrginazed {
     public void test(){
         System.out.println("hello");
         System.out.println("try");
+        System.out.println("haah");
     }
     private void listAllFiles() {
         IOUtils a = new IOUtils();
