@@ -6,13 +6,18 @@
 package xujun.analysis.rnaseq;
 
 import format.genomeAnnotation.GeneFeature;
+import format.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import jxl.read.biff.BiffException;
+import utils.IOUtils;
 
 /**
  *
@@ -21,12 +26,109 @@ import jxl.read.biff.BiffException;
 public class RNAseq {
     public RNAseq() throws IOException, FileNotFoundException, BiffException {
 //            this.getgenename();
-//           this.genenumber();
-          this.notSDI();
-    }      
+           this.genenumber();
+//         this.notSDI();
+//           this.test5();
+    }
+    public void test5 () throws IOException {
+        String barcodeFileS = "/Users/xujun/Desktop/barcodepool.txt";
+        String inputDirS ="/Users/xujun/Desktop/RNA_seq/twice/clean1";
+        String outputDirS = "/Users/xujun/Desktop/RNA_seq/twice/test-twice";        
+        RowTable<String> rt = new RowTable<>(barcodeFileS);
+        int rowNumber = rt.getRowNumber();
+        int columnNumber = rt.getColumnNumber();
+        HashMap<String, Integer> barcodeIndexMap = new HashMap<>();
+        List<String> nameList = new ArrayList<>();
+        for (int i = 0; i < rt.getRowNumber(); i++) {
+            barcodeIndexMap.put(rt.getCell(i, 1), i);
+            nameList.add(rt.getCell(i, 0));
+        }
+        File[] fs = new File(inputDirS).listFiles();
+        HashSet<String> nameSet = new HashSet();
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) continue;
+            nameSet.add(fs[i].getName().split("_")[0]);
+        }
+        
+        nameSet.parallelStream().forEach(p -> {
+            String infile1 = new File (inputDirS, p+"_1.clean.fq").getAbsolutePath();
+ //           String outfile=new File(outputDirS,p+".fq").getAbsolutePath();
+            String seq = null;
+            String seq1=null; 
+            String temp=null;
+            String seq2=null;
+            String temp2=null;
+            int cutIndex=0;
+            try {
+                BufferedReader br1 = utils.IOUtils.getTextReader(infile1);
+                BufferedWriter[] bws = new BufferedWriter[rowNumber];//这里只是创建了一个bufferedreader类型的数组 并没有对里面的各个new
+  //              BufferedWriter bw = utils.IOUtils.getTextWriter(outfile);
+                for (int i = 0; i < bws.length; i++) {
+                    String outfileS = new File (outputDirS, nameList.get(i)+".fq").getAbsolutePath();
+                    bws[i] = IOUtils.getTextWriter(outfileS);
+                }
+                                                 
+                //String seq=null;
+                int cnt = 0;
+                while ((temp = br1.readLine()) != null){
+                    seq=br1.readLine(); 
+                    Integer index = barcodeIndexMap.get(seq.substring(0, 8));
+                    if (index == null) {
+                        br1.readLine();br1.readLine();
+                        continue;
+                    }
+                    int i=0;//用charat的方法 运行31s 试了两次都是30s左右
+                    for(int a=9;a<seq.length();a++){
+                        if (a+4 > seq.length()) {
+                                br1.readLine();br1.readLine();
+                                continue;
+                            }
+                            byte[] seqB = seq.substring(a, a+4).getBytes();
+                            int value = this.getsum(seqB);
+                            //317 = TTAA
+                            if (value < 317) {
+                                cutIndex = a;
+                                bws[index].write(temp + "\n");
+                                bws[index].write(seq + "\n");
+                                bws[index].write(br1.readLine() + "\n");
+                                bws[index].write(br1.readLine()+"\n");
+                                cnt++;
+                                if (cnt%100000 == 0) System.out.println("Wrote " + String.valueOf(cnt) + " sequences. " );
+                                break;
+                            }      
+                    }
+                    
+                }
+                br1.close();
+//                bw.flush();bw.close();
+                for (int i = 0; i < bws.length; i++) {
+                    bws[i].flush();
+                    bws[i].close();
+                }
+                
+                    
+                       
+        }
+                
+        catch (Exception ex) {
+               System.out.println(seq+"\t1234");  
+               System.out.println(seq1+"\t1234"); 
+               ex.printStackTrace();
+               
+        }
+        });      
+     }
+    private int getsum(byte[] seqB){
+        int sum=0;
+        for(int i=0;i<seqB.length;i++){           
+            sum+=seqB[i];
+        }
+        return sum;
+    }
     public void getgenename(){
-         String kfffile="/Users/xujun/Desktop/Zea_mays.AGPv4.38.kgf";
-         GeneFeature fs=new GeneFeature(kfffile);
+         String gfffile="/Users/xujun/Desktop/Zea_mays.AGPv4.38.gff3";
+         GeneFeature fs=new GeneFeature(gfffile);
+         
          String inputfile="/Users/xujun/Desktop/news.fq"; 
          String outputfile="/Users/xujun/Desktop/notSIDname.text";
          BufferedReader br1 = utils.IOUtils.getTextReader(inputfile);
@@ -178,7 +280,7 @@ public class RNAseq {
          }
      }
     public static void main(String[] args) throws IOException, FileNotFoundException, BiffException{
-        new DemoSample();
+        new RNAseq();
     }
     
 }
