@@ -9,7 +9,9 @@ import format.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,8 +24,8 @@ import utils.IOUtils;
  * @author feilu
  */
 public class ThreePrimeExpressionProfiler {
-    //The path of reference genome with .fai file in the same folder
-    String referenceGenomeS = null;
+    //The directory of reference genome index
+    String referenceGenomeDirS = null;
     //The SampleInformation file (with header), the format is Taxa\tBarcode\tPlateName\tFastqPath
     String sampleInformationFileS = null;
     //The gene annotation file (GTF format)
@@ -32,6 +34,12 @@ public class ThreePrimeExpressionProfiler {
     String starPath = null;
     //The directory of output
     String outputDirS = null;
+    
+    int overhangLength = 80;
+    
+    int multiMapN = 10;
+    
+    float mismatchRate = (float)0.04;
     
     String[] subDirS = {"subFastqs", "sams", "geneCount"};
     List<String> fqFileSList = null;
@@ -46,7 +54,64 @@ public class ThreePrimeExpressionProfiler {
     
     public ThreePrimeExpressionProfiler (String parameterFileS) {
         this.parseParameters(parameterFileS);
-        this.parseFq();
+        //this.parseFq();
+        /////////this.mkIndexOfReference(); //one-time set, not requried for standard runs
+        this.starAlignment();
+    }
+    
+    private void starAlignment () {
+        String subFqDirS = new File (this.outputDirS, subDirS[0]).getAbsolutePath();
+        File[] fs = new File(subFqDirS).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, ".fq.gz");
+        List<File> fList = Arrays.asList(fs);
+        int numCores = Runtime.getRuntime().availableProcessors();
+        fList.stream().forEach(f -> {
+            StringBuilder sb = new StringBuilder();
+            sb.append(this.starPath).append(" --runThreadN ").append(numCores).append(" --genomeDir ").append(this.referenceGenomeDirS);
+            sb.append(" --sjdbGTFfile ").append(this.geneAnnotationFileS).append(" --sjdbOverhang ").append(this.overhangLength);
+            sb.append(" --readFilesIn ").append(f).append(" --outFilterMultimapNmax ").append(this.multiMapN);
+            sb.append(" --outFilterMismatchNoverLmax ").append(this.mismatchRate).append(" --outFilterIntronMotifs RemoveNoncanonicalUnannotated ");
+            //sb.append(" --outSAMtype SAM");
+            sb.append(" --outSAMtype BAM SortedByCoordinate");
+            String command = sb.toString();
+            System.out.println(command);
+            try {
+                Runtime rt = Runtime.getRuntime();
+                Process p = rt.exec(command);
+                p.waitFor();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+            System.out.println("Finished"+f);
+        });
+        
+        
+    }
+    
+    private void mkIndexOfReference () {
+        int numCores = Runtime.getRuntime().availableProcessors();
+        String referenceGenomeFileS = "/Users/feilu/Documents/database/maize/reference/AGPv4/maizeAGPv4.fa";
+        String outputDirS = "/Users/feilu/Documents/database/maize/reference/starLib";
+        try {
+            StringBuilder sb = new StringBuilder("/Users/feilu/Software/STAR-2.5.4b/bin/MacOSX_x86_64/STAR");
+            sb.append(" --runThreadN ").append(numCores).append(" --runMode genomeGenerate --genomeDir ").append(outputDirS);
+            sb.append(" -- genomeFastaFiles ").append(referenceGenomeFileS);
+            String command = sb.toString();
+            System.out.println(command);
+            Runtime rt = Runtime.getRuntime();
+            Process p = rt.exec(command);
+            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String temp = null;
+            while ((temp = br.readLine()) != null) {
+                System.out.println(temp);
+            }
+            p.waitFor();
+            
+        }
+        catch (Exception ee) {
+            ee.printStackTrace();
+        }
     }
     
     private void parseFq () {
@@ -191,7 +256,7 @@ public class ThreePrimeExpressionProfiler {
             e.printStackTrace();
             System.exit(1);
         }
-        this.referenceGenomeS = pLineList.get(0);
+        this.referenceGenomeDirS = pLineList.get(0);
         this.sampleInformationFileS = pLineList.get(1);
         this.geneAnnotationFileS = pLineList.get(2);
         this.starPath = pLineList.get(3);
