@@ -35,7 +35,7 @@ public class ThreePrimeExpressionProfiler {
     //The directory of output
     String outputDirS = null;
     
-    int overhangLength = 80;
+    int overhangLength = 150;
     
     int multiMapN = 10;
     
@@ -54,23 +54,30 @@ public class ThreePrimeExpressionProfiler {
     
     public ThreePrimeExpressionProfiler (String parameterFileS) {
         this.parseParameters(parameterFileS);
-        //this.parseFq();
+        //mkGeneRange();
+        this.parseFq(); //Remove Ts?
         /////////this.mkIndexOfReference(); //one-time set, not requried for standard runs
-        this.starAlignment();
+        //this.starAlignment(); //
+        //outputToTable();
     }
     
-    private void starAlignment () {
+    private void starAlignment () { //private int[][] getIndividualGeneCount ()
         String subFqDirS = new File (this.outputDirS, subDirS[0]).getAbsolutePath();
         File[] fs = new File(subFqDirS).listFiles();
-        fs = IOUtils.listFilesEndsWith(fs, ".fq.gz");
+        fs = IOUtils.listFilesEndsWith(fs, ".fq");
         List<File> fList = Arrays.asList(fs);
         int numCores = Runtime.getRuntime().availableProcessors();
+        //int[][] geneCount = new int[taxaNumber][];
         fList.stream().forEach(f -> {
+            //int[] indiGeneCount = new int[geneNumber];
             StringBuilder sb = new StringBuilder();
             sb.append(this.starPath).append(" --runThreadN ").append(numCores).append(" --genomeDir ").append(this.referenceGenomeDirS);
             sb.append(" --sjdbGTFfile ").append(this.geneAnnotationFileS).append(" --sjdbOverhang ").append(this.overhangLength);
-            sb.append(" --readFilesIn ").append(f).append(" --outFilterMultimapNmax ").append(this.multiMapN);
-            sb.append(" --outFilterMismatchNoverLmax ").append(this.mismatchRate).append(" --outFilterIntronMotifs RemoveNoncanonicalUnannotated ");
+            sb.append(" --readFilesIn ").append(f);
+            sb.append(" --outFileNamePrefix ").append(new File(new File(this.outputDirS, subDirS[1]).getAbsolutePath(), f.getName().replaceFirst(".fq", ""))
+                .getAbsolutePath()).append(" --outFilterMultimapNmax ").append(this.multiMapN);
+            sb.append(" --outFilterMismatchNoverLmax ").append(this.mismatchRate)
+                .append(" --outFilterIntronMotifs RemoveNoncanonicalUnannotated ");
             //sb.append(" --outSAMtype SAM");
             sb.append(" --outSAMtype BAM SortedByCoordinate");
             String command = sb.toString();
@@ -79,10 +86,14 @@ public class ThreePrimeExpressionProfiler {
                 Runtime rt = Runtime.getRuntime();
                 Process p = rt.exec(command);
                 p.waitFor();
+                command = ">";// pipe to sam samtools view > sam
+                p = rt.exec(command);
             }
             catch (Exception e) {
                 e.printStackTrace();
             }
+            //int index = Collections.binarySearch(taxaList, taxonName);
+            //geneCount[index] = indiGeneCount;
             System.out.println("Finished"+f);
         });
         
@@ -126,8 +137,8 @@ public class ThreePrimeExpressionProfiler {
             HashMap<String, BufferedWriter> barcodeWriterMap = new HashMap<>();
             for (int i = 0; i < subFqFileS.length; i++) {
                 String taxon = btMap.get(barcodeList.get(i));
-                subFqFileS[i] = new File(subFqDirS, taxon+".fq.gz").getAbsolutePath();
-                bws[i] = IOUtils.getTextGzipWriter(subFqFileS[i]);
+                subFqFileS[i] = new File(subFqDirS, taxon+".fq").getAbsolutePath();
+                bws[i] = IOUtils.getTextWriter(subFqFileS[i]);
                 barcodeWriterMap.put(barcodeList.get(i), bws[i]);
             }
             int barcodeLength = this.barcodeLengths[fqIndex];
@@ -152,7 +163,15 @@ public class ThreePrimeExpressionProfiler {
                     int cutIndex = 0;
                     if (barcodeSet.contains(currentBarcode)) {
                         tw = barcodeWriterMap.get(currentBarcode);
-                        int cont=0;
+                        tw.write(temp);
+                        tw.newLine();
+                        tw.write(seq.substring(8));
+                        tw.newLine();
+                        tw.write(br.readLine());
+                        tw.newLine();
+                        tw.write(br.readLine().substring(8));
+                        tw.newLine();
+/*                        int cont=0;
                         for(int i= barcodeLength;i<seq.length();i++){
                             if(i==seq.length()-1){
                                 br.readLine();br.readLine();
@@ -177,7 +196,7 @@ public class ThreePrimeExpressionProfiler {
                                 }
                             }
                             
-                        }
+                        }*/
 //                        byte[] seqB = seq.getBytes();
 //                        for(int i=barcodeLength; i<seqB.length; i+=4){
 //                            if (i+4 > seq.length()) {
