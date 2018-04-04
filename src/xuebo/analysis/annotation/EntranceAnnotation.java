@@ -58,7 +58,7 @@ public class EntranceAnnotation {
             String outfileS5 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/SingleGeneFeaturePos/biubiubiu/GeneFeaturePosIntron.txt";
             String outfileS6 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/SingleGeneFeaturePos/biubiubiu/GeneFeaturePos3UTR.txt";
             
-            new SingleGeneFeaturePos (infileS,outfileS1,outfileS2,outfileS3,outfileS4,outfileS5,outfileS6);
-
+//            new SingleGeneFeaturePos (infileS,outfileS1,outfileS2,outfileS3,outfileS4,outfileS5,outfileS6);
+             new generateScripts();
     }
 } 
