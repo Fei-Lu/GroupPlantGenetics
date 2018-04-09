@@ -5,13 +5,18 @@
  */
 package aoyue.analysis.sv;
 
+import analysis.maize2k.HapScanner;
+
 /**
  *
  * @author feilu
  */
 public class SVEntraince {
     public SVEntraince() {
-        this.dataOrginazed();
+        //this.dataOrginazed();
+        
+        String inFileS = "/Users/Aoyue/Documents/Data/pipeline/hapScanner/Parameters_hapScanner.txt";
+        new HapScanner (inFileS);
     }
 
     private void dataOrginazed() {
@@ -20,5 +25,6 @@ public class SVEntraince {
     
     public static void main (String[] args){
         new SVEntraince();
+        
     }  
 }
