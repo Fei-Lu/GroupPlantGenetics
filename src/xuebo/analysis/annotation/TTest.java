@@ -43,10 +43,10 @@ public class TTest {
 //            e.printStackTrace();
 //            
 //        }
-        String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/CpCore.txt";
-        String inFilePos = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/SingleGeneFeaturePos/GeneFeaturePosUpsream.txt";
+        String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/CHH_10/Sitemethy10CHH";
+        String inFilePos = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/GeneFeaturePos3UTR.txt";
         String chr = "10-10";
-        String outFileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/SingleGeneFeaturePos/testUpsream.txt";
+        String outFileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/CHH_10/Pos3UTRCHH.txt";
         GetCpscoreCoordinate test = new GetCpscoreCoordinate(infileS,chr,inFilePos, 20, outFileS);
     }
 }

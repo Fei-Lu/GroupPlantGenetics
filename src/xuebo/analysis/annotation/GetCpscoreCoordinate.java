@@ -107,6 +107,7 @@ public class GetCpscoreCoordinate {
         List<Integer> chr = getChr(chrinfo);
         for (int i = chr.get(0); i < chr.get(1) + 1;i++){
             String chrString = inFileS + "_" + i + ".txt";
+//            String chrString = inFileS;
             HashMap<String, Double> cpScoreHm = readFile(chrString,i);
             cpScoreHmAll.putAll(cpScoreHm);
 //            for (int j = 0;  j < cpScoreHm.size();j++){
