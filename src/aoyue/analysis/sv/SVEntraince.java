@@ -17,6 +17,7 @@ public class SVEntraince {
         
         String inFileS = "/Users/Aoyue/Documents/Data/pipeline/hapScanner/Parameters_hapScanner.txt";
         new HapScanner (inFileS);
+        
     }
 
     private void dataOrginazed() {

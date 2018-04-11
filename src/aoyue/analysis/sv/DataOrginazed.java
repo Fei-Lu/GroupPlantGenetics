@@ -7,10 +7,15 @@ package aoyue.analysis.sv;
 
 import format.table.RowTable;
 import format.table.TableInterface;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import utils.IOUtils;
 
 /**
@@ -23,9 +28,71 @@ public class DataOrginazed {
 //        this.listSpecificalFiles();
 //        this.md5();
 //        this.checkMd5();
-        this.test();
+        //this.test();
+        this.covergage();
+       
         
         
+    }
+    
+    public void covergage () {
+        String infileDirS = "/Volumes/Lulab3T_14/20171120CAAS/P101SC17081532_01zhangshaojing/data_release/cleandata";
+        String outfileS = "/Users/Aoyue/Documents/Data/project/maize2k/coverage/111SM_14_coverage.txt";
+        File[] fs = new File(infileDirS).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, ".gz");
+        int genomeSize = 2135098301;
+        HashSet<String> nameSet = new HashSet();
+        for (int i = 0; i < fs.length; i++) {
+            nameSet.add(fs[i].getName().split("_")[0]);
+        }
+        
+        ConcurrentHashMap<String, Integer> fileSizeMap = new ConcurrentHashMap();
+        AtomicInteger acnt = new AtomicInteger();
+        nameSet.parallelStream().forEach(name -> {
+            String infile1 = new File (infileDirS, name+"_1_clean.fq.gz").getAbsolutePath();
+            try {
+                
+                BufferedReader br = IOUtils.getTextGzipReader(infile1);
+                String temp = br.readLine();
+                temp = br.readLine();
+                int len = temp.length();
+                acnt.set(len);
+                br.close();
+                br = IOUtils.getTextGzipReader(infile1);
+                int cnt = 0;
+                while ((temp = br.readLine()) != null) {                  
+                    cnt++;
+                    br.readLine();br.readLine();br.readLine();                 
+                }
+                
+                fileSizeMap.put(name, cnt);
+                
+                System.out.println(name+" has "+String.valueOf(cnt)+ " reads. Read length: " +String.valueOf(len));
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        try {
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            bw.write("Sample\tReadsNum\tReadsLength\tCoverage");
+            bw.newLine();
+            String[] names = nameSet.toArray(new String[nameSet.size()]);
+            Arrays.sort(names);
+            for (int i = 0; i < names.length; i++) {
+                StringBuilder sb = new StringBuilder(names[i]);
+                int readNum = fileSizeMap.get(names[i]);
+                int readLength = acnt.intValue();
+                sb.append("\t").append(readNum).append("\t").append(readLength).append("\t").append((double)readNum*readLength*2/genomeSize);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     public void test(){
         System.out.println("hello");
