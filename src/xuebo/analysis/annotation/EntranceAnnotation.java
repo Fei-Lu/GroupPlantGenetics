@@ -48,8 +48,8 @@ public class EntranceAnnotation {
 //           String outfileS3 = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/V4/siteScoreCHG.txt";           
 //           new MethylationAnnotation (infileS , outfileS1, outfileS2 , outfileS3 );
            
-           String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/V4/allsiteCHHscore.txt";
-           String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/Sitemethy10CHH.txt";
+           String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/randomforest/Siteopen101.txt";
+           String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/randomforest/Siteopen10add0.txt";
            new MethylationAnnotation (infileS,outfileS);
            
            

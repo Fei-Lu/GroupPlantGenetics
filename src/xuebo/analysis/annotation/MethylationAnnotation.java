@@ -20,13 +20,15 @@ public class MethylationAnnotation {
 //        this.getMethylationAnnotation(infileS,outfileS1, outfileS2,outfileS3);
 //    }
     
+    public MethylationAnnotation(String infileS ,String outfileS){
+        this.getMethylationlevelScore(infileS, outfileS);
+    }
+//    
 //    public MethylationAnnotation(String infileS ,String outfileS){
-//        this.getMethylationlevelScore(infileS, outfileS);
+//        //this.getMethylationlevelScore10(infileS, outfileS);
+//        this.getOpenchrScore(infileS, outfileS);
 //    }
     
-    public MethylationAnnotation(String infileS ,String outfileS){
-        this.getMethylationlevelScore10(infileS, outfileS);
-    }
     
     public void getMethylationAnnotation(String infileS, String outfileS1, String outfileS2,String outfileS3) {
 
@@ -158,8 +160,8 @@ public class MethylationAnnotation {
                 
                     if (Integer.valueOf(tem[1]) == i){
                         
-//                        LmethyScore = tem[0] + "\t" + i + "\t" +tem[2];
-                        LmethyScore = tem[0] + "\t" + tem[2];
+                        LmethyScore = tem[0] + "\t" + i + "\t" +tem[2];
+                        //LmethyScore = tem[0] + "\t" + tem[2];
                         bw.write(LmethyScore + "\n"); 
                         
                     }
@@ -167,13 +169,13 @@ public class MethylationAnnotation {
                         
                         for(int j = i; j< Integer.valueOf(tem[1]);j++){ 
                             
-//                        LmethyScore = tem[0] + "\t" +  i + "\t" + "0";
-                        LmethyScore = tem[0] + "\t" + "0";
+                        LmethyScore = tem[0] + "\t" +  j + "\t" + "0";
+                        //LmethyScore = tem[0] + "\t" + "0";
                         bw.write(LmethyScore + "\n");
                         }
                         
-//                        LmethyScore = tem[0] + "\t" + tem[1] + "\t" +tem[2];
-                        LmethyScore = tem[0] + "\t" + tem[2];
+                        LmethyScore = tem[0] + "\t" + i + "\t" +tem[2];
+                        //LmethyScore = tem[0] + "\t" + tem[2];
                         bw.write(LmethyScore + "\n"); 
                         i = Integer.valueOf(tem[1]);
                     }                 
@@ -244,8 +246,83 @@ public class MethylationAnnotation {
             
     }
     
+    /**
+ *
+ * @author xuebozhao
+ */
     
-    
-    
+    public void getOpenchrScore(String infileS ,String outfileS){
+        
+        try {
+            
+            BufferedReader br;
+            
+            if (infileS.endsWith("gz")) {
+
+                br = IOUtils.getTextGzipReader(infileS);
+
+            } else {
+
+                br = IOUtils.getTextReader(infileS);
+            }
+            
+            String temp = null;
+            int i = 0;
+                      
+            String OpenchrScore = null;
+            
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            
+             
+            while (( temp = br.readLine()) != null) {
+                
+                    i = i + 1;
+//                    
+//                    if (i % 100 == 0) {
+//
+//                    System.out.println("MethylationAnnotation" + i + "....");
+//
+//                    }
+                    
+                String[] tem = temp.split("\t"); 
+                
+                int aa = Integer.valueOf(tem[1]);
+                int bb = Integer.valueOf(tem[2]);
+                
+                for(int p = aa ;p < bb;p++){
+                    
+                    OpenchrScore =tem[0] + "\t" + Integer.toString(p) + "\t" + "1";
+                    bw.write(OpenchrScore + "\n"); 
+                }
+//                
+//                    if (Integer.valueOf(tem[1]) == i){
+//                        
+////                        LmethyScore = tem[0] + "\t" + i + "\t" +tem[2];
+//                        LmethyScore = tem[0] + "\t" + tem[2];
+//                        bw.write(LmethyScore + "\n"); 
+//                        
+//                    }
+//                    else{
+//                        
+//                        for(int j = i; j< Integer.valueOf(tem[1]);j++){ 
+//                            
+////                        LmethyScore = tem[0] + "\t" +  i + "\t" + "0";
+//                        LmethyScore = tem[0] + "\t" + "0";
+//                        bw.write(LmethyScore + "\n");
+//                        }
+//                        
+////                        LmethyScore = tem[0] + "\t" + tem[1] + "\t" +tem[2];
+//                        LmethyScore = tem[0] + "\t" + tem[2];
+//                        bw.write(LmethyScore + "\n"); 
+//                        i = Integer.valueOf(tem[1]);
+//                    }                 
+            }  
+            bw.flush();
+            bw.close();
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+            
+    }
     
 }
