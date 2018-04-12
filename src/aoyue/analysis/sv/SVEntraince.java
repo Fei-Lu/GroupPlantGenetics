@@ -13,15 +13,16 @@ import analysis.maize2k.HapScanner;
  */
 public class SVEntraince {
     public SVEntraince() {
-        //this.dataOrginazed();
+        this.dataOrginazed();
         
-        String inFileS = "/Users/Aoyue/Documents/Data/pipeline/hapScanner/Parameters_hapScanner.txt";
-        new HapScanner (inFileS);
+        //String inFileS = "/Users/Aoyue/Documents/Data/pipeline/hapScanner/Parameters_hapScanner.txt";
+        //new HapScanner (inFileS);
         
     }
 
     private void dataOrginazed() {
-        new DataOrginazed();
+        //new DataOrginazed();
+        new HapMapTaxaProcessorcp ();
     } 
     
     public static void main (String[] args){
