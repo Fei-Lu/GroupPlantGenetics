@@ -27,21 +27,12 @@ public class Delicay {
         this.mkHapPosAllele();
         //创建文件并写入字符串
         this.mkfile1();
+        //建立一个具有表格属性的文本
+        this.mkfile2();
         
          
     }
-    /*if (!file.exists()) {   //文件不存在则创建文件，先创建目录  
-            File dir = new File(file.getParent());  
-            dir.mkdirs();  
-            file.createNewFile();  
-        }  
-        FileOutputStream outStream = new FileOutputStream(file);    //文件输出流用于将数据写入文件  
-        outStream.write(sourceByte);  
-        outStream.close();  //关闭文件输出流  
-    } catch (Exception e) {  
-        e.printStackTrace();  
-    } 
-*/
+    
     public void mkfile1(){
         String input = "this is the first time that I have write a txt using java !";
         byte[] sourceByte = input.getBytes();
@@ -59,13 +50,11 @@ public class Delicay {
             }
             catch (Exception e){
                 e.printStackTrace();        
-            }
-            
-            
-        }
-        
- 
-        
+            }           
+        }     
+    }
+    
+    public void mkfile2(){
         
     }
     public void mkHapPosAllele () {

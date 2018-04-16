@@ -26,12 +26,35 @@ public class DataOrginazed {
     public DataOrginazed(){
 //        this.listAllFiles();
 //        this.listSpecificalFiles();
-//        this.md5();
-//        this.checkMd5();
+        //this.md5();
+        //this.checkMd5();
         //this.test();
-        this.covergage();
+        //this.covergage();
+        this.sample();
+        
        
         
+        
+    }
+    
+    public void sample(){
+        String infileS = "/Users/Aoyue/Documents/hmp321_854taxa_maizeCAAS/chr010.vcf.gz";
+        String outfileS = "/Users/Aoyue/Documents/hmp321_854taxa_maizeCAAS/chr010test.vcf";
+        int length = 1000;
+        try{
+            BufferedReader br = IOUtils.getTextGzipReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            for (int i = 0; i < length; i++){
+                bw.write(br.readLine());
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+            br.close();          
+        }
+        catch(Exception e){
+            e.printStackTrace();        
+        }
         
     }
     
@@ -153,10 +176,10 @@ public class DataOrginazed {
     }
     
     private void md5() {
-        String path = "/Volumes/Lulab3T_14/20171120_copy/P101SC17081532_01zhangshaojing/data_release/cleandata";
-        File test = new File (path);
-        File[] fs = IOUtils.listRecursiveFiles(test);
-        File[] subFs = IOUtils.listFilesEndsWith(fs, "clean.fq.gz");
+        //String path = "/Volumes/Lulab3T_14/20171120_copy/P101SC17081532_01zhangshaojing/data_release/cleandata";
+        //File test = new File (path);
+        File[] fs = IOUtils.listRecursiveFiles(new File("/Users/Aoyue/Documents/Data/pipeline/hapScanner/hapPosAllele/"));
+        File[] subFs = IOUtils.listFilesEndsWith(fs, "posAllele.txt.gz"); //列出以posAllele.txt.gz结尾的文件
         String outfileS = "/Users/Aoyue/Documents/md5.txt";
         try {
             BufferedWriter bw = IOUtils.getTextWriter(outfileS);
@@ -164,7 +187,7 @@ public class DataOrginazed {
             for (int i = 0; i < subFs.length; i++) {
                 sb = new StringBuilder();
 //                sb.append("md5").append(" ").append(subFs[i].getAbsolutePath()).append("\t");
-                sb.append("md5").append(" ").append(subFs[i].getName()).append("\t");        
+                sb.append("md5").append(" ").append(subFs[i].getName());        
                 bw.write(sb.toString());
                 bw.newLine();
             }
@@ -179,18 +202,22 @@ public class DataOrginazed {
     }
 
     private void checkMd5() {
-        String des = "/Users/Aoyue/Documents/111md5.txt";
-        String ori = "/Users/Aoyue/Documents/111originmd5.txt";
-        HashMap<String, String> fmd5Map = new HashMap<>();
-        TableInterface oT = new RowTable(ori, "  ");
-        TableInterface dT = new RowTable(des, " ");
-        for (int i = 0; i < oT.getRowNumber(); i++) {
-            fmd5Map.put(oT.getCellAsString(i, 1), oT.getCellAsString(i, 0));
+        //ori 文件 54de998c7883a4592a1683bec2590d64  K16HL0119_1_clean.fq.gz
+        //des文件 MD5 (K16HL0133_2_clean.fq.gz) = 52c7a9d501d5fd7b3d0deaf3aae1c715
+        String des = "/Users/Aoyue/Documents/111md5.txt"; //mac生成的md5文件
+        String ori = "/Users/Aoyue/Documents/111originmd5.txt"; //原始md5
+        HashMap<String, String> fmd5Map = new HashMap<>(); //建立一个键值对应的hashmap,此时hashmap为空。下文会把原始的ori文件放入hashmap中去
+        TableInterface oT = new RowTable(ori, "  "); //分隔符是2个空格，将ori文件读进表格
+        TableInterface dT = new RowTable(des, " "); //分隔符是1个空格，将des文件读进表格
+        for (int i = 0; i < oT.getRowNumber(); i++) { //按行遍历
+            fmd5Map.put(oT.getCellAsString(i, 1), oT.getCellAsString(i, 0)); //Return a string value of a cell. 将ori文件中的第2列放进hashmap中的key，
+            //将第1列放进hashmap中的value
         }
         for (int i = 0; i < dT.getRowNumber(); i++) {
-            String key = dT.getCellAsString(i, 1).replaceFirst("\\(", "").replaceFirst("\\)", "");
-            String value = fmd5Map.get(key);
-            if (value == null) {
+            //将des文件中的第2列样本名提取出来，并将括号去掉，用replaceFirst方法
+            String key = dT.getCellAsString(i, 1).replaceFirst("\\(", "").replaceFirst("\\)", ""); //此处的key为 des文件中的样本名
+            String value = fmd5Map.get(key); //get(key)返回fmd5Map中的value值。
+            if (value == null) { //如果value为空，则为真。
                 System.out.println(key+"\tdoesn't exist");
                 continue;
             }
@@ -198,6 +225,8 @@ public class DataOrginazed {
             System.out.println(key + "\t is incorrect");
         }
     }
+    
+    
     
     
 }
