@@ -30,11 +30,37 @@ public class DataOrginazed {
         //this.checkMd5();
         //this.test();
         //this.covergage();
-        this.sample();
+        //this.sample();
+        this.insertTxt();
+        
         
        
         
         
+    }
+    
+    public void insertTxt(){
+        String infileS = "/Users/Aoyue/Desktop/K16BJS0001.yao.list";
+        String outfileS = "/Users/Aoyue/Desktop/mvK16BJS0001.yao.listt";
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String temp = null;
+            while ((temp = br.readLine()) != null){
+                String tem = temp; //
+                StringBuilder sb =new StringBuilder();
+                sb.append("mv").append(" ").append(tem).append(" ").append("../plot1/");
+                bw.write(sb.toString() + "\n");
+                //System.out.println(sb.toString());
+            }
+            bw.flush();
+            bw.close();
+            //br.close(); 
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
     
     public void sample(){
