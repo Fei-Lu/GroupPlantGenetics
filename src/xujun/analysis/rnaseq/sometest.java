@@ -5,12 +5,23 @@
  */
 package xujun.analysis.rnaseq;
 
+import com.koloboke.collect.map.hash.HashIntIntMap;
+import com.koloboke.collect.map.hash.HashIntIntMaps;
 import format.genomeAnnotation.GeneFeature;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import utils.Benchmark;
+import utils.IOUtils;
 
 /**
  *
@@ -19,7 +30,185 @@ import java.util.logging.Logger;
 public class sometest {
     public sometest(){
 //        this.test1();
-        this.test2();
+//        this.test2();
+//            this.getExonInfor();
+//        this.getExonLengthOfChro();
+//        this.getReadsTransscript();
+//            this.getGeneName();
+//        this.transfer();
+        this.sortByName();
+    }
+    public void sortByName(){
+        ArrayList<String> al = new ArrayList<String>();
+        al.add("Zm00001d027231_T001");
+        al.add("Zm00001d027231_T002");
+        al.add("Zm00001d027231_T031");
+        al.add("Zm00001d027231_T004");
+        al.add("Zm00001d027231_T005");
+        Collections.sort(al);
+        System.out.println("List after the use of" +
+                           " Collection.sort() :\n" + al);
+    }
+    public void transfer(){
+        String inputFile="/Users/xujun/Desktop/TEP/GeneName.txt";
+        String outputFile="/Users/xujun/Desktop/TEP/GeneName1.txt";
+        try{
+            BufferedReader br = utils.IOUtils.getTextReader(inputFile);
+            BufferedWriter bw = utils.IOUtils.getTextWriter(outputFile);
+            String temp=null;
+            String geneName=null;
+            int chro=0;
+            while((temp= br.readLine()) != null){
+                if(temp.contains("zma-mir")){
+                    temp=temp.replaceAll("zma-mir", "zma-MIR");
+                }
+                bw.write(temp);bw.newLine();
+            }
+            
+            br.close();
+            bw.flush();bw.close();
+        }
+        catch(Exception ex){
+             ex.printStackTrace();
+        } 
+    }
+    public void getGeneName(){
+        String inputFile="/Users/xujun/Desktop/RNA_seq/twice/STAR/Zea_mays.AGPv4.38.modified.gtf";
+        String outputFile="/Users/xujun/Desktop/RNA_seq/twice/STAR/GeneName.txt";
+        HashSet<String> geneNameSet = new HashSet();
+        try{
+            BufferedReader br = utils.IOUtils.getTextReader(inputFile);
+            BufferedWriter bw = utils.IOUtils.getTextWriter(outputFile);
+            String temp=null;
+            String geneName=null;
+            int chro=0;
+            while((temp= br.readLine()) != null){
+                geneName=temp.split("\t")[8].split(";")[1].split(":")[1].substring(0,temp.split("\t")[8].split(";")[1].split(":")[1].length()-1);
+                chro=Integer.valueOf(temp.split("\t")[0]);
+                if(!(geneNameSet.contains(geneName))){
+                    geneNameSet.add(geneName);
+                    bw.write(geneName+"\t"+chro);
+                    bw.newLine();
+                }                
+            }
+            String[] GeneName = geneNameSet.toArray(new String[geneNameSet.size()]);
+            
+            br.close();
+            bw.flush();bw.close();
+        }
+        catch(Exception ex){
+             ex.printStackTrace();
+        } 
+    }
+    public void getReadsTransscript(){
+        String inputFile="/Users/xujun/Desktop/TEP/TEPOut/sams/TEP_CIGAR.txt";
+        String outputFile="/Users/xujun/Desktop/TEP/TEPOut/sams/TEP_Exon.txt";
+        String pgfFile="/Users/xujun/Desktop/Zea_mays.AGPv4.38.pgf";
+        GeneFeature xj = new GeneFeature(pgfFile);
+        try{
+            BufferedReader br = utils.IOUtils.getTextReader(inputFile);
+            BufferedWriter bw = utils.IOUtils.getTextWriter(outputFile);
+            String temp=null;
+            String name=null;
+            int chro=0;
+            int startsite=0;
+            int endsite=0;
+            while((temp= br.readLine()) != null){
+                chro=Integer.parseInt(temp.split("\t")[0]);
+                startsite=Integer.parseInt(temp.split("\t")[1]);
+                endsite=Integer.parseInt(temp.split("\t")[1]);
+                xj.getTranscriptName(startsite, endsite);
+                bw.write(name+"\t"+chro);
+                bw.newLine();
+            }
+            br.close();
+            bw.flush();bw.close();
+        }
+        catch(Exception ex){
+             ex.printStackTrace();
+        } 
+    }
+    public void getExonInfor(){//输出的文件是 transcript chro position
+        String gtfFile="/home/aoyue/xujun/Exon/Zea_mays.AGPv4.38.modified.gtf";
+        String outputFile="/home/aoyue/xujun/Exon/ExonInfor.txt";
+//        String output="/Users/xujun/Desktop/RNA_seq/twice/STAR/ExonLengthInfor.txt";
+        List<String> w=new ArrayList();
+        int index=0;
+        String[] position=new String[400000];
+        for(int i=0;i<position.length;i++){
+            position[i]="";
+        }
+        try{
+            BufferedReader br = utils.IOUtils.getTextReader(gtfFile);
+            BufferedWriter bw = utils.IOUtils.getTextWriter(outputFile);
+ //           BufferedWriter bw1 = utils.IOUtils.getTextWriter(output);
+            String temp=null;
+            String genotype=null;
+            String transcriptnews=null;
+            String transcript=null;
+            int chro=0;
+ //           int length=0;
+ //           int [] chroLength=new int[12];
+            while((temp= br.readLine()) != null){        
+                genotype=temp.split("\t")[2];
+                if(genotype.equals("exon")){
+                    chro=Integer.parseInt(temp.split("\t")[0]);
+                    transcriptnews=temp.split("\t")[8];
+                    transcript=transcriptnews.split(" ")[1].substring(12,transcriptnews.split(" ")[1].length()-2);
+                    if(w.contains(transcript)){
+                        index=w.indexOf(transcript);
+                        position[index]=position[index].concat(temp.split("\t")[3]+":"+temp.split("\t")[4]+";");
+                    }
+                    else{
+                        w.add(transcript);
+                        index=w.indexOf(transcript);
+                        position[index]=position[index].concat(chro+"\t"+temp.split("\t")[3]+":"+temp.split("\t")[4]+";");
+                    }
+                    
+                }
+            }
+            
+            for(int i=0;i<w.size();i++){
+                bw.write(w.get(i)+"\t"+position[i]);
+                bw.newLine();
+            }
+            br.close();bw.flush();bw.close();
+        }
+        catch(Exception ex){
+             ex.printStackTrace();
+         }  
+    }
+    public void getExonLengthOfChro(){//输出的文件是 transcript chro position
+        String gtfFile="/Users/xujun/Desktop/RNA_seq/twice/STAR/Zea_mays.AGPv4.38.modified.gtf";
+        String outputFile="/Users/xujun/Desktop/RNA_seq/twice/STAR/ExonLengthOfChro.txt";
+//        String output="/Users/xujun/Desktop/RNA_seq/twice/STAR/ExonLengthInfor.txt";
+        int index=0;
+        try{
+            BufferedReader br = utils.IOUtils.getTextReader(gtfFile);
+            BufferedWriter bw = utils.IOUtils.getTextWriter(outputFile);
+ //           BufferedWriter bw1 = utils.IOUtils.getTextWriter(output);
+            String temp=null;
+            String genotype=null;
+            int chro=0;
+           int length=0;
+           int [] chroLength=new int[12];
+            while((temp= br.readLine()) != null){        
+                genotype=temp.split("\t")[2];
+                if(genotype.equals("exon")){
+                    chro=Integer.parseInt(temp.split("\t")[0]);
+                  length=Integer.parseInt(temp.split("\t")[4])-Integer.parseInt(temp.split("\t")[3])+1;
+                  chroLength[chro-1]+=length;
+                }
+            }
+            for(int i=0;i<12;i++){
+                bw.write(i+1+"\t"+chroLength[i]);
+                bw.newLine();
+            }
+            br.close();bw.flush();bw.close();
+        }
+        catch(Exception ex){
+             ex.printStackTrace();
+         }  
     }
     public void test1(){//Zm00001d031168 对这个超高表达的基因进行统计 第一列是read的长度 第二列是质量值 第三列是这条read的质量均值
         String inputfile="/Users/xujun/Desktop/notSIDname.text";

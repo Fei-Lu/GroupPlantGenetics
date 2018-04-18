@@ -34,13 +34,14 @@ public class DemoSample{
 //            this.getgenename();
 //            this.geneposition();
 //            this.sort();
-           this.genenumber();
+//           this.genenumber();
 //          this.merge();
 //          this.notSDI();
+            this.test5();
     }      
 public void test5 () throws IOException {
         String barcodeFileS = "/Users/xujun/Desktop/barcodepool.txt";
-        String inputDirS ="/Users/xujun/Desktop/RNA_seq/twice/clean_data";
+        String inputDirS ="/Users/xujun/Desktop/TEP/fastq";
         String outputDirS = "/Users/xujun/Desktop/RNA_seq/twice/test-twice";        
         RowTable<String> rt = new RowTable<>(barcodeFileS);
         int rowNumber = rt.getRowNumber();
@@ -90,31 +91,11 @@ public void test5 () throws IOException {
                         continue;
                     }else{
                         br1.readLine();br1.readLine();
-                        temp2=br2.readLine();
-                        seq2=br2.readLine();
-                        for(int a=0;a<seq2.length();a++){
-                            if(seq2.charAt(a)=='A'){
-                                i++;
-                                if(i>10){
-                                    seq1=seq2.substring(0, a+1-i);
-                                    break;
-                                }
-                            }else{
-                                i=0;
-                            }
-
-                        }
-                        if(i<=0){
-                            seq1=seq2;
-                        }
-                        if(seq1.length()==0){
-                            br2.readLine();br2.readLine();
-                        }else{
-                            bws[index].write(temp2 + "\n");
-                            bws[index].write(seq1 + "\n");
                             bws[index].write(br2.readLine() + "\n");
-                            bws[index].write(br2.readLine().substring(0,seq1.length())+"\n");
-                        }
+                            bws[index].write(br2.readLine() + "\n");
+                            bws[index].write(br2.readLine() + "\n");
+                            bws[index].write(br2.readLine()+"\n");
+                        
                         
                     }
                     

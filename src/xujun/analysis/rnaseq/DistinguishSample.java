@@ -65,7 +65,7 @@ public class DistinguishSample {
         value[71] = 2;//G
         value[84] = 3;//T
 //        HashByteByteMap ascIIByteMap = HashByteByteMaps.newImmutableMap(key, value);
-        HashByteByteMap ascIIByteMap = HashByteByteMaps.newMutableMap();
+        HashByteByteMap ascIIByteMap = HashByteByteMaps.newMutableMap(key,value);
         for (int i = 0; i < 128; i++) {
             ascIIByteMap.put((byte)i, (byte)4);//Associates the specified value with the specified key in this map.将k和v联系起来
         }
