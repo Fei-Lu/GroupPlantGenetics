@@ -32,6 +32,7 @@ public class SingleGeneFeaturePos {
             BufferedWriter bw4 = IOUtils.getTextWriter(outfileS4);
             BufferedWriter bw5 = IOUtils.getTextWriter(outfileS5);
             BufferedWriter bw6 = IOUtils.getTextWriter(outfileS6);
+           // BufferedWriter bw7 = IOUtils.getTextWriter(outfileS7);
             
             String temp = null;
             int i = 0 ;
@@ -39,6 +40,7 @@ public class SingleGeneFeaturePos {
             String L2 = null;
             String LUpstream = null;
             String LDownsteam = null;
+            String Lall = null;
             String L5UTR = null;
             String LCDS = null;
             String LIntron = null;
@@ -57,7 +59,8 @@ public class SingleGeneFeaturePos {
                 
                 String[] tem = temp.split("\t");
                 boolean outWrite = false;
-                
+          
+             
                 if (i % 6 == 2) {
 //                    L2 = tem[1] + "_" + tem[2]; 
                     L2 = tem[2];
@@ -66,13 +69,16 @@ public class SingleGeneFeaturePos {
                     if(tem[5].equals("1")){
                         LUpstream = L2 + "\t" + Integer.toString(aa) + ":" + tem[3] + "\n";
                         LDownsteam = L2 + "\t" + tem[4] + ":" + Integer.toString(bb) + "\n";
+                        Lall = L2 + "\t" + Integer.toString(aa) + ":" + Integer.toString(bb) + "\n";
                     }
                     else{
                         LUpstream = L2 + "\t" + tem[4] + ":" + Integer.toString(bb) + "\n";
                         LDownsteam = L2 + "\t" + Integer.toString(aa) + ":" + tem[3] + "\n";
+                        Lall = L2 + "\t" + Integer.toString(aa) + ":" + Integer.toString(bb) + "\n";
                     }
                     bw1.write(LUpstream);
                     bw2.write(LDownsteam);
+                    //bw7.write(Lall);
                 }
                 
                 if (i % 6 == 3) {
@@ -82,13 +88,18 @@ public class SingleGeneFeaturePos {
                         String [] temt = tem[1].split(";");
                         for (int k = 0; k < temt.length; k++) {
                             String[] te = temt[k].split(":");
-                            if((Integer.valueOf(te[1]) - Integer.valueOf(te[0])) > 5 ){
+                            if((Integer.valueOf(te[1]) - Integer.valueOf(te[0])) > 100 ){
                                 L5UTR = L2 + "\t"+ tem[1] +  "\n";
+                                outWrite = true;
                             }                        
 //                            bw3.write(L5UTR);
                         }
+                        if(outWrite){
+                            bw3.write(L5UTR);
+                            outWrite = false;
+                        }
                     }
-                    bw3.write(L5UTR);
+                    
                 }
                 
                 if (i % 6 == 4) {
@@ -98,13 +109,18 @@ public class SingleGeneFeaturePos {
                         String [] temt = tem[1].split(";");
                         for (int k = 0; k < temt.length; k++) {
                             String[] te = temt[k].split(":");
-                            if((Integer.valueOf(te[1]) - Integer.valueOf(te[0])) > 25 ){
+                            if((Integer.valueOf(te[1]) - Integer.valueOf(te[0])) > 100 ){
                                 LCDS = L2 + "\t"+ tem[1] +  "\n";
+                                outWrite = true;
                             }                        
 //                            bw3.write(L5UTR);
                         }
+                        if(outWrite){
+                            bw4.write(LCDS);
+                            outWrite = false;
+                        }
                     }
-                    bw4.write(LCDS);
+                   
                 }
                 
                 if (i % 6 == 5) {
@@ -114,29 +130,42 @@ public class SingleGeneFeaturePos {
                         String [] temt = tem[1].split(";");
                         for (int k = 0; k < temt.length; k++) {
                             String[] te = temt[k].split(":");
-                            if((Integer.valueOf(te[1]) - Integer.valueOf(te[0])) > 25){
+                            if((Integer.valueOf(te[1]) - Integer.valueOf(te[0])) > 100){
                                 LIntron = L2 + "\t"+ tem[1] +  "\n";
+                                outWrite = true;
                             }                        
 //                            bw3.write(L5UTR);
                         }
+                        if(outWrite){
+                            bw5.write(LIntron);
+                            outWrite = false;
+                        }
+                        
                     }
-                    bw5.write(LIntron);
+                    
                 }
                 
                 if (i % 6 == 0) {
-                    
+//                    if(i>17){
+//                        System.out.printf("testing");
+//                    }
                     if (!tem[1].startsWith("NA")) {
                         
                         String [] temt = tem[1].split(";");
                         for (int k = 0; k < temt.length; k++) {
                             String[] te = temt[k].split(":");
-                            if((Integer.valueOf(te[1]) - Integer.valueOf(te[0])) > 5 ){
+                            if((Integer.valueOf(te[1]) - Integer.valueOf(te[0])) > 100){
                                 L3UTR = L2 + "\t"+ tem[1] +  "\n";
+                                outWrite = true;
                             }                        
 //                            bw3.write(L5UTR);
                         }
+                        if(outWrite){
+                            bw6.write(L3UTR);
+                            outWrite = false;
+                        }
                     }
-                    bw6.write(L3UTR);
+                    
                 }
                 
                 bw1.flush();
@@ -144,7 +173,8 @@ public class SingleGeneFeaturePos {
                 bw3.flush();
                 bw4.flush();
                 bw5.flush();
-                bw6.flush();               
+                bw6.flush();   
+                //bw7.flush();
             }
             
            bw1.close(); 
@@ -153,6 +183,7 @@ public class SingleGeneFeaturePos {
            bw4.close(); 
            bw5.close(); 
            bw6.close(); 
+          // bw7.close();
            
         }
         catch (Exception e) {

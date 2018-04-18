@@ -26,6 +26,8 @@ import utils.IOFileFormat;
 //} 
 
 
+
+
 public class EntranceAnnotation {    
     public static void main (String[] args) { 
 //        GeneFeature a = new GeneFeature (args[0]);
@@ -48,22 +50,30 @@ public class EntranceAnnotation {
 //           String outfileS3 = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/V4/siteScoreCHG.txt";           
 //           new MethylationAnnotation (infileS , outfileS1, outfileS2 , outfileS3 );
            
-           String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/randomforest/Siteopen101.txt";
-           String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/randomforest/Siteopen10add0.txt";
+//           String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/V4/siteScoreCHH.txt";
+//           String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/V4/allsiteCHHscore.txt";
+//           new MethylationAnnotation (infileS,outfileS);
+           
+           
+           String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/Sitemethy10CHH_10.txt";
+           String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/SitemethyTT10CHH_10.txt";
            new MethylationAnnotation (infileS,outfileS);
+           
+           
            
            
 
 //            String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/Zea_mays.AGPv4.38_longestTrans.txt";
 //                       
-//            String outfileS1 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/SingleGeneFeaturePos/biubiubiu/GeneFeaturePosUpsream.txt";
-//            String outfileS2 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/SingleGeneFeaturePos/biubiubiu/GeneFeaturePosDownsream.txt";
-//            String outfileS3 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/SingleGeneFeaturePos/biubiubiu/GeneFeaturePos5UTR.txt";
-//            String outfileS4 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/SingleGeneFeaturePos/biubiubiu/GeneFeaturePosCDS.txt";
-//            String outfileS5 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/SingleGeneFeaturePos/biubiubiu/GeneFeaturePosIntron.txt";
-//            String outfileS6 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/SingleGeneFeaturePos/biubiubiu/GeneFeaturePos3UTR.txt";
+//            String outfileS1 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/tempS/GeneFeaturePosUpsream.txt";
+//            String outfileS2 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/tempS/GeneFeaturePosDownsream.txt";
+//            String outfileS3 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/tempS/GeneFeaturePos5UTR.txt";
+//            String outfileS4 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/tempS/GeneFeaturePosCDS.txt";
+//            String outfileS5 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/tempS/GeneFeaturePosIntron.txt";
+//            String outfileS6 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/tempS/GeneFeaturePos3UTR.txt";
+//            //String outfileS7 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/tempS/GeneFeaturePosall.txt";
 //            
-////            new SingleGeneFeaturePos (infileS,outfileS1,outfileS2,outfileS3,outfileS4,outfileS5,outfileS6);
+//            new SingleGeneFeaturePos (infileS,outfileS1,outfileS2,outfileS3,outfileS4,outfileS5,outfileS6);
 //             //new generateScripts();
     }
 } 

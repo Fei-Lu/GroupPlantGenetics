@@ -21,7 +21,7 @@ public class MethylationAnnotation {
 //    }
     
     public MethylationAnnotation(String infileS ,String outfileS){
-        this.getMethylationlevelScore(infileS, outfileS);
+        this.getMethylationlevelScore10(infileS, outfileS);
     }
 //    
 //    public MethylationAnnotation(String infileS ,String outfileS){
@@ -75,10 +75,10 @@ public class MethylationAnnotation {
                     methylationScore = methylationC / methylationT;
                     
                     //int mscore = Integer.valueOf(tem[4]);
-                    if(tem[2].equals("-")){
-                        
-                        tem[1] = Integer.toString(Integer.valueOf(tem[1]) -1);
-                    }
+//                    if(tem[2].equals("-")){
+//                        
+//                        tem[1] = Integer.toString(Integer.valueOf(tem[1]) -1);
+//                    }
                     
                     if(tem[3].equals("CG")){
                         
@@ -150,18 +150,18 @@ public class MethylationAnnotation {
                 
                     i = i + 1;
 //                    
-//                    if (i % 100 == 0) {
-//
-//                    System.out.println("MethylationAnnotation" + i + "....");
-//
-//                    }
+                    if (i % 1000000 == 0) {
+
+                    System.out.println("MethylationAnnotation" + i + "....");
+
+                    }
                     
                 String[] tem = temp.split("\t"); 
                 
                     if (Integer.valueOf(tem[1]) == i){
                         
-                        LmethyScore = tem[0] + "\t" + i + "\t" +tem[2];
-                        //LmethyScore = tem[0] + "\t" + tem[2];
+                        //LmethyScore = tem[0] + "\t" + i + "\t" +tem[2];
+                        LmethyScore = tem[0] + "\t" + tem[2];
                         bw.write(LmethyScore + "\n"); 
                         
                     }
@@ -169,13 +169,13 @@ public class MethylationAnnotation {
                         
                         for(int j = i; j< Integer.valueOf(tem[1]);j++){ 
                             
-                        LmethyScore = tem[0] + "\t" +  j + "\t" + "0";
-                        //LmethyScore = tem[0] + "\t" + "0";
+                        //LmethyScore = tem[0] + "\t" +  j + "\t" + "0";
+                        LmethyScore = tem[0] + "\t" + "0";
                         bw.write(LmethyScore + "\n");
                         }
                         
-                        LmethyScore = tem[0] + "\t" + i + "\t" +tem[2];
-                        //LmethyScore = tem[0] + "\t" + tem[2];
+                        //LmethyScore = tem[0] + "\t" + i + "\t" +tem[2];
+                        LmethyScore = tem[0] + "\t" + tem[2];
                         bw.write(LmethyScore + "\n"); 
                         i = Integer.valueOf(tem[1]);
                     }                 
@@ -324,5 +324,15 @@ public class MethylationAnnotation {
         }
             
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
 }

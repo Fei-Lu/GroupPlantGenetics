@@ -5,34 +5,31 @@
  */
 package xuebo.analysis.annotation;
 
-import format.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import utils.IOUtils;
+//import utils.IOUtils;
 
 /**
  *
  * @author xuebozhao
  */
-public class GetCpscoreCoordinate {
+
+public class NewClass {
+    
     Integer CutterSize = 50;
-    public GetCpscoreCoordinate (String infileS,String chr,String inFilePos,Integer CutterSize,String outFileS ) {
+    
+    public NewClass (String infileS,String chr,String inFilePos,Integer CutterSize,String outFileS ) {
+        
         this.CutterSize = CutterSize;
-//        HashMap CpScorehmap =  this.readFile(infileS,chr);
+
         HashMap CpScorehmap = this.getAll(infileS, chr);
+        
         this.getFullPos(inFilePos,CpScorehmap,CutterSize,outFileS);
+        
 //        List chrt = this.getPosCpscore(CpScorehmap, 6, 2, 6);
 //        for (int i = 0;  i < 4;i++){
 //           System.out.println(CpScorehmap.get(3+"_"+Integer.toString(i)));
@@ -45,70 +42,22 @@ public class GetCpscoreCoordinate {
 //           System.out.println(ta.get(i));
 //        }
         
-
     }
     
     
-//    public HashMap<Integer, Double> readFolderAllFiles () throws IOException {
-//        
-//        String inputDirS ="/Users/xuebozhao/Documents/LuLab/cpScore/temptest/tempCpscore";
-//  
-//        File[] fs = new File(inputDirS).listFiles();
-//        
-//        HashSet<String> nameSet = new HashSet();
-//        
-//        for (int i = 0; i < fs.length; i++) {
-//            
-//            if (fs[i].isHidden()) continue;
-//            nameSet.add(fs[i].getName().split("_")[0]);
-//            
-//        }  
-//        
-//        nameSet.stream().forEach((Consumer<? super String>) p -> {
-//            
-//            String infile1 = new File (inputDirS, p + "_CpScore.txt").getAbsolutePath();
-//            String seq = null;
-//            
-//            try {
-//                
-//                int n= 0;
-//                String Stringchr = fs[n].getName().split("_")[0];
-//                int chr = Integer.valueOf(Stringchr);
-//                
-//                BufferedReader br1 = IOUtils.getTextReader(infile1);  
-//                String temp = null;  
-//                
-//                HashMap<Integer, Double> CpScoreHmap = new HashMap<Integer, Double>();
-//                int key_position = chr*10^10 + 0;
-//                double value_double = 0;
-//                int i = -1;
-//                
-//                while((temp = br1.readLine())!=null){
-//                    i++;
-//                    key_position = key_position + i;
-//                    value_double = Double.parseDouble(temp);
-//                    CpScoreHmap.put(key_position,value_double);
-//                }
-//                
-//                br1.close(); 
-////                return CpScoreHmap;               
-//            }
-//            catch (Exception e) {
-//                e.printStackTrace();
-//                
-//            }
-//        });
-//        return CpScoreHmap; 
-//                
-//    }                
-//}                   
+  
     private HashMap<String,Double> getAll(String inFileS,String chrinfo){
-        HashMap<String, Double> cpScoreHmAll = new HashMap<String,Double>();
+        
+        HashMap<String, Double> cpScoreHmAll = new HashMap<String,Double>();        
         List<Integer> chr = getChr(chrinfo);
+        
         for (int i = chr.get(0); i < chr.get(1) + 1;i++){
+            
             String chrString = inFileS + "_" + i + ".txt";
 //            String chrString = inFileS;
+
             HashMap<String, Double> cpScoreHm = readFile(chrString,i);
+            
             cpScoreHmAll.putAll(cpScoreHm);
 //            for (int j = 0;  j < cpScoreHm.size();j++){
 //                System.out.println(cpScoreHm.get(chr+"_"+Integer.toString(j)));
@@ -129,6 +78,9 @@ public class GetCpscoreCoordinate {
         chrR.add(chrE);
         return(chrR);
     }   
+    
+    
+    
     private List<Integer> getPos(String posinfo){
         String[] temp = posinfo.split(";");
         Integer poslen = temp.length;
@@ -140,6 +92,10 @@ public class GetCpscoreCoordinate {
         }
         return pos;
     }
+    
+    
+    
+   
     public HashMap<String, Double> readFile(String infileS,Integer chr){
         
         try{             
@@ -149,8 +105,11 @@ public class GetCpscoreCoordinate {
             String kp = null;
             double value_double = 0;
             int i = -1;
+            
             while((temp = br.readLine())!=null){
+                
                 i++;
+                
                 if("NA".equals(temp)){
                     value_double = 0;
                 }
@@ -174,6 +133,8 @@ public class GetCpscoreCoordinate {
         }
     }
    
+    
+    
     public List<Double> getPosCpscore(HashMap<Integer,Double> CpScorehmap,Integer chr,Integer pos1,Integer pos2){
 //        Integer tmp;
 //        if(pos1 > pos2){
@@ -183,13 +144,18 @@ public class GetCpscoreCoordinate {
 //        }
         Integer pos_start = pos1;
         Integer pos_end = pos2;
+        
         List<Double> cpScoreArray = new ArrayList<Double>(pos2-pos1+1);
        
-        for(int j = pos_start; j < pos_end + 1; j++){
+        for(int j = pos_start-1; j < pos_end; j++){
+            
             cpScoreArray.add(CpScorehmap.get(chr + "_" +j));
+            
         }
         return cpScoreArray;
     } 
+    
+    
     
     public List<Double> getCutterMeanCpscore(List<Double>cpScoreArray,Integer CutterSize){
         
@@ -210,9 +176,9 @@ public class GetCpscoreCoordinate {
        
         double sum = 0;
         if ( cpScoreArray.size() > CutterSize ){ 
-            for( int i = 0;i < meanSize * (CutterSize - 1);i++){
+            for( int i = 1;i < meanSize * (CutterSize - 1)+1;i++){
 //                int j = i / meanSize;
-                sum = sum + cpScoreArray.get(i);
+                sum = sum + cpScoreArray.get(i-1);
                 if(i % meanSize == 0){
                     sum = sum/meanSize;
                     meancpScoreArray.add(sum);
@@ -234,29 +200,48 @@ public class GetCpscoreCoordinate {
         }
         return meancpScoreArray;  
     }
-
+    
     private void getFullPos(String inFilePos,HashMap<Integer,Double> CpScorehmap,Integer CutterSize,String outFileS) {
+        
         BufferedReader br = IOUtils.getTextReader(inFilePos);
         BufferedWriter bw = IOUtils.getTextWriter(outFileS);
         String tmp = null;
         String[] temp = null;
         Integer Chr = 0;
+        
         List<Integer> pos = new ArrayList<Integer>();
-        List<Double> CpScore = new ArrayList<Double>();
+        
         List<Double> meanCpScore = new ArrayList<Double>();
+        
         try {
+            int j = 0;
             while((tmp = br.readLine())!= null){
+               List<Double> CpScore = new ArrayList<Double>();
                 temp = tmp.split("\t");
-                Chr = Integer.valueOf(temp[0]);
+                
+                Chr = Integer.valueOf(temp[0]);                
                 pos = getPos(temp[1]);
+//                 j++;
+//                if(j>48){
+//                    System.out.printf("biubiubiu");
+//                    for(int c =0; c<pos.size();c++){
+//                        System.out.println(pos.get(c));
+//                    }
+//                }
+                
                 for (int i = 0; i < pos.size(); i = i + 2){
-                    CpScore.addAll(getPosCpscore(CpScorehmap,Chr,pos.get(i),pos.get(i+1)));
+                    CpScore.addAll(getPosCpscore(CpScorehmap,Chr,pos.get(i),pos.get(i+1))) ;
                 }
+                
                 meanCpScore = getCutterMeanCpscore(CpScore,CutterSize);
+//                for(int i= 0; i<10;i++){
+//                    System.out.println(meanCpScore.get(i));
+//                }
                 for (int i = 0; i < meanCpScore.size() -1;i++){
                     bw.write(meanCpScore.get(i)+"\t");
                 }
                 bw.write(meanCpScore.get(meanCpScore.size() -1)+"\n");
+                bw.flush();
             }
             bw.flush();
             bw.close();
@@ -266,50 +251,7 @@ public class GetCpscoreCoordinate {
              
     }
 
-
    
 }
 
-//    public HashMap<Integer,Double> readFile (String infileS,Integer chr) {
-//        try {
-//            BufferedReader br1 = IOUtils.getTextReader(infileS);
-////            BufferedReader br2 = IOUtils.getTextReader(infileS);
-////            BufferedReader br3 = IOUtils.getTextReader(infileS);
-////            BufferedReader br4 = IOUtils.getTextReader(infileS);
-////            BufferedReader br5 = IOUtils.getTextReader(infileS);
-////            BufferedReader br6 = IOUtils.getTextReader(infileS);
-////            BufferedReader br7 = IOUtils.getTextReader(infileS);
-////            BufferedReader br8 = IOUtils.getTextReader(infileS);
-////            BufferedReader br9 = IOUtils.getTextReader(infileS);
-////            BufferedReader br10 = IOUtils.getTextReader(infileS);
-//
-//            String temp = null;  
-//            HashMap<Integer, Double> CpScoreHmap = new HashMap<Integer, Double>();
-//            Integer key_position = chr*10^10 + 0;
-//            double value_double = 0;
-//            int i = -1;
-//            while((temp = br1.readLine())!=null){
-//                i++;
-//                key_position = key_position + i;
-//                value_double = Double.parseDouble(temp);
-//                CpScoreHmap.put(key_position,value_double);
-//            }
-////            Set<String> cpScoreSet = null;  
-////            temp = br1.readLine();
-////            cpScoreSet = new HashSet<String>();
-////            while ((temp = br1.readLine()) != null) {  
-////                int i = 1;
-////                cpScoreSet.add("1"+ "_" + i + "\t" + temp);  
-////                i++;
-////            }  
-////            String[] cpScoreArray = cpScoreSet.toArray(new String[cpScoreSet.size()]);
-////            Arrays.sort(cpScoreArray);
-//            br1.close(); 
-//            return CpScoreHmap;
-//        }
-//        catch (Exception e) {
-//            e.printStackTrace();
-//            return null;
-//        }   
-//    }
-//}
+
