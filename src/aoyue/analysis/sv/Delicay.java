@@ -6,14 +6,18 @@
 package aoyue.analysis.sv;
 
 import com.itextpdf.text.pdf.parser.Path;
+import format.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import utils.IOUtils;
 import utils.PStringUtils;
 
@@ -22,16 +26,69 @@ import utils.PStringUtils;
  * @author Aoyue
  */
 public class Delicay {
-    public Delicay(){
+    public Delicay() {
         //this.mkDir(); 
-        this.mkHapPosAllele();
+        //this.mkHapPosAllele();
         //创建文件并写入字符串
-        this.mkfile1();
+        //this.mkfile1();
         //建立一个具有表格属性的文本
-        this.mkfile2();
+        //this.mkfile2();
+        //this.findlost();
+        this.findlostnull();
+        
         
          
     }
+    
+    public void findlost() {
+        File[] fs = IOUtils.listRecursiveFiles(new File("/Users/Aoyue/Desktop/output_data_stats_434SM500bp"));
+        File[] subFs = IOUtils.listFilesEndsWith(fs, ".html");
+        String[] filename = new String[subFs.length];
+        Set<String> html = new HashSet();        
+        for (int i=0; i < subFs.length; i++){
+          filename[i] = subFs[i].getName().replaceFirst(".bc.html", "");              
+          html.add(filename[i]);              
+        }           
+        try{
+            BufferedReader br = IOUtils.getTextReader("/Users/Aoyue/Desktop/434samplelist.txt");
+            String temp = null;
+            while((temp = br.readLine()) != null){
+                String tem = temp;
+               if(html.add(tem)) {
+                   System.out.println(tem);
+                }              
+            }               
+        }
+        catch (IOException e){
+            e.printStackTrace();
+            System.exit(1);
+        }            
+    }
+              
+    public void findlostnull(){
+        String infile = "/Users/Aoyue/Desktop/samtools_stats_upload/434samplelist.txt";
+        String infileS = "/Users/Aoyue/Desktop/output_data_stats_434SM500bp";
+        //读进表格的文件，必须要有表头。故这里自己要手动加入表头。
+        RowTable <String> t = new RowTable<>(infile);
+        List<String> nameList = new ArrayList <>();
+        for (int i = 0; i < t.getRowNumber(); i++){
+            nameList.add(t.getCell(i, 0));
+        }
+        File[] fs = new File (infileS).listFiles();
+        File[] subFs = IOUtils.listFilesEndsWith(fs, ".bc.html");
+        HashSet<String> sampleSet = new HashSet();
+        for (int i = 0; i < subFs.length; i++){
+            if (subFs[i].isHidden()) continue;
+            sampleSet.add(subFs[i].getName().split(".bc.html")[0]);                        
+        }
+        for (int i = 0; i < nameList.size(); i++){
+            if (!(sampleSet.contains(nameList.get(i)))){
+                System.out.println(nameList.get(i));
+                int a =3;
+            }
+        }                
+    }
+    
     
     public void mkfile1(){
         String input = "this is the first time that I have write a txt using java !";
@@ -125,13 +182,11 @@ public class Delicay {
         }  
         System.out.println("Perform the end "+ dir);  
     }  
-    public static void main (String[] args){        
-        new Delicay (); 
-        System.out.println("I can do it !");
-        
-        
+    public static void main (String[] args) {        
+        new Delicay(); 
+        System.out.println("I can do it !");      
     }
           
-    } 
+} 
      
 

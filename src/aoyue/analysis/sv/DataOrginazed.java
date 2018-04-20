@@ -25,13 +25,13 @@ import utils.IOUtils;
 public class DataOrginazed {
     public DataOrginazed(){
 //        this.listAllFiles();
-//        this.listSpecificalFiles();
+        //this.listSpecificalFiles();
         //this.md5();
         //this.checkMd5();
         //this.test();
         //this.covergage();
-        //this.sample();
-        this.insertTxt();
+        this.sample();
+        //this.insertTxt();
         
         
        
@@ -64,8 +64,8 @@ public class DataOrginazed {
     }
     
     public void sample(){
-        String infileS = "/Users/Aoyue/Documents/hmp321_854taxa_maizeCAAS/chr010.vcf.gz";
-        String outfileS = "/Users/Aoyue/Documents/hmp321_854taxa_maizeCAAS/chr010test.vcf";
+        String infileS = "/Volumes/Lulab3T_14/20171120CAAS/P101SC17081532_01zhangshaojing/data_release/rawdata/K16HL0220_1.fq.gz";
+        String outfileS = "/Users/Aoyue/Desktop/out/K16HL0220_sample_1.fq";
         int length = 1000;
         try{
             BufferedReader br = IOUtils.getTextGzipReader(infileS);
