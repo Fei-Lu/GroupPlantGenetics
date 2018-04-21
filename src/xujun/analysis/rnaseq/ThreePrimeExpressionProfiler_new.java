@@ -40,7 +40,7 @@ import xuebo.analysis.annotation.FStringUtils;
  *
  * @author feilu
  */
-public class ThreePrimeExpressionProfiler {
+public class ThreePrimeExpressionProfiler_new {
     //The directory of reference genome index
     String referenceGenomeDirS = null;
     //The SampleInformation file (with header), the format is Taxa\tBarcode\tPlateName\tFastqPath
@@ -79,7 +79,7 @@ public class ThreePrimeExpressionProfiler {
     
     List<String> allTaxaList = new ArrayList<String>();
  
-    public ThreePrimeExpressionProfiler (String parameterFileS) throws IOException {
+    public ThreePrimeExpressionProfiler_new (String parameterFileS) throws IOException {
         this.parseParameters(parameterFileS);
         mkPosGeneMap();
         this.parseFq(); //Remove Ts?remove
@@ -465,7 +465,7 @@ public class ThreePrimeExpressionProfiler {
     }
     
     public static void main(String args[]) throws IOException {
-        new ThreePrimeExpressionProfiler(args[0]);
+        new ThreePrimeExpressionProfiler_new(args[0]);
     }
     
 }
