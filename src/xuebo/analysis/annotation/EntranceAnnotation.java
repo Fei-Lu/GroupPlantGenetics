@@ -55,14 +55,18 @@ public class EntranceAnnotation {
 //           new MethylationAnnotation (infileS,outfileS);
            
            
-           String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/Sitemethy10CHH_10.txt";
-           String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/SitemethyTT10CHH_10.txt";
-           new MethylationAnnotation (infileS,outfileS);
-           
-           
-           
-           
+//           String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/Sitemethy10CHH_10.txt";
+//           String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/SitemethyTT10CHH_10.txt";
+//           new MethylationAnnotation (infileS,outfileS);
 
+
+            String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/GeneFeaturePostranscript2.txt";
+            String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/GeneFeaturePostranscript.txt";
+            new RemoveStreamOverlap (infileS,outfileS);
+//           
+           
+           
+//
 //            String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/Zea_mays.AGPv4.38_longestTrans.txt";
 //                       
 //            String outfileS1 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/tempS/GeneFeaturePosUpsream.txt";
@@ -71,9 +75,9 @@ public class EntranceAnnotation {
 //            String outfileS4 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/tempS/GeneFeaturePosCDS.txt";
 //            String outfileS5 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/tempS/GeneFeaturePosIntron.txt";
 //            String outfileS6 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/tempS/GeneFeaturePos3UTR.txt";
-//            //String outfileS7 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/tempS/GeneFeaturePosall.txt";
+//            String outfileS7 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/tempS/GeneFeaturePostranscript.txt";
 //            
-//            new SingleGeneFeaturePos (infileS,outfileS1,outfileS2,outfileS3,outfileS4,outfileS5,outfileS6);
+//            new SingleGeneFeaturePos (infileS,outfileS1,outfileS2,outfileS3,outfileS4,outfileS5,outfileS6,outfileS7);
 //             //new generateScripts();
     }
 } 

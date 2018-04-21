@@ -5,12 +5,16 @@
  */
 package xuebo.analysis.annotation;
 
+import com.koloboke.collect.map.hash.HashIntIntMap;
+import com.koloboke.collect.map.hash.HashIntIntMaps;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 //import utils.IOUtils;
 
 /**
@@ -112,12 +116,13 @@ public class GenePattern {
                 i++;
                 
                 if("NA".equals(temp)){
-                    value_double = 0;
+                    //value_double = 0;
+                    continue;
                 }
                 else{
                     value_double = Double.parseDouble(temp);
-                }
-               
+                }              
+                
                 kp = chr +"_"+ Integer.toString(i);
                 CpScoreHmap.put(kp,value_double);
             }
@@ -133,10 +138,10 @@ public class GenePattern {
             return null;
         }
     }
-   
+ 
     
-    
-    public List<Double> getPosCpscore(HashMap<Integer,Double> CpScorehmap,Integer chr,Integer pos1,Integer pos2){
+      
+    public List<Double> getPosCpscore(HashMap<Integer,Double> CpScorehmap,Integer chr,Integer pos1,Integer pos2,Integer strand){
 //        Integer tmp;
 //        if(pos1 > pos2){
 //            tmp = pos1;
@@ -145,6 +150,7 @@ public class GenePattern {
 //        }
         Integer pos_start = pos1;
         Integer pos_end = pos2;
+        Integer pos_strand = strand;
         
         List<Double> cpScoreArray = new ArrayList<Double>(pos2-pos1+1);
        
@@ -153,6 +159,13 @@ public class GenePattern {
             cpScoreArray.add(CpScorehmap.get(chr + "_" +j));
             
         }
+        
+        if (pos_strand == 0){
+            
+            Collections.reverse(cpScoreArray);
+         
+        }
+        
         return cpScoreArray;
     } 
     
@@ -209,8 +222,10 @@ public class GenePattern {
         String tmp = null;
         String[] temp = null;
         Integer Chr = 0;
+        Integer strand  = 0;
         
         List<Integer> pos = new ArrayList<Integer>();
+        
         
         List<Double> meanCpScore = new ArrayList<Double>();
         
@@ -222,6 +237,8 @@ public class GenePattern {
                 
                 Chr = Integer.valueOf(temp[0]);                
                 pos = getPos(temp[1]);
+                strand = Integer.valueOf(temp[2]);
+                
 //                 j++;
 //                if(j>48){
 //                    System.out.printf("biubiubiu");
@@ -231,7 +248,7 @@ public class GenePattern {
 //                }
                 
                 for (int i = 0; i < pos.size(); i = i + 2){
-                    CpScore.addAll(getPosCpscore(CpScorehmap,Chr,pos.get(i),pos.get(i+1))) ;
+                    CpScore.addAll(getPosCpscore(CpScorehmap,Chr,pos.get(i),pos.get(i+1),strand)) ;
                 }
                 
                 meanCpScore = getCutterMeanCpscore(CpScore,CutterSize);

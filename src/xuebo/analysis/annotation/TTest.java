@@ -45,22 +45,22 @@ public class TTest {
 //        }
 
 
-//        String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/CHG_10/SitemethyTT10CHG";
+//        String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/CHH_10/SitemethyTT10CHH";
 ////        String inFilePos = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/GeneFeaturePos5UTR.txt";
-//           String inFilePos = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/CHG_10/GeneFeaturePosUpstream.txt";
+//           String inFilePos = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/CHH_10/GeneFeaturePos5UTR.txt";
 //        String chr = "10-10";
 ////        String outFileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/CHH_10/Pos5UTRCHH.txt";
-//        String outFileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/CHG_10/PosUpstreamCHG.txt";
+//        String outFileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/CHH_10/Pos5UTRCHH.txt";
 //        GenePattern test = new GenePattern(infileS,chr,inFilePos,100, outFileS);
         
         
         
-        String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/data/Cpscore/CpCore.txt";
+        String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/data/Cpscore/Cpscorepatten/CpCore.txt";
 //        String inFilePos = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/GeneFeaturePos5UTR.txt";
-           String inFilePos = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/GeneFeaturePos3UTR.txt";
+           String inFilePos = "/Users/xuebozhao/Documents/LuLab/cpScore/data/Cpscore/Cpscorepatten/GeneFeaturePos5UTR.txt";
         String chr = "10-10";
 //        String outFileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/CHH_10/Pos5UTRCHH.txt";
-        String outFileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/Pos3UTRCpS.txt";
+        String outFileS = "/Users/xuebozhao/Documents/LuLab/cpScore/data/Cpscore/Cpscorepatten/Pos5UTRCpS.txt";
         GenePattern test = new GenePattern(infileS,chr,inFilePos,100, outFileS);
         
         

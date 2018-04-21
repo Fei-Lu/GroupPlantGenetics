@@ -16,13 +16,13 @@ import utils.IOUtils;
 public class SingleGeneFeaturePos {
     
      public SingleGeneFeaturePos (String infileS,String outfileS1,
-            String outfileS2,String outfileS3,String outfileS4,String outfileS5,String outfileS6) {
+            String outfileS2,String outfileS3,String outfileS4,String outfileS5,String outfileS6,String outfileS7) {
 
-      this.getSingleGeneFeaturePos(infileS,outfileS1,outfileS2,outfileS3,outfileS4,outfileS5,outfileS6);
+      this.getSingleGeneFeaturePos(infileS,outfileS1,outfileS2,outfileS3,outfileS4,outfileS5,outfileS6,outfileS7);
     }
     
     public void getSingleGeneFeaturePos (String infileS,String outfileS1,
-            String outfileS2,String outfileS3,String outfileS4,String outfileS5,String outfileS6) {
+            String outfileS2,String outfileS3,String outfileS4,String outfileS5,String outfileS6,String outfileS7) {
         try {
             
             BufferedReader br = IOUtils.getTextReader(infileS);
@@ -32,12 +32,13 @@ public class SingleGeneFeaturePos {
             BufferedWriter bw4 = IOUtils.getTextWriter(outfileS4);
             BufferedWriter bw5 = IOUtils.getTextWriter(outfileS5);
             BufferedWriter bw6 = IOUtils.getTextWriter(outfileS6);
-           // BufferedWriter bw7 = IOUtils.getTextWriter(outfileS7);
+            BufferedWriter bw7 = IOUtils.getTextWriter(outfileS7);
             
             String temp = null;
             int i = 0 ;
             
             String L2 = null;
+            String Lstrand = null;
             String LUpstream = null;
             String LDownsteam = null;
             String Lall = null;
@@ -64,21 +65,27 @@ public class SingleGeneFeaturePos {
                 if (i % 6 == 2) {
 //                    L2 = tem[1] + "_" + tem[2]; 
                     L2 = tem[2];
+                    Lstrand = tem[5];
                     int aa = Integer.valueOf(tem[3]) - 2000;
                     int bb = Integer.valueOf(tem[4]) + 2000;
                     if(tem[5].equals("1")){
-                        LUpstream = L2 + "\t" + Integer.toString(aa) + ":" + tem[3] + "\n";
-                        LDownsteam = L2 + "\t" + tem[4] + ":" + Integer.toString(bb) + "\n";
-                        Lall = L2 + "\t" + Integer.toString(aa) + ":" + Integer.toString(bb) + "\n";
+                        LUpstream = L2 + "\t" + Integer.toString(aa) + ":" + tem[3] + "\t"  + Lstrand + "\n";
+                        LDownsteam = L2 + "\t" + tem[4] + ":" + Integer.toString(bb) + "\t"  + Lstrand + "\n";
+                        if((Integer.valueOf(tem[4]) - Integer.valueOf(tem[3])) > 100 ){
+                        Lall = L2 + "\t" + Integer.toString(Integer.valueOf(tem[3])) + ":" + Integer.toString(Integer.valueOf(tem[4]))+ "\t"  + Lstrand + "\n";
+                        }
                     }
+                         
                     else{
-                        LUpstream = L2 + "\t" + tem[4] + ":" + Integer.toString(bb) + "\n";
-                        LDownsteam = L2 + "\t" + Integer.toString(aa) + ":" + tem[3] + "\n";
-                        Lall = L2 + "\t" + Integer.toString(aa) + ":" + Integer.toString(bb) + "\n";
+                        LUpstream = L2 + "\t" + tem[4] + ":" + Integer.toString(bb) + "\t"  + Lstrand + "\n";
+                        LDownsteam = L2 + "\t" + Integer.toString(aa) + ":" + tem[3] + "\t"  + Lstrand + "\n";
+                        if((Integer.valueOf(tem[4]) - Integer.valueOf(tem[3])) > 100 ){
+                        Lall = L2 + "\t" + Integer.toString(Integer.valueOf(tem[3])) + ":" + Integer.toString(Integer.valueOf(tem[4])) + "\t"  + Lstrand + "\n";
+                        }
                     }
                     bw1.write(LUpstream);
                     bw2.write(LDownsteam);
-                    //bw7.write(Lall);
+                    bw7.write(Lall);
                 }
                 
                 if (i % 6 == 3) {
@@ -89,7 +96,7 @@ public class SingleGeneFeaturePos {
                         for (int k = 0; k < temt.length; k++) {
                             String[] te = temt[k].split(":");
                             if((Integer.valueOf(te[1]) - Integer.valueOf(te[0])) > 100 ){
-                                L5UTR = L2 + "\t"+ tem[1] +  "\n";
+                                L5UTR = L2 + "\t"+ tem[1] + "\t"  + Lstrand + "\n";
                                 outWrite = true;
                             }                        
 //                            bw3.write(L5UTR);
@@ -110,7 +117,7 @@ public class SingleGeneFeaturePos {
                         for (int k = 0; k < temt.length; k++) {
                             String[] te = temt[k].split(":");
                             if((Integer.valueOf(te[1]) - Integer.valueOf(te[0])) > 100 ){
-                                LCDS = L2 + "\t"+ tem[1] +  "\n";
+                                LCDS = L2 + "\t"+ tem[1] + "\t"  + Lstrand + "\n";
                                 outWrite = true;
                             }                        
 //                            bw3.write(L5UTR);
@@ -131,7 +138,7 @@ public class SingleGeneFeaturePos {
                         for (int k = 0; k < temt.length; k++) {
                             String[] te = temt[k].split(":");
                             if((Integer.valueOf(te[1]) - Integer.valueOf(te[0])) > 100){
-                                LIntron = L2 + "\t"+ tem[1] +  "\n";
+                                LIntron = L2 + "\t"+ tem[1] + "\t"  + Lstrand + "\n";
                                 outWrite = true;
                             }                        
 //                            bw3.write(L5UTR);
@@ -155,7 +162,7 @@ public class SingleGeneFeaturePos {
                         for (int k = 0; k < temt.length; k++) {
                             String[] te = temt[k].split(":");
                             if((Integer.valueOf(te[1]) - Integer.valueOf(te[0])) > 100){
-                                L3UTR = L2 + "\t"+ tem[1] +  "\n";
+                                L3UTR = L2 + "\t"+ tem[1] + "\t"  + Lstrand + "\n";
                                 outWrite = true;
                             }                        
 //                            bw3.write(L5UTR);
@@ -174,7 +181,7 @@ public class SingleGeneFeaturePos {
                 bw4.flush();
                 bw5.flush();
                 bw6.flush();   
-                //bw7.flush();
+                bw7.flush();
             }
             
            bw1.close(); 
@@ -183,7 +190,7 @@ public class SingleGeneFeaturePos {
            bw4.close(); 
            bw5.close(); 
            bw6.close(); 
-          // bw7.close();
+           bw7.close();
            
         }
         catch (Exception e) {
