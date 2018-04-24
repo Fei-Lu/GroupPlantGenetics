@@ -55,20 +55,21 @@ public class EntranceAnnotation {
 //           new MethylationAnnotation (infileS,outfileS);
            
            
-//           String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/Sitemethy10CHH_10.txt";
-//           String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/SitemethyTT10CHH_10.txt";
+//           String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/Methy_1/Sitemethy10CHH_1.txt";
+//           String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/Methy_1/SitemethyTT10CHH_1.txt";
 //           new MethylationAnnotation (infileS,outfileS);
 
 
-            String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/GeneFeaturePostranscript2.txt";
-            String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/GeneFeaturePostranscript.txt";
+            String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/Methy_8/GeneFeaturePostranscript.txt";
+            String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/Methy_8/GeneFeaturePostranscriptRemove.txt";
             new RemoveStreamOverlap (infileS,outfileS);
 //           
            
            
 //
 //            String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/Zea_mays.AGPv4.38_longestTrans.txt";
-//                       
+//           
+//            //String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/tempS/temptest.txt";
 //            String outfileS1 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/tempS/GeneFeaturePosUpsream.txt";
 //            String outfileS2 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/tempS/GeneFeaturePosDownsream.txt";
 //            String outfileS3 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/tempS/GeneFeaturePos5UTR.txt";
@@ -77,7 +78,7 @@ public class EntranceAnnotation {
 //            String outfileS6 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/tempS/GeneFeaturePos3UTR.txt";
 //            String outfileS7 = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/tempS/GeneFeaturePostranscript.txt";
 //            
-//            new SingleGeneFeaturePos (infileS,outfileS1,outfileS2,outfileS3,outfileS4,outfileS5,outfileS6,outfileS7);
-//             //new generateScripts();
+//            new SingleSingleGeneFeaturePos (infileS,outfileS1,outfileS2,outfileS3,outfileS4,outfileS5,outfileS6,outfileS7);
+             //new generateScripts();
     }
 } 

@@ -21,7 +21,7 @@ public class MethylationAnnotation {
 //    }
     
     public MethylationAnnotation(String infileS ,String outfileS){
-        this.getMethylationlevelScore10(infileS, outfileS);
+        this.getMethylationlevelScore10 (infileS, outfileS);
     }
 //    
 //    public MethylationAnnotation(String infileS ,String outfileS){
@@ -229,11 +229,11 @@ public class MethylationAnnotation {
                 
                 String[] tem = temp.split("\t");
                 
-                if(Integer.valueOf(tem[0]) == 10){
+//                if(Integer.valueOf(tem[0]) == 10){
                     
                     Sitemethy10 = tem[1];
                     bw.write(Sitemethy10 + "\n"); 
-                }
+//                }
                 
                 
             }
