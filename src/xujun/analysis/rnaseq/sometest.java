@@ -8,6 +8,7 @@ package xujun.analysis.rnaseq;
 import com.koloboke.collect.map.hash.HashIntIntMap;
 import com.koloboke.collect.map.hash.HashIntIntMaps;
 import format.genomeAnnotation.GeneFeature;
+import format.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -18,6 +19,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import utils.Benchmark;
@@ -36,7 +38,53 @@ public class sometest {
 //        this.getReadsTransscript();
 //            this.getGeneName();
 //        this.transfer();
-        this.sortByName();
+//        this.sortByName();
+//        this.mappedNumber();
+        this.find();
+    }
+    public void find(){
+        String inputfile="";
+        String inputDirS="";
+        RowTable<String> t = new RowTable<>(inputfile);
+        List<String> nameList = new ArrayList<>();
+        for (int i = 0; i < t.getRowNumber(); i++) {
+            nameList.add(t.getCell(i, 0));
+        }        
+        File[] fs = new File(inputDirS).listFiles();
+        HashSet<String> sampleSet = new HashSet();
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) continue;
+            sampleSet.add(fs[i].getName().split(".html")[0]);
+        }
+        for(int i=0;i<nameList.size();i++){
+            if(!sampleSet.contains(nameList)){
+                System.out.println(nameList.get(i));
+            }
+        }
+        
+    }
+    public void mappedNumber(){
+        String inputFile="/Users/xujun/Desktop/TEP/TEPOut/sams/TEPWithoutB.sam";
+        String outputFile="/Users/xujun/Desktop/TEP/TEPOut/sams/morethan10.txt";
+        try{
+            BufferedReader br = utils.IOUtils.getTextReader(inputFile);
+            BufferedWriter bw = utils.IOUtils.getTextWriter(outputFile);
+            String temp=null;
+            int cont =0;
+            while((temp= br.readLine()) != null){
+                if(Integer.parseInt(temp.split("\t")[11].split(":")[2])>10){
+                    bw.write(temp);bw.newLine();
+                    cont++;
+                }                
+            }
+            System.out.print(cont);
+            bw.write(cont);
+            br.close();
+            bw.flush();bw.close();
+        }
+        catch(Exception ex){
+             ex.printStackTrace();
+        }
     }
     public void sortByName(){
         ArrayList<String> al = new ArrayList<String>();

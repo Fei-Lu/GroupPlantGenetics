@@ -66,7 +66,7 @@ public class ThreePrimeExpressionProfiler {
     
     int minNMatch = 80;
     
-    String[] subDirS = {"subFastqs", "sams", "geneCount","geneTranscript"};
+    String[] subDirS = {"subFastqs", "sams", "geneCount"};
     List<String> fqFileSList = null;
     
     int[] barcodeLengths = null;
@@ -82,9 +82,9 @@ public class ThreePrimeExpressionProfiler {
     public ThreePrimeExpressionProfiler (String parameterFileS) throws IOException {
         this.parseParameters(parameterFileS);
         mkPosGeneMap();
-        this.parseFq(); //Remove Ts?remove
+//        this.parseFq(); //Remove Ts?remove
         //////this.mkIndexOfReference(); //one-time set, not requried for standard runs
-        this.starAlignment(); 
+//        this.starAlignment(); 
         this.mkGeneCountTable();
     }
     
@@ -138,10 +138,11 @@ public class ThreePrimeExpressionProfiler {
                     if(index1 == index2){
                         geneIndex=index1;
                         geneCount[chrIndex][geneIndex][taxonIndex]++;
-                    }                  
+                    }           
                 }
             }
             catch (Exception e) {
+                System.out.print(geneCount.length);
                 e.printStackTrace();
             }
         });

@@ -30,7 +30,7 @@ public class DemoSample{
 
       //    this.testL33();
 //           this.mappedread();
-//            this.phred();
+            this.phred();
 //            this.getgenename();
 //            this.geneposition();
 //            this.sort();
