@@ -21,8 +21,8 @@ public class SVEntraince {
     }
 
     private void dataOrginazed() {
-        new DataOrginazed();
-        //new HapMapTaxaProcessorcp ();
+        //new DataOrginazed();
+        new HapMapTaxaProcessorcp ();
     } 
     
     public static void main (String[] args){

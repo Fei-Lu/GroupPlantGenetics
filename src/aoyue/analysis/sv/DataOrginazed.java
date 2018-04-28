@@ -10,10 +10,14 @@ import format.table.TableInterface;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import utils.IOUtils;
@@ -24,19 +28,65 @@ import utils.IOUtils;
  */
 public class DataOrginazed {
     public DataOrginazed(){
-//        this.listAllFiles();
+        //this.listAllFiles();
         //this.listSpecificalFiles();
         //this.md5();
         //this.checkMd5();
         //this.test();
         //this.covergage();
-        this.sample();
+        //this.sample();
         //this.insertTxt();
-        
-        
+        //this.findlost();
+        //this.findlostnull();
        
-        
-        
+    }
+    public void findlost() {
+        File[] fs = IOUtils.listRecursiveFiles(new File("/Users/Aoyue/Desktop/output_data_stats_434SM500bp"));
+        File[] subFs = IOUtils.listFilesEndsWith(fs, ".html");
+        String[] filename = new String[subFs.length];
+        Set<String> html = new HashSet();        
+        for (int i=0; i < subFs.length; i++){
+          filename[i] = subFs[i].getName().replaceFirst(".bc.html", "");              
+          html.add(filename[i]);              
+        }           
+        try{
+            BufferedReader br = IOUtils.getTextReader("/Users/Aoyue/Desktop/434samplelist.txt");
+            String temp = null;
+            while((temp = br.readLine()) != null){
+                String tem = temp;
+               if(html.add(tem)) {
+                   System.out.println(tem);
+                }              
+            }               
+        }
+        catch (IOException e){
+            e.printStackTrace();
+            System.exit(1);
+        }            
+    }
+              
+    public void findlostnull(){
+        String infile = "/Users/Aoyue/Desktop/samtools_stats_upload/434samplelist.txt";
+        String infileS = "/Users/Aoyue/Desktop/output_data_stats_434SM500bp";
+        //读进表格的文件，必须要有表头。故这里自己要手动加入表头。
+        RowTable <String> t = new RowTable<>(infile);
+        List<String> nameList = new ArrayList <>();
+        for (int i = 0; i < t.getRowNumber(); i++){
+            nameList.add(t.getCell(i, 0));
+        }
+        File[] fs = new File (infileS).listFiles();
+        File[] subFs = IOUtils.listFilesEndsWith(fs, ".bc.html");
+        HashSet<String> sampleSet = new HashSet();
+        for (int i = 0; i < subFs.length; i++){
+            if (subFs[i].isHidden()) continue;
+            sampleSet.add(subFs[i].getName().split(".bc.html")[0]);                        
+        }
+        for (int i = 0; i < nameList.size(); i++){
+            if (!(sampleSet.contains(nameList.get(i)))){
+                System.out.println(nameList.get(i));
+                int a =3;
+            }
+        }                
     }
     
     public void insertTxt(){
@@ -64,9 +114,9 @@ public class DataOrginazed {
     }
     
     public void sample(){
-        String infileS = "/Volumes/Lulab3T_14/20171120CAAS/P101SC17081532_01zhangshaojing/data_release/rawdata/K16HL0220_1.fq.gz";
-        String outfileS = "/Users/Aoyue/Desktop/out/K16HL0220_sample_1.fq";
-        int length = 1000;
+        String infileS = "/Users/Aoyue/Documents/hmp321_854taxa_maizeCAAS/chr010.vcf.gz";
+        String outfileS = "/Volumes/LuLab3T_36/mergeTest/chr010_test.vcf";
+        int length = 100;
         try{
             BufferedReader br = IOUtils.getTextGzipReader(infileS);
             BufferedWriter bw = IOUtils.getTextWriter(outfileS);

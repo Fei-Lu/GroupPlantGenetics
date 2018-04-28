@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import static java.util.Collections.list;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -32,61 +34,389 @@ public class Delicay {
         //创建文件并写入字符串
         //this.mkfile1();
         //建立一个具有表格属性的文本
-        //this.mkfile2();
-        //this.findlost();
-        this.findlostnull();
+        /*
+        调用外部命令
+        */
+       /*
+        将/Users/Aoyue/Documents/Data/pipeline/hapScanner/HapMapTaxaProcessor/taxaNameMap.txt中
+        的K16HL0019	Tzi 8	Tzi_8 第1列和第3列信息提取出来，带有表头 测序样本编号	材料名称	Taxa，
+        将最后生成的K16HL0019	Tzi_8 文本存放在stanTaxaMap.txt 中。
+        */
+        //this.stanTaxaMap();
+        /*
+        将/Users/Aoyue/Documents/mds/1210matrix.txt 的第一列taxa信息提取出来，存放到 1210taxa.txt中
+        */
+        //this.taxa1210();    
+        //this.getTaxaMds();
+        //this.rm851mds();
+        //this.mds500bp();
+        /*
+        对TASSEL5产生的genotype_Summary中的TaxaSummary文件进行分组，加标签,851SM和1210SM
+        */
+        this.addgroup();
+        this.get1210taxaName();
+        this.mkgroup();
+        this.mkdesTable();
+        
+        
         
         
          
     }
     
-    public void findlost() {
-        File[] fs = IOUtils.listRecursiveFiles(new File("/Users/Aoyue/Desktop/output_data_stats_434SM500bp"));
-        File[] subFs = IOUtils.listFilesEndsWith(fs, ".html");
-        String[] filename = new String[subFs.length];
-        Set<String> html = new HashSet();        
-        for (int i=0; i < subFs.length; i++){
-          filename[i] = subFs[i].getName().replaceFirst(".bc.html", "");              
-          html.add(filename[i]);              
-        }           
+
+    
+    public void mkdesTable(){
+        String infileS = "/Users/Aoyue/Documents/genotype_summary/chrmerge_10000TaxaSummary_grouped.txt";
+        String outfileS = "/Users/Aoyue/Documents/genotype_summary/chrmerge_heter.txt";
         try{
-            BufferedReader br = IOUtils.getTextReader("/Users/Aoyue/Desktop/434samplelist.txt");
+            BufferedReader br = IOUtils.getTextReader(infileS);     
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             String temp = null;
-            while((temp = br.readLine()) != null){
-                String tem = temp;
-               if(html.add(tem)) {
-                   System.out.println(tem);
-                }              
-            }               
-        }
-        catch (IOException e){
+            while ((temp = br.readLine()) != null){
+               
+                    String tem = temp;
+                    List<String> l = null;
+                    l = PStringUtils.fastSplit(tem);
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(l.get(1)).append("\t").append(l.get(4)).append("\t").append(l.get(6)).append("\t").append(l.get(9));
+                    bw.append(sb.toString());
+                    bw.newLine();               
+                       } 
+            bw.flush();
+            bw.close();
+            br.close();
+            }      
+        catch(Exception e){
             e.printStackTrace();
             System.exit(1);
-        }            
+        }                          
     }
-              
-    public void findlostnull(){
-        String infile = "/Users/Aoyue/Desktop/samtools_stats_upload/434samplelist.txt";
-        String infileS = "/Users/Aoyue/Desktop/output_data_stats_434SM500bp";
-        //读进表格的文件，必须要有表头。故这里自己要手动加入表头。
-        RowTable <String> t = new RowTable<>(infile);
-        List<String> nameList = new ArrayList <>();
-        for (int i = 0; i < t.getRowNumber(); i++){
-            nameList.add(t.getCell(i, 0));
+    
+    public void mkgroup(){
+        String taxaS = "/Users/Aoyue/Documents/genotype_summary/1210taxaName.txt";
+        String infileS = "/Users/Aoyue/Documents/genotype_summary/chrmerge_10000TaxaSummary_addgroup.txt";
+        String outfileS = "/Users/Aoyue/Documents/genotype_summary/chrmerge_10000TaxaSummary_grouped.txt";
+        Set<String> taxaSet = new HashSet();  
+        try{
+            BufferedReader br = IOUtils.getTextReader(taxaS);                 
+            String temp = null;
+            while ((temp = br.readLine()) != null){
+                String tem = temp;
+                taxaSet.add(tem);                          
+            }          
+            br.close();
         }
-        File[] fs = new File (infileS).listFiles();
-        File[] subFs = IOUtils.listFilesEndsWith(fs, ".bc.html");
-        HashSet<String> sampleSet = new HashSet();
-        for (int i = 0; i < subFs.length; i++){
-            if (subFs[i].isHidden()) continue;
-            sampleSet.add(subFs[i].getName().split(".bc.html")[0]);                        
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
         }
-        for (int i = 0; i < nameList.size(); i++){
-            if (!(sampleSet.contains(nameList.get(i)))){
-                System.out.println(nameList.get(i));
-                int a =3;
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);     
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String temp = null;
+            while ((temp = br.readLine()) != null){
+                if (temp.startsWith("Taxa")) {
+                    String tem = temp;
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(tem);
+                    bw.append(sb.toString());
+                    bw.newLine();    
+                }
+                else{
+                    String tem = temp;
+                    String taxa = null;
+                    taxa = PStringUtils.fastSplit(tem).get(1);
+                    if(taxaSet.add(taxa)){
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(tem);
+                        bw.append(sb.toString());
+                        bw.newLine();         
+                    }
+                    else{
+                        List<String> l = null;
+                        l = PStringUtils.fastSplit(tem);
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(l.get(0)).append("\t").append(l.get(1)).append("\t").append(l.get(2)).
+                                append("\t").append(l.get(3)).append("\t").append(l.get(4)).append("\t").
+                                append(l.get(5)).append("\t").append(l.get(6)).append("\t").append(l.get(7)).
+                                append("\t").append(l.get(8)).append("\t").append(l.get(9).replaceFirst("851SM", "1210SM"));
+                        bw.write(sb.toString());
+                        bw.newLine();                    
+                    }             
+                }        
             }
-        }                
+            bw.flush();
+            bw.close();
+            br.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }                     
+    }
+    
+    public void get1210taxaName(){
+        String infileS = "/Users/Aoyue/Documents/genotype_summary/chrlibrary_100001TaxaSummary.txt";
+        String outfileS = "/Users/Aoyue/Documents/genotype_summary/1210taxaName.txt";
+        List<String> taxaList = new ArrayList <>();
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String temp = null;
+            while ((temp = br.readLine()) != null){
+                if (temp.startsWith("Taxa")) continue;
+                String tem = temp;
+                List<String> l = null;
+                l = PStringUtils.fastSplit(tem);
+                StringBuilder sb = new StringBuilder(l.get(1));
+                bw.write(sb.toString());
+                bw.newLine();        
+            }
+            bw.flush();
+            bw.close();
+            br.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }               
+    }
+    
+    public void addgroup(){
+        String infileS = "/Users/Aoyue/Documents/genotype_summary/chrmerge_10000TaxaSummary.txt";
+        String outfileS = "/Users/Aoyue/Documents/genotype_summary/chrmerge_10000TaxaSummary_addgroup.txt";
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String temp = null;
+            while ((temp = br.readLine()) != null){
+                String tem = temp;
+                if (temp.startsWith("Taxa")) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(tem).append("\t").append("Group");
+                    bw.write(sb.toString());
+                    bw.newLine();     
+                }
+                else{
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(tem).append("\t").append("851SM");
+                    bw.write(sb.toString());
+                    bw.newLine();                    
+                }                       
+            }
+            bw.flush();
+            bw.close();
+            br.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }                       
+    }
+    
+    public void mds500bp(){
+        String infileS = "/Users/Aoyue/Documents/Data/pipeline/hapScanner/HapMapTaxaProcessor/434sample.txt";
+        String infile2S = "/Users/Aoyue/Documents/Data/pipeline/hapScanner/HapMapTaxaProcessor/stanTaxaMap.txt";
+        String infile3S = "/Users/Aoyue/Documents/mds/851orimds.txt";
+        String outfileS = "/Users/Aoyue/Documents/mds/434taxa.txt";
+        String outfile2S = "/Users/Aoyue/Documents/mds/434mds.txt";
+        HashMap<String, String> taxaMap = new HashMap<>();    
+        BufferedReader br = IOUtils.getTextReader(infileS);
+        BufferedReader br2 = IOUtils.getTextReader(infile2S);
+        BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+        BufferedWriter bw2 = IOUtils.getTextWriter(outfile2S);
+        try{
+            
+            String temp = null;
+            String line = null;
+            List<String> l = null;
+            while ((temp = br2.readLine()) != null){
+                String tem = temp;
+                l = PStringUtils.fastSplit(tem);
+                taxaMap.put(l.get(0), l.get(1));                                                       
+            }
+            while ((line = br.readLine()) != null){
+                String lineString = line;
+                StringBuilder sb = new StringBuilder();
+                sb.append(taxaMap.get(lineString));
+                bw.write(sb.toString());
+                bw.newLine();
+            }          
+            bw.flush();
+            bw.close();
+            br2.close();
+            br.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }    
+        Set<String> infile = new HashSet();  
+        try{
+            BufferedReader br3 = IOUtils.getTextReader(outfileS);                 
+            String temp = null;
+            while ((temp = br3.readLine()) != null){
+                String tem = temp;
+                infile.add(tem);                          
+            } 
+            String line2 = null;
+            BufferedReader br4 = IOUtils.getTextReader(infile3S); 
+            while ((line2 = br4.readLine()) != null){
+                String tem = line2;
+                String taxa = null;
+                taxa = PStringUtils.fastSplit(tem).get(0);
+                if(infile.add(taxa)) continue;
+                else{
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(tem);
+                    bw2.write(sb.toString());
+                    bw2.newLine();                    
+                }                
+            }           
+            bw2.flush();
+            bw2.close();
+            br3.close();
+            br4.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }             
+    }
+    
+    public void rm851mds(){
+        String infileS = "/Users/Aoyue/Documents/mds/851mds.txt";
+        String outfileS = "/Users/Aoyue/Documents/mds/851oriMds.txt";
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String temp = null;
+            while ((temp = br.readLine()) != null){
+                String tem = temp;
+                StringBuilder sb = new StringBuilder();
+                sb.append(PStringUtils.fastSplit(tem).get(0).replaceFirst("2:", "")).append("\t").append(PStringUtils.fastSplit(tem).get(1)).append("\t")
+                    .append(PStringUtils.fastSplit(tem).get(2)).append("\t").append(PStringUtils.fastSplit(tem).get(3));
+                bw.write(sb.toString());
+                bw.newLine();                                        
+            }          
+            br.close();
+            bw.flush();
+            bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }                      
+    }
+    
+    public void getTaxaMds(){
+        String orifileS = "/Users/Aoyue/Documents/mds/2061matrix.txt";
+        String infileS = "/Users/Aoyue/Documents/mds/1210taxa.txt";
+        String outfileS = "/Users/Aoyue/Documents/mds/1210mds.txt";
+        String outfile2S = "/Users/Aoyue/Documents/mds/851mds.txt";
+        Set<String> infile = new HashSet();  
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);                 
+            String temp = null;
+            while ((temp = br.readLine()) != null){
+                String tem = temp;
+                infile.add(tem);                          
+            }          
+            br.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }              
+        try{
+            BufferedReader br = IOUtils.getTextReader(orifileS);     
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            BufferedWriter bw2 = IOUtils.getTextWriter(outfile2S);
+            String temp = null;
+            while ((temp = br.readLine()) != null){
+                if (temp.startsWith("\t")) continue;
+                String tem = temp;
+                String taxa = null;
+                taxa = PStringUtils.fastSplit(tem).get(0);
+                if(infile.add(taxa)) {
+                   //System.out.println(tem);
+                   StringBuilder sb2 = new StringBuilder();
+                   sb2.append(tem);
+                   bw2.write(sb2.toString());
+                   bw2.newLine();                    
+                }
+                else{
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(tem);
+                    bw.write(sb.toString());
+                    bw.newLine();                    
+                }                
+            }
+            bw2.flush();
+            bw2.close();
+            bw.flush();
+            bw.close();
+            br.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }              
+    }
+    
+    public void taxa1210(){
+        String infileS = "/Users/Aoyue/Documents/mds/1210matrix.txt";
+        String outfileS = "/Users/Aoyue/Documents/mds/1210taxa.txt";
+        RowTable <String> t = new RowTable<>(infileS);
+        List<String> taxaList = new ArrayList <>();
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String temp = null;
+            while ((temp = br.readLine()) != null){
+                if (temp.startsWith("\t")) continue;
+                String tem = temp;
+                List<String> l = null;
+                l = PStringUtils.fastSplit(tem);
+                StringBuilder sb = new StringBuilder(l.get(0));
+                bw.write(sb.toString());
+                bw.newLine();        
+            }
+            bw.flush();
+            bw.close();
+            br.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }             
+    }
+    
+    public void stanTaxaMap(){
+        String infileS = "/Users/Aoyue/Documents/Data/pipeline/hapScanner/HapMapTaxaProcessor/taxaNameMap.txt";
+        String outfileS = "/Users/Aoyue/Documents/Data/pipeline/hapScanner/HapMapTaxaProcessor/stanTaxaMap.txt";
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String temp = null;
+            while ((temp = br.readLine()) != null){
+                if (temp.startsWith("测")) continue;
+                String tem = temp;
+                List<String> l = null;
+                l = PStringUtils.fastSplit(tem);
+                StringBuilder sb = new StringBuilder(l.get(0)).append("\t").append(l.get(2));
+                bw.write(sb.toString());
+                bw.newLine();        
+            }
+            bw.flush();
+            bw.close();
+            br.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }       
     }
     
     
@@ -111,9 +441,6 @@ public class Delicay {
         }     
     }
     
-    public void mkfile2(){
-        
-    }
     public void mkHapPosAllele () {
         String infileDirS = "/Users/Aoyue/Desktop/";
         String outfileDirS = "/Users/Aoyue/Desktop/out/"; //该路径必须提前设置好

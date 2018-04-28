@@ -22,16 +22,16 @@ public class HapMapTaxaProcessorcp {
     
     public HapMapTaxaProcessorcp () {
         this.mkSampleTaxaMap();
-        String infileS1 = "/Users/Aoyue/Desktop/taxaNameMap.txt";
-        String infileS2 = "/Users/Aoyue/Desktop/t.txt";
-        String outfileS = "/Users/Aoyue/Desktop/taxaBam.txt";
+        String infileS1 = "/Users/Aoyue/Documents/Data/pipeline/hapScanner/HapMapTaxaProcessor/taxaNameMap.txt";
+        String infileS2 = "/Users/Aoyue/Documents/Data/pipeline/hapScanner/HapMapTaxaProcessor/t.txt";
+        String outfileS = "/Users/Aoyue/Documents/Data/pipeline/hapScanner/HapMapTaxaProcessor/taxaBam.txt";
         updateTaxaBamMap(infileS1, infileS2, outfileS);
         //some related files please check the bath /Users/Aoyue/Documents/Data/pipeline/hapScanner/HapMapTaxaProcessor, it will  give you some instructions
         this.testTaxaDuplicates();
     }
     
     private void testTaxaDuplicates () {
-        String infileS = "/Users/Aoyue/Desktop/taxaBam.txt";
+        String infileS = "/Users/Aoyue/Documents/Data/pipeline/hapScanner/HapMapTaxaProcessor/taxaBam.txt";
         RowTable<String> t = new RowTable<>(infileS);
         List<String> taxaList = t.getColumn(0);
         String[] taxaArray = taxaList.toArray(new String[taxaList.size()]);
@@ -49,8 +49,8 @@ public class HapMapTaxaProcessorcp {
     }
     
     private void mkSampleTaxaMap () {
-        String infileS = "/Users/Aoyue/Desktop/initialTaxaNameMap.txt";
-        String outfileS = "/Users/Aoyue/Desktop/taxaNameMap.txt";
+        String infileS = "/Users/Aoyue/Documents/Data/pipeline/hapScanner/HapMapTaxaProcessor/initialTaxaNameMap.txt";
+        String outfileS = "/Users/Aoyue/Documents/Data/pipeline/hapScanner/HapMapTaxaProcessor/taxaNameMap.txt";
         RowTable<String> t = new RowTable<>(infileS);
         List<String> l = new ArrayList(); 
         for (int i = 0; i < t.getRowNumber(); i++) {
