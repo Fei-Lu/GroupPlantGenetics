@@ -33,7 +33,7 @@ public class DataOrginazed {
         //this.md5();
         //this.checkMd5();
         //this.test();
-        //this.covergage();
+        this.coverage();
         //this.sample();
         //this.insertTxt();
         //this.findlost();
@@ -134,12 +134,13 @@ public class DataOrginazed {
         
     }
     
-    public void covergage () {
+    public void coverage () {
         String infileDirS = "/Volumes/Lulab3T_14/20171120CAAS/P101SC17081532_01zhangshaojing/data_release/cleandata";
         String outfileS = "/Users/Aoyue/Documents/Data/project/maize2k/coverage/111SM_14_coverage.txt";
-        File[] fs = new File(infileDirS).listFiles();
+        File[] fs = new File(infileDirS).listFiles(); 
         fs = IOUtils.listFilesEndsWith(fs, ".gz");
         int genomeSize = 2135098301;
+        //
         HashSet<String> nameSet = new HashSet();
         for (int i = 0; i < fs.length; i++) {
             nameSet.add(fs[i].getName().split("_")[0]);
@@ -193,6 +194,7 @@ public class DataOrginazed {
             e.printStackTrace();
         }
     }
+    
     public void test(){
         System.out.println("hello");
         System.out.println("try");

@@ -53,18 +53,130 @@ public class Delicay {
         /*
         对TASSEL5产生的genotype_Summary中的TaxaSummary文件进行分组，加标签,851SM和1210SM
         */
-        this.addgroup();
-        this.get1210taxaName();
-        this.mkgroup();
-        this.mkdesTable();
-        
+//        this.addgroup();
+//        this.get1210taxaName();
+//        this.mkgroup();
+//        this.mkdesTable();
+//输出851个 0.0，将FR218和Lan766-4-2这2行的矩阵结果NaN，用 0.0 表示。
+        //this.dealwithNaN();
+        //删除抽样的VCF中FR218和Lan766-4-2这2列的基因型信息。
+        this.rm2taxa();
+        //this.rm2taxa2();
         
         
         
          
     }
     
+    public void rm2taxa2(){
+        String infileS = "/Users/Aoyue/Documents/bcftools_viewTaxa/tabletest.vcf";
+        String outfileS = "/Users/Aoyue/Documents/bcftools_viewTaxa/out.vcf";
+        RowTable t = new RowTable("infileS");
+        t.removeColumn(269);
+        t.removeColumn(457);
+        
+        
+        
+        
+        
+    }
+    
+    public void rm2taxa(){
+        String infileS = "/Users/Aoyue/Documents/bcftools_viewTaxa/chr1000.vcf";
+        String outfileS = "/Users/Aoyue/Documents/bcftools_viewTaxa/chr1000_rm2taxa.vcf";
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);     
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String temp = null;
+            List<String> l1 = null;
+            List<String> l2 = null;
+            //List<Integer> removeIndexList = new ArrayList<Integer>();
+            while ((temp = br.readLine()) != null){
+                if (temp.startsWith("##")) continue; 
+                if (temp.startsWith("#CHROM")){
+                    l1 = PStringUtils.fastSplit(temp);
+                    StringBuilder sb = new StringBuilder();
+                    for (int i =0 ; i < l1.size(); i++){
+                        if (l1.get(i).equals("FR218") || l1.get(i).equals("Lan766-4-2") ){
+                            System.out.println(i + "\t" + "this is the wrong data column");
+                            l1.remove(i);
+                            //removeIndexList.add(i);
+                            i--;
+                        }
+                        else {
+                            sb.append(l1.get(i)).append("\t");
+                        }                    
+                    }
+                    sb.deleteCharAt(sb.length()-1);
+                    bw.write(sb.toString());
+                    bw.newLine();  
+                    System.out.println(l1.size() + " " + "biaotou");
+                 
+                }
+                else{                   
+                    l2 = PStringUtils.fastSplit(temp);
+                    l2.remove(269);
+                    l2.remove(456);
+//                    for (int i = 0; i < removeIndexList.size(); i++) {
+//                        l2.remove((int)removeIndexList.get(i));
+//                    }      
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < l2.size(); i++){    
+                        sb.append(l2.get(i)).append("\t");                                                
+                    }
+                    
 
+
+                    sb.deleteCharAt(sb.length()-1);
+                    bw.write(sb.toString());
+                    bw.newLine();                                       
+                } 
+                
+            } 
+            bw.flush();
+            bw.close();
+            br.close();
+            }      
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }                                
+    }
+    
+
+    public void dealwithNaN(){
+        String infileS = "/Users/Aoyue/Documents/nan.txt";
+        String outfileS = "/Users/Aoyue/Documents/tree/chr5000matrix_rmNaN.txt";
+//        RowTable t = new RowTable(infileS);
+//        for (int i = 0 ; i < t.getRowNumber(); i++){
+//            t.getRow(i);            
+//            System.out.println(t.getRow(i));            
+//        }
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);     
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String temp = null;
+            while ((temp = br.readLine()) != null){
+               
+                    String tem = temp;
+                    List<String> l = null;
+                    l = PStringUtils.fastSplit(tem);
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < 851; i++){
+                        sb.append(0.0).append("\t");               
+                    }
+                    bw.append(sb.toString());
+                    bw.newLine();               
+                       } 
+            bw.flush();
+            bw.close();
+            br.close();
+            }      
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }                            
+    }
     
     public void mkdesTable(){
         String infileS = "/Users/Aoyue/Documents/genotype_summary/chrmerge_10000TaxaSummary_grouped.txt";
