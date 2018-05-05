@@ -174,6 +174,8 @@ public class ThreePrimeExpressionProfiler_new {
         });
     }
     private void mkGeneCountTable () {
+        String gffFile="/Users/xujun/Desktop/TEP/Zea_mays.AGPv4.38.modified.gff3";
+        GeneFeature gf=new GeneFeature(gffFile);     
         int[][][] geneCount = new int[chrs.length][][]; // chr, geneByChr, taxon
         double [][][] TPM=new double[chrs.length][][];
         double [][][] effLen=new double [allTaxaList.size()][chrs.length][];
@@ -200,18 +202,34 @@ public class ThreePrimeExpressionProfiler_new {
         File[] fs = new File(inputDirS).listFiles();
         fs = IOUtils.listFilesEndsWith(fs, "Aligned.out.sam");
         List<File> fList = Arrays.asList(fs);  
-        RangeValStr z = this.geneNameRangeMap.get("Zm00001d006296"); 
-        int[][] count=new int[allTaxaList.size()][z.end-z.start+1];
-        
+        int [][] length=new int [chrs.length][];
+        int[][] count=new int[chrs.length][];
+        int[][] position=new int[chrs.length][];
+        String[][] name=new String[chrs.length][];
+        String[][] type=new String[chrs.length][];
+//        int[][][] q=new int[allTaxaList.size()][chrs.length][];
+              
+            for(int j=0;j<chrs.length;j++){
+                int geneLength =0;
+                length[j]=new int [geneNamesByChr[j].length];
+                for(int k=0;k<geneNamesByChr[j].length;k++){                    
+                    RangeValStr a=this.geneNameRangeMap.get(geneNamesByChr[j][k]);
+                    length[j][k]=geneLength;
+                    geneLength+=a.end-a.start+1;               
+                }
+                count[j]=new int [geneLength];    
+                name[j]=new  String [geneLength];
+                position[j]=new  int [geneLength];
+                type[j]=new  String [geneLength];
+            }
         fList.stream().forEach(f -> {
+            int gfIndex=0;int CDSIndex=0;
+            int UTR5Index=0;int UTR3Index=0;
+            String genename=null;
             try {               
                 BufferedReader br = IOUtils.getTextReader(f.getAbsolutePath());
-                BufferedWriter bw = IOUtils.getTextWriter(new File(new File(this.outputDirS,this.subDirS[3]),f.getName().replaceAll("Aligned.out.sam","")+"-readsLength.txt").getAbsolutePath());
-                BufferedWriter bw1 = IOUtils.getTextWriter(new File(new File(this.outputDirS,this.subDirS[3]),f.getName().replaceAll("Aligned.out.sam","")+"-onegene.txt").getAbsolutePath());
-                BufferedWriter[] bws = new BufferedWriter[allTaxaList.size()];
-                for (int i = 0; i < bws.length; i++) {
-                    bws[i] = IOUtils.getTextWriter(new File(new File(this.outputDirS,this.subDirS[3]),f.getName().replaceAll("Aligned.out.sam","")+"-seq.txt").getAbsolutePath());
-                }
+//                BufferedWriter bw = IOUtils.getTextWriter(new File(new File(this.outputDirS,this.subDirS[3]),f.getName().replaceAll("Aligned.out.sam","")+"-readsLength.txt").getAbsolutePath());
+                BufferedWriter bw1 = IOUtils.getTextWriter(new File(new File(this.outputDirS,this.subDirS[3]),f.getName().replaceAll("Aligned.out.sam","")+"-taxon.txt").getAbsolutePath());
                 String temp = null;
                 int chrIndex = -1;
                 int geneIndex = -1;
@@ -224,19 +242,19 @@ public class ThreePrimeExpressionProfiler_new {
                 for(int i=0;i<allTaxaList.size();i++){
                     w[i]=new ArrayList();
                 }
-                String name=null;
-                String cigar=null;                              
+                
+                String cigar=null;    int cnt=0;                          
                 while ((temp = br.readLine()) != null) {
                     if (temp.startsWith("@")) continue;
                     List<String> tList= FStringUtils.fastSplit(temp);
                     tem = tList.toArray(new String[tList.size()]);
                     chrIndex=Arrays.binarySearch(chrs, Integer.parseInt(tem[2]));
                     if (chrIndex < 0) continue;
+                    cnt++;
                     startPos=Integer.parseInt(tem[3]);                   
                     cigar=tem[5];
                     int index1=posGeneMaps[chrIndex].get(startPos);
-                    if (index1 < 0) continue;
-                    int p=0;int cont=0;
+                    if (index1 < 0) continue;                    
                     int count1=0;
                     int count2=0;
                     int cIndex = 0;
@@ -260,73 +278,107 @@ public class ThreePrimeExpressionProfiler_new {
                     int index2=posGeneMaps[chrIndex].get(endPos);
                     if(index1 == index2){
                         geneIndex=index1;
-                        name=geneNamesByChr[chrIndex][geneIndex];
-                        if(!(w[taxonIndex].contains(name))) w[taxonIndex].add(name);
-                        int indext=w[taxonIndex].indexOf(name);
+                        genename=geneNamesByChr[chrIndex][geneIndex];
+                        if(!(w[taxonIndex].contains(genename))) w[taxonIndex].add(genename);
+                        int indext=w[taxonIndex].indexOf(genename);
                         geneCount[chrIndex][geneIndex][taxonIndex]++;
                         readsLengthList[taxonIndex][indext].add(cLength2);
                         effLen[taxonIndex][chrIndex][geneIndex]+=cLength2;
-                        if(name.equals("Zm00001d006296")){
-                            bws[taxonIndex].write(startPos+"\t"+tem[9]+"\t");
-                            System.out.println(startPos+"\t"+cigar+"\t"+tem[9]+"\t");                                                          
-                            for (int i = 0; i < cigar.length(); i++) {
-                                if (!Character.isDigit(cigar.charAt(i))) {
-                                    char c = cigar.charAt(i);
-                                    if (c == 'M' ) {
-                                        startPos1=startPos+count1;
-                                        for(int j=startPos1;j<startPos1+Integer.parseInt(cigar.substring(cIndex1, i));j++){
-                                            count[taxonIndex][j-z.start]=count[taxonIndex][j-z.start]+1;
-                                        } 
-                                        for(int j=count2;j<count2+Integer.parseInt(cigar.substring(cIndex1, i));j++){
-                                            p+=tem[10].charAt(i)-33;
-                                            cont++;
-                                        }
+                        RangeValStr a = this.geneNameRangeMap.get(geneNamesByChr[chrIndex][geneIndex]);
+                        for (int i = 0; i < cigar.length(); i++) {
+                            if (!Character.isDigit(cigar.charAt(i))) {
+                                char c = cigar.charAt(i);
+                                if(c == 'M' ) {
+                                    startPos1=startPos+count1;
+                                    for(int j=startPos1;j<startPos1+Integer.parseInt(cigar.substring(cIndex1, i));j++){
+                                        count[chrIndex][length[chrIndex][geneIndex]+j-a.start]+=1;
+                                        name[chrIndex][length[chrIndex][geneIndex]+j-a.start]=genename;
+                                        position[chrIndex][length[chrIndex][geneIndex]+j-a.start]=j;
+                                        gfIndex=gf.getGeneIndex(genename);
+                                        for(int k=0;k<gf.genes[gfIndex].ts.size();k++){
+                                            for(int o=0;o<gf.genes[gfIndex].ts.get(k).cdsList.size();o++){
+                                                boolean b=gf.genes[gfIndex].ts.get(k).isWithinThisCDS(o, chrIndex, j);
+                                                if(b){
+                                                    type[chrIndex][length[chrIndex][geneIndex]+j-a.start]="CDS";
+                                                }
+                                            }
+                                            for(int p=0;p<gf.genes[gfIndex].ts.get(k).utr3List.size();p++){
+                                                boolean e=gf.genes[gfIndex].ts.get(k).isWithinThis3UTR(p, chrIndex, j);
+                                                if(e){
+                                                    type[chrIndex][length[chrIndex][geneIndex]+j-a.start]="3UTR";
+                                                }
+                                            }
+                                            for(int v=0;v<gf.genes[gfIndex].ts.get(k).utr5List.size();v++){
+                                                boolean g=gf.genes[gfIndex].ts.get(k).isWithinThis5UTR(v, chrIndex, j);
+                                                    if(g){
+                                                        type[chrIndex][length[chrIndex][geneIndex]+j-a.start]="5UTR";
+                                                    }
+                                            }
+                                            
+ //                                           CDSIndex=gf.genes[gfIndex].ts.get(k).getCDSIndex(chrIndex, j);                                         
+ //                                           if(CDSIndex<0){
+ //                                               UTR3Index=gf.genes[gfIndex].ts.get(k).get3UTRIndex(chrIndex, j);
+ //                                               if(UTR3Index<0){
+ //                                                   UTR5Index=gf.genes[gfIndex].ts.get(k).get5UTRIndex(chrIndex, j);
+ //                                                   if(UTR5Index<0){
+ //                                                       type[chrIndex][length[chrIndex][geneIndex]+j-a.start]=null;
+ //                                                   }else{
+ //                                                       type[chrIndex][length[chrIndex][geneIndex]+j-a.start]="5UTR";
+ //                                                   }                                                   
+ //                                               }else{
+ //                                                   type[chrIndex][length[chrIndex][geneIndex]+j-a.start]="3UTR";
+ //                                              }
+ //                                           }else{
+ //                                               type[chrIndex][length[chrIndex][geneIndex]+j-a.start]="CDS";
+ //                                           }                                           
+                                        }                                                                                
+                                    } 
+                                    for(int j=count2;j<count2+Integer.parseInt(cigar.substring(cIndex1, i));j++){
+//                                        q[taxonIndex][chrIndex][length[chrIndex][geneIndex]+j-a.start]+=tem[10].charAt(i)-33;
+//                                        cnt++;
+                                    }
+                                    count1+=Integer.parseInt(cigar.substring(cIndex1,i));
+                                    count2+=Integer.parseInt(cigar.substring(cIndex1,i));
+                                }else{
+                                    if(c=='D'||c=='N'){
                                         count1+=Integer.parseInt(cigar.substring(cIndex1,i));
+                                    }else{ 
                                         count2+=Integer.parseInt(cigar.substring(cIndex1,i));
-                                    }else{
-                                        if(c=='D'||c=='N'){
-                                            count1+=Integer.parseInt(cigar.substring(cIndex1,i));
-                                        }else{ 
-                                            count2+=Integer.parseInt(cigar.substring(cIndex1,i));
-                                        }
-                                    }       
-                                    cIndex1 = i+1;                           
-                                }
+                                    }
+                                }       
+                                cIndex1 = i+1;                           
                             }
-                            bws[taxonIndex].write(p/cont+"\n");
-                            System.out.print(p/cont);System.out.println();
                         }
+ //                           bws[taxonIndex].write(p/cont+"\n");
+ //                           System.out.print(p/cont);System.out.println();
+                        
                     }                  
                 }
- /*               for(int i=0;i<allTaxaList.size();i++){                                      
-                    for(int j=0;j <w[i].size() ;j++){
-                        for(int b=0;b<count[i].length;b++){
-                            bw[i].write(count[i][b]+"\n");
-                        }
-                        bw.write(w[i].get(j));bw.write("\n");
-                        for(int k=0;k<readsLengthList[i][j].size();k++){
-//                            System.out.print(readsLengthList[i][j].get(k));
-                            bw.write(readsLengthList[i][j].get(k).intValue()+"\t");                      
-                        }
-                        bw.write("\n");
+                int number=0;
+                for(int i=0;i<chrs.length;i++){
+                    for(int j=0;j<count[i].length;j++){
+                            bw1.write(number+"\t"+name[i][j]+"\t"+position[i][j]+"\t"+type[i][j]+"\t"+count[i][j]);
+                            bw1.newLine();                   
+                        number++;
                     }
-                }*/
-                if(taxonIndex==32){
-                    for(int i=0;i<count[taxonIndex].length;i++){
- //                       System.out.print(i+1+"\t"+count[taxonIndex][i]+"\n");
-                        bw1.write(i+1+"\t"+count[taxonIndex][i]);bw1.write("\n");
-                    }                   
                 }
+//                if(taxonIndex==10){
+//                    for(int i=0;i<count[taxonIndex].length;i++){
+ //                       System.out.print(i+1+"\t"+count[taxonIndex][i]+"\n");
+//                        bw1.write(i+1+"\t"+count[taxonIndex][i]);bw1.write("\n");
+//                    }                   
+//                }
                 br.close();
-                bw.flush();bw.close();
                 bw1.flush();bw1.close();
+
             }
             catch (Exception e) {
+                System.out.println(genename+"\t"+gfIndex);
                 e.printStackTrace();
             }
         });
         //standerdize
-        double[][][]rate=new double[allTaxaList.size()][chrs.length][];
+/*        double[][][]rate=new double[allTaxaList.size()][chrs.length][];
         double [] denom=new double[allTaxaList.size()];
         double [] allRate=new double [allTaxaList.size()];
         double effLength=0;
@@ -385,9 +437,82 @@ public class ThreePrimeExpressionProfiler_new {
         catch (Exception e) {
             e.printStackTrace();
             System.out.println();
+        }*/
+    }
+    private void findOneGene(){
+        String inputFile="/Users/xujun/Desktop/TEP/TEPOut/readsLength/PL_BC1_Plate1-taxon.txt";
+        String outputFile="/Users/xujun/Desktop/TEP/TEPOut/readsLength/oneGenePatern.txt";
+        try{
+            BufferedReader br = IOUtils.getTextReader(geneAnnotationFileS);
+//            BufferedWriter br = IOUtils.getTextReader(geneAnnotationFileS);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
         }
     }
-    
+    private void mkMap(){
+        try{
+            BufferedReader br = IOUtils.getTextReader(geneAnnotationFileS);
+            String temp = null;
+            Set<String> geneSet = new HashSet<String>();
+            Set<Integer> chrSet = new HashSet<>();
+            String[] tem = null;
+            String  geneName = null;
+            byte strand=0;
+            HashMap<String, Integer> geneChrMap = new HashMap();
+            HashMap<String, Integer> geneMinMap = new HashMap();
+            HashMap<String, Integer> geneMaxMap = new HashMap();
+            HashMap<String, Byte> geneStrandMap = new HashMap();
+            while ((temp = br.readLine())!=null) {
+                char s = temp.charAt(0);
+                if ((int)s < 48 || (int)s > 57) continue;
+                List<String> tList= FStringUtils.fastSplit(temp);
+                tem = tList.toArray(new String[tList.size()]);
+                if(tem[2].startsWith("CDS")){
+                    
+                }                 
+            }
+            geneNames = geneSet.toArray(new String[geneSet.size()]);
+            Arrays.sort(geneNames);
+            for (int i = 0; i < geneNames.length; i++) {
+                RangeValStr r = new RangeValStr (geneChrMap.get(geneNames[i]), geneMinMap.get(geneNames[i]), geneMaxMap.get(geneNames[i]), 0, geneStrandMap.get(geneNames[i]));
+                geneNameRangeMap.put(geneNames[i], r);
+            }
+            chrs = chrSet.toArray(new Integer[chrSet.size()]);
+            Arrays.sort(chrs);
+            geneNamesByChr = new String[chrs.length][];
+            posGeneMaps = new HashIntIntMap[chrs.length];
+            List<String>[] geneListByChr = new List[chrs.length];
+            for (int i = 0; i < chrs.length; i++) {
+                geneListByChr[i] = new ArrayList<>();
+            }
+            for (int i = 0; i < geneNames.length; i++) {
+                int cChr = geneNameRangeMap.get(geneNames[i]).chr;
+                int index = Arrays.binarySearch(chrs, cChr);
+                geneListByChr[index].add(geneNames[i]);
+            }
+            for (int i = 0; i < chrs.length; i++) {
+                String[] genes = geneListByChr[i].toArray(new String[geneListByChr[i].size()]);
+                Arrays.sort(genes);
+                geneNamesByChr[i] = genes;
+                posGeneMaps[i] = HashIntIntMaps.getDefaultFactory().withDefaultValue(-1).newMutableMap();
+                for (int j = 0; j < genes.length; j++) {
+                    RangeValStr r = geneNameRangeMap.get(genes[j]);
+                    for (int k = r.getRangeStart(); k < r.getRangeEnd(); k++) {
+                        posGeneMaps[i].put(k, j);
+                    }
+                }
+            }
+            for(int i=0;i<chrs.length;i++){
+                
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
     private void mkPosGeneMap () {
         try {
             BufferedReader br = IOUtils.getTextReader(geneAnnotationFileS);
