@@ -9,14 +9,12 @@ package zhouyao.analysis.wheatHapMap;
  *
  * @author yaozhou
  */
-public class ReducedLibrarySigle {
-
-    public ReducedLibrarySigle(String inFile, String RE1, String RE2, String outFile) {
-        this.getSequence(inFile,RE1,RE2,outFile);
+public class GWASsummary {
+    public GWASsummary(String genelist, String GWAS,String outFile){
+        this.getResults(genelist,GWAS,outFile);
     }
 
-    private void getSequence(String inFile, String RE1, String RE2, String outFile) {
+    private void getResults(String genelist, String GWAS, String outFile) {
         
     }
-    
 }

@@ -16,7 +16,13 @@ public class GenomeDistribute {
     public GenomeDistribute(String inFile,String outFile){
         this.getGenome(inFile,outFile);
     }   
-    public void getGenome(String inFile, String outFile){
+    public GenomeDistribute(String inFile,String outFile,boolean byChr){
+        this.getChr(inFile,outFile);
+    }   
+    public GenomeDistribute(String inFile,String outFile,String chrNUM){
+        this.getChrNum(inFile,outFile,chrNUM);
+    }
+    private void getGenome(String inFile, String outFile){
          try{
             BufferedReader br;
             if(inFile.endsWith("gz"))  br = IOUtils.getTextGzipReader(inFile);
@@ -114,6 +120,80 @@ public class GenomeDistribute {
             bwB.close();
             bwD.close();
             bwAB.close();
+         }
+         catch(Exception e){
+             e.printStackTrace();
+         }
+    }
+    private void getChr(String inFile, String outFile){
+         try{
+            BufferedReader br;
+            if(inFile.endsWith("gz"))  br = IOUtils.getTextGzipReader(inFile);
+            else  br = IOUtils.getTextReader(inFile);
+            String temp = null;
+            int count = 0;
+            boolean write = false;
+            String name = null;
+            BufferedWriter bw = null;
+            while((temp = br.readLine())!=null){
+                if(temp.startsWith(">")){
+                    System.out.println("Processing: " + temp + "\n");
+                    if(write){
+                        bw.flush();
+                        bw.close();
+                    }else{
+                        write = true;
+                    }
+                    name = temp.replace(">","");
+                    String[] names = name.split(" ");
+                    name = names[0];
+                    bw = IOUtils.getTextWriter(outFile +"/"+name+".fa");
+                    bw.write(temp+"\n");
+                }else{
+                    bw.write(temp+"\n");
+                } 
+            }
+            bw.flush();
+            bw.close();
+         }
+         catch(Exception e){
+             e.printStackTrace();
+         }
+    }
+    private void getChrNum(String inFile, String outFile,String chrNum){
+         try{
+            BufferedReader br;
+            if(inFile.endsWith("gz"))  br = IOUtils.getTextGzipReader(inFile);
+            else  br = IOUtils.getTextReader(inFile);
+            String temp = null;
+            int count = 0;
+            boolean write = false;
+            String name = null;
+            BufferedWriter bw = null;
+            Integer nm = Integer.parseInt(chrNum);
+            int i = 0;
+            while((temp = br.readLine())!=null){
+                if(temp.startsWith(">")){
+                    i++;
+                    if(i>nm) break;
+                    System.out.println("Processing: " + temp + "\n");
+                    if(write){
+                        bw.flush();
+                        bw.close();
+                    }else{
+                        write = true;
+                    }
+                    name = temp.replace(">","");
+                    String[] names = name.split(" ");
+                    name = names[0];
+                    bw = IOUtils.getTextWriter(outFile +"/"+name+".fa");
+                    bw.write(temp+"\n");
+                }else{
+                    bw.write(temp+"\n");
+                } 
+            }
+            bw.flush();
+            bw.close();
          }
          catch(Exception e){
              e.printStackTrace();
