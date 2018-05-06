@@ -56,7 +56,6 @@ public class GBS {
                 while ((temp1 = br1.readLine()) != null) {
                     seq1=br1.readLine();
                     if(hm1.get(seq1.substring(0,6)).equals(null)){
-                        br1.readLine();br1.readLine();
                         br2.readLine();br2.readLine();br2.readLine();br2.readLine();
                     }else{
                         temp2=br2.readLine();
@@ -67,6 +66,7 @@ public class GBS {
                         }
                         br2.readLine();br2.readLine();
                     }
+                    br1.readLine();br1.readLine();
                 }
                 for(int i=0;i<cnt.length;i++){
                     bw.write(sample.get(i)+"\t"+cnt[i]);
