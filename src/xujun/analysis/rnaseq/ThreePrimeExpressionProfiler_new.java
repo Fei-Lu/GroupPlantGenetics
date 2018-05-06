@@ -229,7 +229,7 @@ public class ThreePrimeExpressionProfiler_new {
             try {               
                 BufferedReader br = IOUtils.getTextReader(f.getAbsolutePath());
 //                BufferedWriter bw = IOUtils.getTextWriter(new File(new File(this.outputDirS,this.subDirS[3]),f.getName().replaceAll("Aligned.out.sam","")+"-readsLength.txt").getAbsolutePath());
-                BufferedWriter bw1 = IOUtils.getTextWriter(new File(new File(this.outputDirS,this.subDirS[3]),f.getName().replaceAll("Aligned.out.sam","")+"-taxon.txt").getAbsolutePath());
+                BufferedWriter bw1 = IOUtils.getTextWriter(new File(new File(this.outputDirS,this.subDirS[3]),f.getName().replaceAll("Aligned.out.sam","")+"-onegene.txt").getAbsolutePath());
                 String temp = null;
                 int chrIndex = -1;
                 int geneIndex = -1;
@@ -284,6 +284,9 @@ public class ThreePrimeExpressionProfiler_new {
                         geneCount[chrIndex][geneIndex][taxonIndex]++;
                         readsLengthList[taxonIndex][indext].add(cLength2);
                         effLen[taxonIndex][chrIndex][geneIndex]+=cLength2;
+                        if(genename.equals("Zm00001d030935")){
+                            
+                        
                         RangeValStr a = this.geneNameRangeMap.get(geneNamesByChr[chrIndex][geneIndex]);
                         for (int i = 0; i < cigar.length(); i++) {
                             if (!Character.isDigit(cigar.charAt(i))) {
@@ -292,28 +295,28 @@ public class ThreePrimeExpressionProfiler_new {
                                     startPos1=startPos+count1;
                                     for(int j=startPos1;j<startPos1+Integer.parseInt(cigar.substring(cIndex1, i));j++){
                                         count[chrIndex][length[chrIndex][geneIndex]+j-a.start]+=1;
-                                        name[chrIndex][length[chrIndex][geneIndex]+j-a.start]=genename;
-                                        position[chrIndex][length[chrIndex][geneIndex]+j-a.start]=j;
-                                        gfIndex=gf.getGeneIndex(genename);
-                                        for(int k=0;k<gf.genes[gfIndex].ts.size();k++){
-                                            for(int o=0;o<gf.genes[gfIndex].ts.get(k).cdsList.size();o++){
-                                                boolean b=gf.genes[gfIndex].ts.get(k).isWithinThisCDS(o, chrIndex, j);
-                                                if(b){
-                                                    type[chrIndex][length[chrIndex][geneIndex]+j-a.start]="CDS";
-                                                }
-                                            }
-                                            for(int p=0;p<gf.genes[gfIndex].ts.get(k).utr3List.size();p++){
-                                                boolean e=gf.genes[gfIndex].ts.get(k).isWithinThis3UTR(p, chrIndex, j);
-                                                if(e){
-                                                    type[chrIndex][length[chrIndex][geneIndex]+j-a.start]="3UTR";
-                                                }
-                                            }
-                                            for(int v=0;v<gf.genes[gfIndex].ts.get(k).utr5List.size();v++){
-                                                boolean g=gf.genes[gfIndex].ts.get(k).isWithinThis5UTR(v, chrIndex, j);
-                                                    if(g){
-                                                        type[chrIndex][length[chrIndex][geneIndex]+j-a.start]="5UTR";
-                                                    }
-                                            }
+   //                                     name[chrIndex][length[chrIndex][geneIndex]+j-a.start]=genename;
+   //                                    position[chrIndex][length[chrIndex][geneIndex]+j-a.start]=j;
+    //                                    gfIndex=gf.getGeneIndex(genename);
+    //                                    for(int k=0;k<gf.genes[gfIndex].ts.size();k++){
+    //                                        for(int o=0;o<gf.genes[gfIndex].ts.get(k).cdsList.size();o++){
+    //                                            boolean b=gf.genes[gfIndex].ts.get(k).isWithinThisCDS(o, chrIndex, j);
+    //                                            if(b){
+    //                                                type[chrIndex][length[chrIndex][geneIndex]+j-a.start]="CDS";
+    //                                            }
+    //                                        }
+    //                                        for(int p=0;p<gf.genes[gfIndex].ts.get(k).utr3List.size();p++){
+    //                                            boolean e=gf.genes[gfIndex].ts.get(k).isWithinThis3UTR(p, chrIndex, j);
+    //                                            if(e){
+    //                                                type[chrIndex][length[chrIndex][geneIndex]+j-a.start]="3UTR";
+    //                                            }
+    //                                        }
+    //                                        for(int v=0;v<gf.genes[gfIndex].ts.get(k).utr5List.size();v++){
+    //                                            boolean g=gf.genes[gfIndex].ts.get(k).isWithinThis5UTR(v, chrIndex, j);
+    //                                                if(g){
+    //                                                    type[chrIndex][length[chrIndex][geneIndex]+j-a.start]="5UTR";
+    //                                                }
+    //                                        }
                                             
  //                                           CDSIndex=gf.genes[gfIndex].ts.get(k).getCDSIndex(chrIndex, j);                                         
  //                                           if(CDSIndex<0){
@@ -331,7 +334,7 @@ public class ThreePrimeExpressionProfiler_new {
  //                                           }else{
  //                                               type[chrIndex][length[chrIndex][geneIndex]+j-a.start]="CDS";
  //                                           }                                           
-                                        }                                                                                
+ //                                       }                                                                                
                                     } 
                                     for(int j=count2;j<count2+Integer.parseInt(cigar.substring(cIndex1, i));j++){
 //                                        q[taxonIndex][chrIndex][length[chrIndex][geneIndex]+j-a.start]+=tem[10].charAt(i)-33;
@@ -349,25 +352,26 @@ public class ThreePrimeExpressionProfiler_new {
                                 cIndex1 = i+1;                           
                             }
                         }
+                        }
  //                           bws[taxonIndex].write(p/cont+"\n");
  //                           System.out.print(p/cont);System.out.println();
                         
                     }                  
                 }
-                int number=0;
-                for(int i=0;i<chrs.length;i++){
-                    for(int j=0;j<count[i].length;j++){
-                            bw1.write(number+"\t"+name[i][j]+"\t"+position[i][j]+"\t"+type[i][j]+"\t"+count[i][j]);
-                            bw1.newLine();                   
-                        number++;
-                    }
-                }
-//                if(taxonIndex==10){
-//                    for(int i=0;i<count[taxonIndex].length;i++){
- //                       System.out.print(i+1+"\t"+count[taxonIndex][i]+"\n");
-//                        bw1.write(i+1+"\t"+count[taxonIndex][i]);bw1.write("\n");
-//                    }                   
+//                int number=0;
+//                for(int i=0;i<chrs.length;i++){
+//                    for(int j=0;j<count[i].length;j++){
+//                            bw1.write(number+"\t"+name[i][j]+"\t"+position[i][j]+"\t"+type[i][j]+"\t"+count[i][j]);
+//                            bw1.newLine();                   
+//                        number++;
+//                    }
 //                }
+                if(taxonIndex==10){
+                    for(int i=0;i<count[taxonIndex].length;i++){
+                       // System.out.print(i+1+"\t"+count[taxonIndex][i]+"\n");
+                        bw1.write(i+1+"\t"+count[taxonIndex][i]);bw1.write("\n");
+                    }                   
+                }
                 br.close();
                 bw1.flush();bw1.close();
 
@@ -440,11 +444,14 @@ public class ThreePrimeExpressionProfiler_new {
         }*/
     }
     private void findOneGene(){
-        String inputFile="/Users/xujun/Desktop/TEP/TEPOut/readsLength/PL_BC1_Plate1-taxon.txt";
+        String inputFile="/Users/xujun/Desktop/TEP/TEPOut/readsLength/PL_BC4_Plate4-taxon.txt";
         String outputFile="/Users/xujun/Desktop/TEP/TEPOut/readsLength/oneGenePatern.txt";
         try{
-            BufferedReader br = IOUtils.getTextReader(geneAnnotationFileS);
-//            BufferedWriter br = IOUtils.getTextReader(geneAnnotationFileS);
+            BufferedReader br = IOUtils.getTextReader(inputFile);
+            BufferedWriter bw = IOUtils.getTextWriter(outputFile);
+            while(br.readLine()!=null){
+                
+            }
         }
         catch (Exception e) {
             e.printStackTrace();

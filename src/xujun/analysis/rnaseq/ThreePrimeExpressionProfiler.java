@@ -239,9 +239,15 @@ public class ThreePrimeExpressionProfiler {
                 posGeneMaps[i] = HashIntIntMaps.getDefaultFactory().withDefaultValue(-1).newMutableMap();
                 for (int j = 0; j < genes.length; j++) {
                     RangeValStr r = geneNameRangeMap.get(genes[j]);
-                    for (int k = r.getRangeStart(); k < r.getRangeEnd(); k++) {
-                        posGeneMaps[i].put(k, j);
-                    }
+                    if(r.str==(byte)1){
+                        for(int k=r.getRangeEnd()-100;k<r.getRangeEnd()+450;k++){
+                            posGeneMaps[i].put(k, j);
+                        }
+                    }else{
+                        for (int k = r.getRangeStart()-450; k < r.getRangeStart()+100; k++) {
+                            posGeneMaps[i].put(k, j);
+                        }
+                    }                    
                 }
             }
         }
