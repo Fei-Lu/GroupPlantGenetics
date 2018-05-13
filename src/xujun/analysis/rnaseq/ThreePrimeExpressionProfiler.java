@@ -79,7 +79,7 @@ public class ThreePrimeExpressionProfiler {
     
     List<String> allTaxaList = new ArrayList<String>();
  
-    public ThreePrimeExpressionProfiler (String parameterFileS) throws IOException {
+    public ThreePrimeExpressionProfiler (String parameterFileS) {
         this.parseParameters(parameterFileS);
         mkPosGeneMap();
 //        this.parseFq(); //Remove Ts?remove
@@ -89,6 +89,8 @@ public class ThreePrimeExpressionProfiler {
     }
     
     private void mkGeneCountTable () {
+        String gffFile="/Users/xujun/Desktop/TEP/Zea_mays.AGPv4.38.modified.gff3";
+        GeneFeature gf=new GeneFeature(gffFile);
         int[][][] geneCount = new int[chrs.length][][]; // chr, geneByChr, taxon
         for (int i = 0; i < geneCount.length; i++) {
             geneCount[i] = new int[geneNamesByChr[i].length][];
@@ -100,6 +102,8 @@ public class ThreePrimeExpressionProfiler {
         File[] fs = new File(inputDirS).listFiles();
         fs = IOUtils.listFilesEndsWith(fs, ".sam");
         List<File> fList = Arrays.asList(fs);
+        List RNAGene=new ArrayList();int[] RNAGeneC=new int[1000];
+        String [] RNAGeneType =new String [1000];
         fList.stream().forEach(f -> {
             try {
                 BufferedReader br = IOUtils.getTextReader(f.getAbsolutePath());
@@ -138,7 +142,24 @@ public class ThreePrimeExpressionProfiler {
                     if(index1 == index2){
                         geneIndex=index1;
                         geneCount[chrIndex][geneIndex][taxonIndex]++;
+                        String geneName=geneNamesByChr[chrIndex][geneIndex];
+                        int gfIndex=gf.getGeneIndex(geneName);
+                        String type=gf.getGeneBiotype(gfIndex);
+                        if(!type.equals("protein_coding")){
+                           if(!RNAGene.contains(geneName)){
+                                RNAGene.add(geneName);
+                            }                          
+                            int index=RNAGene.indexOf(geneName);
+                            RNAGeneType[index]=type;
+                            RNAGeneC[index]++;                  
+                        }
                     }           
+                }
+                System.out.println(f.getName());
+                for(int i=0;i<RNAGeneType.length;i++){ 
+                    if(RNAGeneC[i]!=0){
+                        System.out.println(RNAGene.get(i)+"\t"+RNAGeneType[i]+"\t"+RNAGeneC[i]);
+                    }                   
                 }
             }
             catch (Exception e) {
@@ -240,11 +261,11 @@ public class ThreePrimeExpressionProfiler {
                 for (int j = 0; j < genes.length; j++) {
                     RangeValStr r = geneNameRangeMap.get(genes[j]);
                     if(r.str==(byte)1){
-                        for(int k=r.getRangeEnd()-100;k<r.getRangeEnd()+450;k++){
+                        for(int k=r.getRangeStart()-100;k<r.getRangeStart()+500;k++){
                             posGeneMaps[i].put(k, j);
                         }
                     }else{
-                        for (int k = r.getRangeStart()-450; k < r.getRangeStart()+100; k++) {
+                        for (int k = r.getRangeEnd()-500; k < r.getRangeEnd()+100; k++) {
                             posGeneMaps[i].put(k, j);
                         }
                     }                    
@@ -471,8 +492,9 @@ public class ThreePrimeExpressionProfiler {
         Collections.sort(allTaxaList);
     }
     
-    public static void main(String args[]) throws IOException {
+    public static void main(String args[]) {
         new ThreePrimeExpressionProfiler(args[0]);
+//        new GBS();
     }
     
 }
