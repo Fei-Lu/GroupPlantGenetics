@@ -30,21 +30,21 @@ public class Containing {
 
             if (infileS1.endsWith("gz")) {
 
-                br1 = IOUtils.getTextGzipReader(infileS1);
-                br2 = IOUtils.getTextGzipReader(infileS2);
+                br1 = XueboIOUtils.getTextGzipReader(infileS1);
+                br2 = XueboIOUtils.getTextGzipReader(infileS2);
 
             } else {
 
-                br1 = IOUtils.getTextReader(infileS1);
-                br2 = IOUtils.getTextReader(infileS2);
+                br1 = XueboIOUtils.getTextReader(infileS1);
+                br2 = XueboIOUtils.getTextReader(infileS2);
 
             }
 
             String temp1 = null;
             String temp2 = null;
 
-            BufferedWriter bw1 = IOUtils.getTextGzipWriter(outfileS1);
-            BufferedWriter bw2 = IOUtils.getTextGzipWriter(outfileS2);
+            BufferedWriter bw1 = XueboIOUtils.getTextGzipWriter(outfileS1);
+            BufferedWriter bw2 = XueboIOUtils.getTextGzipWriter(outfileS2);
 
             int i = 0;
 

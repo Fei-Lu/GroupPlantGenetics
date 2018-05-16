@@ -7,7 +7,7 @@ package xuebo.analysis.annotation;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import xuebo.analysis.data4C.IOUtils;
+import xuebo.analysis.data4C.XueboIOUtils;
 
 /**
  *
@@ -27,11 +27,11 @@ public class ParallelMean {
             
             if (infileS.endsWith("gz")) {
 
-                br = IOUtils.getTextGzipReader(infileS);
+                br = XueboIOUtils.getTextGzipReader(infileS);
 
             } else {
 
-                br = IOUtils.getTextReader(infileS);
+                br = XueboIOUtils.getTextReader(infileS);
             }
             
             String temp = null;
@@ -39,7 +39,7 @@ public class ParallelMean {
                       
             String OpenchrScore = null;
             
-            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            BufferedWriter bw = XueboIOUtils.getTextWriter(outfileS);
             
              
             while (( temp = br.readLine()) != null) {

@@ -31,10 +31,10 @@ public class FormatTransform {
             String plkg = outFile + ".plk.ped";
             String plkm = outFile + ".plk.map";
             try{
-                if(gzip) br = IOUtils.getTextGzipReader(file);
-                else br = IOUtils.getTextReader(file);
-                BufferedWriter bwgeno = IOUtils.getTextWriter(plkg);
-                BufferedWriter bwmap = IOUtils.getTextWriter(plkm);
+                if(gzip) br = YaoIOUtils.getTextGzipReader(file);
+                else br = YaoIOUtils.getTextReader(file);
+                BufferedWriter bwgeno = YaoIOUtils.getTextWriter(plkg);
+                BufferedWriter bwmap = YaoIOUtils.getTextWriter(plkm);
             }catch (Exception e){
                 System.out.println("Only blink format supported to plink!");
             }
@@ -43,10 +43,10 @@ public class FormatTransform {
             String blkm = outFile + ".blk.map";
             BufferedReader br;
             try{
-                if(gzip) br = IOUtils.getTextGzipReader(file);
-                else br = IOUtils.getTextReader(file);
-                BufferedWriter bwgeno = IOUtils.getTextWriter(blkg);
-                BufferedWriter bwmap = IOUtils.getTextWriter(blkm);
+                if(gzip) br = YaoIOUtils.getTextGzipReader(file);
+                else br = YaoIOUtils.getTextReader(file);
+                BufferedWriter bwgeno = YaoIOUtils.getTextWriter(blkg);
+                BufferedWriter bwmap = YaoIOUtils.getTextWriter(blkm);
                 String o = "NA";
                 String temp = null;
                 while((temp = br.readLine())!= null){

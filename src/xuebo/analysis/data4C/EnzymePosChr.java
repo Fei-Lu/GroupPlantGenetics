@@ -29,14 +29,14 @@ public class EnzymePosChr {
         try{
             
            BufferedReader br;            
-           br = IOUtils.getTextReader(infileS);
+           br = XueboIOUtils.getTextReader(infileS);
            
             String temp = null;
             StringBuilder temp2 = new StringBuilder();
             int i = 0;
            
             try{
-                BufferedWriter bw1 = IOUtils.getTextWriter(outfileS);
+                BufferedWriter bw1 = XueboIOUtils.getTextWriter(outfileS);
                 bw1.write("");
                 bw1.flush(); 
                 bw1.close(); 
@@ -97,7 +97,7 @@ public class EnzymePosChr {
         String cutterinChr = null;
         String headcutterinchr = null;
         String headcutterbed = null;
-//        BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+//        BufferedWriter bw = XueboIOUtils.getTextWriter(outfileS);
             for(int i = 0;i < pos.size();i = i+1){
                 int aa = Integer.valueOf(pos.get(i)) + 5 ;
                 headcutterbed = Chr + "\t" + pos.get(i) + "\t" + aa + "\t0" + "\n";

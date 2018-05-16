@@ -73,7 +73,7 @@ public class SubStringSearch {
 //            }
         }
 //        Collections.sort(index);
-        BufferedWriter bw = IOUtils.getTextWriter("test.txt");
+        BufferedWriter bw = YaoIOUtils.getTextWriter("test.txt");
         try {
             bw.write("");
             bw.close();
@@ -82,7 +82,7 @@ public class SubStringSearch {
         }
 
         for (int q = 0; q < index.size(); q++){
-//                BufferedWriter bw = IOUtils.getTextWriter("test.txt");
+//                BufferedWriter bw = YaoIOUtils.getTextWriter("test.txt");
 //            System.out.println(index.get(q));
             int aa = index.get(q);
 //                bw.write(aa+"\n");

@@ -36,9 +36,9 @@ public class VcfTools {
             System.out.println("Now analyzing SNP depth...");
             BufferedReader vcf;
             BufferedWriter VcfDepth;
-            if(inFile.endsWith("gz"))  vcf = IOUtils.getTextGzipReader(inFile);
-            else  vcf = IOUtils.getTextReader(inFile);
-            VcfDepth = IOUtils.getTextWriter(outFile+".all");
+            if(inFile.endsWith("gz"))  vcf = YaoIOUtils.getTextGzipReader(inFile);
+            else  vcf = YaoIOUtils.getTextReader(inFile);
+            VcfDepth = YaoIOUtils.getTextWriter(outFile+".all");
             String temp = null;
             String[] tem = null;
 //            Set depth = new HashSet(); // store the depth catalog
@@ -93,12 +93,12 @@ public class VcfTools {
     private void getABD(String inFile, String outFile) {
         BufferedReader vcf;
         BufferedWriter nvcf,bed,stat,Avcf;
-        if(inFile.endsWith("gz"))  vcf = IOUtils.getTextGzipReader(inFile);
-        else  vcf = IOUtils.getTextReader(inFile);
-        nvcf = IOUtils.getTextWriter(outFile + ".all.vcf");
-        Avcf = IOUtils.getTextGzipWriter(outFile + ".A.vcf.gz");
-        bed = IOUtils.getTextWriter(outFile + ".bed");
-        stat = IOUtils.getTextWriter(outFile + ".stat");
+        if(inFile.endsWith("gz"))  vcf = YaoIOUtils.getTextGzipReader(inFile);
+        else  vcf = YaoIOUtils.getTextReader(inFile);
+        nvcf = YaoIOUtils.getTextWriter(outFile + ".all.vcf");
+        Avcf = YaoIOUtils.getTextGzipWriter(outFile + ".A.vcf.gz");
+        bed = YaoIOUtils.getTextWriter(outFile + ".bed");
+        stat = YaoIOUtils.getTextWriter(outFile + ".stat");
         String temp = null;
         String[] temps = null;
         int a = 0, b = 0, d = 0;

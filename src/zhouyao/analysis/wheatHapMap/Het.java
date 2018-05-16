@@ -17,9 +17,9 @@ public class Het {
         this.getHet(inFile);
     }
     private void getHet(String inFile){
-        BufferedReader br = IOUtils.getTextReader(inFile);
+        BufferedReader br = YaoIOUtils.getTextReader(inFile);
         String outFile = inFile.replace(".vcf", ".het");
-        BufferedWriter bw = IOUtils.getTextWriter(outFile);
+        BufferedWriter bw = YaoIOUtils.getTextWriter(outFile);
         
     }
 }

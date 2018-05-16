@@ -105,10 +105,10 @@ public class GBStassel {
         StringBuilder barS = null;
         StringBuilder out = null;
         try {
-            BufferedWriter bw = IOUtils.getTextGzipWriter(outFileDir+"/"+sampleInfo[1]+"_"+sampleInfo[3]+"_"+sampleInfo[2]+"_fastq.gz");
+            BufferedWriter bw = YaoIOUtils.getTextGzipWriter(outFileDir+"/"+sampleInfo[1]+"_"+sampleInfo[3]+"_"+sampleInfo[2]+"_fastq.gz");
             String temp = null;
             for ( File subfiles : files){
-                BufferedReader br = IOUtils.getTextGzipReader(subfiles.toString());
+                BufferedReader br = YaoIOUtils.getTextGzipReader(subfiles.toString());
                 while((temp =br.readLine())!=null){
                     String[] tem = temp.split(":");
                     barcode = tem[tem.length-1];
@@ -138,7 +138,7 @@ public class GBStassel {
         }  
     }
     private String[] getInfo(String inFileDir){
-       BufferedReader br = IOUtils.getTextGzipReader(inFileDir+"/R1.fastq.gz");
+       BufferedReader br = YaoIOUtils.getTextGzipReader(inFileDir+"/R1.fastq.gz");
         String[] out = new String[4];
         String barcode = null;
         try {

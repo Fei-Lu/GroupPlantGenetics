@@ -25,8 +25,8 @@ public class GenerateHybrid {
     }
 
     private void getHybrid(String inFile, String outFile) {
-        BufferedReader br = IOUtils.getTextReader(inFile);
-        BufferedWriter bw = IOUtils.getTextWriter(outFile);
+        BufferedReader br = YaoIOUtils.getTextReader(inFile);
+        BufferedWriter bw = YaoIOUtils.getTextWriter(outFile);
         String tmp = null;
         String[] temp = null;
         StringBuilder to = new StringBuilder();
@@ -58,8 +58,8 @@ public class GenerateHybrid {
         }
     }
     private void getHybrid_hmp(String inFile, String outFile){
-        BufferedReader br = IOUtils.getTextReader(inFile);
-        BufferedWriter bw = IOUtils.getTextWriter(outFile);
+        BufferedReader br = YaoIOUtils.getTextReader(inFile);
+        BufferedWriter bw = YaoIOUtils.getTextWriter(outFile);
         String tmp = null;
         String[] temp = null;
         int line = 0;

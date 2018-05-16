@@ -21,9 +21,9 @@ public class toLowerBase {
     }
     public void getLower(String inFile,String newIn,String outFile){
         try {
-            BufferedReader br1 = IOUtils.getTextReader(inFile);
-            BufferedReader br2 = IOUtils.getTextReader(newIn);
-            BufferedWriter bw = IOUtils.getTextWriter(outFile);
+            BufferedReader br1 = YaoIOUtils.getTextReader(inFile);
+            BufferedReader br2 = YaoIOUtils.getTextReader(newIn);
+            BufferedWriter bw = YaoIOUtils.getTextWriter(outFile);
             String temp = null,temp1 =null;
             
             while((temp=br1.readLine())!=null){

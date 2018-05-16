@@ -18,8 +18,8 @@ public class LogReadStatistic {
     public void ReadPrint(String inFile){
         try {
             BufferedReader br ;
-            if(inFile.endsWith("gz"))  br = IOUtils.getTextGzipReader(inFile);
-            else  br = IOUtils.getTextReader(inFile);
+            if(inFile.endsWith("gz"))  br = YaoIOUtils.getTextGzipReader(inFile);
+            else  br = YaoIOUtils.getTextReader(inFile);
             String temp;
             int read = 0;
             while ((temp = br.readLine()) != null) {

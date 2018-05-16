@@ -32,7 +32,7 @@ public class ReducedLibrary {
         try{
             
            BufferedReader br;            
-           br = IOUtils.getTextReader(infileS);
+           br = XueboIOUtils.getTextReader(infileS);
            
             String temp = null;
 //            String temp1 = null;
@@ -42,8 +42,8 @@ public class ReducedLibrary {
             int i = 0;
            
             try{
-                BufferedWriter bw1 = IOUtils.getTextWriter(outfileS1);
-                BufferedWriter bw2 = IOUtils.getTextWriter(outfileS2);
+                BufferedWriter bw1 = XueboIOUtils.getTextWriter(outfileS1);
+                BufferedWriter bw2 = XueboIOUtils.getTextWriter(outfileS2);
                 bw1.write("");
                 bw2.write("");
                 bw1.flush(); 
@@ -193,7 +193,7 @@ public class ReducedLibrary {
         String cutterinChr = null;
         String headcutterinchr = null;
         String headcutterbed = null;
-//        BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+//        BufferedWriter bw = XueboIOUtils.getTextWriter(outfileS);
             for(int i = 0;i < getpos.size();i = i+2){
 
                 cutterinChr = inChr.substring(getpos.get(i),getpos.get(i+1));

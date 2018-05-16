@@ -41,7 +41,7 @@ import java.util.zip.GZIPOutputStream;
  *
  * @author Fei Lu
  */
-public class IOUtils {
+public class XueboIOUtils {
     
     public static BufferedReader getTextGzipReader (String infileS) {
         BufferedReader br = null;

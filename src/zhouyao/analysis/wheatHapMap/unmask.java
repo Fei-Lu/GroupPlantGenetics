@@ -21,9 +21,9 @@ public class unmask {
     }
     private void getUnmasked(String inFile){
         try {
-            BufferedReader br = IOUtils.getTextGzipReader(inFile);
+            BufferedReader br = YaoIOUtils.getTextGzipReader(inFile);
             String outFile = inFile.replace(".fa.gz", ".unmasked.bed");
-            BufferedWriter bw = IOUtils.getTextWriter(outFile);
+            BufferedWriter bw = YaoIOUtils.getTextWriter(outFile);
             String temp = null;
             String chr = null;
             int startPos = 0; // using 1-base

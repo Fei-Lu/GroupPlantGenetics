@@ -25,14 +25,14 @@ public class GenomeDistribute {
     private void getGenome(String inFile, String outFile){
          try{
             BufferedReader br;
-            if(inFile.endsWith("gz"))  br = IOUtils.getTextGzipReader(inFile);
-            else  br = IOUtils.getTextReader(inFile);
+            if(inFile.endsWith("gz"))  br = YaoIOUtils.getTextGzipReader(inFile);
+            else  br = YaoIOUtils.getTextReader(inFile);
             String temp = null;
-            BufferedWriter bwA = IOUtils.getTextGzipWriter(outFile + "_AA.fa.gz");
-            BufferedWriter bwB = IOUtils.getTextGzipWriter(outFile + "_BB.fa.gz");
-            BufferedWriter bwAB = IOUtils.getTextGzipWriter(outFile + "_AABB.fa.gz");
-            BufferedWriter bwD = IOUtils.getTextGzipWriter(outFile + "_DD.fa.gz");
-            BufferedWriter bwABD = IOUtils.getTextGzipWriter(outFile + "_AABBDD.fa.gz");
+            BufferedWriter bwA = YaoIOUtils.getTextGzipWriter(outFile + "_AA.fa.gz");
+            BufferedWriter bwB = YaoIOUtils.getTextGzipWriter(outFile + "_BB.fa.gz");
+            BufferedWriter bwAB = YaoIOUtils.getTextGzipWriter(outFile + "_AABB.fa.gz");
+            BufferedWriter bwD = YaoIOUtils.getTextGzipWriter(outFile + "_DD.fa.gz");
+            BufferedWriter bwABD = YaoIOUtils.getTextGzipWriter(outFile + "_AABBDD.fa.gz");
             boolean aw = false;
             boolean abw = false;
             boolean abdw = false;
@@ -128,8 +128,8 @@ public class GenomeDistribute {
     private void getChr(String inFile, String outFile){
          try{
             BufferedReader br;
-            if(inFile.endsWith("gz"))  br = IOUtils.getTextGzipReader(inFile);
-            else  br = IOUtils.getTextReader(inFile);
+            if(inFile.endsWith("gz"))  br = YaoIOUtils.getTextGzipReader(inFile);
+            else  br = YaoIOUtils.getTextReader(inFile);
             String temp = null;
             int count = 0;
             boolean write = false;
@@ -147,7 +147,7 @@ public class GenomeDistribute {
                     name = temp.replace(">","");
                     String[] names = name.split(" ");
                     name = names[0];
-                    bw = IOUtils.getTextWriter(outFile +"/"+name+".fa");
+                    bw = YaoIOUtils.getTextWriter(outFile +"/"+name+".fa");
                     bw.write(temp+"\n");
                 }else{
                     bw.write(temp+"\n");
@@ -163,8 +163,8 @@ public class GenomeDistribute {
     private void getChrNum(String inFile, String outFile,String chrNum){
          try{
             BufferedReader br;
-            if(inFile.endsWith("gz"))  br = IOUtils.getTextGzipReader(inFile);
-            else  br = IOUtils.getTextReader(inFile);
+            if(inFile.endsWith("gz"))  br = YaoIOUtils.getTextGzipReader(inFile);
+            else  br = YaoIOUtils.getTextReader(inFile);
             String temp = null;
             int count = 0;
             boolean write = false;
@@ -186,7 +186,7 @@ public class GenomeDistribute {
                     name = temp.replace(">","");
                     String[] names = name.split(" ");
                     name = names[0];
-                    bw = IOUtils.getTextWriter(outFile +"/"+name+".fa");
+                    bw = YaoIOUtils.getTextWriter(outFile +"/"+name+".fa");
                     bw.write(temp+"\n");
                 }else{
                     bw.write(temp+"\n");

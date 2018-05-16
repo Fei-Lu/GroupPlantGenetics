@@ -44,11 +44,11 @@ public class  BinomialTestMethylation{
             
             if (infileS.endsWith("gz")) {
 
-                br = IOUtils.getTextGzipReader(infileS);
+                br = XueboIOUtils.getTextGzipReader(infileS);
 
             } else {
 
-                br = IOUtils.getTextReader(infileS);
+                br = XueboIOUtils.getTextReader(infileS);
             }
             
             String temp = null;
@@ -59,9 +59,9 @@ public class  BinomialTestMethylation{
             String LCHH = null;
             String LCHG = null;     
             int Pcategorical = 0;
-            BufferedWriter bw1 = IOUtils.getTextWriter(outfileS1);
-            BufferedWriter bw2 = IOUtils.getTextWriter(outfileS2);
-            BufferedWriter bw3 = IOUtils.getTextWriter(outfileS3);            
+            BufferedWriter bw1 = XueboIOUtils.getTextWriter(outfileS1);
+            BufferedWriter bw2 = XueboIOUtils.getTextWriter(outfileS2);
+            BufferedWriter bw3 = XueboIOUtils.getTextWriter(outfileS3);            
             BinomialTest a = new BinomialTest();
             AlternativeHypothesis b = AlternativeHypothesis.TWO_SIDED;
             

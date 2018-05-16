@@ -20,8 +20,8 @@ public class newickPattern {
        this.getPattern(inFile);
    }
    private void getPattern(String inFile){
-       BufferedReader br = IOUtils.getTextReader(inFile);
-       BufferedWriter bw = IOUtils.getTextWriter(inFile+"_ordered.txt");
+       BufferedReader br = YaoIOUtils.getTextReader(inFile);
+       BufferedWriter bw = YaoIOUtils.getTextWriter(inFile+"_ordered.txt");
        try {
            String a = br.readLine();
            String a1 = a.replace(")", "");

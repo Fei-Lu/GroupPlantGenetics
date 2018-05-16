@@ -24,11 +24,11 @@ public class BedUnSorted {
         try{
             
             BufferedReader br;            
-            br = IOUtils.getTextReader(infileS);
+            br = XueboIOUtils.getTextReader(infileS);
             int i = 1;
             String temp = null;
             String L1 = null;
-            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            BufferedWriter bw = XueboIOUtils.getTextWriter(outfileS);
             while (( temp = br.readLine()) != null) {
                 
                     ++i;

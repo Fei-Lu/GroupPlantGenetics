@@ -19,9 +19,9 @@ public class ExtractionOfFastq {
     public void getFastq(String inFile,String outFile,int ExSize){
         try{
             BufferedReader var;
-            if(inFile.endsWith("gz"))  var = IOUtils.getTextGzipReader(inFile);
-            else  var = IOUtils.getTextReader(inFile);
-            BufferedWriter bw = IOUtils.getTextGzipWriter(outFile + "_" + ExSize/1000 + "k.fq.gz");
+            if(inFile.endsWith("gz"))  var = YaoIOUtils.getTextGzipReader(inFile);
+            else  var = YaoIOUtils.getTextReader(inFile);
+            BufferedWriter bw = YaoIOUtils.getTextGzipWriter(outFile + "_" + ExSize/1000 + "k.fq.gz");
             String content = null;
             int size = 0;
             while((content = var.readLine()) != null){

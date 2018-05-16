@@ -26,7 +26,7 @@ public class GetArabGenomeForCircos {
             int aa = 0;
             String L1 = null;
             String L2 = null;
-            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            BufferedWriter bw = XueboIOUtils.getTextWriter(outfileS);
             
             while (aa < 150000000) { 
                     int bb = aa + 5000000;

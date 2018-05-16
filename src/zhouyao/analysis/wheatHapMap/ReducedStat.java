@@ -21,12 +21,12 @@ public class ReducedStat {
     };
     public void getStat(String inFile, String outFile){
         BufferedReader br;
-        if(inFile.endsWith("gz"))  br = IOUtils.getTextGzipReader(inFile);
-        else  br = IOUtils.getTextReader(inFile);
+        if(inFile.endsWith("gz"))  br = YaoIOUtils.getTextGzipReader(inFile);
+        else  br = YaoIOUtils.getTextReader(inFile);
         String temp;
         String[] tem;
         outFile = outFile + ".stat.gz";
-        BufferedWriter bw = IOUtils.getTextGzipWriter(outFile);
+        BufferedWriter bw = YaoIOUtils.getTextGzipWriter(outFile);
         Integer len = 0;
         int i = 0;
         try {

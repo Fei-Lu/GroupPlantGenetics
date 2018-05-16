@@ -9,7 +9,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import xuebo.analysis.data4C.IOUtils;
+import xuebo.analysis.data4C.XueboIOUtils;
 
 /**
  *
@@ -26,7 +26,7 @@ public class generateScripts {
             StringBuilder outfile = new StringBuilder();
             outfile.append(Integer.toString(i));
             outfile.append(".script");
-            bw = IOUtils.getTextWriter(outfile.toString());
+            bw = XueboIOUtils.getTextWriter(outfile.toString());
             try {
                 bw.write("#BSUB -n 8\n");
                 bw.write("#BSUB -q low\n");

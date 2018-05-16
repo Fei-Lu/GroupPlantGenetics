@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package xuebo.analysis.data4C;
+package zhouyao.analysis.wheatHapMap;
 /**
  *
  * @author yaozhou
@@ -38,7 +38,7 @@ import java.util.zip.GZIPOutputStream;
  *
  * @author Fei Lu
  */
-public class IOUtils {
+public class YaoIOUtils {
     
     public static BufferedReader getTextGzipReader (String infileS) {
         BufferedReader br = null;

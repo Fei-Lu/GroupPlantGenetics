@@ -34,8 +34,8 @@ public class ReducedLibrary {
     public void SecondFiltering(String inFile, String cutter1,String cutter2,String outFile) {
         try{
             BufferedReader br ;
-            if(inFile.endsWith("gz"))  br = IOUtils.getTextGzipReader(inFile);
-            else  br = IOUtils.getTextReader(inFile);
+            if(inFile.endsWith("gz"))  br = YaoIOUtils.getTextGzipReader(inFile);
+            else  br = YaoIOUtils.getTextReader(inFile);
             String outFileg = outFile + ".reduced.gz";
             String temp = null;
 //            String temp1 = null;
@@ -46,7 +46,7 @@ public class ReducedLibrary {
             int i = 0;
            
             try{
-                BufferedWriter bw = IOUtils.getTextGzipWriter(outFileg);
+                BufferedWriter bw = YaoIOUtils.getTextGzipWriter(outFileg);
                 bw.write("");
                 bw.flush();  
                 bw.close(); 
@@ -56,7 +56,7 @@ public class ReducedLibrary {
             }
             String outFiles = outFile +".stat.gz";
             try{
-                BufferedWriter bws = IOUtils.getTextGzipWriter(outFiles);
+                BufferedWriter bws = YaoIOUtils.getTextGzipWriter(outFiles);
                 bws.write("");
                 bws.flush();  
                 bws.close(); 
@@ -189,7 +189,7 @@ public class ReducedLibrary {
         String cutterinChr = null;
         String headcutterinchr =null;
         String bed = "";
-//        BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+//        BufferedWriter bw = YaoIOUtils.getTextWriter(outfileS);
             for(int i = 0;i<getpos.size();i = i+2){
                 cutterinChr = inChr.substring(getpos.get(i),getpos.get(i+1));
                 bed = "Chr"+ Chr + ":" + getpos.get(i) + "_" + getpos.get(i+1);

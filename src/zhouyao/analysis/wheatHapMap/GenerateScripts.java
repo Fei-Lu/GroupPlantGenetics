@@ -19,7 +19,7 @@ public class GenerateScripts {
         this.getRScripts();
     }
     public void getRScripts(){
-         BufferedWriter bw = IOUtils.getTextWriter("scripts.sh");
+         BufferedWriter bw = YaoIOUtils.getTextWriter("scripts.sh");
             try {
                 for (int i = 10; i < 15;i++){
                    bw.write("nohup Rscript FullModle_AD.R "+ i+ " > ./log/AD_BLUPres_"+ i +".log &\n");

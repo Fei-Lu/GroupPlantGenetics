@@ -25,9 +25,9 @@ public class GenomeStatistic {
     public void getStatistic(String inFile,String outFile){
         try{
             BufferedReader var;
-            if(inFile.endsWith("gz"))  var = IOUtils.getTextGzipReader(inFile);
-            else  var = IOUtils.getTextReader(inFile);
-            BufferedWriter bw = IOUtils.getTextGzipWriter(outFile + ".stat");
+            if(inFile.endsWith("gz"))  var = YaoIOUtils.getTextGzipReader(inFile);
+            else  var = YaoIOUtils.getTextReader(inFile);
+            BufferedWriter bw = YaoIOUtils.getTextGzipWriter(outFile + ".stat");
             String content = null;
             int size = -1;
             while((content = var.readLine()) != null){
@@ -56,8 +56,8 @@ public class GenomeStatistic {
         List sizeArray = new ArrayList();
         try{
             BufferedReader var;
-            if(inFile.endsWith("gz"))  var = IOUtils.getTextGzipReader(inFile);
-            else  var = IOUtils.getTextReader(inFile);
+            if(inFile.endsWith("gz"))  var = YaoIOUtils.getTextGzipReader(inFile);
+            else  var = YaoIOUtils.getTextReader(inFile);
             String content = null;
             int size = -1;
             while((content = var.readLine()) != null){
@@ -84,9 +84,9 @@ public class GenomeStatistic {
         List sizeArray = new ArrayList();
         try{
             BufferedReader var;
-            if(inFile.endsWith("gz"))  var = IOUtils.getTextGzipReader(inFile);
-            else  var = IOUtils.getTextReader(inFile);
-            BufferedWriter bw = IOUtils.getTextWriter(outFile);
+            if(inFile.endsWith("gz"))  var = YaoIOUtils.getTextGzipReader(inFile);
+            else  var = YaoIOUtils.getTextReader(inFile);
+            BufferedWriter bw = YaoIOUtils.getTextWriter(outFile);
             String content = null;
             int size = 0;
             boolean write = false;

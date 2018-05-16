@@ -29,14 +29,14 @@ public class RemoveDuplication {
         BufferedReader br ;
         BufferedWriter bw,bw1;
         if(inFile.endsWith("gz")){
-            br = IOUtils.getTextGzipReader(inFile);
-            bw = IOUtils.getTextGzipWriter(outFile);
-            bw1 = IOUtils.getTextGzipWriter(outFile+".index");
+            br = YaoIOUtils.getTextGzipReader(inFile);
+            bw = YaoIOUtils.getTextGzipWriter(outFile);
+            bw1 = YaoIOUtils.getTextGzipWriter(outFile+".index");
         }
         else {
-            br = IOUtils.getTextReader(inFile);
-            bw = IOUtils.getTextWriter(outFile);
-            bw1 = IOUtils.getTextWriter(outFile+".index");
+            br = YaoIOUtils.getTextReader(inFile);
+            bw = YaoIOUtils.getTextWriter(outFile);
+            bw1 = YaoIOUtils.getTextWriter(outFile+".index");
         }
         Set set  =   new  HashSet(); 
         String temp = null,temp3 = null;

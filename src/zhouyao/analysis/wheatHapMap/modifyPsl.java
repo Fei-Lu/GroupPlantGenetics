@@ -22,14 +22,14 @@ public class modifyPsl {
     }
     private void getModified(String path){
         File all = new File (path);
-        File[] fs = IOUtils.listRecursiveFiles(all);
-//        File[] fs = IOUtils.listRecursiveFiles(new File(path));
-        File[] subFiles = IOUtils.listFilesEndsWith(fs, ".psl");
+        File[] fs = YaoIOUtils.listRecursiveFiles(all);
+//        File[] fs = YaoIOUtils.listRecursiveFiles(new File(path));
+        File[] subFiles = YaoIOUtils.listFilesEndsWith(fs, ".psl");
         for(File f : subFiles){
            
-            BufferedReader br = IOUtils.getTextReader(f.toString());
+            BufferedReader br = YaoIOUtils.getTextReader(f.toString());
             String outFile = f.toString().replace(".psl",".modified.psl");
-            BufferedWriter bw = IOUtils.getTextWriter(outFile);
+            BufferedWriter bw = YaoIOUtils.getTextWriter(outFile);
             String temp = null;
             String[] tname = outFile.split("_");
 //            System.out.println(tname[tname.length-1]);

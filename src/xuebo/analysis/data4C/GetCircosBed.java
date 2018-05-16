@@ -24,8 +24,8 @@ public class GetCircosBed {
         try{
             
             BufferedReader br;            
-            br = IOUtils.getTextReader(infileS);
-            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            br = XueboIOUtils.getTextReader(infileS);
+            BufferedWriter bw = XueboIOUtils.getTextWriter(outfileS);
             
             String temp = null;
             String L1 = null;

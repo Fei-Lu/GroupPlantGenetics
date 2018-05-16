@@ -26,9 +26,9 @@ public class changeChromosome {
     public void getChroChanged(String inFile,String outFile,String pos){
         try {
             Map bed = new HashMap();
-            BufferedReader brbed = IOUtils.getTextReader(pos);
-            BufferedReader brvcf = IOUtils.getTextReader(inFile);
-            BufferedWriter bwvcf = IOUtils.getTextWriter(outFile);
+            BufferedReader brbed = YaoIOUtils.getTextReader(pos);
+            BufferedReader brvcf = YaoIOUtils.getTextReader(inFile);
+            BufferedWriter bwvcf = YaoIOUtils.getTextWriter(outFile);
             String temp_bed = null,temp_vcf =null;
             String[] temp= null;
             while((temp_bed = brbed.readLine())!=null){

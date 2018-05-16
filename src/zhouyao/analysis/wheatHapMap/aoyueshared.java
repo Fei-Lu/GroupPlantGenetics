@@ -15,7 +15,7 @@ import java.text.DecimalFormat;
  */
 public class aoyueshared {
     public void test() {
-        IOUtils a  = new IOUtils();
+        YaoIOUtils a  = new YaoIOUtils();
         
         File b = new File("/Users/Aoyue/Documents/NSF");
         File[] list = a.listRecursiveFiles(b);
@@ -31,13 +31,13 @@ public class aoyueshared {
     public void test2 () {
         String path = "/Volumes/Lulab3T_14/20171120_copy";
         File test = new File (path);
-        File[] fs = IOUtils.listRecursiveFiles(test);
-//        File[] fs = IOUtils.listRecursiveFiles(new File(path));
-        File[] subFs = IOUtils.listFilesEndsWith(fs, "clean.fq.gz");
+        File[] fs = YaoIOUtils.listRecursiveFiles(test);
+//        File[] fs = YaoIOUtils.listRecursiveFiles(new File(path));
+        File[] subFs = YaoIOUtils.listFilesEndsWith(fs, "clean.fq.gz");
         String outfileS = "/Users/Aoyue/Documents/Datalist.txt";
         String[] header = {"FileName", "Path", "FileSize"};
         try {
-            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            BufferedWriter bw = YaoIOUtils.getTextWriter(outfileS);
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < header.length; i++) {
                 sb.append(header[i]).append("\t");

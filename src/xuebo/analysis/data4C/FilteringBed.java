@@ -26,7 +26,7 @@ public class FilteringBed {
         try{
             
             BufferedReader br;            
-            br = IOUtils.getTextReader(infileS);
+            br = XueboIOUtils.getTextReader(infileS);
             
             String temp = null;
             String L1 = null;
@@ -41,7 +41,7 @@ public class FilteringBed {
             double fo = 0;
             int count = 1;
             
-            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            BufferedWriter bw = XueboIOUtils.getTextWriter(outfileS);
             
             while (( temp = br.readLine()) != null) {
                 

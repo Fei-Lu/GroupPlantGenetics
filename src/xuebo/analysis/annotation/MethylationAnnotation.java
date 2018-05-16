@@ -7,7 +7,7 @@ package xuebo.analysis.annotation;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import xuebo.analysis.data4C.IOUtils;
+import xuebo.analysis.data4C.XueboIOUtils;
 
 /**
  *
@@ -38,11 +38,11 @@ public class MethylationAnnotation {
             
             if (infileS.endsWith("gz")) {
 
-                br = IOUtils.getTextGzipReader(infileS);
+                br = XueboIOUtils.getTextGzipReader(infileS);
 
             } else {
 
-                br = IOUtils.getTextReader(infileS);
+                br = XueboIOUtils.getTextReader(infileS);
             }
             
             String temp = null;
@@ -52,9 +52,9 @@ public class MethylationAnnotation {
             String LCHH = null;
             String LCHG = null;
              
-             BufferedWriter bw1 = IOUtils.getTextWriter(outfileS1);
-             BufferedWriter bw2 = IOUtils.getTextWriter(outfileS2);
-             BufferedWriter bw3 = IOUtils.getTextWriter(outfileS3);
+             BufferedWriter bw1 = XueboIOUtils.getTextWriter(outfileS1);
+             BufferedWriter bw2 = XueboIOUtils.getTextWriter(outfileS2);
+             BufferedWriter bw3 = XueboIOUtils.getTextWriter(outfileS3);
              
             while (( temp = br.readLine()) != null) {
                 
@@ -131,11 +131,11 @@ public class MethylationAnnotation {
             
             if (infileS.endsWith("gz")) {
 
-                br = IOUtils.getTextGzipReader(infileS);
+                br = XueboIOUtils.getTextGzipReader(infileS);
 
             } else {
 
-                br = IOUtils.getTextReader(infileS);
+                br = XueboIOUtils.getTextReader(infileS);
             }
             
             String temp = null;
@@ -143,7 +143,7 @@ public class MethylationAnnotation {
                       
             String LmethyScore = null;
             
-            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            BufferedWriter bw = XueboIOUtils.getTextWriter(outfileS);
             
              
             while (( temp = br.readLine()) != null) {
@@ -202,11 +202,11 @@ public class MethylationAnnotation {
             
             if (infileS.endsWith("gz")) {
 
-                br = IOUtils.getTextGzipReader(infileS);
+                br = XueboIOUtils.getTextGzipReader(infileS);
 
             } else {
 
-                br = IOUtils.getTextReader(infileS);
+                br = XueboIOUtils.getTextReader(infileS);
             }
             
             String temp = null;
@@ -214,7 +214,7 @@ public class MethylationAnnotation {
                       
             String Sitemethy10 = null;
             
-            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            BufferedWriter bw = XueboIOUtils.getTextWriter(outfileS);
             
              
             while (( temp = br.readLine()) != null) {
@@ -259,11 +259,11 @@ public class MethylationAnnotation {
             
             if (infileS.endsWith("gz")) {
 
-                br = IOUtils.getTextGzipReader(infileS);
+                br = XueboIOUtils.getTextGzipReader(infileS);
 
             } else {
 
-                br = IOUtils.getTextReader(infileS);
+                br = XueboIOUtils.getTextReader(infileS);
             }
             
             String temp = null;
@@ -271,7 +271,7 @@ public class MethylationAnnotation {
                       
             String OpenchrScore = null;
             
-            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            BufferedWriter bw = XueboIOUtils.getTextWriter(outfileS);
             
              
             while (( temp = br.readLine()) != null) {

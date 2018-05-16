@@ -21,8 +21,8 @@ public class gff3ToGeneList {
     }
 
     private void getGeneList(String InFile, String OutFile) {
-        BufferedReader br = IOUtils.getTextReader(InFile);
-        BufferedWriter bw = IOUtils.getTextWriter(OutFile);
+        BufferedReader br = YaoIOUtils.getTextReader(InFile);
+        BufferedWriter bw = YaoIOUtils.getTextWriter(OutFile);
         String tmp = null;
         String[] tmps = null;
         String chr = null,pos1 = null,pos2 = null;

@@ -26,12 +26,12 @@ public class SNPsStat {
         BufferedReader br ;
         BufferedWriter bw;
         if(inFile.endsWith("gz")){
-            br = IOUtils.getTextGzipReader(inFile);
-            bw = IOUtils.getTextGzipWriter(outFile);
+            br = YaoIOUtils.getTextGzipReader(inFile);
+            bw = YaoIOUtils.getTextGzipWriter(outFile);
         }
         else {
-            br = IOUtils.getTextReader(inFile);
-            bw = IOUtils.getTextWriter(outFile);
+            br = YaoIOUtils.getTextReader(inFile);
+            bw = YaoIOUtils.getTextWriter(outFile);
         }
         String temp = null;
         String chr = "chr";

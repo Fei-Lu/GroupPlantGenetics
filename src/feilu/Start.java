@@ -10,7 +10,7 @@ import format.dna.BaseEncoder;
 import format.table.RowTable;
 import java.io.BufferedWriter;
 import java.util.HashMap;
-import zhouyao.analysis.wheatHapMap.IOUtils;
+import zhouyao.analysis.wheatHapMap.YaoIOUtils;
 
 /**
  *

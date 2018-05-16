@@ -22,14 +22,14 @@ public class MergeGenome {
     }
     public void getMerged(String inFile, String outFile){
         File InFile = new File (inFile);
-        File[] fs = IOUtils.listRecursiveFiles(InFile);
-//        File[] fs = IOUtils.listRecursiveFiles(new File(path));
-        File[] subFs = IOUtils.listFilesEndsWith(fs, ".fna.gz");
+        File[] fs = YaoIOUtils.listRecursiveFiles(InFile);
+//        File[] fs = YaoIOUtils.listRecursiveFiles(new File(path));
+        File[] subFs = YaoIOUtils.listFilesEndsWith(fs, ".fna.gz");
         String temp = null;
-        BufferedWriter bw = IOUtils.getTextWriter(outFile+"/AllinOne.fa");
+        BufferedWriter bw = YaoIOUtils.getTextWriter(outFile+"/AllinOne.fa");
         for (File subFile:subFs){
             System.out.println("Processing new genome....");
-                BufferedReader br = IOUtils.getTextGzipReader(subFile.toString());
+                BufferedReader br = YaoIOUtils.getTextGzipReader(subFile.toString());
             try {
                 while((temp = br.readLine())!=null){
                     bw.write(temp);

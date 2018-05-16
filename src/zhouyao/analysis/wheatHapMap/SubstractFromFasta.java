@@ -23,15 +23,15 @@ public class SubstractFromFasta {
         BufferedReader br,bn ;
         BufferedWriter bw,bw1;
         if(inFile.endsWith("gz")){
-            br = IOUtils.getTextGzipReader(inFile);
-            bw = IOUtils.getTextGzipWriter(outFile);
-            bw1 = IOUtils.getTextGzipWriter(outFile+".index");
+            br = YaoIOUtils.getTextGzipReader(inFile);
+            bw = YaoIOUtils.getTextGzipWriter(outFile);
+            bw1 = YaoIOUtils.getTextGzipWriter(outFile+".index");
         }
         else {
-            br = IOUtils.getTextReader(inFile);
-            bw = IOUtils.getTextWriter(outFile);
+            br = YaoIOUtils.getTextReader(inFile);
+            bw = YaoIOUtils.getTextWriter(outFile);
         }
-        bn = IOUtils.getTextReader(names);
+        bn = YaoIOUtils.getTextReader(names);
         Set set  =   new  HashSet(); 
         String temp = null,temp1 = null,temp3 = null;
         int i = 0;
