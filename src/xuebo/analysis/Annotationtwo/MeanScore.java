@@ -30,11 +30,16 @@ public class MeanScore {
 //            e.printStackTrace(); 
 //        }  
 
-            String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/V4/temp_end6_no0.txt";
-            String outfileS1 = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/V4/siteScoreCpGaddpvalue.txt";
-            String outfileS2 = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/V4/siteScoreCHHaddpvalue.txt";
-            String outfileS3 = "/Users/xuebozhao/Documents/LuLab/cpScore/data/methylation/V4/siteScoreCHGaddpvalue.txt";           
+            String infileS = "/Users/xuebozhao/Documents/LuLab/CpScore/data/methylation/V4/temp_end6_no0.txt";
+            String outfileS1 = "/Users/xuebozhao/Documents/LuLab/CpScore/data/methylation/V4/siteScoreCpGaddpvalue.txt";
+            String outfileS2 = "/Users/xuebozhao/Documents/LuLab/CpScore/data/methylation/V4/siteScoreCHHaddpvalue.txt";
+            String outfileS3 = "/Users/xuebozhao/Documents/LuLab/CpScore/data/methylation/V4/siteScoreCHGaddpvalue.txt";           
             new BinomialTestMethylation (infileS , outfileS1, outfileS2 , outfileS3 );
+            
+            
+//            String infileS = "/Users/xuebozhao/Documents/LuLab/CpScore/data/methylation/randomforestMehty_10/siteScoreCpGaddpvalue3X10.txt";
+//            String outfileS = "/Users/xuebozhao/Documents/LuLab/CpScore/data/methylation/randomforestMehty_10/AllsiteScoreCpGaddpvalue3X10.txt";
+//            new BinomialTestMethylation (infileS,outfileS);
 
     }  
 }
