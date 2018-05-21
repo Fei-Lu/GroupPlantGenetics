@@ -55,14 +55,14 @@ public class EntranceAnnotation {
 //           new MethylationAnnotation (infileS,outfileS);
            
            
-//           String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/Methy_1/Sitemethy10CHH_1.txt";
-//           String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/Methy_1/SitemethyTT10CHH_1.txt";
-//           new MethylationAnnotation (infileS,outfileS);
+           String infileS = "/Users/xuebozhao/Documents/LuLab/CpScore/data/methylation/randomforest/opentraining/APopenchrV4sortedL.text2.txt";
+           String outfileS = "/Users/xuebozhao/Documents/LuLab/CpScore/data/methylation/randomforest/opentraining/APopenchrV4sortedadd01.text2.txt";
+           new MethylationAnnotation (infileS,outfileS);
 
 
-            String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/Methy_8/GeneFeaturePostranscript.txt";
-            String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/Methy_8/GeneFeaturePostranscriptRemove.txt";
-            new RemoveStreamOverlap (infileS,outfileS);
+//            String infileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/Methy_8/GeneFeaturePostranscript.txt";
+//            String outfileS = "/Users/xuebozhao/Documents/LuLab/cpScore/MaizeGeneFeature/MethySingleGeneFeaturePos/Methy_8/GeneFeaturePostranscriptRemove.txt";
+//            new RemoveStreamOverlap (infileS,outfileS);
 //           
            
            
