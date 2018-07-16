@@ -14,6 +14,7 @@ import analysis.maize2k.HapScanner;
 public class SVEntraince {
     public SVEntraince() {
         this.dataOrginazed();
+        //new TaxaDiversitycp();
         
         //String inFileS = "/Users/Aoyue/Documents/Data/pipeline/hapScanner/Parameters_hapScanner.txt";
         //new HapScanner (inFileS);

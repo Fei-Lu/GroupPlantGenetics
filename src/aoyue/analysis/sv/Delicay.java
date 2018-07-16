@@ -7,6 +7,7 @@ package aoyue.analysis.sv;
 
 import com.itextpdf.text.pdf.parser.Path;
 import format.table.RowTable;
+import gnu.trove.list.array.TIntArrayList;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,11 +16,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import static java.util.Collections.list;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import utils.IOFileFormat;
 import utils.IOUtils;
 import utils.PStringUtils;
 
@@ -48,8 +52,8 @@ public class Delicay {
         */
         //this.taxa1210();    
         //this.getTaxaMds();
-        //this.rm851mds();
-        //this.mds500bp();
+//        this.rm851mds();
+//        this.mds500bp();
         /*
         对TASSEL5产生的genotype_Summary中的TaxaSummary文件进行分组，加标签,851SM和1210SM
         */
@@ -60,20 +64,306 @@ public class Delicay {
 //输出851个 0.0，将FR218和Lan766-4-2这2行的矩阵结果NaN，用 0.0 表示。
         //this.dealwithNaN();
         //删除抽样的VCF中FR218和Lan766-4-2这2列的基因型信息。
-        this.rm2taxa();
+        //this.rm2taxa();
         //this.rm2taxa2();
+        ///从849taxaIBS矩阵中先挑出100个taxa,然后作树看下情况。
+        //this.sampleMatrix();
+        //this.get432taxavcf();
+        //this.selectVCFByTaxa();
+        
+        this.getGBS_reextractDNAID();
+        //this.getMissPlate();
+        
+        
+        
+        
         
         
         
          
     }
+    public void getMissPlate(){
+        String OriginalInfileS = "/Users/Aoyue/Documents/IGDB/4-PHD/wheat/GBS取样/实验记录/RerxtractDNA_Plate.txt";
+        String outfileS = "/Users/Aoyue/Documents/IGDB/4-PHD/wheat/GBS取样/实验记录/Re_extractDNA_ID.txt";
+        RowTable<String> oT = new RowTable<>(OriginalInfileS);
+        RowTable<String> dT = new RowTable<>(outfileS);
+        Set<String> plateSet = new HashSet (oT.getColumn(2));
+        Set<String> IDSet = new HashSet (dT.getColumn(1));
+        try{
+            BufferedReader br = IOUtils.getTextReader(OriginalInfileS);           
+            String temp = null;
+            while ((temp = br.readLine()) != null){
+                if (temp.startsWith("S")) continue;             
+                else{
+                    
+                    String tem = temp;
+                    String plate = null;
+                    plate = PStringUtils.fastSplit(tem).get(2);
+                    if(IDSet.add(plate)){
+                        System.out.println (plate); 
+                    }            
+                }    
+            }                
+                 br.close();
+            }           
+            catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+        
+        }                          
     
+    public void getGBS_reextractDNAID(){
+        String PlateinfileS = "/Users/Aoyue/Documents/IGDB/4-PHD/wheat/GBS取样/实验记录/Re2extractDNA_Plate.txt";
+        String OriginalInfileS = "/Users/Aoyue/Documents/IGDB/4-PHD/wheat/GBS取样/实验记录/GBS_ID2.txt";
+        String outfileS = "/Users/Aoyue/Documents/IGDB/4-PHD/wheat/GBS取样/实验记录/Re2-2extractDNA_ID.txt";
+        RowTable<String> t = new RowTable<>(PlateinfileS);
+        List<String> plateList = t.getColumn(2);
+        Collections.sort(plateList);
+        try {
+            BufferedReader br = IOUtils.getTextReader(OriginalInfileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            bw.write("SerialNumber\tPlate\tID");
+            bw.newLine();
+            String temp = br.readLine();
+            int cnt = 0;
+            while ((temp = br.readLine()) != null) {
+                String[] tem = temp.split("\t");
+                if (Collections.binarySearch(plateList, tem[1]) < 0) continue;
+                cnt++;
+                bw.write(String.valueOf(cnt)+"\t"+temp);
+                bw.newLine();
+            }
+            br.close();
+            bw.flush();
+            bw.close();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+    }
+    
+    public void selectVCFByTaxa () {
+        String inputFileS = "/Users/Aoyue/Documents/tree/backup/chr10000.vcf";
+        String taxaFileS = "/Users/Aoyue/Documents/tree/432taxa/432taxa.tab.txt";
+        String outfileS = "/Users/Aoyue/Documents/tree/432taxa/chr10000_432taxa.vcf";
+        RowTable<String> t = new RowTable<>(taxaFileS);
+        List<String> taxaList = t.getColumn(0);
+        Collections.sort(taxaList);
+        TIntArrayList indexList = new TIntArrayList();
+        int[] indices = null;
+        try {
+            BufferedReader br = IOUtils.getTextReader(inputFileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String temp = null;
+            StringBuilder sb = new StringBuilder();
+            while ((temp = br.readLine()) != null) {
+                if (temp.startsWith("##")) {
+                    bw.write(temp);
+                    bw.newLine();
+                }
+                else if (temp.startsWith("#C")) {
+                    String[] tem = temp.split("\t");
+                    for (int i = 0; i < 9; i++) {
+                        indexList.add(i);
+                    }
+                    for (int i = 9; i < tem.length; i++) {
+                        if (Collections.binarySearch(taxaList, tem[i]) < 0) continue;
+                        indexList.add(i);
+                    }
+                    indices = indexList.toArray();
+                    sb = new StringBuilder();
+                    for (int i = 0; i < indices.length; i++) {
+                        sb.append(tem[indices[i]]).append("\t");
+                    }
+                    sb.deleteCharAt(sb.length()-1);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+                else {
+                    String[] tem = temp.split("\t");
+                    sb = new StringBuilder();
+                    for (int i = 0; i < indices.length; i++) {
+                        sb.append(tem[indices[i]]).append("\t");
+                    }
+                    sb.deleteCharAt(sb.length()-1);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+            }
+            br.close();
+            bw.flush();
+            bw.close();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+    
+    public void get432taxavcf(){
+        String infileS = "/Users/Aoyue/Documents/tree/432taxa/432taxa.txt";
+        String infile2S = "/Users/Aoyue/Documents/tree/1wansite/chr10000_rm2taxa.vcf";
+        String outfileS = "/Users/Aoyue/Documents/tree/432taxa/chr10000_432taxa_column.txt";
+        String outfile2S = "/Users/Aoyue/Documents/tree/432taxa/chr10000_432taxabyyue.vcf";
+        int[] indices = null;
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS); 
+            BufferedReader br2 = IOUtils.getTextReader(infile2S);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            StringBuilder sb = new StringBuilder();
+            String line = null;
+            String lines = null;
+            int k = 0;            
+            Set<String> taxaset = new HashSet<>();
+            while ((line = br.readLine()) != null){
+                taxaset.add(line);
+                k++;             
+            }
+            System.out.println ("检验 " + k + " 个taxa name是否放入set中"); 
+           
+//            Iterator<String> itr = taxaset.iterator();
+//            while(itr.hasNext()){
+//                System.out.println (itr.next());    
+//            }
+            List<String> l = null;
+            List<String> colume = null;
+            while((lines =br2.readLine()) != null){
+                if (lines.startsWith("##")) continue; 
+                if (lines.startsWith("#CHROM")){
+                    l = PStringUtils.fastSplit(lines);
+                    System.out.println(l.size() + " 查看每行文本中的列数");
+                    int n = 0;
+                    for (int i = 0; i < l.size(); i++){
+                        if (taxaset.add(l.get(i))) continue;
+                        else {
+                            n++;
+                            sb.append(i).append("\n"); 
+                            
+                        }                       
+                    }
+                    bw.write(sb.toString());
+                    System.out.println(n + " 统计每行文本中432列数信息是否提取出来");
+                }         
+            }
+            bw.flush();
+            bw.close();
+            br.close();
+            br2.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);           
+        }
+        try{
+            BufferedReader br = IOUtils.getTextReader(outfileS);
+            BufferedReader br2 = IOUtils.getTextReader(infile2S);
+            BufferedWriter bw = IOUtils.getTextWriter(outfile2S);
+            StringBuilder sb = new StringBuilder();
+            String line = null;
+            String lines = null;
+            int k = 0; 
+            TIntArrayList columnlist = new TIntArrayList();          
+            columnlist.add(0);
+            columnlist.add(1);
+            columnlist.add(2);
+            columnlist.add(3);
+            columnlist.add(4);
+            columnlist.add(5);
+            columnlist.add(6);
+            columnlist.add(7);
+            columnlist.add(8);          
+            while ((line = br.readLine()) != null){
+                columnlist.add(Integer.parseInt(line));
+                k++;             
+            }
+            System.out.println ("k = " + k + " 把432列数放入一个list");
+            indices = columnlist.toArray();
+//            for (int i = 0; i < columnset.size(); i++){
+//                System.out.print(columnset.get(i) + " ");
+//                
+//            }            
+            List<String> l = null;           
+            while((lines =br2.readLine()) != null){
+                if (lines.startsWith("##")) {
+                    bw.write(lines);
+                    bw.newLine();
+                }
+                //else {
+                    //if (lines.startsWith("#CHROM")){
+                    
+                    l = PStringUtils.fastSplit(lines); 
+                    //int n = 0;
+                    sb = new StringBuilder();
+                    for (int i = 0; i < indices.length; i++){
+                        //n++ ;
+                         
+                        //int a = Integer.parseInt(columnlist.get(i));                      
+                        
+                        sb.append(l.get(indices[i])).append("\t");                            
+                    } 
+                    sb.deleteCharAt(sb.length()-1);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                    //System.out.println(n);                    
+                //}                                    
+                //}
+                
+            }           
+            bw.flush();
+            bw.close();
+            br.close();
+            br2.close();           
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            System.exit(1);            
+        }       
+    }
+    
+    ///没写完
+    public void sampleMatrix(){
+        String infileS = "/Users/Aoyue/Documents/matrix.txt";
+        String outfileS = "/Users/Aoyue/Documents/matrix100.txt";
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);     
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String temp = null;
+            List<String> l1 = null;
+            List<String> l2 = null;
+            //List<Integer> removeIndexList = new ArrayList<Integer>();
+            for (int i = 0; i < 101; i++){
+                if (temp.startsWith("849")) continue; 
+                
+                                   
+                    l2 = PStringUtils.fastSplit(temp);
+                 
+//                    for (int i = 0; i < removeIndexList.size(); i++) {
+//                        l2.remove((int)removeIndexList.get(i));
+//                    }      
+                    StringBuilder sb = new StringBuilder();
+                    sb.deleteCharAt(sb.length()-1);
+                    bw.write(sb.toString());
+                    bw.newLine();                                                    
+            } 
+            bw.flush();
+            bw.close();
+            br.close();
+            }      
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }   
+        
+    }
+    ///没写完
     public void rm2taxa2(){
         String infileS = "/Users/Aoyue/Documents/bcftools_viewTaxa/tabletest.vcf";
         String outfileS = "/Users/Aoyue/Documents/bcftools_viewTaxa/out.vcf";
         RowTable t = new RowTable("infileS");
         t.removeColumn(269);
-        t.removeColumn(457);
+        t.removeColumn(456);
         
         
         
@@ -82,8 +372,8 @@ public class Delicay {
     }
     
     public void rm2taxa(){
-        String infileS = "/Users/Aoyue/Documents/bcftools_viewTaxa/chr1000.vcf";
-        String outfileS = "/Users/Aoyue/Documents/bcftools_viewTaxa/chr1000_rm2taxa.vcf";
+        String infileS = "/Users/Aoyue/Documents/tree/backup/chr10000.vcf";
+        String outfileS = "/Users/Aoyue/Documents/tree/backup/chr10000_rm2taxa.vcf";
         try{
             BufferedReader br = IOUtils.getTextReader(infileS);     
             BufferedWriter bw = IOUtils.getTextWriter(outfileS);
@@ -338,20 +628,17 @@ public class Delicay {
         BufferedReader br2 = IOUtils.getTextReader(infile2S);
         BufferedWriter bw = IOUtils.getTextWriter(outfileS);
         BufferedWriter bw2 = IOUtils.getTextWriter(outfile2S);
-        try{
-            
+        try{          
             String temp = null;
             String line = null;
             List<String> l = null;
             while ((temp = br2.readLine()) != null){
-                String tem = temp;
-                l = PStringUtils.fastSplit(tem);
-                taxaMap.put(l.get(0), l.get(1));                                                       
+                l = PStringUtils.fastSplit(temp); ///将此行的temp放进l list中
+                taxaMap.put(l.get(0), l.get(1)); /// 将第1列测序ID当作key，第2列taxa信息当作value.                                                     
             }
-            while ((line = br.readLine()) != null){
-                String lineString = line;
+            while ((line = br.readLine()) != null){ ///把434sample的测序ID读进去
                 StringBuilder sb = new StringBuilder();
-                sb.append(taxaMap.get(lineString));
+                sb.append(taxaMap.get(line)); ///得到434对应的taxa信息
                 bw.write(sb.toString());
                 bw.newLine();
             }          
@@ -366,22 +653,20 @@ public class Delicay {
         }    
         Set<String> infile = new HashSet();  
         try{
-            BufferedReader br3 = IOUtils.getTextReader(outfileS);                 
+            BufferedReader br3 = IOUtils.getTextReader(outfileS); ///将434taxa读进去                
             String temp = null;
-            while ((temp = br3.readLine()) != null){
-                String tem = temp;
-                infile.add(tem);                          
+            while ((temp = br3.readLine()) != null){ ///将434taxa放入hashset中
+                infile.add(temp);                          
             } 
             String line2 = null;
             BufferedReader br4 = IOUtils.getTextReader(infile3S); 
             while ((line2 = br4.readLine()) != null){
-                String tem = line2;
                 String taxa = null;
-                taxa = PStringUtils.fastSplit(tem).get(0);
-                if(infile.add(taxa)) continue;
+                taxa = PStringUtils.fastSplit(line2).get(0); ///取每一行的taxa信息
+                if(infile.add(taxa)) continue;///
                 else{
                     StringBuilder sb = new StringBuilder();
-                    sb.append(tem);
+                    sb.append(line2);
                     bw2.write(sb.toString());
                     bw2.newLine();                    
                 }                
