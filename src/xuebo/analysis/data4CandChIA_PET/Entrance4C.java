@@ -39,17 +39,19 @@ public class Entrance4C{
 ////        new FilteringBed(infileS,outfileS);
 //        new BedUnSorted(infileS,outfileS);
 
-        String infileS = "/Users/xuebozhao/Documents/LuLab/4C/4Cdata/Library/realproduct/TAIR10_chr_all.fas";
-        String outfileS = "/Users/xuebozhao/Documents/LuLab/4C/4Cdata/Library/realproduct/SplitTAIR10chr4.fas";
-//        new FirstStatistics(infileS,outfileS);
-        new Cheakdata (infileS,outfileS);
-        
-        
-        
-        
-//        String outfileS = "/Users/xuebozhao/Documents/LuLab/Yao/MaizeRcircos/GetMaizeGenomeForCircosChr10.bed";
+//        String infileS = "/Users/xuebozhao/Documents/LuLab/4C/4Cdata/Library/realproduct/TAIR10_chr_all.fas";
+//        String outfileS = "/Users/xuebozhao/Documents/LuLab/4C/4Cdata/Library/realproduct/SplitTAIR10chr4.fas";
 ////        new FirstStatistics(infileS,outfileS);
-//        new GetArabGenomeForCircos (outfileS);
+//        new Cheakdata (infileS,outfileS);
+        
+//        String infileS = "/Users/xuebozhao/Documents/LuLab/4C/4Cdata/Library/realproduct/TAIRGenome/Chr5_rm.long.fas";
+//        String outfileS = "/Users/xuebozhao/Documents/LuLab/4C/4Cdata/Library/realproduct/TAIRGenome/Chr5ReplacePericentromere_rm.long.fas";
+////        new FirstStatistics(infileS,outfileS);
+//        new GetArabMaskedGenome (infileS,outfileS);
+//        
+        String infileS = "/Users/xuebozhao/Documents/LuLab/4C/4Cdata/Library/realproduct/perimask/perimask5/positiveK5_hits_allNoadjusted001.bed";
+        String outfileS = "/Users/xuebozhao/Documents/LuLab/4C/4Cdata/Library/realproduct/perimask/perimask5/K5Noadjusted001ForCircos.bed";       
+        new GetCircosBed (infileS,outfileS);
         
     }
 }

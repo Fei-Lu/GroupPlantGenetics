@@ -36,7 +36,7 @@ public class GetCircosBed {
                 
                     ++i;
                     
-                    if (i % 10 == 0) {
+                    if (i % 100 == 0) {
 
                         System.out.println("Filtering " + i + "....");
 
