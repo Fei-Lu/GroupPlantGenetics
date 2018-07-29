@@ -30,11 +30,11 @@ public class DataOrginazed {
     public DataOrginazed(){
         //this.listAllFiles();
         //this.listSpecificalFiles();
-        //this.md5();
+        this.md5();
         //this.checkMd5();
         //this.test();
-        this.coverage();
-        //this.sample();
+        //this.coverage();
+        this.sample();
         //this.insertTxt();
         //this.findlost();
         //this.findlostnull();
@@ -113,12 +113,12 @@ public class DataOrginazed {
         }
     }
     
-    public void sample(){
-        String infileS = "/Users/Aoyue/Documents/hmp321_854taxa_maizeCAAS/chr010.vcf.gz";
-        String outfileS = "/Volumes/LuLab3T_36/mergeTest/chr010_test.vcf";
-        int length = 100;
+  public void sample(){
+        String infileS = "/Users/Aoyue/Downloads/All_Merged_1.25M_MAF0.05.sort.hmp";
+        String outfileS = "/Users/Aoyue/Downloads/All_Merged_1.25M_MAF0.05.sort.sample100000.hmp";
+        int length = 10000;
         try{
-            BufferedReader br = IOUtils.getTextGzipReader(infileS);
+            BufferedReader br = IOUtils.getTextReader(infileS);
             BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             for (int i = 0; i < length; i++){
                 bw.write(br.readLine());
@@ -130,9 +130,8 @@ public class DataOrginazed {
         }
         catch(Exception e){
             e.printStackTrace();        
-        }
-        
-    }
+        }        
+    }  
     
     public void coverage () {
         String infileDirS = "/Volumes/Lulab3T_14/20171120CAAS/P101SC17081532_01zhangshaojing/data_release/cleandata";

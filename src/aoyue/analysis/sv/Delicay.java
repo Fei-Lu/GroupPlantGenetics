@@ -33,7 +33,8 @@ import utils.PStringUtils;
  */
 public class Delicay {
     public Delicay() {
-        //this.mkDir(); 
+        //this.mkDir();
+        //this.mkDirs();
         //this.mkHapPosAllele();
         //创建文件并写入字符串
         //this.mkfile1();
@@ -71,8 +72,12 @@ public class Delicay {
         //this.get432taxavcf();
         //this.selectVCFByTaxa();
         
-        this.getGBS_reextractDNAID();
+        //this.getGBS_reextractDNAID();
         //this.getMissPlate();
+        this.addGeneBiotype();
+        //this.parseGff3();
+        
+        
         
         
         
@@ -82,6 +87,78 @@ public class Delicay {
         
          
     }
+    public void parseGff3(){
+        String InputFileS = "/Users/Aoyue/Documents/SIFTCalculate/gene_annotation/Zea_mays.AGPv4.38.gtf";
+        String[] OutFileS = new String[10];
+        //String OutmtFileS = "";
+        //"/Users/Aoyue/Documents/Zea_mays.AGPv4.38.gtf";
+        for(int i = 0; i < 10; i++){
+            int j = i+1;
+            OutFileS[i] = "/Users/Aoyue/Documents/Zea_mays.AGPv4.38_" + j + ".gtf";
+            System.out.println(OutFileS[i] + "\n");        
+        }
+        try{
+            for(int i = 0; i < 10; i++){
+                BufferedReader br = IOUtils.getTextReader(InputFileS);
+                BufferedWriter bw = IOUtils.getTextWriter(OutFileS[i]);
+                String tem = null;
+                List<String> l = null;
+                while((tem = br.readLine()) != null){
+                     l = PStringUtils.fastSplit(tem);
+                     int chr = i + 1;
+                     String j = Integer.toString(chr);
+                     if (j.equals(l.get(0))){
+                         StringBuilder sb = new StringBuilder();
+                         sb.append(tem);
+                         bw.write(sb.toString());
+                         bw.newLine();                         
+                     }
+                }
+                bw.flush();
+                bw.close();
+                br.close();                
+            }
+            BufferedReader br = IOUtils.getTextReader(InputFileS);
+            //BufferedWriter bw = IOUtils.getTextWriter(OutmtFileS);
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);            
+        }        
+    }
+    
+    public void addGeneBiotype(){
+        String InputFileS = "/Users/Aoyue/Documents/SIFTCalculate/gene_annotation/Zea_mays.AGPv4.40.gene.gtf";
+        String OutputFileS = "/Users/Aoyue/Documents/SIFTCalculate/gene_annotation/Zea_mays.AGPv4.40.gtf";
+        try{
+            BufferedReader br = IOUtils.getTextReader(InputFileS); 
+            BufferedWriter bw = IOUtils.getTextWriter(OutputFileS);
+            String temp = null;
+            while ((temp = br.readLine()) != null){         
+                    //String plate = null;
+                    //plate = PStringUtils.fastSplit(temp).get(2);
+                    //if(plate.equalsIgnoreCase("exon") | plate.equalsIgnoreCase("CDS") | plate.equalsIgnoreCase("stop_codon") | plate.equalsIgnoreCase("start_codon")){
+                    List<String> l = null;
+                    l = PStringUtils.fastSplit(temp);
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(l.get(0)).append("\t").append(l.get(1)).append("\t").append(l.get(2)).append("\t").append(l.get(3)).append("\t").
+                            append(l.get(4)).append("\t").append(l.get(5)).append("\t").
+                                    append(l.get(6)).append("\t").append(l.get(7)).append("\t").append(l.get(8)).append(" ")
+                                            .append("gene_biotype").append(" ").append("\"protein_coding\";");
+                    bw.write(sb.toString());
+                    bw.newLine();         
+            }
+            bw.flush();
+            bw.close();
+            br.close();                 
+            }           
+            catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+        
+        }              
+    
     public void getMissPlate(){
         String OriginalInfileS = "/Users/Aoyue/Documents/IGDB/4-PHD/wheat/GBS取样/实验记录/RerxtractDNA_Plate.txt";
         String outfileS = "/Users/Aoyue/Documents/IGDB/4-PHD/wheat/GBS取样/实验记录/Re_extractDNA_ID.txt";
@@ -897,9 +974,21 @@ public class Delicay {
         return al.toArray(new File[al.size()]); //size()返回集合元素的数量; new File[3]; toArray返回T[] a（即返回集合中的元素）
     }
     
+    public void mkDirs(){
+        String dirdemo = "/Users/Aoyue/Documents/SIFTCalculate/outputbatches";
+        for(int i=1; i< 11; i++ ){
+            String dir = dirdemo.replaceFirst("/Users/Aoyue/Documents/SIFTCalculate/outputbatches", "/Users/Aoyue/Documents/SIFTCalculate/outputbatches" + i);         
+            File f = new File (dir);
+            if (!f.exists()) {  
+            f.mkdir();  
+            }
+            System.out.println("Perform the end "+ dir);          
+        }
+        
+    }
     
     public void mkDir (){
-        String dir = "/Users/Aoyue/Documents/afile";
+        String dir = "/Users/Aoyue/Documents/SIFTCalculate";
         File f = new File (dir); 
         if (!f.exists()) {  
             f.mkdir();  

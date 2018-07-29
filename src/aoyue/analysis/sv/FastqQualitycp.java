@@ -33,9 +33,9 @@ public class FastqQualitycp {
     
     public FastqQualitycp () {
         //this.covergage();
-        this.covergagePlot();
+        //this.covergagePlot();
         //this.sampleReads();
-        //this.fastQC();
+        this.fastQC();
         //this.fastQCsummary();
         //this.contamination();
         //this.trimming();
@@ -306,10 +306,10 @@ public class FastqQualitycp {
     }
     
     private void fastQC () {
-        String inputDirS = "/Users/feilu/Documents/analysisL/pipelineTest/maize2k/sampleSeq";
-        String outputDirS = "/Users/feilu/Documents/analysisL/pipelineTest/maize2k/fastQC/autoReport";
+        String inputDirS = "/Users/Aoyue/Documents/testCheckMd5/data1_00";
+        String outputDirS = "/Users/Aoyue/Documents";
         try {
-            StringBuilder sb = new StringBuilder("/Users/feilu/Software/FastQC/fastqc");
+            StringBuilder sb = new StringBuilder("/Users/Aoyue/software/FastQC/fastqc");
             File[] fs = new File (inputDirS).listFiles();
             fs =  IOUtils.listFilesEndsWith(fs, ".gz");
             for (int i = 0; i < fs.length; i++) {

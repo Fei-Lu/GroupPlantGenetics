@@ -27,7 +27,8 @@ public class SVEntraince {
     } 
     
     public static void main (String[] args){
-        new SVEntraince();
+        //new SVEntraince();
+        new FastqQualitycp();
         
     }  
 }
