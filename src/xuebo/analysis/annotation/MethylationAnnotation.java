@@ -7,7 +7,7 @@ package xuebo.analysis.annotation;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import xuebo.analysis.data4C.XueboIOUtils;
+import xuebo.analysis.data4CandChIA_PET.XueboIOUtils;
 
 /**
  *

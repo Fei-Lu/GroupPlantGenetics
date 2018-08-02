@@ -9,7 +9,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import xuebo.analysis.data4C.XueboIOUtils;
+import xuebo.analysis.data4CandChIA_PET.XueboIOUtils;
 
 /**
  *
