@@ -40,12 +40,16 @@ public class WheatGeneFeature {
      * Constructs a object from reading pgf (key gene feature) format 
      * @param infileS 
      */
-     public WheatGeneFeature (String infileS ,FastaByte outfileS1 ,String outfileS2) {
+     public WheatGeneFeature (String infileS , FastaByte outfileS1, String outfileS2) {
         this.readFromWheatNumGFF(infileS);
         //this.writeFile(outfileS);
         this.writeGeneSequence(outfileS1, outfileS2);
     }
-     
+    
+     public WheatGeneFeature (String infileS ,String outfileS) {
+        this.readFromWheatNumGFF(infileS);
+        this.writeFile(outfileS);
+    }
     
     
     /**
@@ -56,10 +60,11 @@ public class WheatGeneFeature {
     public void writeGeneSequence (FastaByte genomef, String outfileS) {
         genomef.sortByName();
         try {
-            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            BufferedWriter bw = XueboIOUtils.getTextWriter(outfileS);
             for (int i = 0; i < this.getGeneNumber(); i++) {
-                String title = String.valueOf(this.getGeneChromosome(i))+"_"+String.valueOf(this.getGeneStart(i)+"_"+String.valueOf(this.getGeneEnd(i))+"_"+String.valueOf(this.getGeneName(i)));               
-                int chrIndex = genomef.getIndexByName(String.valueOf(this.getGeneChromosome(i)));
+                String title = String.valueOf(this.getGeneChromosome(i))+"_"+String.valueOf(this.getGeneStart(i)+"_"+String.valueOf(this.getGeneEnd(i))+"_"+String.valueOf(this.getGeneName(i)));   
+                int index = this.getGeneChromosome(i);
+                int chrIndex = genomef.getIndexByName(String.valueOf(index));
                 String chrseq = genomef.getSeq(chrIndex);
                 String geneSeq = chrseq.substring(this.getGeneStart(i)-1, this.getGeneEnd(i)-1);
                 String[] geneSeqs = PStringUtils.getMultilineString(60, geneSeq);
@@ -84,13 +89,16 @@ public class WheatGeneFeature {
      */
     public void writeFile (String outfileS) {
         try {
-            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            BufferedWriter bw = XueboIOUtils.getTextWriter(outfileS);
             bw.write("GeneNumber\t"+String.valueOf(this.getGeneNumber()));
             bw.newLine();
             for (int i = 0; i < this.getGeneNumber(); i++) {
                 StringBuilder sb = new StringBuilder();
+                //sb.append("Gene\t").append(this.getGeneName(i)).append("\t").append(this.getGeneChromosome(i)).append("\t").append(this.getGeneStart(i)).append("\t").append(this.getGeneEnd(i)).append("\t").append(this.getGeneStrand(i));
                 sb.append("Gene\t").append(this.getGeneName(i)).append("\t").append(this.getGeneChromosome(i)).append("\t").append(this.getGeneStart(i)).append("\t").append(this.getGeneEnd(i)).append("\t").append(this.getGeneStrand(i));
+                
                 //sb.append("\t").append(this.getGeneBiotype(i)).append("\t").append(this.getGeneDescription(i));
+                System.out.println(this.getGeneName(i));
                 bw.write(sb.toString());
                 bw.newLine();
             }
@@ -433,9 +441,10 @@ public class WheatGeneFeature {
     public void readFromWheatNumGFF (String infileS) {
         try {
             BufferedReader br;
-            if (infileS.endsWith("gz")) br = IOUtils.getTextGzipReader(infileS);
-            else br = IOUtils.getTextReader(infileS);
-            String temp = br.readLine();
+            if (infileS.endsWith("gz")) br = XueboIOUtils.getTextGzipReader(infileS);
+            else br = XueboIOUtils.getTextReader(infileS);
+            //String temp = br.readLine();
+            String temp = null;
             ArrayList<String> infoList = new ArrayList();
             ArrayList<String> geneList = new ArrayList();
             String[] tem = null;
@@ -446,6 +455,7 @@ public class WheatGeneFeature {
                 tem = tList.toArray(new String[tList.size()]);
                 //if (tem[2].startsWith("exon")) continue;
                 //if (tem[2].startsWith("chromosome")) continue;
+                //System.out.println(tem[2]);
                 if (tem[2].startsWith("gene")) {
                     String[] te = tem[8].split(";");
                     geneList.add(te[0].split("=")[1]);

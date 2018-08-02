@@ -37,18 +37,30 @@ public class MeanScore {
 //            String outfileS3 = "/Users/xuebozhao/Documents/LuLab/CpScore/data/methylation/V4/siteScoreCHGaddpvalue.txt";           
 //            new BinomialTestMethylation (infileS , outfileS1, outfileS2 , outfileS3 );
             
-            String infileS = "/Users/xuebozhao/Documents/LuLab/WheatEpigenome/wheatgenome/testwheatNumNoUn.gff3";
-            FastaByte outfileS1 = new FastaByte("/Users/xuebozhao/Documents/LuLab/WheatEpigenome/wheatgenome/testFasta5000.fa");
-            String outfileS2 = "/Users/xuebozhao/Documents/LuLab/WheatEpigenome/wheatgenome/123.txt";
-            new WheatGeneFeature (infileS , outfileS1,outfileS2);
+//            String infileS = "/Users/xuebozhao/Documents/LuLab/WheatEpigenome/wheatgenome/Z_test/testwheat.gff3";
+//            FastaByte outfileS1 = new FastaByte("/Users/xuebozhao/Documents/LuLab/WheatEpigenome/wheatgenome/Z_test/testFasta50001.fa");
+//            String outfileS2 = "/Users/xuebozhao/Documents/LuLab/WheatEpigenome/wheatgenome/Z_test/123.txt";
+//            new WheatGeneFeature (infileS , outfileS1,outfileS2);
 
 
-//            String infileS = "/Users/xuebozhao/Documents/LuLab/WheatEpigenome/wheatgenome/WheatgenesReplaceNumNoUn.gff3";
-//            String outfileS = "/Users/xuebozhao/Documents/LuLab/WheatEpigenome/wheatgenome/NumNoUnKGF.gff3";
+//            String infileS = "/Users/xuebozhao/Documents/LuLab/WheatEpigenome/wheatgenome/Z_test/testwheatNumNoUn.gff3";
+//            String outfileS = "/Users/xuebozhao/Documents/LuLab/WheatEpigenome/wheatgenome/Z_test/AAAtestwheatNumNoUn.gff3";
 //            new WheatGeneFeature (infileS ,outfileS);
 
+            String infileS = "/Users/xuebozhao/Documents/LuLab/WheatEpigenome/wheatgenome/genes.gff3";
+            String outfileS = "/Users/xuebozhao/Documents/LuLab/WheatEpigenome/wheatgenome/WheatgenesReplaceNumNoUn.gff3";
+            new LabNumChrGFF3 (infileS ,outfileS);
+           
             
-            
+                    
+//            String infileS1 = "/Users/xuebozhao/Documents/LuLab/WheatEpigenome/wheatgenome/Z_test/testFasta5000.fa";
+//            String infileS2 = "/Users/xuebozhao/Documents/LuLab/WheatEpigenome/wheatgenome/Z_test/testKGF.txt";
+//            String outfileS1 = "/Users/xuebozhao/Documents/LuLab/WheatEpigenome/wheatgenome/Z_test/123";
+//            new GetWheatpseudoGenome (infileS1,infileS2,outfileS1);     
+                    
+                    
+                    
+                    
 //            String infileS = "/Users/xuebozhao/Documents/LuLab/CpScore/data/methylation/randomforestMehty_10/siteScoreCpGaddpvalue3X10.txt";
 //            String outfileS = "/Users/xuebozhao/Documents/LuLab/CpScore/data/methylation/randomforestMehty_10/AllsiteScoreCpGaddpvalue3X10.txt";
 //            new BinomialTestMethylation (infileS,outfileS);
