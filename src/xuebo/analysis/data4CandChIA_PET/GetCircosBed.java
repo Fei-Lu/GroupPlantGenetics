@@ -16,7 +16,7 @@ public class GetCircosBed {
     
     GetCircosBed(String infileS,String outfileS) {
         
-        this.readBed(infileS,outfileS);
+        this.sum(infileS,outfileS);
         
     }
     
@@ -51,6 +51,49 @@ public class GetCircosBed {
                     bw.write(L1 + "\n"); 
             }
             
+            bw.flush(); 
+            bw.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+    
+    
+    public void sum (String infileS,String outfileS){
+        try{
+            
+            BufferedReader br;            
+            br = XueboIOUtils.getTextReader(infileS);
+            BufferedWriter bw = XueboIOUtils.getTextWriter(outfileS);
+            
+            String temp = null;
+            int L1 = 0;
+            int L2 = 0;
+            int i = 0;
+
+            while (( temp = br.readLine()) != null) {
+                
+                    ++i;
+                    
+                    if (i % 2 == 0) {
+
+                        System.out.println("Filtering " + i + "....");
+
+                    }
+
+                    if (temp.startsWith("CHROM"))
+                        continue;
+                    String[] tem = temp.split("\t");
+                    
+                    int aa = Integer.valueOf(tem[1]);
+                    
+                    L1 = L1 + aa;
+                    
+                    
+                    //bw.write(L1 + "\n"); 
+            }
+            bw.write(L1 + "\n");
             bw.flush(); 
             bw.close();
         }

@@ -49,8 +49,13 @@ public class Entrance4C{
 ////        new FirstStatistics(infileS,outfileS);
 //        new GetArabMaskedGenome (infileS,outfileS);
 //        
-        String infileS = "/Users/xuebozhao/Documents/LuLab/4C/4Cdata/Library/realproduct/perimask/perimask5/positiveK5_hits_allNoadjusted001.bed";
-        String outfileS = "/Users/xuebozhao/Documents/LuLab/4C/4Cdata/Library/realproduct/perimask/perimask5/K5Noadjusted001ForCircos.bed";       
+//        String infileS = "/Users/xuebozhao/Documents/LuLab/4C/4Cdata/Library/realproduct/perimask/perimask5/positiveK5_hits_allNoadjusted001.bed";
+//        String outfileS = "/Users/xuebozhao/Documents/LuLab/4C/4Cdata/Library/realproduct/perimask/perimask5/K5Noadjusted001ForCircos.bed";       
+//        new GetCircosBed (infileS,outfileS);
+        
+        
+        String infileS = "/Users/xuebozhao/Documents/allSIFTpredictions.txt";
+        String outfileS = "/Users/xuebozhao/Documents/123.txt";       
         new GetCircosBed (infileS,outfileS);
         
     }
