@@ -6,6 +6,7 @@
 package aoyue.analysis.sv;
 
 import com.itextpdf.text.pdf.parser.Path;
+import format.dna.FastaByte;
 import format.table.RowTable;
 import gnu.trove.list.array.TIntArrayList;
 import java.io.BufferedReader;
@@ -26,6 +27,7 @@ import java.util.Set;
 import utils.IOFileFormat;
 import utils.IOUtils;
 import utils.PStringUtils;
+
 
 /**
  *
@@ -74,19 +76,431 @@ public class Delicay {
         
         //this.getGBS_reextractDNAID();
         //this.getMissPlate();
-        this.addGeneBiotype();
+        //this.addGeneBiotype();
         //this.parseGff3();
+        //this.mkSIFTxlsSimple();
+        //this.getVariantType();
+        //this.countVariant();
+        //this.mergeCountVariantFile();  
+        //this.mkSIFTvcfSimple();
+        //this.countVariant2();
+        this.mkV4CentromerePos();
         
         
-        
-        
-        
-        
-        
-        
-        
+              
          
     }
+    public void mkV4CentromerePos(){
+        //this.getchrLength();
+        this.countLengthCentromere();
+        
+        
+    }
+    public void mkCentromerePosBedFile(){
+        
+        
+    }
+    public void countLengthCentromere(){
+        String infile1S = "/Users/Aoyue/Documents/Data/referenceGenome/position/chrlength.txt";
+        String infile2S = "/Users/Aoyue/Documents/Data/referenceGenome/position/ChrLenCentPosi_agpV3.txt";
+        String outfileS = "/Users/Aoyue/Documents/Data/referenceGenome/position/lengthCompare.txt";
+        RowTable t4 = new RowTable(infile1S);
+        RowTable t3 = new RowTable(infile2S);
+        List<Integer> l = new ArrayList<Integer>();
+        for(int i = 0; i< t3.getRowNumber(); i++){
+            //int value = l.add(Integer.parseInt(String.valueOf(t4.getCell(i, 3))));
+            int value = Integer.parseInt(String.valueOf(t3.getCell(i, 3))) - Integer.parseInt(String.valueOf(t3.getCell(i, 2)));
+            int j = i +1;
+            System.out.println(value);
+            System.out.println("###This is the chr" + j + "centromere length ###");
+            
+        }
+    }
+    
+    public void getchrLength(){
+        String infileS = "/Users/Aoyue/Documents/Data/referenceGenome/AGPv4/maizeAGPv4.fa";
+        String outfileS = "/Users/Aoyue/Documents/Data/referenceGenome/position/chrlength.txt";
+        FastaByte ref = new FastaByte(infileS);
+        int[] chr = new int [10];
+        int cnt = 0;
+        try{
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            bw.write("Chromosome" + "\t" + "Length(V4)" + "\t" + "CentromereS" + "\t" + "CentromereE");
+            bw.newLine();
+            
+            for(int i=0; i < chr.length; i++){
+                int j = i+1;
+                chr[i] = ref.getSeqLength(j);
+                StringBuilder sb = new StringBuilder(); /*一定要在里面建立sb，否则每次循环写入的东西不会清楚，又重复写到下一行*/
+                sb.append(j).append("\t").append(chr[i]).append("\t");
+                bw.write(sb.toString());
+                bw.newLine(); 
+                cnt = cnt + chr[i];
+                System.out.println(chr[i]);
+                System.out.println("###This is the " + j + "chr length ###");
+            }
+            bw.flush();
+            bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+        System.out.println("This is the code result " + ref.getTotalSeqLength());
+        System.out.println("This is calculated result " + ref.getTotalSeqLength());
+        /*This is the code result 2135098301
+            This is calculated result 2135098301*/
+    }
+    
+    public void countVariant2(){
+        String infileDirS = "/Volumes/LuLab3T_30/allresult/hmp321_agpv4_chr7_SIFTpredictions.vcf";
+        String outfileDirS = "/Users/Aoyue/Documents/SIFTCalculate/countVariant/hmp321_agpv4_chr7_SIFTpredictions.txt";
+        BufferedReader br = IOUtils.getTextReader(infileDirS);
+        BufferedWriter bw = IOUtils.getTextWriter(outfileDirS);
+        String temp = null;
+        int cntSynonymous = 0;
+        int cntNonsynonymous = 0;
+        int cntStartlost = 0;
+        int cntDeleterious = 0;
+        int cntTolerent = 0;
+        try{
+            List<String> l = null;
+                List<String> infoList = null;
+                List<String> siftInfoList = null;
+                String siftInfo = null;
+                while ((temp = br.readLine()) != null) {
+                    if(temp.startsWith("#")) continue;
+                    l = PStringUtils.fastSplit(temp);
+                    String info = l.get(7);
+                    infoList = PStringUtils.fastSplit(info, ";");
+                    /*将List转化为数组，如果数组等于中的元素以SIFTINFO开头，将此元素转化siftInfoList为集合*/
+                    //String siInfo = infoList.
+                   String[] infoArray = infoList.toArray(new String[infoList.size()]);                   
+                   for (int i = 0; i < infoArray.length; i++){
+                       if(infoArray[i].startsWith("SIFTINFO")){
+                           siftInfo = infoArray[i];
+                           siftInfoList = PStringUtils.fastSplit(siftInfo, "|");
+                           /*siftInfoList一共包含13个元素，我们只关心第6列的变异类型和第13列的SIFTScore值*/
+                           //if(siftInfoList.get(5).equals("NA")) continue; 
+                           if(siftInfoList.get(5).equals("SYNONYMOUS")) cntSynonymous++; 
+                           if(siftInfoList.get(5).equals("NONSYNONYMOUS")) {
+                               cntNonsynonymous++;
+                               if(siftInfoList.get(8).equals("NA")) continue;
+                               if(Float.parseFloat(siftInfoList.get(8))<0.05){
+                                   cntDeleterious++;                                
+                               }
+                               else{
+                                   cntTolerent++;                                  
+                               }
+                           }
+                           if(siftInfoList.get(5).equals("cntStartlost")) cntStartlost++;                       
+                       }                 
+                   }  
+                }
+                
+                StringBuilder sb = new StringBuilder();
+                sb.append("CHROM").append("\t").append("NONSynonymous").append("\t").append("SIFT_deleterious_mutation")
+                        .append("\t").append("Non-synonymous_tolerent_mutation")
+                        .append("\t").append("Neutral_mutation").append("\t").append("Startlost_mutation").append("\n");
+               
+                sb.append("hmp321_agpv4_chr7").append("\t").append(cntNonsynonymous).append("\t")
+                        .append(cntDeleterious).append("\t").append(cntTolerent)
+                        .append("\t").append(cntSynonymous).append("\t").append(cntStartlost);
+                bw.write(sb.toString());
+                bw.newLine();
+                
+                System.out.println("###### " + "hmp321_agpv4_chr7" + " ######result:");
+                System.out.println("The number of Neutral mutation (Synonymous) is: " + cntSynonymous);
+                System.out.println("The number of NONSynonymous is: " + cntNonsynonymous);
+                System.out.println("The number of SIFT_deleterious_mutation is: " + cntDeleterious);
+                System.out.println("The number of Non-synonymous_tolerent_mutation is: " + cntTolerent);
+                System.out.println("The number of Startlost is: " + cntStartlost);
+                
+                bw.flush();
+                bw.close();
+                br.close();
+            
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }               
+    }
+    
+    public void mkSIFTvcfSimple(){
+        String infileDirS = "/data1/home/aoyue/sift/output/allresult";
+        String outfileDirS = "/data1/home/aoyue/sift/output/result_SIFTvcfSimple";
+        new File (outfileDirS).mkdir();
+        File[] fs = new File(infileDirS).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, ".vcf");
+        List<File> fsList = Arrays.asList(fs);
+        fsList.parallelStream().forEach(f -> {
+            BufferedReader br = IOUtils.getTextReader(f.getAbsolutePath());
+            String outfileS = new File(outfileDirS, f.getName().replaceFirst(".vcf", "_simple.vcf")).getAbsolutePath();
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String temp = null;
+            int cnt = 0;
+            try {
+                StringBuilder sb = new StringBuilder();
+                List<String> l = null;
+                while ((temp = br.readLine()) != null) {
+                    if(temp.startsWith("##")) continue;
+                    temp = temp.substring(0, 420);
+                    l = PStringUtils.fastSplit(temp);
+                    sb = new StringBuilder(l.get(0));
+                    sb.append("\t").append(l.get(1)).append("\t").append(l.get(3)).append("\t").append(l.get(4)).append("\t").append(l.get(7));
+                    bw.write(sb.toString());
+                    bw.newLine();
+                    if (cnt%100000 == 0) System.out.println("Output " + String.valueOf(cnt) + " SNPs");
+                    cnt++;
+                }
+                bw.flush();
+                bw.close();
+                br.close();
+                System.out.println(String.valueOf(cnt) + " SNPs output from " + f.getAbsolutePath());
+            }
+            catch (Exception e) {
+                System.out.println(f.getAbsolutePath());
+                System.out.println(temp);
+                e.printStackTrace();
+                System.exit(1);
+            } 
+        });       
+    }
+    
+     public void mergeCountVariantFile(){
+        String infileDirS = "/Users/Aoyue/Documents/SIFTCalculate/ffffffff";
+        String outfileS = "/Users/Aoyue/Documents/SIFTCalculate/allSIFTpredictions.txt";
+        File[] fs = new File(infileDirS).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, ".txt");
+        try{                       
+            StringBuilder sb = new StringBuilder();
+            sb.append("CHROM").append("\t").append("NONSynonymous").append("\t").append("SIFT_deleterious_mutation")
+                        .append("\t").append("Non-synonymous_tolerent_mutation")
+                        .append("\t").append("Neutral_mutation").append("\t").append("Startlost_mutation").append("\n");
+            for(int i = 0; i < fs.length; i++){
+                BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+                String subFileS = fs[i].getAbsolutePath();
+                BufferedReader br = IOUtils.getTextReader(subFileS);
+                String temp = null;
+                while((temp = br.readLine()) != null){
+                    if(temp.startsWith("CHROM")) continue;
+                    sb.append(temp).append("\n");
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+                bw.flush();
+                bw.close();
+                br.close();  
+            }
+        }
+        catch(Exception e){
+            System.out.println();
+            e.printStackTrace();
+            System.exit(1);              
+        }
+        
+        RowTable t = new RowTable("/Users/Aoyue/Documents/SIFTCalculate/allSIFTpredictions.txt");
+        
+        
+        
+//        try{
+//            String total = "/Users/Aoyue/Documents/SIFTCalculate/totalSIFTpredictions.txt";
+//            BufferedReader br = IOUtils.getTextReader(outfileS);
+//            BufferedWriter bw = IOUtils.getTextWriter(total);
+//            int cntSynonymous = 0;
+//            int cntNonsynonymous = 0;
+//            int cntStartlost = 0;
+//            int cntDeleterious = 0;
+//            int cntTolerent = 0;
+//            String temp;
+//            List<String> l = null;         
+//            while((temp = br.readLine()) != null){
+//                if(temp.startsWith("CHROM")) continue;
+//                l = PStringUtils.fastSplit(temp);
+//                cntNonsynonymous = cntNonsynonymous + Integer.parseInt(l.get(1));
+//                cntDeleterious = cntDeleterious + Integer.parseInt(l.get(2));
+//                cntTolerent = cntTolerent + Integer.parseInt(l.get(3));
+//                cntSynonymous = cntSynonymous + Integer.parseInt(l.get(4));
+//                cntStartlost = cntStartlost + Integer.parseInt(l.get(5));                            
+//            }
+//            StringBuilder sb = new StringBuilder();
+//            sb.append("Total").append("\t").append(String.valueOf(cntNonsynonymous)).append("\t").
+//                    append(String.valueOf(cntDeleterious)).append("\t").append(String.valueOf(cntTolerent)).append("\t")
+//                    .append(String.valueOf(cntSynonymous)).append("\t").append(String.valueOf(cntStartlost)).append("\n");
+//            bw.write(sb.toString());
+//            bw.newLine();
+//            bw.flush();
+//            bw.close();
+//            br.close();
+//        }
+//        catch(Exception e){
+//            System.out.println();
+//            e.printStackTrace();
+//            System.exit(1); 
+//            
+//        }
+    }
+    
+    
+    public void countVariant () {
+        String infileDirS = "/Users/Aoyue/Documents/SIFTCalculate/result_SIFTvcfSimple";
+        String outfileDirS = "/Users/Aoyue/Documents/SIFTCalculate/02Plot_SIFT/countVariant";
+        File[] fs = new File(infileDirS).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, ".vcf");
+        List<File> fsList = Arrays.asList(fs);
+        fsList.parallelStream().forEach(f -> {
+            BufferedReader br = IOUtils.getTextReader(f.getAbsolutePath());
+            String outfileS = new File(outfileDirS,f.getName().replaceFirst("_SIFTpredictions.vcf", "_SIFTpredictions.txt")).getAbsolutePath();
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String temp = null;
+            int cntSynonymous = 0;
+            int cntNonsynonymous = 0;
+            int cntStartlost = 0;
+            int cntDeleterious = 0;
+            int cntTolerent = 0;
+            try{
+                List<String> l = null;
+                List<String> infoList = null;
+                List<String> siftInfoList = null;
+                String siftInfo = null;
+                while ((temp = br.readLine()) != null) {
+                    if(temp.startsWith("#")) continue;
+                    l = PStringUtils.fastSplit(temp);
+                    String info = l.get(7);
+                    infoList = PStringUtils.fastSplit(info, ";");
+                    /*将List转化为数组，如果数组等于中的元素以SIFTINFO开头，将此元素转化siftInfoList为集合*/
+                   String[] infoArray = infoList.toArray(new String[infoList.size()]);
+                   
+                   for (int i = 0; i < infoArray.length; i++){
+                       if(infoArray[i].startsWith("SIFTINFO")){
+                           siftInfo = infoArray[i];
+                           siftInfoList = PStringUtils.fastSplit(siftInfo, "|");
+                           /*siftInfoList一共包含13个元素，我们只关心第6列的变异类型和第13列的SIFTScore值*/
+                           //if(siftInfoList.get(5).equals("NA")) continue; 
+                           if(siftInfoList.get(5).equals("SYNONYMOUS")) cntSynonymous++; 
+                           if(siftInfoList.get(5).equals("NONSYNONYMOUS")) {
+                               cntNonsynonymous++;
+                               if(siftInfoList.get(8).equals("NA")) continue;
+                               if(Float.parseFloat(siftInfoList.get(8))<0.05){
+                                   cntDeleterious++;                                
+                               }
+                               else{
+                                   cntTolerent++;                                  
+                               }
+                           }
+                           if(siftInfoList.get(5).equals("cntStartlost")) cntStartlost++;                       
+                       }                 
+                   }  
+                }
+                
+                StringBuilder sb = new StringBuilder();
+                sb.append("CHROM").append("\t").append("NONSynonymous").append("\t").append("SIFT_deleterious_mutation")
+                        .append("\t").append("Non-synonymous_tolerent_mutation")
+                        .append("\t").append("Neutral_mutation").append("\t").append("Startlost_mutation").append("\n");
+               
+                sb.append(f.getName().replaceFirst("_SIFTpredictions.vcf", "")).append("\t").append(cntNonsynonymous).append("\t")
+                        .append(cntDeleterious).append("\t").append(cntTolerent)
+                        .append("\t").append(cntSynonymous).append("\t").append(cntStartlost);
+                bw.write(sb.toString());
+                bw.newLine();
+                
+                System.out.println("###### " + f.getName().replaceFirst("_SIFTannotations_simple.txt", "") + " ######result:");
+                System.out.println("The number of Neutral mutation (Synonymous) is: " + cntSynonymous);
+                System.out.println("The number of NONSynonymous is: " + cntNonsynonymous);
+                System.out.println("The number of SIFT_deleterious_mutation is: " + cntDeleterious);
+                System.out.println("The number of Non-synonymous_tolerent_mutation is: " + cntTolerent);
+                System.out.println("The number of Startlost is: " + cntStartlost);
+                
+                bw.flush();
+                bw.close();
+                br.close();
+       
+            }
+           
+            catch(Exception e){
+                System.out.println(f.getAbsolutePath());
+                System.out.println(temp);
+                e.printStackTrace();
+                System.exit(1);                
+            }        
+            //System.out.println("Non-synonymous: " + cntNonsynonymous);
+           // System.out.println("SIFT deleterious mutation (Non-synonymous, SIFT < 0.05)" + "is" + cntNonsynonymous);          
+        });
+    }
+        
+    public void getVariantType(){
+        String infileDirS = "/Users/Aoyue/Documents/SIFTCalculate/allsimpleresult";
+        File[] fs = new File(infileDirS).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, ".txt");
+        List<File> fsList = Arrays.asList(fs);
+        fsList.parallelStream().forEach(f -> {
+            BufferedReader br = IOUtils.getTextReader(f.getAbsolutePath());
+            String temp = null;
+            int cnt = 0;
+            try {
+                StringBuilder sb = new StringBuilder();
+                List<String> l = null;
+                Set<String> variantType = new HashSet();
+                while ((temp = br.readLine()) != null) {
+                    l = PStringUtils.fastSplit(temp);
+                    sb = new StringBuilder(l.get(5));
+                    cnt++;
+                    variantType.add(l.get(5)); 
+                }
+                br.close();
+                int countSNP = cnt-1;
+                System.out.println(String.valueOf(countSNP) + " SNPs output from " + f.getAbsolutePath());
+                System.out.println(variantType);
+            }
+            catch (Exception e) {
+                System.out.println(f.getAbsolutePath());
+                System.out.println(temp);
+                e.printStackTrace();
+                System.exit(1);
+            } 
+        });      
+    }
+    
+    public void mkSIFTxlsSimple () {
+        String infileDirS = "/Users/Aoyue/Documents/SIFTCalculate/allresult";
+        String outfileDirS = "/Users/Aoyue/Documents/SIFTCalculate/allsimpleresult";
+        File[] fs = new File(infileDirS).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, ".txt");
+        List<File> fsList = Arrays.asList(fs);
+        fsList.parallelStream().forEach(f -> {
+            BufferedReader br = IOUtils.getTextReader(f.getAbsolutePath());
+            String outfileS = new File(outfileDirS, f.getName().replaceFirst(".txt", "_simple.txt")).getAbsolutePath();
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String temp = null;
+            int cnt = 0;
+            try {
+                StringBuilder sb = new StringBuilder();
+                List<String> l = null;
+                while ((temp = br.readLine()) != null) {
+                    l = PStringUtils.fastSplit(temp);
+                    sb = new StringBuilder(l.get(0));
+                    sb.append("\t").append(l.get(1)).append("\t").append(l.get(2)).append("\t").append(l.get(3)).append("\t").append(l.get(4))
+                            .append("\t").append(l.get(8)).append("\t").append(l.get(12)).append("\t").append(l.get(13)).append("\t").append(l.get(16));
+                    bw.write(sb.toString());
+                    bw.newLine();
+                    if (cnt%100000 == 0) System.out.println("Output " + String.valueOf(cnt) + " SNPs");
+                    cnt++;
+                }
+                bw.flush();
+                bw.close();
+                br.close();
+                System.out.println(String.valueOf(cnt) + " SNPs output from " + f.getAbsolutePath());
+            }
+            catch (Exception e) {
+                System.out.println(f.getAbsolutePath());
+                System.out.println(temp);
+                e.printStackTrace();
+                System.exit(1);
+            } 
+        });
+    }
+        
     public void parseGff3(){
         String InputFileS = "/Users/Aoyue/Documents/SIFTCalculate/gene_annotation/Zea_mays.AGPv4.38.gtf";
         String[] OutFileS = new String[10];
