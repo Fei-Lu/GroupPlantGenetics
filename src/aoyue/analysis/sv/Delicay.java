@@ -84,22 +84,31 @@ public class Delicay {
         //this.mergeCountVariantFile();  
         //this.mkSIFTvcfSimple();
         //this.countVariant2();
-        this.mkV4CentromerePos();
+        //this.mkV4CentromerePos();
+        this.testStringSpilt();
+        
         
         
               
          
     }
+    
+    public void testStringSpilt(){
+        String infileS = "/Users/Aoyue/Documents/SIFTCalculate/01SIFTresult/allresult/hmp321_agpv4_chr10_SIFTannotations.txt";
+        String[] spilt = infileS.split("_");
+        for(int i = 0; i < spilt.length; i++){
+            System.out.println(spilt[i]);
+        }
+        int chrIndex = Integer.parseInt(infileS.split("_")[2].replaceFirst("chr", ""));
+        System.out.println(chrIndex);
+        //int chrIndex = Integer.parseInt(f.getName().split("_")[2].replaceFirst("chr", ""))-1;
+    }
+    
     public void mkV4CentromerePos(){
-        //this.getchrLength();
+        this.getchrLength();
         this.countLengthCentromere();
-        
-        
     }
-    public void mkCentromerePosBedFile(){
-        
-        
-    }
+
     public void countLengthCentromere(){
         String infile1S = "/Users/Aoyue/Documents/Data/referenceGenome/position/chrlength.txt";
         String infile2S = "/Users/Aoyue/Documents/Data/referenceGenome/position/ChrLenCentPosi_agpV3.txt";
@@ -905,9 +914,6 @@ public class Delicay {
                     for (int i = 0; i < l2.size(); i++){    
                         sb.append(l2.get(i)).append("\t");                                                
                     }
-                    
-
-
                     sb.deleteCharAt(sb.length()-1);
                     bw.write(sb.toString());
                     bw.newLine();                                       
@@ -1411,7 +1417,9 @@ public class Delicay {
     }  
     public static void main (String[] args) {        
         new Delicay(); 
-        System.out.println("I can do it !");      
+        System.out.println("I can do it !");    
+        
+        
     }
           
 } 
