@@ -21,7 +21,7 @@ public class GLoadEntraince {
         
     }
     public void analysisPipeline(){
-        new VariantSummary();
+        //new VariantSummary();
         new Recombination();
         
     }

@@ -41,10 +41,10 @@ public class VariantSummary {
         //this.filterHmp321Info();
         //this.filterHmp321Info_bysiftTrans();
         //this.summarizeTranscript();
-        //this.summarizeTranscript2();
+        this.summarizeTranscript2();
        //this.classifySNPs();
        //this.test();
-       this.mkBarplotOfSNPs();
+       //this.mkBarplotOfSNPs();
     }
     
   

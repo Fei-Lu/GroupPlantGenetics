@@ -5,6 +5,22 @@
  */
 package aoyue.analysis.sv;
 
+import format.genomeAnnotation.GeneFeature;
+import format.range.Range;
+import format.table.RowTable;
+import gnu.trove.list.array.TIntArrayList;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import utils.CrossMapUtils;
+import utils.IOFileFormat;
+import utils.IOUtils;
+import utils.PArrayUtils;
+import utils.PStringUtils;
+
 /**
  *
  * @author Aoyue
@@ -12,6 +28,287 @@ package aoyue.analysis.sv;
  class Recombination {
 
      Recombination() {
+         //this.convertHotspotsStart_AGPV2toAGPV4();
+         //this.convertHotspotsEnd_AGPV2toAGPV4();
+         //this.checkNumberofDifChr();
+         //this.makeRecombinationPointTable();
+         //this.mkBinTable();
+         
+         
+         
+         
+    }
+     private void mkBinTable () {
+        String transcriptFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/004_snpclass/highConfidence_transcript.txt";
+        String crossOverFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/recombinationPoint.txt";
+        String deleteriousSNPFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/004_snpclass/class/Non_Synonymous_Deleterious_High_GERP.txt";
+        String synSNPFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/004_snpclass/class/Synonymous.txt";
+        String geneFeatureFileS = "/Users/Aoyue/Documents/Data/referenceGenome/GeneAnnotation/Zea_mays.AGPv4.38.pgf";
+        String infoFileS = "/Users/Aoyue/Documents/Data/referenceGenome/position/ChrLenCentPosi_agpV4.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/binTable.txt";
+        int chrNum = 10;
+        int binSize = 10000000; // 10个million
+        /*
+        每条染色体都有一个bounds[]；都有一个crossover[] 和 cdsLength[];都有一个del[]; 都有一个syn[];
+        将中心粒的文件读进表格，Chromosome	Length(V4)	CentromereS	CentromereE
+                            1	307041717	136770000	137120000
+        进行Bin分区；
+        */
+        int[][] bounds = new int[chrNum][];
+        int[][] crossover = new int[chrNum][];
+        int[][] cdsLength = new int[chrNum][];
+        double[][] del = new double[chrNum][];
+        double[][] syn = new double[chrNum][];
+        RowTable<String> t = new RowTable (infoFileS);
+        for (int i = 0; i < chrNum; i++) {
+            int[][] bound = PArrayUtils.getSubsetsIndicesBySubsetSize(Integer.valueOf(t.getCell(i, 1)), binSize);
+            bounds[i] = new int[bound.length];
+            cdsLength[i] = new int[bound.length];
+            crossover[i] = new int[bound.length];
+            del[i] = new double[bound.length];
+            syn[i] = new double[bound.length];
+            for (int j = 0; j < bound.length; j++) {
+                bounds[i][j] = bound[j][0]; //等于bound[][0] ，第一个元素，即bound的左边边界
+            }
+        }
+        t = new RowTable (transcriptFileS);
+        ArrayList<String> tranList = new ArrayList();
+        for (int i = 0; i < t.getRowNumber(); i++) {
+            if (t.getCell(i, 0).equals("0")) continue;
+            tranList.add(t.getCell(i, 0));
+        }
+        String[] transName = tranList.toArray(new String[tranList.size()]);
+        Arrays.sort(transName);
+        GeneFeature gf = new GeneFeature(geneFeatureFileS);
+        for (int i = 0; i < gf.getGeneNumber(); i++) {
+            int longTransIndex = gf.getLongestTranscriptIndex(i);
+            String name = gf.getTranscriptName(i, longTransIndex); /*得到最长的转录本的名字*/
+            if (Arrays.binarySearch(transName, name) < 0) continue; /*过滤genefeature里那些假基因*/
+            int chrIndex = gf.getGeneChromosome(i) - 1;
+            List<Range> cds = gf.getCDSList(i, longTransIndex); /*得到基因的最长转录本的CDSList*/
+            for (int j = 0; j < cds.size(); j++) {
+                int index = Arrays.binarySearch(bounds[chrIndex], cds.get(j).start); //在bounds里搜索 该基因的第j个cds的起始位点
+                if (index < 0) index = -index-2;
+                if (index == bounds[chrIndex].length-1) { //如果刚好位于bounds最后一个bin起始位点，则cds长度等于起始位点加上 cds起始终止的差值
+                    cdsLength[chrIndex][index]+=(cds.get(j).end-cds.get(j).start);
+                }
+                else {
+                    if (cds.get(j).end <= bounds[chrIndex][index+1]) { //如果
+                        cdsLength[chrIndex][index]+=(cds.get(j).end-cds.get(j).start);
+                    }
+                    else {
+                        cdsLength[chrIndex][index]+=(bounds[chrIndex][index+1]-cds.get(j).start);
+                        cdsLength[chrIndex][index+1]+=(cds.get(j).end-bounds[chrIndex][index+1]);
+                    }
+                }
+            }
+        }
+        t = new RowTable (crossOverFileS);
+        for (int i = 0; i < t.getRowNumber(); i++) {
+            int chrIndex = Integer.valueOf(t.getCell(i, 0))-1;
+            int index = Arrays.binarySearch(bounds[chrIndex], Integer.valueOf(t.getCell(i, 1)));
+            if (index < 0) index = -index-2;
+            crossover[chrIndex][index]++;
+        }
+        t = new RowTable (deleteriousSNPFileS);
+        for (int i = 0; i < t.getRowNumber(); i++) {
+            int chrIndex = Integer.valueOf(t.getCell(i, 0))-1;
+            int index = Arrays.binarySearch(bounds[chrIndex], Integer.valueOf(t.getCell(i, 1)));
+            if (index < 0) index = -index-2;
+            del[chrIndex][index]++;
+        }
+        t = new RowTable (synSNPFileS);
+        for (int i = 0; i < t.getRowNumber(); i++) {
+            int chrIndex = Integer.valueOf(t.getCell(i, 0))-1;
+            int index = Arrays.binarySearch(bounds[chrIndex], Integer.valueOf(t.getCell(i, 1)));
+            if (index < 0) index = -index-2;
+            syn[chrIndex][index]++;
+        }
+        try {
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            bw.write("Chr\tBinStart\tCrossoverCount\tDelCount\tSynCount\tDelCountPerSite\tSynCountPerSite\tDelSynRatio");
+            bw.newLine();
+            for (int i = 0; i < chrNum; i++) {
+                for (int j = 0; j < bounds[i].length; j++) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(i+1).append("\t").append(bounds[i][j]).append("\t").append(crossover[i][j]).append("\t").append(del[i][j]).append("\t").append(syn[i][j]);
+                    sb.append("\t").append((double)del[i][j]/cdsLength[i][j]).append("\t").append((double)syn[i][j]/cdsLength[i][j]);
+                    if (syn[i][j] == 0) { 
+                        sb.append("\t").append(Double.NaN);
+                    }
+                    else {
+                        sb.append("\t").append((double)del[i][j]/syn[i][j]);
+                    }
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+            }
+            bw.flush();
+            bw.close();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+     
+     private void makeRecombinationPointTable () {
+        String inDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/finalSource/";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/recombinationPoint.txt";
+        int chrNum = 10;
+        File[] fs = new File(inDirS).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, "txt");
+        TIntArrayList[] posList = new TIntArrayList[chrNum];
+        for (int i = 0; i < posList.length; i++) { //每一个新的list都要new一下！！！因为上文只说明建立一个数组posList,大小为10.没有针对一个posList进行初始化。
+            posList[i] = new TIntArrayList();
+        }
+        try {
+            for (int i = 0; i < fs.length; i++) {
+                BufferedReader br = IOUtils.getTextReader(fs[i].getAbsolutePath());
+                String temp = br.readLine();
+                while ((temp = br.readLine()) != null) {
+                    List<String> l = PStringUtils.fastSplit(temp);
+                    if (l.get(3).startsWith("het")) continue;
+                    int chrIndex = Integer.valueOf(l.get(0))-1;
+                    int pos = (Integer.valueOf(l.get(4))+Integer.valueOf(l.get(5)))/2;
+                    posList[chrIndex].add(pos);
+                }
+                br.close();
+            }
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            bw.write("Chr\tPos");
+            bw.newLine();
+            for (int i = 0; i < posList.length; i++) {
+                int[] pos = posList[i].toArray();
+                Arrays.sort(pos);
+                for (int j = 0; j < pos.length; j++) {
+                    bw.write(String.valueOf(i+1)+"\t"+String.valueOf(pos[j]));
+                    bw.newLine();
+                }
+            }
+            bw.flush();
+            bw.close();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+     
+     public void checkNumberofDifChr(){
+         String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/source_agpv4/RodgersMelnick2015PNAS_usnamImputedXOsegments_agpv4.txt";
+         String outfileS ="/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/source_agpv4/usnamImputedXOsegments_agpv4.txt";
+         RowTable<String> t = new RowTable<>(infileS);
+         boolean[] ifOut = new boolean[t.getRowNumber()];
+         int cntNNNN =0;
+         int cntYYNN =0;
+         int cntNNYY =0;
+         int cntYYYY =0;
+         int cntsame =0;
+         int cntdiff =0;
+         //List<String[]> l = new ArrayList<>();
+         String[] rowContent = null;
+         for (int i = 0; i< t.getRowNumber(); i++){
+             String chr1st = t.getCell(i, 0);
+             String chr2nd = t.getCell(i, 6);
+             String start = t.getCell(i, 4);
+             String end = t.getCell(i, 5);
+             if (chr1st.equals("-1") && chr2nd.equals("-1")) cntNNNN++;
+             if ((!chr1st.equals("-1")) && chr2nd.equals("-1")) cntYYNN++;
+             if (chr1st.equals("-1") && (!chr2nd.equals("-1"))) cntNNYY++;
+             if ((!chr1st.equals("-1")) && (!chr2nd.equals("-1"))) {
+                 cntYYYY++;
+                 if (chr1st.equals(chr2nd)){
+                     cntsame++;
+                    //l.add(t.getRow(i).toArray(rowContent));
+                    ifOut[i] = true;
+                 }
+                 else{
+                     cntdiff++;
+                 }
+             }
+         }
+         t.removeColumn(6);
+         t.writeTextTable(outfileS, IOFileFormat.Text, ifOut);
+         System.out.println("The number of sites is: " + t.getRowNumber());
+         System.out.println("The number of cntNNNN sites is: " + cntNNNN);
+         System.out.println("The number of cntYYNN sites is: " + cntYYNN);
+         System.out.println("The number of cntNNYY sites is: " + cntNNYY);
+         System.out.println("The number of cntYYYY sites is: " + cntYYYY);
+         System.out.println("The number of cntsame sites is: " + cntsame);
+         System.out.println("The number of cntdiff sites is: " + cntdiff);
+         /*
+        The number of sites is: 195735
+        The number of cntNNNN sites is: 1716
+        The number of cntYYNN sites is: 4628
+        The number of cntNNYY sites is: 0
+        The number of cntYYYY sites is: 189391
+        The number of cntsame sites is: 175505
+        The number of cntdiff sites is: 13886
+         */
+        
+         
+     }
+     public void convertHotspotsEnd_AGPV2toAGPV4 () {
+        String infileDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/source_agpv4/RodgersMelnick2015PNAS_usnamImputedXOsegments_agpv4start.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/source_agpv4/RodgersMelnick2015PNAS_usnamImputedXOsegments_agpv4.txt";
+        String tempInputbedFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/temp/RodgersMelnick2015PNAS_usnamImputedXOsegments_agpv4end.bed";
+        String outputbedFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/temp/RodgersMelnick2015PNAS_usnamImputedXOsegments_agpv4end.bed.con";
+        String myPythonPath = "/Users/Aoyue/miniconda3/bin/python";
+        String myCrossMapPath = "/Users/Aoyue/miniconda3/bin/CrossMap.py";
+        String myMaizeChainPath = "/Users/Aoyue/Documents/Data/referenceGenome/crossMap/AGPv2_to_AGPv4.chain.gz";
+        RowTable<String> t = new RowTable (infileDirS);
+        int[] chr = new int[t.getRowNumber()]; 
+        int[] pos = new int[t.getRowNumber()]; 
+        for (int i = 0; i < chr.length; i++) {
+            chr[i] = Integer.parseInt(t.getCell(i, 0));
+            pos[i] = Integer.parseInt(t.getCell(i, 5));
+        }
+        CrossMapUtils cm = new CrossMapUtils(chr, pos, tempInputbedFileS);
+        /*chain file download position: ftp://ftp.ensemblgenomes.org/pub/plants/release-40/assembly_chain/zea_mays/ */
+        cm = new CrossMapUtils(myPythonPath, myCrossMapPath, myMaizeChainPath, tempInputbedFileS, outputbedFileS );
+        cm.convert();
+        List<int[]> l = cm.getConvertedCoordinate();
+        //cm.deleteBedFiles();
+        chr = l.get(0);
+        pos = l.get(1);
+        for (int i = 0; i < t.getRowNumber(); i++) {
+            t.setCell(i, 5, String.valueOf(pos[i]));
+            //t.setCell(i, 0, String.valueOf(chr[i]));
+        }
+        String[] chrS = new String[chr.length];
+        for (int i=0; i< chr.length; i++){
+            chrS[i] = String.valueOf(chr[i]);
+        }
+        t.insertColumn("chr", 6, Arrays.asList(chrS));
+        t.writeTextTable(outfileS, IOFileFormat.Text);
     }
     
+     public void convertHotspotsStart_AGPV2toAGPV4 () {
+        String infileDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/source_agpv2/RodgersMelnick2015PNAS_usnamImputedXOsegments.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/source_agpv4/RodgersMelnick2015PNAS_usnamImputedXOsegments_agpv4start.txt";
+        String tempInputbedFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/temp/RodgersMelnick2015PNAS_usnamImputedXOsegments_agpv4start.bed";
+        String outputbedFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/temp/RodgersMelnick2015PNAS_usnamImputedXOsegments_agpv4start.bed.con";
+        String myPythonPath = "/Users/Aoyue/miniconda3/bin/python";
+        String myCrossMapPath = "/Users/Aoyue/miniconda3/bin/CrossMap.py";
+        String myMaizeChainPath = "/Users/Aoyue/Documents/Data/referenceGenome/crossMap/AGPv2_to_AGPv4.chain.gz";
+        RowTable<String> t = new RowTable (infileDirS);
+        int[] chr = new int[t.getRowNumber()]; 
+        int[] pos = new int[t.getRowNumber()]; 
+        for (int i = 0; i < chr.length; i++) {
+            chr[i] = Integer.parseInt(t.getCell(i, 0));
+            pos[i] = Integer.parseInt(t.getCell(i, 4));
+        }
+        CrossMapUtils cm = new CrossMapUtils(chr, pos, tempInputbedFileS);
+        /*chain file download position: ftp://ftp.ensemblgenomes.org/pub/plants/release-40/assembly_chain/zea_mays/ */
+        cm = new CrossMapUtils(myPythonPath, myCrossMapPath, myMaizeChainPath, tempInputbedFileS, outputbedFileS );
+        cm.convert();
+        List<int[]> l = cm.getConvertedCoordinate();
+        //cm.deleteBedFiles();
+        chr = l.get(0);
+        pos = l.get(1);
+        for (int i = 0; i < t.getRowNumber(); i++) {
+            t.setCell(i, 0, String.valueOf(chr[i]));
+            t.setCell(i, 4, String.valueOf(pos[i]));
+        }
+        t.writeTextTable(outfileS, IOFileFormat.Text);
+    }
 }
