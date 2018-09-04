@@ -81,7 +81,7 @@ public class Delicay {
         //this.mkSIFTxlsSimple();
         //this.getVariantType();
         //this.countVariant();
-        //this.mergeCountVariantFile();  
+        this.mergeCountVariantFile();  
         //this.mkSIFTvcfSimple();
         //this.countVariant2();
         //this.mkV4CentromerePos();

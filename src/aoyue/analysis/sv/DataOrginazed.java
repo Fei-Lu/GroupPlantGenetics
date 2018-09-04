@@ -29,9 +29,9 @@ import utils.IOUtils;
 public class DataOrginazed {
     public DataOrginazed(){
         //this.listAllFiles();
-        //this.listSpecificalFiles();
+        this.listSpecificalFiles();
         this.md5();
-        //this.checkMd5();
+        this.checkMd5();
         //this.test();
         //this.coverage();
         this.sample();
@@ -214,6 +214,7 @@ public class DataOrginazed {
 
     private void listSpecificalFiles() {
         String path = "/Volumes/Seagate Backup Plus Drive/BJ170733-01遗传所96个小麦DNA建库PCR-free测序过滤任务单/upload/Cleandata";
+        //
         File test = new File (path);
         File[] fs = IOUtils.listRecursiveFiles(test);
 //        File[] fs = IOUtils.listRecursiveFiles(new File(path));

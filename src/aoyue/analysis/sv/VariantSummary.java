@@ -8,8 +8,10 @@ package aoyue.analysis.sv;
 import com.google.common.collect.Table;
 import format.genomeAnnotation.GeneFeature;
 import format.range.Range;
+import format.range.Ranges;
 import format.table.RowTable;
 import gnu.trove.list.array.TByteArrayList;
+import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import graphcis.r.DensityPlot;
 import java.io.BufferedReader;
@@ -20,6 +22,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import utils.IOFileFormat;
+import static utils.IOFileFormat.Text;
 import utils.IOUtils;
 import utils.PStringUtils;
 
@@ -38,11 +41,310 @@ public class VariantSummary {
         //this.filterHmp321Info();
         //this.filterHmp321Info_bysiftTrans();
         //this.summarizeTranscript();
-        
-        this.summarizeTranscript2();
+        //this.summarizeTranscript2();
+       //this.classifySNPs();
+       //this.test();
+       this.mkBarplotOfSNPs();
     }
     
-   
+  
+    
+    private void mkBarplotOfSNPs () {
+        String infileDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/004_snpclass/class";
+        String countFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/004_snpclass/classCount.txt";
+        String mafDistrubutionFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/004_snpclass/mafSFS.txt";
+        String dafDistrubutionFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/004_snpclass/dafSFS.txt";
+        //int sampleSize = 10000;
+        File[] fs = new File(infileDirS).listFiles();
+        for (int i = 0; i < fs.length; i++) {
+            if(fs[i].isHidden()){
+                System.out.println(fs[i].getName() + " is hidden");
+                fs[i].delete();
+            }
+        }
+        fs = new File(infileDirS).listFiles(); //将文件删除后，重新将文件列表打印出来，此时，fs不包含隐藏文件。
+        /*建立一个边界数组bound，大小是100；bound[i] = 1/100*i;即，均分为100等分！
+        建立一个二维数组mafFrequency 和 dafFrequency， 长度为class的种类长，100宽；
+        建立一个count 和 dafCount 数组，长度为class分类长；
+        建立一个 mafList 和 dafList 数组，长度为class分类长；
+        
+        进入for循环，对class文件一一遍历，以读表格的形式进入文件
+        Chr	Pos	MinorAllele	MAF	DerivedAllele	DAF
+        1	92716	A	0.0077619664	NA	NA
+        1	93774	G	8.130081E-4	A	0.9991869919
+        1	122123	C	0.0012254902	C	0.0012254902
+        做以下几件事情：1，数行数，看每个分类的个数；每个位点一定有maf的值，但不一定有daf的值，因为DA allele不一定存在，若不存在，则DAF值为空。
+        2，将maf的值加入mafList;在bound数组里搜索，如果未搜到，则index = - index -2; 否则mafFrequency[i][index]++;
+        如果DAF不以N开头，则将daf的值加入 dafList;在bound数组里搜索，如果未搜到，则index = - index -2; 否则dafFrequency[i][index]++; dafCount数组加一
+        在此循环内，进入进入另一个for循环j，做统计：
+        计算出maf 和daf 在 index 1-100 bin范围内,各个位点所占的百分比。即 index=1, 所有位点count= rownumber， frenquency = index /count；
+        */
+        int size = 100;
+        double[] bound = new double[size];
+        for (int i = 1; i < bound.length; i++) {
+            bound[i] = (double)1/size*i;
+        }
+        double[][] mafFrequency = new double[fs.length][size];
+        double[][] dafFrequency = new double[fs.length][size];
+        int[] count = new int[fs.length];
+        int[] dafCount = new int[fs.length];
+        TDoubleArrayList[] mafList = new TDoubleArrayList[fs.length];
+        TDoubleArrayList[] dafList = new TDoubleArrayList[fs.length];
+        for (int i = 0; i < fs.length; i++) {
+            mafList[i] = new TDoubleArrayList(); //这里为何要再new一下？
+            dafList[i] = new TDoubleArrayList(); //这里为何要再new一下？
+            String infileS = fs[i].getAbsolutePath(); 
+            RowTable<String> t = new RowTable<>(infileS);
+            count[i] = t.getRowNumber();
+            for (int j = 0; j < t.getRowNumber(); j++) {
+                double value = t.getCellAsDouble(j, 3);
+                mafList[i].add(value);
+                int index = Arrays.binarySearch(bound, value);
+                if (index < 0) index = -index -2;
+                //例如 0.112021856在bound搜索结果为-13，则此时index为11，及0.1-0.2范围内。好神奇！！又如0.112394，index也是11.
+                //又如0.21652在bound搜索结果中为-23,这样index=21， 这样就将maf的值按照1-100分布开来。
+                mafFrequency[i][index]++; 
+                if (!t.getCell(j, 5).startsWith("N")) {
+                    value = t.getCellAsDouble(j, 5);
+                    dafList[i].add(value);
+                    index = Arrays.binarySearch(bound, value);
+                    if (index < 0) index = -index -2;
+                    dafFrequency[i][index]++;
+                    dafCount[i]++;
+                }
+            }
+            for (int j = 0; j < mafFrequency[i].length; j++) {
+                mafFrequency[i][j] = mafFrequency[i][j]/count[i];
+                dafFrequency[i][j] = dafFrequency[i][j]/dafCount[i];
+            }
+        }
+        /*打表格，输入表头，去掉最后一个\t键；表头为4个文件的文件名；
+        第二行输入每个分类的conut数；
+        */
+        try {
+            BufferedWriter bw =IOUtils.getTextWriter(countFileS);
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < fs.length; i++) {
+                sb.append(fs[i].getName().replaceFirst(".txt", "")).append("\t");
+            }
+            sb.deleteCharAt(sb.length()-1);
+            bw.write(sb.toString());
+            bw.newLine();
+            for (int i = 0; i < count.length-1; i++) {
+                bw.write(String.valueOf(count[i])+"\t");
+            }
+            bw.write(String.valueOf(count[count.length-1]));
+            bw.newLine();
+            bw.flush();
+            bw.close();
+            bw =IOUtils.getTextWriter(mafDistrubutionFileS);
+            bw.write("MAF");
+            for (int i = 0; i < fs.length; i++) {
+                bw.write("\t"+fs[i].getName().replaceFirst(".txt", ""));
+            }
+            bw.newLine();
+            /*double[][] mafFrequency = new double[fs.length][size] 文件长度为4，size为100*/
+            for (int i = 0; i < mafFrequency[0].length; i++) { //i小于第一个文件的长度100
+                bw.write(String.valueOf(bound[i]));
+                for (int j = 0; j < mafFrequency.length; j++) { //j小于400，将1-100的频率写出来
+                    bw.write("\t"+mafFrequency[j][i]);
+                }
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+            bw =IOUtils.getTextWriter(dafDistrubutionFileS); 
+            bw.write("DAF");
+            for (int i = 0; i < fs.length; i++) {
+                bw.write("\t"+fs[i].getName().replaceFirst(".txt", ""));
+            }
+            bw.newLine();
+            for (int i = 0; i < dafFrequency[0].length; i++) {
+                bw.write(String.valueOf(bound[i]));
+                for (int j = 0; j < dafFrequency.length; j++) {
+                    bw.write("\t"+dafFrequency[j][i]);
+                }
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    
+    public void test(){
+        int size = 100;
+        double[] bound = new double[size];
+        for (int i = 1; i < bound.length; i++) {
+            bound[i] = (double)1/size*i;
+        }
+        double b = 0.112021856;
+        double c = 0.21652;
+        double d = 0.112394;
+        int index = Arrays.binarySearch(bound, b);
+        int index1 = Arrays.binarySearch(bound, c);
+        int index2 = Arrays.binarySearch(bound, d);
+        int a =3;
+    }
+    
+      /**
+     * Step 1: filtered out low quality gene models. Non/syn ratio less than 2.5
+     * Step 2: classify SNPs into different classes based on only high confidence gene models. Deleterious mutations (SIFT less than 0.05, GERP greater than 2)
+     */
+    
+    
+    private void classifySNPs () {
+        String geneFileS = "/Users/Aoyue/Documents/Data/referenceGenome/GeneAnnotation/Zea_mays.AGPv4.38.pgf";
+        String geneSummaryFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/003_transcriptSummary/transcriptSummary.txt";
+        String infileDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/002_hmp321SiftTrans_filter";
+        String outfileDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/004_snpclass/class";
+        String transcriptFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/004_snpclass/highConfidence_transcript.txt";
+        String[] types = {"Synonymous", "Non_Synonymous_Tolerent", "Non_Synonymous_Deleterious", "Non_Synonymous_Deleterious_High_GERP"};
+        
+        double gerpCut = 0;
+        double nonSynRatioCut = 2.5;//filter incorrect gene model
+        double nonSynGeneCut = 0.02;
+        RowTable t = new RowTable (geneSummaryFileS);
+        boolean[] ifOut = new boolean[t.getRowNumber()];
+        ArrayList<String> tranNameList = new ArrayList();
+        for (int i = 0; i < t.getRowNumber(); i++) {
+            if (!t.getCell(i, 4).equals("1")) continue; //有sift信息
+            if (!t.getCell(i, 14).equals("1")) continue; //filter incorrect gene model by picking up gerp aligned genes
+            double ratio = t.getCellAsDouble(i, 9); //非同义突变除以同义突变
+            double nonSyn = t.getCellAsDouble(i, 8);
+            if (Double.isNaN(ratio)) { //说明比值是一个NaN，此基因中没有同义突变，只有非同义突变， 若非同义突变大于0.02就删去不要
+                if (nonSyn > nonSynGeneCut) continue;
+                tranNameList.add(t.getCellAsString(i, 1));
+                ifOut[i] = true;
+            }
+            else {
+                if (ratio > nonSynRatioCut) continue; /*非同义突变除以同义突变 大于2.5，则删除不要*/
+                tranNameList.add(t.getCellAsString(i, 0));
+                ifOut[i] = true; //如果是对的，就将true赋值给ifOut
+            }
+        }
+        t.writeTextTable(transcriptFileS, Text, ifOut);
+        String[] tranName = tranNameList.toArray(new String[tranNameList.size()]);
+        System.out.println(String.valueOf(tranName.length) + "genes kept");
+        Arrays.sort(tranName);
+        /*对gf文件进行过滤，挑出高质量的gene model，如果gf文件中的基因在tranName中搜到，代表是高质量的基因，后续继续得到该基因的cdsList,
+            根据该基因的cdsList，我们知道了该基因的区域，后续判断中，如果输入文件是在该区域，则进行sift等信息的统计*/
+        GeneFeature gf = new GeneFeature(geneFileS);
+        gf.sortGeneByStartPosition();
+        ArrayList<Range> cdsList = new ArrayList();
+        for (int i = 0; i < gf.getGeneNumber(); i++) {
+            
+            int longTransIndex = gf.getLongestTranscriptIndex(i);
+            String query = gf.getTranscriptName(i, longTransIndex); //得到最长的转录本的名字
+            //String query = gf.getTranscriptName(i, 0);
+            int index = Arrays.binarySearch(tranName, query);
+            if (index < 0) continue;
+            List<Range> cdsl = gf.getCDSList(i, longTransIndex); /*获得每个基因的cdslist*/
+            for (int j = 0; j < cdsl.size(); j++) {
+                cdsList.add(cdsl.get(j)); /*cdsList是所有基因的cdslist之和*/
+            }
+        }
+        
+        /*把每个基因的cdslist放进cdsList,并按照起始位置排序*/
+        Rangescp rs = new Rangescp (cdsList, "cds");
+        
+        rs.sortByStartPosition();
+        File[] fs = new File(infileDirS).listFiles();
+        for (int i = 0; i < fs.length; i++) {
+            if(fs[i].isHidden()){
+                System.out.println(fs[i].getName() + " is hidden");
+                fs[i].delete();
+            }
+        }
+        fs = new File(infileDirS).listFiles(); //将文件删除后，重新将文件列表打印出来，此时，fs不包含隐藏文件。
+        Arrays.sort(fs);
+        try {
+            BufferedWriter[] bw = new BufferedWriter[types.length];
+            for (int i = 0; i < types.length; i++) {
+                String outfileS = new File (outfileDirS, types[i]+".txt").getAbsolutePath();
+                bw[i] = IOUtils.getTextWriter(outfileS);
+                bw[i].write("Chr\tPos\tMinorAllele\tMAF\tDerivedAllele\tDAF");
+                bw[i].newLine();
+            }
+            /*对每个文件（每条染色体）进行derived allele 计算， */
+            for (int i = 0; i < fs.length; i++) {
+                RowTable<String> t1 = new RowTable<> (fs[i].getAbsolutePath());
+                int chr = t1.getCellAsInteger(0, 0);
+                for (int j = 0; j < t1.getRowNumber(); j++) {
+                    int pos = t1.getCellAsInteger(j, 1);
+                    if (!rs.isInRanges(chr, pos)) continue; /*判断rs是否是ranges，不是的话，就跳过*/
+                    double maf = t1.getCellAsDouble(j, 7);
+                    String da = "NA"; /* da = derived allele */
+                    String daf = "NA"; /* daf = derived allele frequence */
+                    if (t1.getCell(j, 4).length() == 1) { /*是因为有些位点的ancestral allele是NA值，我们将这些位点排除掉*/
+                        /*如果ancestral allele存在,且等于major，则da等于第6列的minor, daf 就等于maf
+                          如果ancestral allele存在,且等于minor，则da等于第5列的major, daf 就等于 1-maf
+                        意思是，如果祖先基因和major相等，derived allele 就等于minor; 否则就等于 major*/
+                        String an = t1.getCell(j, 4);
+                        if (an.equals(t1.getCell(j, 5))) {
+                            da = t1.getCell(j, 6);
+                            daf = t1.getCell(j, 7);
+                        }
+                        else if (an.equals(t1.getCell(j, 6))) {
+                            da = t1.getCell(j, 5);
+                            daf = String.valueOf(1-Double.valueOf(t1.getCell(j, 7)));
+                        }
+                    }
+                    /*
+                    Chr	Pos	MinorAllele	MAF	DerivedAllele	DAF
+                    1	111527	A	0.0039893617	G	0.9960106383
+                    1	111542	T	0.0012987013	C	0.9987012987
+                    */
+                    if (t1.getCell(j, 16).equals("SYNONYMOUS")) {
+                        if (t1.getCell(j, 17).startsWith("N")) continue;
+                        double sift = t1.getCellAsDouble(j, 17);
+                        bw[0].write(String.valueOf(chr)+"\t"+String.valueOf(pos)+"\t"+t1.getCell(j, 6)+"\t"+String.valueOf(maf)+"\t"+da+"\t"+daf);
+                        bw[0].newLine();
+                    }
+                    if (t1.getCell(j, 16).equals("NONSYNONYMOUS")) {
+                        if (t1.getCell(j, 17).startsWith("N")) continue;
+                        double sift = t1.getCellAsDouble(j, 17);
+                        if (sift < 0.05) {
+                            if (t1.getCell(j, 15).startsWith("N")) continue;
+                            if (t1.getCellAsDouble(j, 15) > gerpCut) {
+                                bw[3].write(String.valueOf(chr)+"\t"+String.valueOf(pos)+"\t"+t1.getCell(j, 6)+"\t"+String.valueOf(maf)+"\t"+da+"\t"+daf);
+                                bw[3].newLine();
+                            }
+                            bw[2].write(String.valueOf(chr)+"\t"+String.valueOf(pos)+"\t"+t1.getCell(j, 6)+"\t"+String.valueOf(maf)+"\t"+da+"\t"+daf);
+                            bw[2].newLine();
+                        }
+                        else {
+                            bw[1].write(String.valueOf(chr)+"\t"+String.valueOf(pos)+"\t"+t1.getCell(j, 6)+"\t"+String.valueOf(maf)+"\t"+da+"\t"+daf);
+                            bw[1].newLine();
+                        }
+                        
+                    }
+//                    if (t1.content[j][14].equals("StopLoss")) {
+//                        bw[2].write(String.valueOf(chr)+"\t"+String.valueOf(pos)+"\t"+t1.content[j][6]+"\t"+String.valueOf(maf)+"\t"+da+"\t"+daf);
+//                        bw[2].newLine();
+//                    }
+//                    if (t1.content[j][14].equals("StopGain")) {
+//                        bw[3].write(String.valueOf(chr)+"\t"+String.valueOf(pos)+"\t"+t1.content[j][6]+"\t"+String.valueOf(maf)+"\t"+da+"\t"+daf);
+//                        bw[3].newLine();
+//                    }
+                }
+            }
+            for (int i = 0; i < types.length; i++) {
+                bw[i].flush();
+                bw[i].close();
+            }
+            
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    } 
+
+
     
     private void summarizeTranscript2(){
         String infileDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/001_hmp321Info_filter";
@@ -71,6 +373,7 @@ public class VariantSummary {
         int cntchr1to10 = 0;
         for (int i = 0; i < gf.getGeneNumber(); i++) {
             int chrIndex = gf.getGeneChromosome(i)-1;
+            /*这个地方是先过滤数据，将定位在11号12号染色体上的基因过滤掉，并且跳出循环*/
             if (chrIndex >9) {
                 cntchr11and12++;
                 continue;
@@ -184,7 +487,7 @@ public class VariantSummary {
                     int geneIndex = Arrays.binarySearch(genes, gene); //在genes数组里搜索 sift中的基因
                     if (geneIndex < 0) continue;
                     int pos = Integer.valueOf(l.get(1));
-                    int index = Arrays.binarySearch(snpPos[chrIndex], pos);
+                    int index = Arrays.binarySearch(snpPos[chrIndex], pos); // 
                     if (index < 0) continue;
                     if (snps[chrIndex][index] != l.get(3).getBytes()[0]) continue;
                     byte ref = l.get(2).getBytes()[0];
