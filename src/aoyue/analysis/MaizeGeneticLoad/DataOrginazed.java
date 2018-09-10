@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package aoyue.analysis.sv;
+package aoyue.analysis.MaizeGeneticLoad;
 
 import format.table.RowTable;
 import format.table.TableInterface;

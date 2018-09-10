@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package aoyue.analysis.sv;
+package aoyue.analysis.MaizeGeneticLoad;
 
 import format.genomeAnnotation.GeneFeature;
 import format.range.Range;
@@ -31,12 +31,8 @@ import utils.PStringUtils;
          //this.convertHotspotsStart_AGPV2toAGPV4();
          //this.convertHotspotsEnd_AGPV2toAGPV4();
          //this.checkNumberofDifChr();
-         //this.makeRecombinationPointTable();
-         //this.mkBinTable();
-         
-         
-         
-         
+         this.makeRecombinationPointTable();
+         this.mkBinTable();
     }
      private void mkBinTable () {
         String transcriptFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/004_snpclass/highConfidence_transcript.txt";
@@ -48,10 +44,10 @@ import utils.PStringUtils;
         String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/binTable.txt";
         int chrNum = 10;
         int binSize = 10000000; // 10个million
-        /*
-        每条染色体都有一个bounds[]；都有一个crossover[] 和 cdsLength[];都有一个del[]; 都有一个syn[];
+        /**
+         * 每条染色体都有一个bounds[]；都有一个crossover[] 和 cdsLength[];都有一个del[]; 都有一个syn[];
         将中心粒的文件读进表格，Chromosome	Length(V4)	CentromereS	CentromereE
-                            1	307041717	136770000	137120000
+               1	307041717	136770000	137120000
         进行Bin分区；
         */
         int[][] bounds = new int[chrNum][];
@@ -152,7 +148,7 @@ import utils.PStringUtils;
     }
      
      private void makeRecombinationPointTable () {
-        String inDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/finalSource/";
+        String inDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/source_final";
         String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/recombinationPoint.txt";
         int chrNum = 10;
         File[] fs = new File(inDirS).listFiles();
@@ -196,16 +192,15 @@ import utils.PStringUtils;
      public void checkNumberofDifChr(){
          String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/source_agpv4/RodgersMelnick2015PNAS_usnamImputedXOsegments_agpv4.txt";
          String outfileS ="/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/source_agpv4/usnamImputedXOsegments_agpv4.txt";
-         RowTable<String> t = new RowTable<>(infileS);
-         boolean[] ifOut = new boolean[t.getRowNumber()];
+         
          int cntNNNN =0;
          int cntYYNN =0;
          int cntNNYY =0;
          int cntYYYY =0;
          int cntsame =0;
          int cntdiff =0;
-         //List<String[]> l = new ArrayList<>();
-         String[] rowContent = null;
+         RowTable<String> t = new RowTable<>(infileS);
+         boolean[] ifOut = new boolean[t.getRowNumber()];
          for (int i = 0; i< t.getRowNumber(); i++){
              String chr1st = t.getCell(i, 0);
              String chr2nd = t.getCell(i, 6);

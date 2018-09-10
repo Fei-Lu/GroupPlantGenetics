@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package aoyue.analysis.sv;
+package aoyue.analysis.MaizeGeneticLoad;
 
 import com.google.common.collect.Table;
 import format.genomeAnnotation.GeneFeature;
@@ -11,9 +11,12 @@ import format.range.Range;
 import format.range.Ranges;
 import format.table.RowTable;
 import gnu.trove.list.array.TByteArrayList;
+import gnu.trove.list.array.TCharArrayList;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import graphcis.r.DensityPlot;
+import graphcis.r.Histogram;
+import graphcis.r.ScatterPlot;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -24,6 +27,7 @@ import java.util.List;
 import utils.IOFileFormat;
 import static utils.IOFileFormat.Text;
 import utils.IOUtils;
+import utils.PArrayUtils;
 import utils.PStringUtils;
 
 /**
@@ -40,14 +44,290 @@ public class VariantSummary {
         //this.density();
         //this.filterHmp321Info();
         //this.filterHmp321Info_bysiftTrans();
-        //this.summarizeTranscript();
-        this.summarizeTranscript2();
-       //this.classifySNPs();
-       //this.test();
-       //this.mkBarplotOfSNPs();
+        //this.filterHmp321Info_bysiftTrans_useDataBase();
+        
+//        this.summarizeTranscript_deprecated();
+//        this.summarizeTranscript2();
+//       this.classifySNPs();
+//       this.binarySearchtest();
+//       this.mkBarplotOfSNPs();
+//       this.mkHmp321MafPlot();
+//       this.mkHmp321MafPlot_useR();
+//       this.SiftGerp_Correlation();
+       this.countDeleteriousHmp321();
+    }
+    
+    private void countDeleteriousHmp321 () {
+        String hmpDirS = "/Volumes/Lulab3T_14/hmp321_agp4";
+        String infoFileS = "/Users/Aoyue/Documents/Data/referenceGenome/position/ChrLenCentPosi_agpV4.txt";
+        String deleFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/004_snpclass/class/Non_Synonymous_Deleterious.txt";
+        String addCountFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/additiveDeleterious_hmp321.txt";
+        String recCountFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/reccesiveDeleterious_hmp321.txt";
+        int minDepth = 2;//inclusive
+        /**
+         *将info读进表格
+         * 定义一个整型数组 chrLength[] 分别为{1，2，3，4，5，6，7，8，9，10}
+         * 定义一个整型集合chrList 分别为[1,2,3,4,5,6,7,8,9,10]
+         * 
+         * 将deleFileS读进表格
+         * 定义一个整型集合类的数组 posList[10]，并进行初始化集合， 分别为 posList[0] posList[1]...
+         * 定义一个字符型集合类的数组 charList[10]，并进行初始化集合， 分别为charList[0] charList[1]...
+         * 如果DerivedAllele大于1，跳过
+         * 将表格pos信息读进对应的posList[i];将DerivedAllele信息读进对应的charList[i]
+         * 将集合类的数组posList[10]和charList[10] 转化为二维数组 delePos[10][]  deleChar[10][]
+         * 
+         */
+        RowTable t = new RowTable (infoFileS);
+        int chrNum = t.getRowNumber();
+        int[] chrLength = new int[chrNum];
+        ArrayList<Integer> chrList = new ArrayList();
+        for (int i = 0; i < chrNum; i++) {
+            chrLength[i] = t.getCellAsInteger(i, 1);
+            chrList.add(i+1);
+        }
+        /**
+         * Chr	Pos	MinorAllele	MAF	DerivedAllele	DAF
+            1	93755	T	0.0031847134	T	0.0031847134
+            1	122211	T	0.0018773467	T	0.0018773467
+         */
+        t = new RowTable (deleFileS);
+        TIntArrayList[] posList = new TIntArrayList[chrNum];
+        TCharArrayList[] charList = new TCharArrayList[chrNum];
+        for (int i = 0; i < chrNum; i++) {
+            posList[i] = new TIntArrayList();
+            charList[i] = new TCharArrayList();
+        }
+        for (int i = 0; i < t.getRowNumber(); i++) {
+            int index = t.getCellAsInteger(i, 0)-1; 
+            if (t.getCellAsString(i, 4).length()>1) continue; /*如果DerivedAllele大于1，跳过*/
+            posList[index].add(t.getCellAsInteger(i, 1));
+            charList[index].add(t.getCellAsString(i, 4).charAt(0));
+        }
+        int[][] delePos = new int[chrNum][];
+        char[][] deleChar = new char[chrNum][];
+        for (int i = 0; i < chrNum; i++) {
+            delePos[i] = posList[i].toArray();
+            deleChar[i] = charList[i].toArray();
+        }
+        /**
+         * Get taxa's name 并建立数组taxa[]
+         * 建立double型数组addCount[]， 整型数组recCount[] siteWithMinDepthCount[]
+         * 对每条染色体做多线程处理，对每个含有有害突变的位点delePos进行 addCount（加性效应0/1）计数，recCount (隐形效应计数)计数， 深度（AD（0，1））大于2的taxa数目计数。
+         * 
+         */
+        String hmpChr10FileS = "/Users/Aoyue/Documents/maizeGeneticLoad/oriData/hmp321_agpv4_chr10_10000.vcf";
+        //hmpChr10FileS = new File(hmpDirS, hmpChr10FileS).getAbsolutePath();
+        File hmpChr10Flie = new File(hmpChr10FileS);
+        String[] taxa = null;
+        try {
+            BufferedReader br = IOUtils.getTextReader(hmpChr10FileS);
+            String temp = br.readLine();
+            while ((temp = br.readLine()).startsWith("##")) {}
+            List<String> l = PStringUtils.fastSplit(temp, "\t");
+            taxa = new String[l.size()-9];
+            for (int i = 9; i < l.size(); i++) {
+                taxa[i-9] = l.get(i);
+            }
+            br.close();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        int taxaNum = taxa.length;
+        double[] addCount = new double[taxa.length];
+        int[] recCount = new int[taxa.length];
+        int[] siteWithMinDepthCount = new int[taxa.length];
+        chrList.parallelStream().forEach(chr -> {
+            String hmpFileS = "hmp321_agpv4_chr"+String.valueOf(chr)+".vcf.gz";
+            hmpFileS = new File(hmpDirS, hmpFileS).getAbsolutePath();
+            BufferedReader br = IOUtils.getTextGzipReader(hmpFileS);
+            int chrIndex = chr-1;
+            try {
+                String temp = br.readLine();
+                while ((temp = br.readLine()).startsWith("##")) {}
+                int cnt = 0;
+                while ((temp = br.readLine()) != null) {
+                    cnt++;
+                    if (cnt%1000000 == 0) System.out.println(String.valueOf(cnt)+" lines on chr "+String.valueOf(chr));
+                    List<String> l = PStringUtils.fastSplit(temp.substring(0, 50), "\t");
+                    int pos = Integer.valueOf(l.get(1));
+                    int index = Arrays.binarySearch(delePos[chrIndex], pos);
+                    if (index < 0) continue;
+                    l = PStringUtils.fastSplit(temp, "\t");
+                    int[] idx = new int[2]; //
+                    if (l.get(3).charAt(0) == deleChar[chrIndex][index]) {
+                        idx[0] = 0; idx[1] = 1;
+                    }
+                    else idx[0] = 1; idx[1] = 0;
+                    for (int i = 0; i < taxaNum; i++) {
+                        String genoS = l.get(i+9);
+                        if (genoS.startsWith(".")) continue;
+                        List<String> ll = PStringUtils.fastSplit(genoS, ":");
+                        List<String> lll = PStringUtils.fastSplit(ll.get(1), ",");
+                        int depth = Integer.valueOf(lll.get(0))+Integer.valueOf(lll.get(1));
+                        if (depth < minDepth) continue;
+                        lll = PStringUtils.fastSplit(ll.get(0), "/");
+                        int v1 = Integer.valueOf(lll.get(0));
+                        int v2 = Integer.valueOf(lll.get(1));
+                        int sum = 0;
+                        if (v1 == idx[0]) sum++;
+                        if (v2 == idx[0]) sum++;
+                        if (sum == 0) {}
+                        else if (sum == 1) {
+                            addCount[i] += 0.5; //????
+                        }
+                        else {
+                            addCount[i] += 1;
+                            recCount[i] += 1;
+                        }
+                        siteWithMinDepthCount[i]++;
+                    }
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }); 
+        try {
+            BufferedWriter bw = IOUtils.getTextWriter(addCountFileS);
+            bw.write("Taxa\tDeleteriousCountPerHaplotype\tSiteCountWithMinDepth");
+            bw.newLine();
+            for (int i = 0; i < addCount.length; i++) {
+                bw.write(taxa[i]+"\t"+String.valueOf(addCount[i])+"\t"+String.valueOf(siteWithMinDepthCount[i]));
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+            bw = IOUtils.getTextWriter(recCountFileS);
+            bw.write("Taxa\tDeleteriousCountPerLine\tSiteCountWithMinDepth");
+            bw.newLine();
+            for (int i = 0; i < recCount.length; i++) {
+                bw.write(taxa[i]+"\t"+String.valueOf(recCount[i])+"\t"+String.valueOf(siteWithMinDepthCount[i]));
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void SiftGerp_Correlation(){
+        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/002_hmp321SiftTrans_filter/hmp321Info_filterbySift_chr010.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/006_SiftGerpCorrelation/siftGerpCorrelation.pdf";
+        RowTable<String> t = new RowTable (infileS);
+        int[] index = PArrayUtils.getRandomIntArray(t.getRowNumber(), 20000); //返回整型类的数组，抽取1万个位点进行测试！
+        TDoubleArrayList siftList = new TDoubleArrayList();
+        TDoubleArrayList gerpList = new TDoubleArrayList();
+        for (int i = 0; i < index.length; i++) {
+            if (t.getCell(index[i], 17).startsWith("N")) continue; //过滤sift值是NA的位点
+            if (!t.getCell(i, 16).startsWith("NON")) continue; //过滤同义突变的位点
+            if (t.getCell(index[i], 15).startsWith("N")) continue; //过滤Gerp是NA的位点
+            siftList.add(Double.valueOf(t.getCell(index[i], 17))); //将SIFT值加入
+            gerpList.add(Double.valueOf(t.getCell(index[i], 15))); // 将GERP值加入
+        }
+        ScatterPlot s = new ScatterPlot (siftList.toArray(), gerpList.toArray());
+        s.setColor(255, 0, 0, 20); //
+        s.setPlottingCharacter(16);
+        s.setTitle("Conservation Vs effect of variants in coding sequence");
+        s.setXLim(0, 1);
+        s.setYLim(-10, 5);
+        s.setXLab("SIFT score");
+        s.setYLab("GERP score");
+        s.showGraph();
+        s.saveGraph(outfileS);
+    }
+    
+    private void mkHmp321MafPlot_useR(){
+        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/001_hmp321Info_filter/hmp321Info_filter_chr001_AGPv4_AnnoDB.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/005_hmp321MafPlot/maf.pdf";
+        BufferedReader br = IOUtils.getTextReader(infileS);
+        try{
+            String header = br.readLine();
+            String temp = null;
+            List<String> l = null;
+            TDoubleArrayList mafList = new TDoubleArrayList();
+            int cnt = 0;
+            int random = 0;
+            while((temp = br.readLine()) != null){
+                double r = Math.random();
+                if (r > 0.002) continue;
+                random++;
+                l = PStringUtils.fastSplit(temp);
+                if((temp = l.get(7)).equals("NA")){
+                    cnt++;
+                }
+                else{
+                    mafList.add(Double.parseDouble(l.get(7)));
+                }
+            }
+            System.out.println(cnt + " is NA");
+            System.out.println(random + " is random");
+            br.close();
+            double[] mafValue = mafList.toArray();
+            Histogram dd = new Histogram(mafValue);
+            dd.setTitle("");
+            dd.setXLab("Minor allele frequency");
+            dd.setYLab("Frequency");
+            dd.setBreakNumber(20);
+            dd.setXLim(0, 0.5);
+            dd.saveGraph(outfileS);
+            dd.showGraph();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+        
     }
     
   
+    private void mkHmp321MafPlot () {
+        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/001_hmp321Info_filter/hmp321Info_filter_chr001_AGPv4_AnnoDB.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/005_hmp321MafPlot/hmp321MafFre.txt";
+        TDoubleArrayList list = new TDoubleArrayList();
+        try {
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            String temp = br.readLine();
+            int sum = 0;
+            while ((temp = br.readLine()) != null) {
+                List<String> l = PStringUtils.fastSplit(temp);
+                if (l.get(7).contains(",")) continue;
+                list.add(Double.valueOf(l.get(7)));
+                sum++;
+                if (sum%100000 == 0) System.out.println(sum);
+            }
+            int size = 20; //分成20个bin,每个bin 0.025
+            double[] bound = new double[size];
+            int[] count = new int[size];
+            double[] ratio = new double[size];
+            for (int i = 1; i < bound.length; i++) { //bound[1]=0.025; bound[2]=0.05;bound[3]=0.075;bound[19]=0.475; 注意，bound[0]=0(double类型默认是0);
+                bound[i] = (double)0.5/size*i;
+            }
+            double[] value = list.toArray();// 将集合转化为数组，遍历数组，在bound中搜索定位区间，并统计各区间的个数，后续将各区间的个数除以总得数组，计算出频率ratio.
+            for (int i = 0; i < value.length; i++) {
+                int index = Arrays.binarySearch(bound, value[i]);
+                if (index < 0) index = -index-2;
+                count[index]++; 
+            }
+            for (int i = 0; i < ratio.length; i++) {
+                ratio[i] = (double)count[i]/sum;
+            }
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            bw.write("MAF\tFrequency");
+            bw.newLine();
+            for (int i = 0; i < ratio.length; i++) {
+                bw.write(String.valueOf(bound[i])+"\t"+String.valueOf(ratio[i]));
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     
     private void mkBarplotOfSNPs () {
         String infileDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/004_snpclass/class";
@@ -175,7 +455,7 @@ public class VariantSummary {
     }
     
     
-    public void test(){
+    public void binarySearchtest(){
         int size = 100;
         double[] bound = new double[size];
         for (int i = 1; i < bound.length; i++) {
@@ -653,7 +933,7 @@ public class VariantSummary {
         
     }
    
-    private void summarizeTranscript(){
+    private void summarizeTranscript_deprecated(){
         String infileDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/001_hmp321Info_filter";
         String geneFeatureFileS = "/Users/Aoyue/Documents/Data/referenceGenome/GeneAnnotation/Zea_mays.AGPv4.38.pgf";
         String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/003_transcriptSummary/transcriptSummary.txt";
@@ -955,6 +1235,49 @@ public class VariantSummary {
     }
     
     
+    private void filterHmp321Info_bysiftTrans_useDataBase(){
+        String inDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/annoDB_new";
+        String outDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/002_hmp321SiftTrans_filter_useDatabase";
+        File[] fs = new File(inDirS).listFiles();
+        fs = IOUtils.listFilesStartsWith(fs, "hmp");
+        List<File> fList = Arrays.asList(fs);
+        fList.parallelStream().forEach(f -> {
+            String outfileS = new File(outDirS, "hmp321Info_filterbySift_" + f.getName().split("Info_")[1].replaceFirst("_AGPv4_AnnoDB.txt.gz", ".txt")).getAbsolutePath();
+            BufferedReader br = IOUtils.getTextGzipReader(f.getAbsolutePath());
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            try{
+                String header = br.readLine();
+                bw.write(header);
+                bw.newLine();
+                String temp = null;
+                List<String> l = null;
+                int cnt = 0;
+                while((temp = br.readLine()) != null){
+                    l = PStringUtils.fastSplit(temp);
+                    String trans = l.get(17);
+                    if(trans.equals("NA"))continue; /*如果siftascore的值为NA，则无法判断其为有害或是中性突变。我们要筛选即有sift变异类型又有sift值的sites*/
+                    cnt++;
+                    bw.write(temp);
+                    bw.newLine();
+                }
+                bw.flush();
+                bw.close();
+                br.close();
+                System.out.println(String.valueOf(cnt)+"\t"+ f.getName().split("Info_")[1].replaceFirst("_AGPv4_AnnoDB.txt", "") + " trans sites");
+            }
+            catch(Exception e){
+                e.printStackTrace();
+                System.exit(1);
+                
+            }
+        });
+        
+    }
+    
+    /*
+    Conservation Vs effect of variants in coding sequence
+    */
+    
     private void filterHmp321Info_bysiftTrans(){
         String inDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/001_hmp321Info_filter";
         String outDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/002_hmp321SiftTrans_filter";
@@ -975,7 +1298,7 @@ public class VariantSummary {
                 while((temp = br.readLine()) != null){
                     l = PStringUtils.fastSplit(temp);
                     String trans = l.get(17);
-                    if(trans.equals("NA"))continue;
+                    if(trans.equals("NA"))continue; /*如果siftascore的值为NA，则无法判断其为有害或是中性突变。我们要筛选即有sift变异类型又有sift值的sites*/
                     cnt++;
                     bw.write(temp);
                     bw.newLine();
@@ -997,14 +1320,13 @@ public class VariantSummary {
     
     private void filterHmp321Info () {
         String inDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/annoDB_new";
-        String outDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/testtt";
+        String outDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/001_hmp321Info_filter";
         int minMinorDepth = 3;
         double maxIndiDepth = 7;
         int siteDepthCut = 5000;
         double siteHeterozygousCut = 0.15;
         File[] fs = new File(inDirS).listFiles();
         List<File> fList = Arrays.asList(fs);
-        
         fList.stream().forEach(f -> {
             String outfileS = new File(outDirS, f.getName().replaceFirst("hmp321Info", "hmp321Info_filter")).getAbsolutePath();
             String temp = null;
@@ -1040,7 +1362,7 @@ public class VariantSummary {
                 bw.close();
                 br.close();
                 System.out.println(f.getName().split("_")[1] + ": " + cnt + "sites are NA about basic annotation.");
-                System.out.println(f.getName().split("_")[1] + ": " + cntfilter_number + "sites are filter under this standard.");
+                System.out.println(f.getName().split("_")[1] + ": " + cntfilter_number + "sites are filter under this standard."); //统计出去NA后，将要面临技术过滤的snp数
                 
             }
             catch (Exception e) {
@@ -1132,7 +1454,7 @@ public class VariantSummary {
             br.close();
             double[] depth = new double[SiteDepthList.size()];
             double[] siteCount = new double[SiteCountList.size()];
-            for(int i =0; i< depth.length;i++){
+            for(int i = 0; i< depth.length;i++){
                 depth[i] = SiteDepthList.get(i);
                 siteCount[i] = SiteCountList.get(i);
             }

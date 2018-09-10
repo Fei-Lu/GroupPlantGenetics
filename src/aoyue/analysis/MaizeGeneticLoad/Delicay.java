@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package aoyue.analysis.sv;
+package aoyue.analysis.MaizeGeneticLoad;
 
 import com.itextpdf.text.pdf.parser.Path;
 import format.dna.FastaByte;
@@ -83,7 +83,7 @@ public class Delicay {
         //this.countVariant();
         this.mergeCountVariantFile();  
         //this.mkSIFTvcfSimple();
-        //this.countVariant2();
+        this.countVariant2();
         //this.mkV4CentromerePos();
         this.testStringSpilt();
         
