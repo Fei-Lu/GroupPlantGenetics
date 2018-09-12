@@ -25,8 +25,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
-import jxl. * ;
-import jxl.read.biff.BiffException;
 import utils.IOFileFormat;
 import utils.IOUtils;
 
@@ -39,19 +37,45 @@ public class DistinguishSample {
     public String ID;
     Read[] reads=null;
     int phredScale = Integer.MIN_VALUE;
-    public DistinguishSample() throws IOException, FileNotFoundException, BiffException {
+    public DistinguishSample() throws IOException, FileNotFoundException {
  //         this.fastqToFasta1();
 //          this.testxlsx();
 //          this.sampleFastq1 ();
 //         this.test();
  //          this.genecount();
-            this.cut12base();
+//            this.cut12base();
+            this.anyWrong();
     }
      /**
      * Build a byte converter to convert AscII byte following the BaseCoder rules
      * A(00000000), C(00000001), G(00000010), T(0000000011), others(00000100)
      * @return 
      */
+    public static void anyWrong(){
+        String inputFile="/Users/xujun/Desktop/PLATE-seq_1.clean.fq";
+        String temp=null;int count=0;
+        try{
+            BufferedReader br = utils.IOUtils.getTextReader(inputFile);
+            BufferedWriter bw = utils.IOUtils.getTextWriter("/Users/xujun/Desktop/mayWrong.txt");
+            while((temp=br.readLine())!=null){  
+                count++;
+                if(count>=5754881){
+                    bw.write(temp);bw.newLine();
+                    bw.write(br.readLine());bw.newLine();
+                    bw.write(br.readLine());bw.newLine();
+                    bw.write(br.readLine());bw.newLine();
+                    continue;
+                }
+                br.readLine();br.readLine();br.readLine();
+            }
+            System.out.println(count);
+        }
+        catch (Exception ex) {
+               System.out.println(count);
+               ex.printStackTrace();
+               
+        }
+    }
     public static HashByteByteMap getAscIIByteMap () {
         int size = 96;
         byte[] key = new byte[size];
@@ -168,21 +192,21 @@ public class DistinguishSample {
         }
     }
      
-     public void testxlsx() throws FileNotFoundException, IOException, BiffException{
-         String barcodeFileS="E:\\experimental data\\RNA_seq\\3'RNAseq barcode.xlsx";
-         InputStream is = new FileInputStream(barcodeFileS); 
-         Workbook wb = Workbook.getWorkbook(is); //得到工作薄 have some question.but i can not find.
-         Sheet ft = wb.getSheet(0);
-         int rownumber =ft.getRows(); 
-         int columnumber=ft.getColumns(); 
-         HashMap<String,Integer> barcodeIndexMap=new HashMap<>();
-         for(int i=0;i<=ft.getRows();i++){
-             barcodeIndexMap.put(ft.getCell(i,1).getContents(), i);
-         }
-         String s=null;
-         int index=barcodeIndexMap.get(s.subSequence(0,8));
-         BufferedWriter[] bwa=new BufferedWriter[rownumber];//BufferedWriter[]这个数组是用于输出的 根据96个barcode我们会输出96个文件 所以建立了一个barcode输出数组      
-     }
+//     public void testxlsx() throws FileNotFoundException, IOException{
+//         String barcodeFileS="E:\\experimental data\\RNA_seq\\3'RNAseq barcode.xlsx";
+//         InputStream is = new FileInputStream(barcodeFileS); 
+//         Workbook wb = Workbook.getWorkbook(is); //得到工作薄 have some question.but i can not find.
+//         Sheet ft = wb.getSheet(0);
+//         int rownumber =ft.getRows(); 
+//         int columnumber=ft.getColumns(); 
+//         HashMap<String,Integer> barcodeIndexMap=new HashMap<>();
+//         for(int i=0;i<=ft.getRows();i++){
+//             barcodeIndexMap.put(ft.getCell(i,1).getContents(), i);
+//         }
+//         String s=null;
+//         int index=barcodeIndexMap.get(s.subSequence(0,8));
+//         BufferedWriter[] bwa=new BufferedWriter[rownumber];//BufferedWriter[]这个数组是用于输出的 根据96个barcode我们会输出96个文件 所以建立了一个barcode输出数组      
+//     }
      public void test () throws IOException {//区分barcode的最终版本 运行时间3min8s
         String barcodeFileS = "E:\\experimental data\\RNA_seq\\3'RNAseq barcode.txt";
         String inputDirS ="E:\\experimental data\\RNA_seq\\twice\\clean_data\\";
@@ -504,7 +528,7 @@ public class DistinguishSample {
             }
         
     }
-    public static void main(String[] args) throws IOException, FileNotFoundException, BiffException{
+    public static void main(String[] args) throws IOException, FileNotFoundException{
         new DistinguishSample();
     }
 }

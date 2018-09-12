@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import jxl.read.biff.BiffException;
 import utils.IOFileFormat;
 import utils.IOUtils;
 
@@ -35,7 +34,7 @@ import utils.IOUtils;
  * @author xujun
  */
 public class RNAseq {
-    public RNAseq() throws IOException, FileNotFoundException, BiffException {
+    public RNAseq() throws IOException, FileNotFoundException {
 //            this.getgenename();
 //          this.genenumber();
 //         this.notSDI();
@@ -825,7 +824,7 @@ public class RNAseq {
         
         
     }
-    public static void main(String[] args) throws IOException, FileNotFoundException, BiffException{
+    public static void main(String[] args) throws IOException, FileNotFoundException{
         new RNAseq();
     }
     

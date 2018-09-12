@@ -24,56 +24,123 @@ import xuebo.analysis.annotation.FStringUtils;
  */
 public class GBS {
     public GBS(){
+//        this.barcode();
+//        this.DisIndex();
         this.barcode();
     }
+    private void DisIndex(){
+        String sampleInfor="/Users/xujun/Desktop/indexNews.txt";
+        RowTable rt=new RowTable(sampleInfor);
+        HashMap hm=new HashMap();
+        List library=new ArrayList();
+        for(int i=0;i<rt.getRowNumber();i++){
+            hm.put( rt.getCellAsString(i, 1).substring(1),rt.getCell(i, 0));
+            if(!library.contains(rt.getCell(i, 0))){
+                library.add(rt.getCell(i, 0));
+            }
+        }
+        String infileDirS = "/Users/xujun/Desktop/20180705mix1_R1.fq.gz";
+        String outfileDirS = "/Users/xujun/Desktop/DisLibrary.txt";
+        int count [] =new int [library.size()];
+            try {
+                BufferedReader br = utils.IOUtils.getTextGzipReader(infileDirS);
+                BufferedWriter bw = utils.IOUtils.getTextWriter(outfileDirS);
+                String temp1=null;String index=null;
+                while((temp1 = br.readLine()) != null){
+                    index=temp1.split(" ")[1].split(":")[3].substring(1, 6);
+                    if(hm.get(index)!=null){
+                        int pos=library.indexOf(hm.get(index));
+                        count[pos]++;
+                    }
+                    br.readLine();br.readLine();br.readLine();
+                    
+                }
+                for(int i=0;i< count.length;i++){
+                    bw.write(library.get(i)+"\t"+count[i]);
+                    bw.newLine();
+                }
+                br.close();
+                bw.flush();bw.close();
+            }
+            
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+
+    }
     private void barcode () {
-        String sampleInfor="/Users/xujun/Desktop/barcodenews.fq";
+        String sampleInfor="/Users/xujun/Desktop/barcodeNews.txt";
         RowTable rt=new RowTable(sampleInfor);
         HashMap hm1=new HashMap();
         HashMap hm2=new HashMap();
-        List sample=new ArrayList();
+        List sample =new ArrayList();
         for(int i=0;i<rt.getRowNumber();i++){
-            hm1.put(rt.getCell(i, 2), rt.getCell(i, 3));
-            hm2.put(rt.getCell(i, 4), rt.getCell(i, 2));
-            sample.add(rt.getCell(i, 2));
+            hm1.put(rt.getCell(i, 1), rt.getCellAsString(i, 3).substring(1));
+            hm2.put(rt.getCell(i, 1), rt.getCellAsString(i, 4).substring(1));
+            sample.add(rt.getCell(i, 1));
         }
-        String infileDirS = "/Users/xujun/Desktop/Cleandata/20180427-GBS";
-        String outfileDirS = "/Users/xujun/Desktop/Cleandata";
+        String infileDirS = "/Users/xujun/Desktop/s20180622-LHY2_TKD180602248";
+        String outfileDirS = "/Users/xujun/Desktop";
         File[] fs = new File(infileDirS).listFiles();
         HashSet<String> nameSet = new HashSet();
         for (int i = 0; i < fs.length; i++) {
             if (fs[i].isHidden()) continue;
-            nameSet.add(fs[i].getName().split("-")[0]);
+            nameSet.add(fs[i].getName().split("_")[0]);
         }
         int[] cnt=new int[sample.size()];
         nameSet.parallelStream().forEach(name -> {
-            String infile1 = new File (infileDirS, name+"-GBS_R1.fq").getAbsolutePath();
-            String infile2 = new File (infileDirS, name+"-GBS_R2.fq").getAbsolutePath();
-            String outfile = new File (outfileDirS, "count.txt").getAbsolutePath();
+            String infile1 = new File (infileDirS, name+"_TKD180602248_1.clean.fq.gz").getAbsolutePath();
+            String infile2 = new File (infileDirS, name+"_TKD180602248_2.clean.fq.gz").getAbsolutePath();
+            String outfile = new File (outfileDirS, "s20180622-LHY2_TKD180602248New.txt").getAbsolutePath();
             int count=0;int count1=0;
             String temp1=null;String seq1=null;
-            String temp2=null;String seq2=null;           
+            String temp2=null;String seq2=null;  
+            List<String> h1= new ArrayList();
+            List<String> h2= new ArrayList();
+            String sameName=null;int index=0;
             try {
-                BufferedReader br1 = utils.IOUtils.getTextReader(infile1);
-                BufferedReader br2 = utils.IOUtils.getTextReader(infile2);   
+                BufferedReader br1 = utils.IOUtils.getTextGzipReader(infile1);
+                BufferedReader br2 = utils.IOUtils.getTextGzipReader(infile2);   
                 BufferedWriter bw = utils.IOUtils.getTextWriter(outfile);
                 while ((temp1 = br2.readLine()) != null) {
                     count1++;
                     seq1=br2.readLine();
-                    if(hm2.get(seq1.substring(0,6))==null){
-                        br1.readLine();br1.readLine();br1.readLine();br1.readLine();
-                        count++;
-                    }else{
-                        temp2=br1.readLine();
-                        seq2=br1.readLine();
-                        if(hm1.get(hm2.get(seq1.substring(0,6)))!=null){
-                            int index=sample.indexOf(hm2.get(seq1.substring(0,6)));
-                            cnt[index]++;
+                    for(int i=4;i<8;i++){
+//                        if(hm2.get(seq1.substring(0,i))==null){
+                        if(getKeyList(hm2,seq1.substring(1,i)).isEmpty()){
+                            if(i==8){
+                                br1.readLine();br1.readLine();br1.readLine();br1.readLine();
+                                count++;
+                                break;
+                            }    
                         }else{
-                            count++;
+                            h2=getKeyList(hm2,seq1.substring(1,i));
+                            temp2=br1.readLine();
+                            seq2=br1.readLine();
+//                            if(hm1.get(hm2.get(seq1.substring(0,i)))!=null){
+                            for(int a=4;a<8;a++){
+                                if(getKeyList(hm1,seq2.substring(1,a)).isEmpty()){
+                                    if(a==8){
+                                        br1.readLine();br1.readLine();
+                                        count++;
+                                        break;
+                                    } 
+                                }else{
+                                    h1=getKeyList(hm1,seq2.substring(1,a));
+                                    if(!getTheSameSection(h1,h2).isEmpty()){
+                                        sameName=getTheSameSection(h1,h2).toString().replace("[","").replace("]", "");
+                                        index=sample.indexOf(sameName);
+                                        cnt[index]++;
+                                        break;
+                                    }else{
+                                        break;
+                                    }   
+                                }
+                            }
+                            br1.readLine();br1.readLine();
+                            break;
                         }
-                        br1.readLine();br1.readLine();
-                    }
+                    }                    
                     br2.readLine();br2.readLine();
                 }
                 for(int i=0;i<cnt.length;i++){
@@ -87,9 +154,29 @@ public class GBS {
             }
             
             catch (Exception e) {
+                System.out.println(sameName);
+                System.out.println(index);
                 e.printStackTrace();
             }
 
         });
+    }
+    public static List<String> getKeyList(HashMap<String,String> map,String value){//the method to get key from value
+         List<String> keyList = new ArrayList();
+         for(String getKey: map.keySet()){
+             if(map.get(getKey).equals(value)){
+                 keyList.add(getKey);
+             }
+         }
+         return keyList;
+     }
+    public List getTheSameSection(List list1,List list2) {
+       List resultList = new ArrayList();
+       for (Object item : list2) {//遍历list1
+            if (list1.contains(item)) {//如果存在这个数
+            resultList.add(item);//放进一个list里面，这个list就是交集
+        }
+       }
+       return resultList;
     }
 }
