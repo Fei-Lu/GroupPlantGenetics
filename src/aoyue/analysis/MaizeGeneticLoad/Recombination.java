@@ -28,24 +28,38 @@ import utils.PStringUtils;
  class Recombination {
 
      Recombination() {
-        this.convertHotspotsStart_AGPV2toAGPV4_deprecated();
-        this.convertHotspotsStart_AGPV2toAGPV4_cn_deprecated();
-        this.convertHotspotsEnd_AGPV2toAGPV4_deprecated();
-        this.convertHotspotsEnd_AGPV2toAGPV4_cn_deprecated();
-        this.checkNumberofDifChr_deprecated();
-        this.checkNumberofDifChr_cn_deprecated();
-        this.makeRecombinationPointTable_deprecated();
-        this.mkBinTable_deprecated();
-        
-        
-        this.calculateMidValue();
-        this.converMidValue_V2V4();
-        this.FilterMissMidValue();
-        this.mkRecombinationPointTable();
+//        this.convertHotspotsStart_AGPV2toAGPV4_deprecated();
+//        this.convertHotspotsStart_AGPV2toAGPV4_cn_deprecated();
+//        this.convertHotspotsEnd_AGPV2toAGPV4_deprecated();
+//        this.convertHotspotsEnd_AGPV2toAGPV4_cn_deprecated();
+//        this.checkNumberofDifChr_deprecated();
+//        this.checkNumberofDifChr_cn_deprecated();
+//        this.makeRecombinationPointTable_deprecated();
+//        this.mkBinTable_deprecated();
+//        
+//        
+//        this.calculateMidValue();
+//        this.converMidValue_V2V4();
+//        this.FilterMissMidValue();
+//        this.mkRecombinationPointTable();
         this.mkBinTable_useMidValue();
+        //this.testgetSubsetsIndicesBySubsetSize_Method();
+        
          
     }
      
+     /**
+      * bound的长度是7
+      */
+     private void testgetSubsetsIndicesBySubsetSize_Method(){
+         int binsize = 100;
+         int a = 699;
+         int[][] bound = PArrayUtils.getSubsetsIndicesBySubsetSize(a, binsize);
+         for (int i = 0; i< bound.length;i++){
+             System.out.println(bound[i][0]);
+             
+         }
+     }
      private void mkBinTable_useMidValue () {
         String transcriptFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/004_snpclass/highConfidence_transcript.txt";
         String crossOverFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/002recombination/recombinationPoint.txt";
@@ -70,7 +84,7 @@ import utils.PStringUtils;
         RowTable<String> t = new RowTable (infoFileS);
         for (int i = 0; i < chrNum; i++) {
             int[][] bound = PArrayUtils.getSubsetsIndicesBySubsetSize(Integer.valueOf(t.getCell(i, 1)), binSize);
-            bounds[i] = new int[bound.length];
+            bounds[i] = new int[bound.length]; //此步骤的目的是确定二维数组的第二维长度
             cdsLength[i] = new int[bound.length];
             crossover[i] = new int[bound.length];
             del[i] = new double[bound.length];
@@ -92,7 +106,7 @@ import utils.PStringUtils;
             int longTransIndex = gf.getLongestTranscriptIndex(i);
             String name = gf.getTranscriptName(i, longTransIndex); /*得到最长的转录本的名字*/
             if (Arrays.binarySearch(transName, name) < 0) continue; /*过滤genefeature里那些假基因*/
-            int chrIndex = gf.getGeneChromosome(i) - 1;
+            int chrIndex = gf.getGeneChromosome(i) - 1; /*获得该基因的染色体位置*/
             List<Range> cds = gf.getCDSList(i, longTransIndex); /*得到基因的最长转录本的CDSList*/
             for (int j = 0; j < cds.size(); j++) {
                 int index = Arrays.binarySearch(bounds[chrIndex], cds.get(j).start); //在bounds里搜索 该基因的第j个cds的起始位点

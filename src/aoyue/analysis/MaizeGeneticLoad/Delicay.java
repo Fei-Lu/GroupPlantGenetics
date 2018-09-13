@@ -81,16 +81,29 @@ public class Delicay {
         //this.mkSIFTxlsSimple();
         //this.getVariantType();
         //this.countVariant();
-        this.mergeCountVariantFile();  
+        //this.mergeCountVariantFile();  
         //this.mkSIFTvcfSimple();
-        this.countVariant2();
+        //this.countVariant2();
         //this.mkV4CentromerePos();
-        this.testStringSpilt();
+        //this.testStringSpilt();
+        this.testmathrandom();
         
         
         
               
          
+    }
+    
+    public void testmathrandom(){
+        int snpNum = 5875644;
+        int size = 10000;
+        int[] indices = new int[size]; 
+            for (int i = 0; i < size; i++) {
+                double a = Math.random();
+                indices[i] = (int)(a*snpNum);
+            }
+            Arrays.sort(indices);
+        
     }
     
     public void testStringSpilt(){

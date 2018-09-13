@@ -23,7 +23,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import utils.IOFileFormat;
 import static utils.IOFileFormat.Text;
 import utils.IOUtils;
@@ -45,22 +47,305 @@ public class VariantSummary {
         //this.filterHmp321Info();
         //this.filterHmp321Info_bysiftTrans();
         //this.filterHmp321Info_bysiftTrans_useDataBase();
-        
+        //this.testarraylength();
 //        this.summarizeTranscript_deprecated();
 //        this.summarizeTranscript2();
-//       this.classifySNPs();
+       //this.classifySNPs();
 //       this.binarySearchtest();
 //       this.mkBarplotOfSNPs();
 //       this.mkHmp321MafPlot();
 //       this.mkHmp321MafPlot_useR();
 //       this.SiftGerp_Correlation();
-       this.countDeleteriousHmp321();
+      //this.countDeleteriousHmp321();
+       //this.checkTaxaNameSamewithFeiGroup();
+       //this.mkDepthOfHmp321();
+       //this.mkDepthSummary();
+       //this.countDeleteriousHmp32HighDepth();
+       this.mkBurdenFile();
+       
     }
     
+    /**
+     * [ss, Tripsacum, popcorn, mixed, sweet, Landrace, unknown, ts, nss, Teo, teo] GroupSet 11个 （Teo 和teo重复） 多了 tripsacum(摩擦禾属)  mixed  unknow 
+     */
+    private void mkBurdenFile(){
+        
+        String infileS = "/Users/Aoyue/Documents/additiveDeleterious_hmp321_highDepth.txt";
+        String outfileS = "/Users/Aoyue/Documents/add_hmp321_burden.txt";
+        BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+        Set<String> group = new HashSet<>();
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            
+            String header = br.readLine();
+            bw.write(header);bw.write("\tGroupID");
+            bw.newLine();
+            String temp = null;
+            List<String> l = null;
+            while((temp=br.readLine()) != null){
+                l = PStringUtils.fastSplit(temp);
+                String groupName = l.get(3);
+                group.add( groupName);
+                if(groupName.equals("unknow")) continue;
+                if(groupName.equals("mixed")) continue;
+                if(groupName.equals("unknow")) continue;
+                
+                if(groupName.equals("ss")){
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(temp).append("\t").append("1");
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+                
+            }
+            bw.flush();bw.close();br.close();
+            System.out.println(group);
+            
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+            
+        }
+                
+    }
+    
+    private void countDeleteriousHmp32HighDepth () {
+        String taxaSummaryFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/001_hmp321Depth/taxaDepth.summary.txt";
+        String addInfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/additiveDeleterious_hmp321.txt";
+        String addOutfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/additiveDeleterious_hmp321_highDepth.txt";
+        String recInfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/reccesiveDeleterious_hmp321.txt";
+        String recOutfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/reccesiveDeleterious_hmp321_highDepth.txt";
+        String taxaGroupFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/002_hmp321TaxaGroup/hmp321.taxaGroup.txt";
+        //1.54=3x, 2.75 = 5x
+        double depthCut = 1.54;
+        RowTable t = new RowTable (taxaSummaryFileS);
+        ArrayList<String> taxaList = new ArrayList();
+        for (int i = 0; i < t.getRowNumber(); i++) {
+            if (t.getCellAsDouble(i, 2) < depthCut) continue;
+            taxaList.add(t.getCellAsString(i, 0));
+        }
+        String[] taxa = taxaList.toArray(new String[taxaList.size()]);
+        Arrays.sort(taxa);
+        t = new RowTable (taxaGroupFileS);
+        HashMap<String, String> taxaGroupMap = new HashMap();
+        for (int i = 0; i < t.getRowNumber(); i++) {
+            taxaGroupMap.put(t.getCellAsString(i, 0), t.getCellAsString(i, 1));
+        }
+        t = new RowTable (addInfileS);
+        try {
+            BufferedWriter bw = IOUtils.getTextWriter(addOutfileS);
+            bw.write("Taxa\tDeleteriousCountPerHaplotype\tSiteCountWithMinDepth\tGroup\tRatio");
+            bw.newLine();
+            for (int i = 0; i < t.getRowNumber(); i++) {
+                int index = Arrays.binarySearch(taxa, t.getCellAsString(i, 0));
+                if (index < 0) continue;
+                double ratio = Double.valueOf(t.getCellAsDouble(i, 1))/Double.valueOf(t.getCellAsDouble(i, 2));
+                bw.write(taxa[index]+"\t"+t.getCellAsString(i, 1)+"\t"+t.getCellAsString(i, 2)+"\t"+taxaGroupMap.get(taxa[index])+"\t"+String.valueOf(ratio));
+                bw.newLine();
+            }
+            bw.close();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        t = new RowTable (recInfileS);
+        try {
+            BufferedWriter bw = IOUtils.getTextWriter(recOutfileS);
+            bw.write("Taxa\tDeleteriousCountPerLine\tSiteCountWithMinDepth\tGroup\tRatio");
+            bw.newLine();
+            for (int i = 0; i < t.getRowNumber(); i++) {
+                int index = Arrays.binarySearch(taxa, t.getCellAsString(i, 0));
+                if (index < 0) continue;
+                double ratio = Double.valueOf(t.getCellAsDouble(i, 1))/Double.valueOf(t.getCellAsDouble(i, 2));
+                bw.write(taxa[index]+"\t"+t.getCellAsString(i, 1)+"\t"+t.getCellAsString(i, 2)+"\t"+taxaGroupMap.get(taxa[index])+"\t"+String.valueOf(ratio));
+                bw.newLine();
+            }
+            bw.close();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void mkDepthSummary () {
+        //思想：对每一个taxa做统计，每读进一个taxa，就统计所有深度的和，再除以表格的行数，也即是抽查的位点数，最终得出总得深度除以位点数，得出平均每个位点的深度。
+        String taxaDepthDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/001_hmp321Depth/taxa";
+        String taxaSummaryFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/001_hmp321Depth/taxaDepth.summary.txt";
+        File[] fs = new File (taxaDepthDirS).listFiles();
+        Arrays.sort(fs);
+        try {
+            BufferedWriter bw = IOUtils.getTextWriter(taxaSummaryFileS);
+            bw.write("Taxa\tID\tMeanDepth");
+            bw.newLine();
+            for (int i = 0; i < fs.length; i++) {
+                RowTable t = new RowTable (fs[i].getAbsolutePath());
+                String taxaName = String.valueOf(t.getHeader().get(0)).replaceFirst("_siteDepth", "");
+                double value = 0;
+                for (int j = 0; j < t.getRowNumber(); j++) {
+                    value+=t.getCellAsDouble(j, 0);
+                }
+                bw.write(taxaName+"\t"+String.valueOf(i+1)+"\t"+String.valueOf((double)value/t.getRowNumber()));
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+            
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void mkDepthOfHmp321 () {
+        //思想：随机抽取1万个位点，进行每个taxa的每个位点的depth统计
+        /**hmpInfoFileS file
+         * Chr	Pos	Ref	Alt	Ancestral(Gerp)	Major	Minor	MajorAlleleFrequency	MinorAlleleFrequency	SiteDepth	HetCount
+            10	228730	A	T	NA	A	T	0.986692	0.013307985	3591	1
+            10	228743	T	<DEL>	NA	T	<DEL>	0.9964455	0.0035545023	4072	0
+            10	228744	A	<DEL>	NA	A	<DEL>	0.9964413	0.0035587188	4054	0
+         */
+        String hmpFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/oriData/hmp321_agpv4_chr10.vcf.gz";
+        String hmpInfoFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/001_hmp321Info_filter/hmp321Info_filter_chr010_AGPv4_AnnoDB.txt";
+        String taxaDepthDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/001_hmp321Depth/taxa/";
+        int snpNum = 0;
+        int size = 20000; //这里我增加了抽样的为点数
+        try {
+            BufferedReader br = IOUtils.getTextReader(hmpInfoFileS);
+            String temp = br.readLine();
+            int cnt = 0; 
+            while ((temp = br.readLine()) != null) {
+                cnt++;
+            }
+            snpNum = cnt;
+            /*建立一个10000个 indices的整型数组， 赋值为indice[0]= */
+            int[] indices = new int[size]; 
+            for (int i = 0; i < size; i++) {
+                indices[i] = (int)(Math.random()*snpNum); //随机挑选10000个数目
+            }
+            Arrays.sort(indices);
+            br = IOUtils.getTextGzipReader(hmpFileS);
+            while ((temp = br.readLine()).startsWith("##")) {}
+            List<String> l = PStringUtils.fastSplit(temp, "\t");
+            String[] taxa = new String[l.size()-9];
+            for (int i = 0; i < taxa.length; i++) {
+                taxa[i] = l.get(i+9);
+            }
+            TIntArrayList[] depthList = new TIntArrayList[taxa.length];
+            for (int i = 0; i < taxa.length; i++) depthList[i] = new TIntArrayList();
+            cnt = 0;
+            while ((temp = br.readLine()) != null) {
+                cnt++; // 对snp开始计数
+                if (cnt%1000000 == 0) System.out.println(String.valueOf(cnt)+" lines");
+                int idx = Arrays.binarySearch(indices, cnt-1);
+                if (idx < 0) continue;
+                l = PStringUtils.fastSplit(temp, "\t");
+                for (int i = 0; i < taxa.length; i++) {
+                    String genoS = l.get(i+9);
+                    if (genoS.startsWith(".")) {
+                        depthList[i].add(0);
+                        continue;
+                    }
+                    List<String> ll = PStringUtils.fastSplit(genoS, ":");
+                    List<String> lll = PStringUtils.fastSplit(ll.get(1), ",");
+                    int depth = Integer.valueOf(lll.get(0))+Integer.valueOf(lll.get(1));
+                    depthList[i].add(depth);
+                }
+            }
+            for (int i = 0; i < taxa.length; i++) {
+                String outfileS = new File (taxaDepthDirS, PStringUtils.getNDigitNumber(5, i+1)+"depth.txt").getAbsolutePath();
+                try {
+                    BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+                    bw.write(taxa[i]+"_siteDepth");
+                    bw.newLine();
+                    int[] depth = depthList[i].toArray();
+                    for (int j = 0; j < depth.length; j++) {
+                        bw.write(String.valueOf(depth[j]));
+                        bw.newLine();
+                    }
+                    bw.flush();
+                    bw.close();
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void checkTaxaNameSamewithFeiGroup(){
+        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/002_hmp321TaxaGroup/hmp32.taxaGroup.txt";
+        String infileS2 = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/002_hmp321TaxaGroup/TaxaList.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/002_hmp321TaxaGroup/CompareTaxaList.txt";
+        RowTable<String> t = new RowTable<>(infileS2);
+        List<String> taxaListYue = t.getColumn(0);
+        String[] taxaYue = taxaListYue.toArray(new String[taxaListYue.size()]);
+        Arrays.sort(taxaYue);
+        t = new RowTable<>(infileS);
+        HashMap taxaVSGroup = new HashMap();
+        List<String> taxaListFei = t.getColumn(0);
+        String[] taxaFei = taxaListFei.toArray(new String[taxaListFei.size()]);
+        Arrays.sort(taxaFei);
+        int cnt = 0;
+        for(int i = 0; i< t.getRowNumber(); i++){
+            String testTaxa = t.getCell(i, 0);
+            String group = t.getCell(i, 1);
+            taxaVSGroup.put(testTaxa, group);
+            int index = Arrays.binarySearch(taxaYue, testTaxa);
+            if (index <0){
+                System.out.println(testTaxa + "\t"+i +" is not the same with ME");
+                System.out.println(t.getRow(i));
+            }
+            
+        }
+       
+        
+        /**
+         * 08-64	1 is not the same with Fei
+            282set_DE-2	1020 is not the same with Fei
+            成功构建 (总时间: 0 秒)
+            * 
+            * 80-64	68 is not the same with ME
+            [80-64, unknown]
+            282set_DE	192 is not the same with ME
+            [282set_DE, unknown]
+            1210
+         */
+        
+        try{
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            bw.write("Taxa_Yue" + "\t" + "Taxa_Fei" + "\t" + "TaxaGroup");
+            bw.newLine();
+            for(int i = 0; i < taxaYue.length;i++){
+                
+                bw.write(taxaYue[i] + "\t" + taxaFei[i] + "\t" + String.valueOf(taxaVSGroup.get(taxaFei[i])));
+                bw.newLine();
+                if (taxaYue[i].equals(taxaFei[i])){
+                    cnt++;
+                }
+                else{
+                    System.out.println(taxaYue[i] + "\t" + taxaFei[i] + "\t" + String.valueOf(i+1) + "th row are not the same");
+                    
+                }
+            }
+            bw.flush();
+            bw.close();
+             System.out.println(String.valueOf(cnt));
+            
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+        
+    }
     private void countDeleteriousHmp321 () {
         String hmpDirS = "/Volumes/Lulab3T_14/hmp321_agp4";
         String infoFileS = "/Users/Aoyue/Documents/Data/referenceGenome/position/ChrLenCentPosi_agpV4.txt";
-        String deleFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/004_snpclass/class/Non_Synonymous_Deleterious.txt";
+        String deleFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/004_snpclass/class/Non_Synonymous_Deleterious_High_GERP.txt";
         String addCountFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/additiveDeleterious_hmp321.txt";
         String recCountFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/reccesiveDeleterious_hmp321.txt";
         int minDepth = 2;//inclusive
@@ -371,8 +656,8 @@ public class VariantSummary {
         TDoubleArrayList[] mafList = new TDoubleArrayList[fs.length];
         TDoubleArrayList[] dafList = new TDoubleArrayList[fs.length];
         for (int i = 0; i < fs.length; i++) {
-            mafList[i] = new TDoubleArrayList(); //这里为何要再new一下？
-            dafList[i] = new TDoubleArrayList(); //这里为何要再new一下？
+            mafList[i] = new TDoubleArrayList(); 
+            dafList[i] = new TDoubleArrayList(); 
             String infileS = fs[i].getAbsolutePath(); 
             RowTable<String> t = new RowTable<>(infileS);
             count[i] = t.getRowNumber();
@@ -395,7 +680,7 @@ public class VariantSummary {
             }
             for (int j = 0; j < mafFrequency[i].length; j++) {
                 mafFrequency[i][j] = mafFrequency[i][j]/count[i];
-                dafFrequency[i][j] = dafFrequency[i][j]/dafCount[i];
+                dafFrequency[i][j] = dafFrequency[i][j]/dafCount[i]; //因为daf值不是每个都有，有些pos是NA值，所以需要重新计算。
             }
         }
         /*打表格，输入表头，去掉最后一个\t键；表头为4个文件的文件名；
@@ -424,7 +709,7 @@ public class VariantSummary {
             }
             bw.newLine();
             /*double[][] mafFrequency = new double[fs.length][size] 文件长度为4，size为100*/
-            for (int i = 0; i < mafFrequency[0].length; i++) { //i小于第一个文件的长度100
+            for (int i = 0; i < mafFrequency[0].length; i++) { //i小于第一个文件的长度100，
                 bw.write(String.valueOf(bound[i]));
                 for (int j = 0; j < mafFrequency.length; j++) { //j小于400，将1-100的频率写出来
                     bw.write("\t"+mafFrequency[j][i]);
@@ -470,6 +755,18 @@ public class VariantSummary {
         int a =3;
     }
     
+    /**
+     * 
+     */
+    private void testarraylength(){
+        int[][] a = new int[3][4];
+        //int[] bound = new int[5];
+        int bound[] = {1,2,3,4,5};
+        //int[][] a = {1,2,3,4,5,6,7,8,9,10,11,12};
+        for(int i = 0; i<a[0].length; i++){
+            System.out.println(bound[i]);
+        }
+    }
       /**
      * Step 1: filtered out low quality gene models. Non/syn ratio less than 2.5
      * Step 2: classify SNPs into different classes based on only high confidence gene models. Deleterious mutations (SIFT less than 0.05, GERP greater than 2)
