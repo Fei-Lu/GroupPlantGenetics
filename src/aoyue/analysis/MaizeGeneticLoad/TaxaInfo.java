@@ -28,13 +28,130 @@ public class TaxaInfo {
         //this.checkTaxaCategory();
         //this.taxaGroupSummary();
         //this.removeSpacing();
-        //this.checkCategory();
+        //this.checkCategoryandAddGermplasm();
 //        this.checktaxaList();
 //        this.reversechecktaxaList();
 //        this.mergeInfo();
-        this.addGroupToMDS();
+        //this.addGroupToMDS();
+        //this.selected();
+        //this.selectUseful();
+        this.removemixed();
         
         
+        
+    }
+    /**
+     * I only want Landrace Teosinte Tripsacum ss nss ts 
+     */
+     public void removemixed(){
+        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/004_taxaGroup/006_MDS_addGroupInfo.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/004_taxaGroup/009_MDS_selectLanTeoTrissnss_ts.txt";
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String header = br.readLine();
+            bw.write(header);bw.newLine();
+            String temp = null;
+            while((temp = br.readLine()) != null){
+                String taxon = PStringUtils.fastSplit(temp).get(0);
+                String germplasm = PStringUtils.fastSplit(temp).get(5);
+                String feiGroup = PStringUtils.fastSplit(temp).get(6);
+                if(germplasm.equals("unknown")) continue;
+                if(germplasm.equals("Improved")) {
+                    if(feiGroup.equals("teo")){
+                        bw.write(PStringUtils.fastSplit(temp).get(0));bw.write("\t");
+                        bw.write(PStringUtils.fastSplit(temp).get(1));bw.write("\t");
+                        bw.write(PStringUtils.fastSplit(temp).get(2));bw.write("\t");
+                        bw.write(PStringUtils.fastSplit(temp).get(3));bw.write("\t");
+                        bw.write(PStringUtils.fastSplit(temp).get(4));bw.write("\t");
+                        bw.write(PStringUtils.fastSplit(temp).get(5));bw.write("\t");
+                        bw.write("Teo");bw.newLine();
+                    }
+                    if(feiGroup.equals("unknown"))continue;
+                    if(feiGroup.equals("mixed"))continue;
+                    if(feiGroup.equals("popcorn"))continue;
+                    if(feiGroup.startsWith("sweet"))continue;
+                    bw.write(temp);bw.newLine();
+                }
+                else{
+                    bw.write(temp);bw.newLine();
+                }
+            }
+            br.close();
+            bw.flush();
+            bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+        
+    }
+     
+    public void selectUseful(){
+        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/004_taxaGroup/006_MDS_addGroupInfo.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/004_taxaGroup/008_MDS_selectLanTeoTrissnsstsmixed.txt";
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String header = br.readLine();
+            bw.write(header);bw.newLine();
+            String temp = null;
+            while((temp = br.readLine()) != null){
+                String taxon = PStringUtils.fastSplit(temp).get(0);
+                String germplasm = PStringUtils.fastSplit(temp).get(5);
+                String feiGroup = PStringUtils.fastSplit(temp).get(6);
+                if(germplasm.equals("Improved")) {
+                    if(feiGroup.equals("unknown"))continue;
+                    bw.write(temp);bw.newLine();
+                }
+                if(germplasm.equals("unknown")) continue;
+                bw.write(temp);bw.newLine();
+            }
+            br.close();
+            bw.flush();
+            bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+        
+    }
+    /**
+     * Germplasm有5个分类：Landrace Teosinte Tripsacum Improved unknown
+     */
+    public void selected(){
+        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/004_taxaGroup/005_taxa1210GroupInfo_mergeFeiGroupInfo_removeTIP498.2.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/004_taxaGroup/007_MDS_selectLanTeoTri.txt";
+        String a = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/004_taxaGroup/MDS_PCs_Matrix_68300sites.txt";
+        RowTable<String> t = new RowTable<>(infileS);
+        HashMap<String, String> hm = new HashMap<>();
+        for(int i =0; i< t.getRowNumber(); i++){
+            hm.put(t.getCellAsString(i, 0), t.getCellAsString(i, 3));
+        }
+        
+        try{
+            BufferedReader br = IOUtils.getTextReader(a);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String header = br.readLine();
+            bw.write(header);bw.write("\tGroup");bw.newLine();
+            String temp = null;
+            while((temp = br.readLine()) != null){
+                String taxon = PStringUtils.fastSplit(temp).get(0);
+                if(hm.get(taxon).equals("Improved")) continue;
+                if(hm.get(taxon).equals("unknown")) continue;
+                
+                bw.write(temp);bw.write("\t");bw.write(hm.get(taxon));bw.newLine();
+            }
+            br.close();
+            bw.flush();
+            bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
     
     public void addGroupToMDS(){
@@ -43,9 +160,13 @@ public class TaxaInfo {
         String a = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/004_taxaGroup/MDS_PCs_Matrix_68300sites.txt";
         RowTable<String> t = new RowTable<>(infileS);
         HashMap<String, String> hm = new HashMap<>();
+        HashMap<String, String> hm1 = new HashMap<>();
+        
         int cntLandrace =0; int cntTeosinte =0; int cntTripsacum =0; int cntImproved =0; int cntunknown =0;
         for(int i =0; i< t.getRowNumber(); i++){
             hm.put(t.getCellAsString(i, 0), t.getCellAsString(i, 3));
+            hm1.put(t.getCellAsString(i, 0), t.getCellAsString(i, 4));
+            
             String germplasm = t.getCellAsString(i, 3);
             if(germplasm.equals("Landrace")) cntLandrace++;
             if(germplasm.equals("Teosinte")) cntTeosinte++;
@@ -65,11 +186,11 @@ public class TaxaInfo {
             BufferedReader br = IOUtils.getTextReader(a);
             BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             String header = br.readLine();
-            bw.write(header);bw.write("\tGroup");bw.newLine();
+            bw.write(header);bw.write("\tGroup");bw.write("\tFeiGroup");bw.newLine();
             String temp = null;
             while((temp = br.readLine()) != null){
                 String taxon = PStringUtils.fastSplit(temp).get(0);
-                bw.write(temp);bw.write("\t");bw.write(hm.get(taxon));bw.newLine();
+                bw.write(temp);bw.write("\t");bw.write(hm.get(taxon));bw.write("\t");bw.write(hm1.get(taxon));bw.newLine();
             }
             br.close();
             bw.flush();
@@ -188,7 +309,7 @@ public class TaxaInfo {
         }
     }
     
-    public void checkCategory(){
+    public void checkCategoryandAddGermplasm(){
         String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/004_taxaGroup/002_taxa1210GroupInfo_withoutSpacing.txt";
         String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/004_taxaGroup/003_taxa1210GroupInfo_addGermplasm.txt";
         RowTable<String> t = new RowTable<>(infileS);
