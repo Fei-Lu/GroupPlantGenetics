@@ -49,7 +49,7 @@ import utils.PStringUtils;
     }
      
      /**
-      * bound的长度是7
+      * bound的长度是7,每个长度是100
       */
      private void testgetSubsetsIndicesBySubsetSize_Method(){
          int binsize = 100;

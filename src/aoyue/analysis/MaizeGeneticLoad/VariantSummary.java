@@ -57,18 +57,222 @@ public class VariantSummary {
 //       this.mkHmp321MafPlot_useR();
 //       this.SiftGerp_Correlation();
       //this.countDeleteriousHmp321();
-       //this.checkTaxaNameSamewithFeiGroup();
+       this.checkTaxaNameSamewithFeiGroup();
        //this.mkDepthOfHmp321();
        //this.mkDepthSummary();
        //this.countDeleteriousHmp32HighDepth();
-       this.mkBurdenFile();
+       //this.mkBurdenFile_deprecated();
+       //this.mkDistanceToB73();
+       //this.mergeRecDelHighAndDsitanceToB73();
+       this.mkMDSplot();
+       this.countVarient();
        
+       
+    }
+    
+    public void demo(){
+        String infileS = "";
+        String outfileS = "";
+        
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String header = br.readLine();
+            bw.write(header);bw.write("\tGroup");bw.newLine();
+            String temp = null;
+            while((temp = br.readLine()) != null){
+                String key = PStringUtils.fastSplit(temp).get(0);
+                bw.newLine();
+            }
+            bw.flush();bw.close();br.close();
+        }
+        catch(Exception e){
+            //System.out.println(temp);
+            e.printStackTrace();
+            System.exit(1);
+            
+        }
+    }
+    
+    public void countVarient(){
+        String infileDirS = "/Volumes/LuLab3T_30/hmp321_agp4";
+        File[] fs = new File(infileDirS).listFiles();
+        for (int i = 0; i < fs.length; i++) {
+            if(fs[i].isHidden()){
+                System.out.println(fs[i].getName() + " is hidden");
+                fs[i].delete();
+            }
+        }
+        fs = new File(infileDirS).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, "vcf.gz");
+        int sum = 0;
+        for (int i = 0; i < fs.length; i++) {
+            int cnt = 0;
+            try {
+                BufferedReader br = IOUtils.getTextGzipReader(fs[i].getAbsolutePath());
+                String temp = null;
+                while ((temp = br.readLine()) != null) {
+                    if(temp.startsWith("#"))continue;
+                    cnt++;
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+            System.out.println(String.valueOf(cnt)+"\t"+fs[i].getName());
+            sum+=cnt;
+        }
+        System.out.println(String.valueOf(sum));
+        
+    }
+    
+    public void mkMDSplot(){
+        //this.addGroupInfotoMds();
+        this.mdsHmp321HighDepthFiltered();
+        
+    }
+    
+    public void mdsHmp321HighDepthFiltered(){
+        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/008_mds/003_mds_addGroup.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/008_mds/005_mds_addGroup_highDepth_Filtered.txt";
+        String taxaFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/003_IBD/005_reccesiveDeleterious_merge_noTraitMixedUnknowteo.txt";
+        RowTable<String> t = new RowTable<>(taxaFileS);
+        List<String> taxaList = new ArrayList<>();
+        taxaList = t.getColumn(0);
+        String[] taxa = taxaList.toArray(new String[taxaList.size()]);
+        Arrays.sort(taxa);
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String header = br.readLine();
+            bw.write(header);bw.newLine();
+            String temp = null;
+            while((temp = br.readLine()) != null){
+                String key = PStringUtils.fastSplit(temp).get(0);
+                int index = Arrays.binarySearch(taxa, key);
+                if(index < 0) continue;
+                bw.write(temp);
+                bw.newLine();
+            }
+            bw.flush();bw.close();br.close();
+        }
+        catch(Exception e){
+            //System.out.println(temp);
+            e.printStackTrace();
+            System.exit(1);
+            
+        }
+        
+    }
+    private void addGroupInfotoMds(){
+        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/008_mds/001_mds.txt";
+        String taxaGroupFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/002_hmp321TaxaGroup/hmp321_taxaGroup.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/008_mds/003_mds_addGroup.txt";
+        RowTable<String> t = new RowTable<>(taxaGroupFileS);
+        HashMap<String, String> hm = new HashMap<>();
+        for (int i = 0; i < t.getRowNumber(); i++){
+            hm.put(t.getCellAsString(i, 0),t.getCellAsString(i, 1));
+        }
+        String temp = null;
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String header = br.readLine();
+            bw.write(header);bw.write("\tGroup");bw.newLine();
+            //String temp = null;
+            while((temp = br.readLine()) != null){
+                String key = PStringUtils.fastSplit(temp).get(0);
+                bw.write(temp);bw.write("\t");bw.write(hm.get(key));
+                bw.newLine();
+            }
+            bw.flush();bw.close();br.close();
+        }
+        catch(Exception e){
+            System.out.println(temp);
+            e.printStackTrace();
+            System.exit(1);
+            
+        }
+        
+        RowTable<String> tt = new RowTable<>(outfileS);
+        Set<String> group = new HashSet<>();
+        for (int i=0; i<tt.getRowNumber(); i++){
+            group.add(tt.getCellAsString(i, 4));
+        }
+        System.out.println("1210份玉米种质的分类" + group);
+        //[ss, Tripsacum, popcorn, sweet corn, mixed, sweet, Landrace, unknown, nss, ts, Teo, teo]  12种，太乱七八糟额！
+       
+    }
+    
+    private void mergeRecDelHighAndDsitanceToB73(){
+        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/reccesiveDeleterious_hmp321_highDepth.txt";
+        String distanceFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/003_IBD/002_1210taxaDistanceToB73.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/003_IBD/003_reccesiveDeleterious_merge.txt";
+        RowTable<String> t = new RowTable<>(distanceFileS);
+        HashMap<String,String> taxaDistance = new HashMap<>();
+        for(int i= 0; i< t.getRowNumber(); i++){
+            taxaDistance.put(t.getCellAsString(i, 1),t.getCellAsString(i, 2));
+        }
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String header = br.readLine();
+            bw.write(header);bw.write("\tIBS_Distance");bw.newLine();
+            String temp = null;
+            while((temp = br.readLine()) != null){
+                String key = PStringUtils.fastSplit(temp).get(0);
+                bw.write(temp);bw.write("\t");bw.write(taxaDistance.get(key));
+                bw.newLine();
+            }
+            bw.flush();bw.close();br.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+    
+    /** 
+     * Convert the matrix table to only oneVSone table
+     */
+    
+    private void mkDistanceToB73(){
+        String matrixFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/003_IBD/001B73matrix_sub.txt";
+        String taxaListFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/002_hmp321TaxaGroup/TaxaList.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/003_IBD/002_1210taxaDistanceToB73.txt";
+        RowTable<String> t = new RowTable<>(taxaListFileS);
+        List<String> taxaList = new ArrayList<>();
+        taxaList = t.getColumn(0);
+        String[] taxa = taxaList.toArray(new String[taxaList.size()]);
+        Arrays.sort(taxa);
+        try{
+            BufferedReader br = IOUtils.getTextReader(matrixFileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            bw.write("Taxon1\tTaxon2\tIBS_Distance");
+            bw.newLine();
+            String temp = br.readLine();
+            List<String> matrixList = PStringUtils.fastSplit(temp);
+            for(int i = 0; i < taxaList.size(); i++){
+                bw.write("B73\t");
+                bw.write(taxaList.get(i));bw.write("\t");
+                int j = i+1;
+                bw.write(matrixList.get(j));
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+            br.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
     
     /**
      * [ss, Tripsacum, popcorn, mixed, sweet, Landrace, unknown, ts, nss, Teo, teo] GroupSet 11个 （Teo 和teo重复） 多了 tripsacum(摩擦禾属)  mixed  unknow 
      */
-    private void mkBurdenFile(){
+    private void mkBurdenFile_deprecated(){
         
         String infileS = "/Users/Aoyue/Documents/additiveDeleterious_hmp321_highDepth.txt";
         String outfileS = "/Users/Aoyue/Documents/add_hmp321_burden.txt";
@@ -107,7 +311,6 @@ public class VariantSummary {
             System.exit(1);
             
         }
-                
     }
     
     private void countDeleteriousHmp32HighDepth () {
@@ -277,7 +480,7 @@ public class VariantSummary {
     }
     
     private void checkTaxaNameSamewithFeiGroup(){
-        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/002_hmp321TaxaGroup/hmp32.taxaGroup.txt";
+        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/002_hmp321TaxaGroup/hmp321_taxaGroup.txt";
         String infileS2 = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/002_hmp321TaxaGroup/TaxaList.txt";
         String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/002_hmp321TaxaGroup/CompareTaxaList.txt";
         RowTable<String> t = new RowTable<>(infileS2);
