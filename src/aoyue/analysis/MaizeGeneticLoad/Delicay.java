@@ -86,13 +86,74 @@ public class Delicay {
         //this.countVariant2();
         //this.mkV4CentromerePos();
         //this.testStringSpilt();
-        this.testmathrandom();
+        //this.testmathrandom();
+        //this.checkCategory();
+        this.filterGroup();
         
         
         
               
          
     }
+    
+            public void filterGroup(){
+            String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/005_loadVSB73Distance/004_reccesiveDeleterious_merge_notraitMixedUnknow.txt";
+            String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/005_loadVSB73Distance/004_reccesiveDeleterious_Teo.txt";
+            try{
+                BufferedReader br = IOUtils.getTextReader(infileS);
+                BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+                String header = br.readLine();
+                bw.write(header);bw.newLine();
+                String temp = null;
+                while((temp = br.readLine()) != null){
+                    String group = PStringUtils.fastSplit(temp).get(3);
+                    if (group.equals("Teo")) {
+                        bw.write(temp);
+                        bw.newLine();
+                    }
+                    
+                }
+                br.close();bw.flush();bw.close();
+            }
+            catch(Exception e){
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+    
+    public void checkCategory(){
+        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/005_loadVSB73Distance/004_reccesiveDeleterious_merge_notraitMixedUnknow.txt";
+        RowTable<String> t = new RowTable<>(infileS);
+        Set<String> DataSet = new HashSet<>();
+        for(int i=0; i < t.getRowNumber(); i++){
+            DataSet.add(t.getCellAsString(i, 3));
+        }
+        String[] datasets = DataSet.toArray(new String[DataSet.size()]);
+        System.out.println( DataSet);
+        for(int i=0; i< datasets.length; i++){
+            try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            String header = br.readLine();
+            String temp = null;
+            Set<String> categorySet = new HashSet<>();
+            while((temp = br.readLine()) != null){
+                String Dataset = PStringUtils.fastSplit(temp).get(2);
+                String category = PStringUtils.fastSplit(temp).get(4);
+                if(Dataset.equals(datasets[i])){
+                    categorySet.add(category);
+                }
+            }
+            System.out.println(datasets[i] + categorySet);
+            br.close();
+            
+            }
+            catch(Exception e){
+                //System.out.println(temp);
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+    }    
     
     public void testmathrandom(){
         int snpNum = 5875644;

@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,17 +32,71 @@ public class TaxaInfo {
         //this.checkCategoryandAddGermplasm();
 //        this.checktaxaList();
 //        this.reversechecktaxaList();
-//        this.mergeInfo();
+        //this.mergeInfo();
         //this.addGroupToMDS();
         //this.selected();
         //this.selectUseful();
-        this.removemixed();
+        //this.removemixed();
+        //new B73Distance();
+        this.countTaxaInGroup();
+        //this.MDSwithHighDepth();
+        
+        
         
         
         
     }
+    
+    public void MDSwithHighDepth(){
+        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/004_taxaGroup/006_MDS_addGroupInfo.txt";
+        String highDeptFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/reccesiveDeleterious_hmp321_highDepth.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/004_taxaGroup/010_MDS_highDepth.txt";
+        RowTable<String> t = new RowTable<>(highDeptFileS);
+        Set<String> s = new HashSet<>(t.getColumn(0));
+        String[] sa = s.toArray(new String[s.size()]);
+        Arrays.sort(sa);
+ 
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String header = br.readLine();
+            bw.write(header);bw.newLine();
+            String temp = null;
+            while((temp = br.readLine()) != null){
+                String taxa = PStringUtils.fastSplit(temp).get(0);
+                String group = PStringUtils.fastSplit(temp).get(7);
+                int index = Arrays.binarySearch(sa, taxa);
+                if(index < 0) continue;
+                if(group.equals("unknown")) continue;
+                if(group.equals("mixed"))continue;
+                if(group.equals("popcorn"))continue;
+                if(group.startsWith("sweet"))continue;
+                
+                bw.write(temp);
+                bw.newLine();
+            }
+            bw.flush();bw.close();br.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+        
+    }
+    
+    public void countTaxaInGroup(){
+        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/005_loadVSB73Distance/004_reccesiveDeleterious_merge_notraitMixedUnknow.txt";
+        RowTable<String> t = new RowTable<>(infileS);
+        List<String> l = t.getColumn(3);
+        Set<String> s = new HashSet<>(l);
+        System.out.println(s);
+        for(String a : s){
+            System.out.println(a + "    " + Collections.frequency(l, a));
+        }
+    }
+    
     /**
-     * I only want Landrace Teosinte Tripsacum ss nss ts 
+     * I only want  6 groups Landrace Teosinte Tripsacum ss nss ts 
      */
      public void removemixed(){
         String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/004_taxaGroup/006_MDS_addGroupInfo.txt";
@@ -54,19 +109,19 @@ public class TaxaInfo {
             String temp = null;
             while((temp = br.readLine()) != null){
                 String taxon = PStringUtils.fastSplit(temp).get(0);
-                String germplasm = PStringUtils.fastSplit(temp).get(5);
-                String feiGroup = PStringUtils.fastSplit(temp).get(6);
+                String germplasm = PStringUtils.fastSplit(temp).get(6);
+                String feiGroup = PStringUtils.fastSplit(temp).get(7);
                 if(germplasm.equals("unknown")) continue;
                 if(germplasm.equals("Improved")) {
-                    if(feiGroup.equals("teo")){
-                        bw.write(PStringUtils.fastSplit(temp).get(0));bw.write("\t");
-                        bw.write(PStringUtils.fastSplit(temp).get(1));bw.write("\t");
-                        bw.write(PStringUtils.fastSplit(temp).get(2));bw.write("\t");
-                        bw.write(PStringUtils.fastSplit(temp).get(3));bw.write("\t");
-                        bw.write(PStringUtils.fastSplit(temp).get(4));bw.write("\t");
-                        bw.write(PStringUtils.fastSplit(temp).get(5));bw.write("\t");
-                        bw.write("Teo");bw.newLine();
-                    }
+//                    if(feiGroup.equals("teo")){
+//                        bw.write(PStringUtils.fastSplit(temp).get(0));bw.write("\t");
+//                        bw.write(PStringUtils.fastSplit(temp).get(1));bw.write("\t");
+//                        bw.write(PStringUtils.fastSplit(temp).get(2));bw.write("\t");
+//                        bw.write(PStringUtils.fastSplit(temp).get(3));bw.write("\t");
+//                        bw.write(PStringUtils.fastSplit(temp).get(4));bw.write("\t");
+//                        bw.write(PStringUtils.fastSplit(temp).get(5));bw.write("\t");
+//                        bw.write("Teo");bw.newLine();
+//                    }
                     if(feiGroup.equals("unknown"))continue;
                     if(feiGroup.equals("mixed"))continue;
                     if(feiGroup.equals("popcorn"))continue;
@@ -99,14 +154,18 @@ public class TaxaInfo {
             String temp = null;
             while((temp = br.readLine()) != null){
                 String taxon = PStringUtils.fastSplit(temp).get(0);
-                String germplasm = PStringUtils.fastSplit(temp).get(5);
-                String feiGroup = PStringUtils.fastSplit(temp).get(6);
+                String germplasm = PStringUtils.fastSplit(temp).get(6);
+                String feiGroup = PStringUtils.fastSplit(temp).get(7);
+                if(germplasm.equals("unknown")) continue;
                 if(germplasm.equals("Improved")) {
                     if(feiGroup.equals("unknown"))continue;
                     bw.write(temp);bw.newLine();
                 }
-                if(germplasm.equals("unknown")) continue;
-                bw.write(temp);bw.newLine();
+                else{
+                     bw.write(temp);bw.newLine();
+                }
+                
+               
             }
             br.close();
             bw.flush();
@@ -127,7 +186,7 @@ public class TaxaInfo {
         String a = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/004_taxaGroup/MDS_PCs_Matrix_68300sites.txt";
         RowTable<String> t = new RowTable<>(infileS);
         HashMap<String, String> hm = new HashMap<>();
-        for(int i =0; i< t.getRowNumber(); i++){
+        for(int i = 0; i< t.getRowNumber(); i++){
             hm.put(t.getCellAsString(i, 0), t.getCellAsString(i, 3));
         }
         
@@ -141,7 +200,6 @@ public class TaxaInfo {
                 String taxon = PStringUtils.fastSplit(temp).get(0);
                 if(hm.get(taxon).equals("Improved")) continue;
                 if(hm.get(taxon).equals("unknown")) continue;
-                
                 bw.write(temp);bw.write("\t");bw.write(hm.get(taxon));bw.newLine();
             }
             br.close();
@@ -204,7 +262,7 @@ public class TaxaInfo {
     }
     
     public void mergeInfo(){
-        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/source/hmp321_taxaGroup.txt";
+        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/source/hmp321_taxaGroup_version3.txt";
         String finalfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/004_taxaGroup/003_taxa1210GroupInfo_addGermplasm.txt";
         String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/004_taxaGroup/004_taxa1210GroupInfo_mergeFeiGroupInfo.txt";
         RowTable<String> t = new RowTable<>(infileS);
@@ -613,5 +671,105 @@ public class TaxaInfo {
             e.printStackTrace();
             System.exit(1);
         }
+    }
+
+    private static class B73Distance {
+
+        public B73Distance() {
+            //this.mkDistanceToB73();
+            //this.mergeRecDelHighAndDsitanceToB73();
+            this.filterGroup();
+            
+        }
+        
+        public void filterGroup(){
+            String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/005_loadVSB73Distance/003_reccesiveDeleterious_merge.txt";
+            String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/005_loadVSB73Distance/004_reccesiveDeleterious_merge_notraitMixedUnknow.txt";
+            try{
+                BufferedReader br = IOUtils.getTextReader(infileS);
+                BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+                String header = br.readLine();
+                bw.write(header);bw.newLine();
+                String temp = null;
+                while((temp = br.readLine()) != null){
+                    String group = PStringUtils.fastSplit(temp).get(3);
+                    if (group.equals("popcorn")) continue;
+                    if (group.equals("mixed")) continue;
+                    if (group.equals("sweet")) continue;
+                    if (group.equals("unknown")) continue;
+                    bw.write(temp);
+                    bw.newLine();
+                }
+                br.close();bw.flush();bw.close();
+            }
+            catch(Exception e){
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+        
+        private void mergeRecDelHighAndDsitanceToB73(){
+        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/reccesiveDeleterious_hmp321_highDepth.txt";
+        String distanceFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/005_loadVSB73Distance/002_1210taxaDistanceToB73.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/005_loadVSB73Distance/003_reccesiveDeleterious_merge.txt";
+        RowTable<String> t = new RowTable<>(distanceFileS);
+        HashMap<String,String> taxaDistance = new HashMap<>();
+        for(int i= 0; i< t.getRowNumber(); i++){
+            taxaDistance.put(t.getCellAsString(i, 1),t.getCellAsString(i, 2));
+        }
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String header = br.readLine();
+            bw.write(header);bw.write("\tIBS_DistancetoB73");bw.newLine();
+            String temp = null;
+            while((temp = br.readLine()) != null){
+                String key = PStringUtils.fastSplit(temp).get(0);
+                bw.write(temp);bw.write("\t");bw.write(taxaDistance.get(key));
+                bw.newLine();
+            }
+            bw.flush();bw.close();br.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+        
+        private void mkDistanceToB73(){
+        String matrixFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/005_loadVSB73Distance/001_B73_Matrix_68300sites.txt";
+        String taxaListFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/source/Taxa1210List.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/005_loadVSB73Distance/002_1210taxaDistanceToB73.txt";
+        RowTable<String> t = new RowTable<>(taxaListFileS);
+        List<String> taxaList = new ArrayList<>();
+        taxaList = t.getColumn(0);
+        String[] taxa = taxaList.toArray(new String[taxaList.size()]);
+        Arrays.sort(taxa);
+        try{
+            BufferedReader br = IOUtils.getTextReader(matrixFileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            bw.write("Taxon1\tTaxon2\tIBS_Distance");
+            bw.newLine();
+            String temp = br.readLine();
+            List<String> matrixList = PStringUtils.fastSplit(temp);
+            for(int i = 0; i < taxaList.size(); i++){
+                bw.write("B73\t");
+                bw.write(taxaList.get(i));bw.write("\t");
+                int j = i+1;
+                bw.write(matrixList.get(j));
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+            br.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+        
+        
+        
     }
 }

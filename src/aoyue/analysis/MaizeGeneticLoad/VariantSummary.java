@@ -57,16 +57,16 @@ public class VariantSummary {
 //       this.mkHmp321MafPlot_useR();
 //       this.SiftGerp_Correlation();
       //this.countDeleteriousHmp321();
-       this.checkTaxaNameSamewithFeiGroup();
-       //this.mkDepthOfHmp321();
-       //this.mkDepthSummary();
-       //this.countDeleteriousHmp32HighDepth();
-       //this.mkBurdenFile_deprecated();
-       //this.mkDistanceToB73();
-       //this.mergeRecDelHighAndDsitanceToB73();
-       this.mkMDSplot();
-       this.countVarient();
-       
+//       this.checkTaxaNameSamewithFeiGroup();
+//       this.mkDepthOfHmp321();
+//       this.mkDepthSummary();
+       this.countDeleteriousHmp32HighDepth();
+//       this.mkBurdenFile_deprecated();
+//       this.mkDistanceToB73();
+//       this.mergeRecDelHighAndDsitanceToB73();
+//       this.mkMDSplot();
+//       this.countVarient();
+//       
        
     }
     
@@ -313,13 +313,16 @@ public class VariantSummary {
         }
     }
     
+    /**
+     * 
+     */
     private void countDeleteriousHmp32HighDepth () {
         String taxaSummaryFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/001_hmp321Depth/taxaDepth.summary.txt";
         String addInfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/additiveDeleterious_hmp321.txt";
         String addOutfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/additiveDeleterious_hmp321_highDepth.txt";
         String recInfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/reccesiveDeleterious_hmp321.txt";
         String recOutfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/reccesiveDeleterious_hmp321_highDepth.txt";
-        String taxaGroupFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/002_hmp321TaxaGroup/hmp321.taxaGroup.txt";
+        String taxaGroupFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/source/hmp321_taxaGroup_version3.txt";
         //1.54=3x, 2.75 = 5x
         double depthCut = 1.54;
         RowTable t = new RowTable (taxaSummaryFileS);
@@ -412,7 +415,7 @@ public class VariantSummary {
         String hmpInfoFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/001_hmp321Info_filter/hmp321Info_filter_chr010_AGPv4_AnnoDB.txt";
         String taxaDepthDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/001_hmp321Depth/taxa/";
         int snpNum = 0;
-        int size = 20000; //这里我增加了抽样的为点数
+        int size = 20000; //这里我增加了抽样的位点数
         try {
             BufferedReader br = IOUtils.getTextReader(hmpInfoFileS);
             String temp = br.readLine();
@@ -545,7 +548,13 @@ public class VariantSummary {
         }
         
     }
-    private void countDeleteriousHmp321 () {
+    
+    /**
+     * 大方向是 每个位点pos 的ref 和 derived allele是多变的，所以在确定显隐性的时候每个位点情况都是不同。
+     * 对于10条染色体的每个位点，都是这样每个位点每个位点进行统计的，所有位点的统计结果都汇总到taxa中去，
+     * 这里以taxa为单位，可以计算出 dele 的位点数，也可以算出，在这些为点数中，有多少个位点是 dele。 矛盾啊！
+     */
+      private void countDeleteriousHmp321 () {
         String hmpDirS = "/Volumes/Lulab3T_14/hmp321_agp4";
         String infoFileS = "/Users/Aoyue/Documents/Data/referenceGenome/position/ChrLenCentPosi_agpV4.txt";
         String deleFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/004_snpclass/class/Non_Synonymous_Deleterious_High_GERP.txt";
@@ -560,7 +569,7 @@ public class VariantSummary {
          * 将deleFileS读进表格
          * 定义一个整型集合类的数组 posList[10]，并进行初始化集合， 分别为 posList[0] posList[1]...
          * 定义一个字符型集合类的数组 charList[10]，并进行初始化集合， 分别为charList[0] charList[1]...
-         * 如果DerivedAllele大于1，跳过
+         * 如果DerivedAllele个数(A, T)大于1，跳过
          * 将表格pos信息读进对应的posList[i];将DerivedAllele信息读进对应的charList[i]
          * 将集合类的数组posList[10]和charList[10] 转化为二维数组 delePos[10][]  deleChar[10][]
          * 
@@ -581,13 +590,13 @@ public class VariantSummary {
         t = new RowTable (deleFileS);
         TIntArrayList[] posList = new TIntArrayList[chrNum];
         TCharArrayList[] charList = new TCharArrayList[chrNum];
-        for (int i = 0; i < chrNum; i++) {
+        for (int i = 0; i < chrNum; i++) { //集合类数组，要初始化每一个集合
             posList[i] = new TIntArrayList();
             charList[i] = new TCharArrayList();
         }
         for (int i = 0; i < t.getRowNumber(); i++) {
             int index = t.getCellAsInteger(i, 0)-1; 
-            if (t.getCellAsString(i, 4).length()>1) continue; /*如果DerivedAllele大于1，跳过*/
+            if (t.getCellAsString(i, 4).length()>1) continue; /*如果DerivedAllele个数大于1，跳过*/
             posList[index].add(t.getCellAsInteger(i, 1));
             charList[index].add(t.getCellAsString(i, 4).charAt(0));
         }
@@ -610,7 +619,7 @@ public class VariantSummary {
         try {
             BufferedReader br = IOUtils.getTextReader(hmpChr10FileS);
             String temp = br.readLine();
-            while ((temp = br.readLine()).startsWith("##")) {}
+            while ((temp = br.readLine()).startsWith("##")) {} //直到循环体结束，temp不以 ## 开头
             List<String> l = PStringUtils.fastSplit(temp, "\t");
             taxa = new String[l.size()-9];
             for (int i = 9; i < l.size(); i++) {
@@ -624,7 +633,7 @@ public class VariantSummary {
         int taxaNum = taxa.length;
         double[] addCount = new double[taxa.length];
         int[] recCount = new int[taxa.length];
-        int[] siteWithMinDepthCount = new int[taxa.length];
+        int[] siteWithMinDepthCount = new int[taxa.length];  //这里是什么意思？？
         chrList.parallelStream().forEach(chr -> {
             String hmpFileS = "hmp321_agpv4_chr"+String.valueOf(chr)+".vcf.gz";
             hmpFileS = new File(hmpDirS, hmpFileS).getAbsolutePath();
@@ -632,43 +641,43 @@ public class VariantSummary {
             int chrIndex = chr-1;
             try {
                 String temp = br.readLine();
-                while ((temp = br.readLine()).startsWith("##")) {}
+                while ((temp = br.readLine()).startsWith("##")) {} //当temp = #CHROM时，循环体挑出，此时执行下面语句块。
                 int cnt = 0;
-                while ((temp = br.readLine()) != null) {
+                while ((temp = br.readLine()) != null) { //表示temp又读了一行，已经进入到10 16296阶段了。。。不要误解为还在#CHROM阶段。
                     cnt++;
                     if (cnt%1000000 == 0) System.out.println(String.valueOf(cnt)+" lines on chr "+String.valueOf(chr));
                     List<String> l = PStringUtils.fastSplit(temp.substring(0, 50), "\t");
                     int pos = Integer.valueOf(l.get(1));
                     int index = Arrays.binarySearch(delePos[chrIndex], pos);
-                    if (index < 0) continue;
+                    if (index < 0) continue; //前面建立的 delePos[][] 和deleChar[][] 都是为现在在vcf文件中找位置贡献的，不是有害突变的位点，都过滤。
                     l = PStringUtils.fastSplit(temp, "\t");
-                    int[] idx = new int[2]; //
-                    if (l.get(3).charAt(0) == deleChar[chrIndex][index]) {
+                    int[] idx = new int[2]; //idx是什么？？
+                    if (l.get(3).charAt(0) == deleChar[chrIndex][index]) { //如果ref allele = deleChar allele
                         idx[0] = 0; idx[1] = 1;
                     }
                     else idx[0] = 1; idx[1] = 0;
                     for (int i = 0; i < taxaNum; i++) {
-                        String genoS = l.get(i+9);
-                        if (genoS.startsWith(".")) continue;
-                        List<String> ll = PStringUtils.fastSplit(genoS, ":");
-                        List<String> lll = PStringUtils.fastSplit(ll.get(1), ",");
-                        int depth = Integer.valueOf(lll.get(0))+Integer.valueOf(lll.get(1));
-                        if (depth < minDepth) continue;
-                        lll = PStringUtils.fastSplit(ll.get(0), "/");
-                        int v1 = Integer.valueOf(lll.get(0));
-                        int v2 = Integer.valueOf(lll.get(1));
+                        String genoS = l.get(i+9); //指的是 GT:AD:GL 信息
+                        if (genoS.startsWith(".")) continue; //如果以.开头，说明没有基因型信息，此位点没有测到。
+                        List<String> ll = PStringUtils.fastSplit(genoS, ":"); //分开为GT   AD   GL三类
+                        List<String> lll = PStringUtils.fastSplit(ll.get(1), ","); //lll指将AD提取出来，并以"，"号分割。如 0/0:1,0:0,3,28中 ，1，0分别代表ref和alt的测序深度
+                        int depth = Integer.valueOf(lll.get(0))+Integer.valueOf(lll.get(1)); //总得测序深度等于 ref + alt
+                        if (depth < minDepth) continue; //最小测序深度是2，如果小于2，则弃用
+                        lll = PStringUtils.fastSplit(ll.get(0), "/"); //这里lll指的是基因型GT，lll被重新赋值，之前代表的是AD
+                        int v1 = Integer.valueOf(lll.get(0)); //v1等于 ref
+                        int v2 = Integer.valueOf(lll.get(1)); // v2 等于 alt
                         int sum = 0;
-                        if (v1 == idx[0]) sum++;
+                        if (v1 == idx[0]) sum++; 
                         if (v2 == idx[0]) sum++;
                         if (sum == 0) {}
                         else if (sum == 1) {
-                            addCount[i] += 0.5; //????
+                            addCount[i] += 0.5; //????这一段实在是看不懂啊！！！！！！！！1
                         }
                         else {
                             addCount[i] += 1;
                             recCount[i] += 1;
                         }
-                        siteWithMinDepthCount[i]++;
+                        siteWithMinDepthCount[i]++; //查看过滤了位点后，每个taxa有多少个位点被测到了！！！！
                     }
                 }
             }
