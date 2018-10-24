@@ -88,7 +88,22 @@ public class Delicay {
         //this.testStringSpilt();
         //this.testmathrandom();
         //this.checkCategory();
-        this.filterGroup();
+        /**
+         * 在文件内部过滤数据
+         */
+        //this.filterGroup();
+        /**
+         * 根据外部条件过滤数据
+         */
+        this.filterGroupUseList();
+        /**
+         * 查找某列数据的种类及个数,含表头
+         */
+        //this.countCaseInGroup();
+        /**
+         * 对数据进行排序，打印出来。
+         */
+        //this.sort();
         
         
         
@@ -96,30 +111,100 @@ public class Delicay {
          
     }
     
-            public void filterGroup(){
-            String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/005_loadVSB73Distance/004_reccesiveDeleterious_merge_notraitMixedUnknow.txt";
-            String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/005_loadVSB73Distance/004_reccesiveDeleterious_Teo.txt";
-            try{
-                BufferedReader br = IOUtils.getTextReader(infileS);
-                BufferedWriter bw = IOUtils.getTextWriter(outfileS);
-                String header = br.readLine();
-                bw.write(header);bw.newLine();
-                String temp = null;
-                while((temp = br.readLine()) != null){
-                    String group = PStringUtils.fastSplit(temp).get(3);
-                    if (group.equals("Teo")) {
-                        bw.write(temp);
-                        bw.newLine();
-                    }
-                    
-                }
-                br.close();bw.flush();bw.close();
-            }
-            catch(Exception e){
-                e.printStackTrace();
-                System.exit(1);
-            }
+            
+    
+    public void sort(){
+        String infileS = "/Users/Aoyue/Documents/tissue.txt";
+        RowTable<String> t = new RowTable<>(infileS);
+        List<String> l = t.getColumn(0);
+        Collections.sort(l);
+        System.out.println(l.size());
+        for(String a : l){
+             System.out.println(a);
+         }  
+        
+            /**
+             * 遍历hashmap的方法
+             */
+//            Iterator iter = hm.entrySet().iterator(); 
+//            while(iter.hasNext()){
+//                Map.Entry entry = (Map.Entry) iter.next(); 
+//                Object key = entry.getKey(); 
+//                Object val = entry.getValue();
+//                if(val.equals("")){
+//                    cnt++;
+//                    //System.out.println(key);
+//                }
+//            }
+    }
+    
+    public void countCaseInGroup(){
+        String infileS = "/Users/Aoyue/Documents/testGroupandNumber.txt";
+        RowTable<String> t = new RowTable<>(infileS);
+        List<String> l = t.getColumn(0);
+        System.out.println(l.size());
+        Set<String> s = new HashSet<>(l);
+        System.out.println(s.size());
+        System.out.println(s);
+        for(String a : s){
+            System.out.println(a + "    " + Collections.frequency(l, a));
         }
+    }
+    
+        public void filterGroupUseList(){
+        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/001_source/flat/addAverage/phosphoproteome_sortbyGene_addAverage.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/001_source/flat/phosphoproteome_sortbyGene_addAverage_removedupli.txt";
+        String tfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/001_source/flat/phosphoproteome_removelist_Dupli40_addP01.txt";
+        RowTable<String> t = new RowTable<>(tfileS);
+        List<String> l = t.getColumn(0);
+        String[] rl = l.toArray(new String[l.size()]);
+        Arrays.sort(rl);
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String header = br.readLine();
+            bw.write(header);bw.newLine();
+            String temp = null;
+            while((temp = br.readLine()) != null){
+                String name = PStringUtils.fastSplit(temp).get(0);
+                int index = Arrays.binarySearch(rl, name);
+                if (index < 0) {
+                    bw.write(temp);
+                    bw.newLine();
+                }
+            }
+            br.close();bw.flush();bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+    
+    public void filterGroup(){
+        String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/001_source/flat/addAverage/phosphoproteome_sortbyGene_addAverage.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/001_source/flat/phosphoproteome_sortbyGene_addAverage_removedupli.txt";
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String header = br.readLine();
+            bw.write(header);bw.newLine();
+            String temp = null;
+            while((temp = br.readLine()) != null){
+                String group = PStringUtils.fastSplit(temp).get(3);
+                if (group.equals("Teo")) {
+                    bw.write(temp);
+                    bw.newLine();
+                }
+
+            }
+            br.close();bw.flush();bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
     
     public void checkCategory(){
         String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/004_taxaSummary/005_loadVSB73Distance/004_reccesiveDeleterious_merge_notraitMixedUnknow.txt";

@@ -49,7 +49,7 @@ public class VariantSummary {
         //this.filterHmp321Info_bysiftTrans_useDataBase();
         //this.testarraylength();
 //        this.summarizeTranscript_deprecated();
-//        this.summarizeTranscript2();
+        //this.summarizeTranscript2();
        //this.classifySNPs();
 //       this.binarySearchtest();
 //       this.mkBarplotOfSNPs();
@@ -60,7 +60,7 @@ public class VariantSummary {
 //       this.checkTaxaNameSamewithFeiGroup();
 //       this.mkDepthOfHmp321();
 //       this.mkDepthSummary();
-       this.countDeleteriousHmp32HighDepth();
+       //this.countDeleteriousHmp32HighDepth();
 //       this.mkBurdenFile_deprecated();
 //       this.mkDistanceToB73();
 //       this.mergeRecDelHighAndDsitanceToB73();
