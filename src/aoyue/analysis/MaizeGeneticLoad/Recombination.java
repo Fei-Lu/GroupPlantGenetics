@@ -42,8 +42,8 @@ import utils.PStringUtils;
 //        this.converMidValue_V2V4();
 //        this.FilterMissMidValue();
 //        this.mkRecombinationPointTable();
-        this.mkBinTable_useMidValue();
-        //this.testgetSubsetsIndicesBySubsetSize_Method();
+        //this.mkBinTable_useMidValue();
+        this.testgetSubsetsIndicesBySubsetSize_Method();
         
          
     }

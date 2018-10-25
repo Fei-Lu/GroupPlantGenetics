@@ -8,6 +8,7 @@ package aoyue.analysis.MaizeGeneticLoad;
 import com.google.common.collect.Table;
 import static com.google.common.io.Files.map;
 import format.table.RowTable;
+import gnu.trove.list.array.TDoubleArrayList;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -24,6 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import utils.IOFileFormat;
 import utils.IOUtils;
+import utils.PArrayUtils;
 import utils.PStringUtils;
 
 /**
@@ -41,6 +43,7 @@ public class Expression {
         //this.conGeneModelV4toV2();
         //this.mergeConfidenceGene();
         //this.mergeConfidenceGene_phospho();
+        this.scatterData();
         
     }
     
@@ -53,7 +56,173 @@ public class Expression {
         
     }
     
-
+    void scatterData () {
+        String tranFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/003_delAndExpression/001_V2merge/transcriptome_withSift.txt";
+        String proFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/003_delAndExpression/001_V2merge/proteome_withSift.txt";
+        String phoFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/003_delAndExpression/001_V2merge/phosphoproteome_withSift.txt";
+        String tranBinFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/003_delAndExpression/003_scatterplot/transcriptome.bin.txt";
+        String proBinFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/003_delAndExpression/003_scatterplot/proteome.bin.txt";
+        String phoBinFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/003_delAndExpression/003_scatterplot/phosphoproteome.bin.txt";
+        int binSize = 200;
+        this.subBinData(tranFileS, tranBinFileS, binSize);
+        this.subBinData(proFileS, proBinFileS, binSize);
+        this.subBinData(phoFileS, phoBinFileS, binSize);
+//        this.subBinDataSortByExpressionValue(tranFileS, tranBinFileS, binSize);
+//        this.subBinDataSortByExpressionValue(proFileS, proBinFileS, binSize);
+//        this.subBinDataSortByExpressionValue(phoFileS, phoBinFileS, binSize);
+    }
+    
+    void subBinData (String inputFileS, String outputFileS, int binSize) {
+        RowTable<String> t = new RowTable<> (inputFileS);
+        int[][] bound = PArrayUtils.getSubsetsIndicesBySubsetSize(t.getRowNumber(), binSize);
+        double[][][] exAndError = new double[bound.length][3][2];
+        double[][][] tsAndError = new double[bound.length][3][2];
+        double[][][] vsAndError = new double[bound.length][3][2];
+        t.sortAsNumber("Syn");
+        System.out.println(t.getCellAsString(t.getRowNumber()-1, 0));
+        double[] ex = t.getColumnAsDoubleArray(1);
+        double[] ts = t.getColumnAsDoubleArray(2);
+        double[] vs = t.getColumnAsDoubleArray(t.getColumnIndex("Syn"));
+        
+        for (int i = 0; i <  bound.length; i++) {
+            TDoubleArrayList exList = new TDoubleArrayList();
+            TDoubleArrayList tsList = new TDoubleArrayList();
+            TDoubleArrayList vsList = new TDoubleArrayList();
+            for (int j = bound[i][0]; j < bound[i][1]; j++) {
+                exList.add(ex[j]);
+                tsList.add(ts[j]);
+                vsList.add(vs[j]);
+            }
+            double[] exSub = exList.toArray();
+            double[] tsSub = tsList.toArray();
+            double[] vsSub = vsList.toArray();
+            
+            DescriptiveStatistics d = new DescriptiveStatistics(exSub);
+            double mean = d.getMean();
+            double sd = d.getStandardDeviation();
+            double se = sd/Math.sqrt(exSub.length);
+            exAndError[i][0][0] = mean;
+            exAndError[i][0][1] = se;
+            d = new DescriptiveStatistics(tsSub);
+            mean = d.getMean();
+            sd = d.getStandardDeviation();
+            se = sd/Math.sqrt(exSub.length);
+            tsAndError[i][0][0] = mean;
+            tsAndError[i][0][1] = se;
+            d = new DescriptiveStatistics(vsSub);
+            mean = d.getMean();
+            sd = d.getStandardDeviation();
+            se = sd/Math.sqrt(exSub.length);
+            vsAndError[i][0][0] = mean;
+            vsAndError[i][0][1] = se;
+        }
+        
+        t.sortAsNumber("Del");
+        System.out.println(t.getCellAsString(t.getRowNumber()-1, 0));
+        ex = t.getColumnAsDoubleArray(1);
+        ts = t.getColumnAsDoubleArray(2);
+        vs = t.getColumnAsDoubleArray(t.getColumnIndex("Del"));
+        
+        for (int i = 0; i <  bound.length; i++) {
+            TDoubleArrayList exList = new TDoubleArrayList();
+            TDoubleArrayList tsList = new TDoubleArrayList();
+            TDoubleArrayList vsList = new TDoubleArrayList();
+            for (int j = bound[i][0]; j < bound[i][1]; j++) {
+                exList.add(ex[j]);
+                tsList.add(ts[j]);
+                vsList.add(vs[j]);
+            }
+            double[] exSub = exList.toArray();
+            double[] tsSub = tsList.toArray();
+            double[] vsSub = vsList.toArray();
+            DescriptiveStatistics d = new DescriptiveStatistics(exSub);
+            double mean = d.getMean();
+            double sd = d.getStandardDeviation();
+            double se = sd/Math.sqrt(exSub.length);
+            exAndError[i][1][0] = mean;
+            exAndError[i][1][1] = se;
+            d = new DescriptiveStatistics(tsSub);
+            mean = d.getMean();
+            sd = d.getStandardDeviation();
+            se = sd/Math.sqrt(exSub.length);
+            tsAndError[i][1][0] = mean;
+            tsAndError[i][1][1] = se;
+            d = new DescriptiveStatistics(vsSub);
+            mean = d.getMean();
+            sd = d.getStandardDeviation();
+            se = sd/Math.sqrt(exSub.length);
+            vsAndError[i][1][0] = mean;
+            vsAndError[i][1][1] = se;
+        }
+        
+        t.sortAsNumber("RatioDelVsSyn");
+        System.out.println(t.getCellAsString(t.getRowNumber()-1, 0));
+        ex = t.getColumnAsDoubleArray(1);
+        ts = t.getColumnAsDoubleArray(2);
+        vs = t.getColumnAsDoubleArray(t.getColumnIndex("RatioDelVsSyn"));
+        for (int i = 0; i <  bound.length; i++) {
+            TDoubleArrayList exList = new TDoubleArrayList();
+            TDoubleArrayList tsList = new TDoubleArrayList();
+            TDoubleArrayList vsList = new TDoubleArrayList();
+            for (int j = bound[i][0]; j < bound[i][1]; j++) {
+                exList.add(ex[j]);
+                tsList.add(ts[j]);
+                vsList.add(vs[j]);
+            }
+            double[] exSub = exList.toArray();
+            double[] tsSub = tsList.toArray();
+            double[] vsSub = vsList.toArray();
+            DescriptiveStatistics d = new DescriptiveStatistics(exSub);
+            double mean = d.getMean();
+            double sd = d.getStandardDeviation();
+            double se = sd/Math.sqrt(exSub.length);
+            exAndError[i][2][0] = mean;
+            exAndError[i][2][1] = se;
+            d = new DescriptiveStatistics(tsSub);
+            mean = d.getMean();
+            sd = d.getStandardDeviation();
+            se = sd/Math.sqrt(exSub.length);
+            tsAndError[i][2][0] = mean;
+            tsAndError[i][2][1] = se;
+            d = new DescriptiveStatistics(vsSub);
+            mean = d.getMean();
+            sd = d.getStandardDeviation();
+            se = sd/Math.sqrt(exSub.length);
+            vsAndError[i][2][0] = mean;
+            vsAndError[i][2][1] = se;
+        }
+        try {
+            BufferedWriter bw = IOUtils.getTextWriter(outputFileS);
+            bw.write("Group rank\tExpressSynMean\tExpressSynError\tExpressDelMean\tExpressDelError\tExpressRatioDVsSMean\tExpressRatioDVsSError\tTsSynMean\tTsSynError\tTsDelMean\tTsDelError\tTsRatioDVsSMean\tTsRatioDVsSError\tSynMean\tSynError\tDelMean\tDelError\tRatioDVsSMean\tRatioDVsSError");
+            bw.newLine();
+            for (int i = 0; i < bound.length-1; i++) {
+                StringBuilder sb = new StringBuilder();
+                sb.append(i+1);
+                for (int j = 0; j < exAndError[i].length; j++) {
+                    for (int k = 0; k < exAndError[i][j].length; k++) {
+                        sb.append("\t").append(exAndError[i][j][k]);
+                    }
+                }
+                for (int j = 0; j < tsAndError[i].length; j++) {
+                    for (int k = 0; k < tsAndError[i][j].length; k++) {
+                        sb.append("\t").append(tsAndError[i][j][k]);
+                    }
+                }
+                for (int j = 0; j < vsAndError[i].length; j++) {
+                    for (int k = 0; k < vsAndError[i][j].length; k++) {
+                        sb.append("\t").append(vsAndError[i][j][k]);
+                    }
+                }
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     
     public void mergeConfidenceGene_phospho(){
         String infileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/002_processedExpression/001_V2/phosphoproteome.txt";
@@ -101,9 +270,10 @@ public class Expression {
                 int m = l.size()-1;
                 StringBuilder sb = new StringBuilder();
                 sb.append(name);sb.append("\t");
-                for(int i = 1; i< m; i++){
+                for(int i = 1; i< l.size(); i++){
                     sb.append(l.get(i));sb.append("\t");
                 }
+                
                 sb.append(geneSynMap.get(name)).append("\t").append(geneDelMap.get(name)).append("\t").append(geneRioMap.get(name))
                 .append("\t").append(geneGerpMap.get(name));
                 bw.write(sb.toString());
