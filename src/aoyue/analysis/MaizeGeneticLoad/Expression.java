@@ -36,14 +36,15 @@ public class Expression {
 
     public Expression() {
         //this.checkHeader();
-        //this.processRawPopBase();
+        this.processRawPopBase();
         //this.method2();
         
         //this.conGeneModelV2toV4_deprecated();
         //this.conGeneModelV4toV2();
         //this.mergeConfidenceGene();
         //this.mergeConfidenceGene_phospho();
-        this.scatterData();
+        //this.scatterData();
+        //this.deleteriousAndGeneByTissue();
         
     }
     
@@ -55,6 +56,12 @@ public class Expression {
         //this.spiltPhospho();
         
     }
+    
+    
+    
+    /**
+     * 待解释？
+     */
     
     void scatterData () {
         String tranFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/003_delAndExpression/001_V2merge/transcriptome_withSift.txt";
