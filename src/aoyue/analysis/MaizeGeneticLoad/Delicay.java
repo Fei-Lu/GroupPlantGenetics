@@ -95,15 +95,15 @@ public class Delicay {
         /**
          * 根据外部条件过滤数据
          */
-        this.filterGroupUseList();
+        //this.filterGroupUseList();
         /**
          * 查找某列数据的种类及个数,含表头
          */
-        //this.countCaseInGroup();
+        this.countCaseInGroup();
         /**
          * 对数据进行排序，打印出来。
          */
-        //this.sort();
+        this.sort();
         
         
         
@@ -114,7 +114,7 @@ public class Delicay {
             
     
     public void sort(){
-        String infileS = "/Users/Aoyue/Documents/tissue.txt";
+        String infileS = "/Users/Aoyue/Documents/国家分布134.txt";
         RowTable<String> t = new RowTable<>(infileS);
         List<String> l = t.getColumn(0);
         Collections.sort(l);
@@ -139,12 +139,12 @@ public class Delicay {
     }
     
     public void countCaseInGroup(){
-        String infileS = "/Users/Aoyue/Documents/testGroupandNumber.txt";
+        String infileS = "/Users/Aoyue/Documents/国家分布134.txt";
         RowTable<String> t = new RowTable<>(infileS);
         List<String> l = t.getColumn(0);
-        System.out.println(l.size());
+        System.out.println(l.size() + " list个数");
         Set<String> s = new HashSet<>(l);
-        System.out.println(s.size());
+        System.out.println(s.size() + " set个数");
         System.out.println(s);
         for(String a : s){
             System.out.println(a + "    " + Collections.frequency(l, a));

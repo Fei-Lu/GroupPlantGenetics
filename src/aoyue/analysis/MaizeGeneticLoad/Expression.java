@@ -36,7 +36,7 @@ public class Expression {
 
     public Expression() {
         //this.checkHeader();
-        this.processRawPopBase();
+        //this.processRawPopBase();
         //this.method2();
         
         //this.conGeneModelV2toV4_deprecated();
@@ -46,6 +46,160 @@ public class Expression {
         //this.scatterData();
         //this.deleteriousAndGeneByTissue();
         
+        /**
+         * 把老师的文件重新处理一遍，看看最终结果是否一致。探究是否由于基因过滤引起的  非组织特异表达，含有有害突变多。
+         */
+        
+        //this.FeimergeConfidenceGene();
+        this.FeimergeConfidenceGene_phospho();
+        this.FeiscatterData();
+        
+    }
+    
+    public void FeiscatterData () {
+        String tranFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/000_20181108feiresult/003_delAndExpression/001_merge/transcriptome_withSift.txt";
+        String proFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/000_20181108feiresult/003_delAndExpression/001_merge/proteome_withSift.txt";
+        String phoFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/000_20181108feiresult/003_delAndExpression/001_merge/phosphoproteome_withSift.txt";
+        String tranBinFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/000_20181108feiresult/003_delAndExpression/003_scatterplot/transcriptome.bin.txt";
+        String proBinFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/000_20181108feiresult/003_delAndExpression/003_scatterplot/proteome.bin.txt";
+        String phoBinFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/000_20181108feiresult/003_delAndExpression/003_scatterplot/phosphoproteome.bin.txt";
+        int binSize = 200;
+        this.subBinData(tranFileS, tranBinFileS, binSize);
+        this.subBinData(proFileS, proBinFileS, binSize);
+        this.subBinData(phoFileS, phoBinFileS, binSize);
+//        this.subBinDataSortByExpressionValue(tranFileS, tranBinFileS, binSize);
+//        this.subBinDataSortByExpressionValue(proFileS, proBinFileS, binSize);
+//        this.subBinDataSortByExpressionValue(phoFileS, phoBinFileS, binSize);
+    }
+    
+    public void FeimergeConfidenceGene_phospho(){
+        String infileS = "/Users/Aoyue/Documents/maf_fei/003_expression/processedExpression/phosphoproteome.txt";
+        String highConfidenceFileS = "/Users/Aoyue/Documents/maf_fei/highConfidence_transcript.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/000_20181108feiresult/003_delAndExpression/001_merge/phosphoproteome_withSift.txt";
+        RowTable t = new RowTable (highConfidenceFileS);
+        HashMap<String, Double> geneSynMap = new HashMap();
+        HashMap<String, Double> geneDelMap = new HashMap();
+        HashMap<String, Double> geneRioMap = new HashMap();
+        HashMap<String, Double> geneGerpMap = new HashMap();
+        for (int i = 0; i < t.getRowNumber(); i++) {
+            if (t.getCellAsString(i, 4).equals("0")) continue; //判断该基因是否有sift值，若没有，0，跳过
+            String name = t.getCellAsString(i, 0);
+            if(name.startsWith("G")){
+                name = t.getCellAsString(i, 0).split("_")[0];
+            }
+            else{
+                    name = this.getGeneName(name);
+            }
+            double del = Double.valueOf(t.getCellAsDouble(i, 13));
+            double syn = Double.valueOf(t.getCellAsDouble(i, 6));
+            double gerp = Double.valueOf(t.getCellAsDouble(i, 16));
+            double v = Double.NaN; //not a number
+            if (syn != 0) {
+                v = del/syn;
+            }
+            geneSynMap.put(name, syn);
+            geneDelMap.put(name, del);
+            geneRioMap.put(name, v);
+            geneGerpMap.put(name, gerp);
+        }
+        
+        Set<String> geneSet = geneSynMap.keySet();
+        try {
+            BufferedReader br =IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            bw.write(br.readLine()+"\tSyn\tDel\tRatioDelVsSyn\tMeanGerp");
+            bw.newLine();
+            String temp = null;
+            int cnt =0;
+            while ((temp = br.readLine()) != null) {
+                List<String> l = PStringUtils.fastSplit(temp);
+                String name = l.get(0);
+                if(name.startsWith("A") || name.startsWith("E")){
+                    cnt++;
+                    name = this.getGeneNameP(name);
+                }
+                if (!geneSet.contains(name)) continue; //如果geneSet不包含表达数据中的基因，就跳过。因此就错过了AC开头的
+                if (Double.isNaN(geneRioMap.get(name))) continue; // 如果比率为0,也跳过。
+                if (Double.isNaN(Double.valueOf(l.get(2)))) continue; // 标准偏差为0,也跳过。
+                int m = l.size()-1;
+                StringBuilder sb = new StringBuilder();
+                sb.append(name);sb.append("\t");
+                for(int i = 1; i< l.size(); i++){
+                    sb.append(l.get(i));sb.append("\t");
+                }
+                
+                sb.append(geneSynMap.get(name)).append("\t").append(geneDelMap.get(name)).append("\t").append(geneRioMap.get(name))
+                .append("\t").append(geneGerpMap.get(name));
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+            System.out.println(cnt + "  A or E");
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+    }
+    
+    private void FeimergeConfidenceGene () {
+        String infileS = "/Users/Aoyue/Documents/maf_fei/003_expression/processedExpression/transcriptome.txt";
+        String highConfidenceFileS = "/Users/Aoyue/Documents/maf_fei/highConfidence_transcript.txt";
+        String outfileS = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/000_20181108feiresult/003_delAndExpression/001_merge/transcriptome_withSift.txt";
+        String infile2S = "/Users/Aoyue/Documents/maf_fei/003_expression/processedExpression/proteome.txt";
+        String outfile2S = "/Users/Aoyue/Documents/maizeGeneticLoad/003_expression/000_20181108feiresult/003_delAndExpression/001_merge/proteome_withSift.txt";
+        RowTable t = new RowTable (highConfidenceFileS);
+        HashMap<String, Double> geneSynMap = new HashMap();
+        HashMap<String, Double> geneDelMap = new HashMap();
+        HashMap<String, Double> geneRioMap = new HashMap();
+        HashMap<String, Double> geneGerpMap = new HashMap();
+        for (int i = 0; i < t.getRowNumber(); i++) {
+            if (t.getCellAsString(i, 4).equals("0")) continue; //判断该基因是否有sift值，若没有，0，跳过
+            String name = t.getCellAsString(i, 0);
+            if(name.startsWith("G")){
+                name = t.getCellAsString(i, 0).split("_")[0];
+            }
+            else{
+                    name = this.getGeneName(name);
+            }
+            double del = Double.valueOf(t.getCellAsDouble(i, 13));
+            double syn = Double.valueOf(t.getCellAsDouble(i, 6));
+            double gerp = Double.valueOf(t.getCellAsDouble(i, 16));
+            double v = Double.NaN; //not a number
+            if (syn != 0) {
+                v = del/syn;
+            }
+            geneSynMap.put(name, syn);
+            geneDelMap.put(name, del);
+            geneRioMap.put(name, v);
+            geneGerpMap.put(name, gerp);
+        }
+        
+        Set<String> geneSet = geneSynMap.keySet();
+        try {
+            BufferedReader br =IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            bw.write(br.readLine()+"\tSyn\tDel\tRatioDelVsSyn\tMeanGerp");
+            bw.newLine();
+            String temp = null;
+            while ((temp = br.readLine()) != null) {
+                List<String> l = PStringUtils.fastSplit(temp);
+                if (!geneSet.contains(l.get(0))) continue; //如果geneSet不包含表达数据中的基因，就跳过。因此就错过了AC开头的
+                if (Double.isNaN(geneRioMap.get(l.get(0)))) continue; // 如果比率为0,也跳过。
+                if (Double.isNaN(Double.valueOf(l.get(2)))) continue; // 标准偏差为0,也跳过。
+                StringBuilder sb = new StringBuilder(temp);
+                sb.append("\t").append(geneSynMap.get(l.get(0))).append("\t").append(geneDelMap.get(l.get(0))).append("\t").append(geneRioMap.get(l.get(0)))
+                .append("\t").append(geneGerpMap.get(l.get(0)));
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     
     public void method2(){
@@ -269,7 +423,7 @@ public class Expression {
                 String name = l.get(0);
                 if(name.startsWith("A") || name.startsWith("E")){
                     cnt++;
-                    name = this.getGeneName(name);
+                    name = this.getGeneNameP(name);
                 }
                 if (!geneSet.contains(name)) continue; //如果geneSet不包含表达数据中的基因，就跳过。因此就错过了AC开头的
                 if (Double.isNaN(geneRioMap.get(name))) continue; // 如果比率为0,也跳过。
@@ -296,9 +450,24 @@ public class Expression {
         
     }
     
-    String getGeneName(String a){
+    String getGeneNameP(String a){
         //String a = "AC148167.6_FGP001";
         int c = a.indexOf("P");
+        char[] d = a.toCharArray();
+        List<Character> l = new ArrayList<>();
+        for(int i = 0 ; i < d.length; i++){
+            if(i == c) continue;
+            l.add(d[i]);
+        }
+        String gene = StringUtils.join(l, "");
+        System.out.println(gene);
+        return(gene);
+    }
+    
+    
+    String getGeneName(String a){
+        //String a = "AC148167.6_FGP001";
+        int c = a.indexOf("T");
         char[] d = a.toCharArray();
         List<Character> l = new ArrayList<>();
         for(int i = 0 ; i < d.length; i++){

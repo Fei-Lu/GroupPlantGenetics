@@ -44,7 +44,7 @@ public class VariantSummary {
         //this.densityTest_deprecated();
         //this.densityTest();
         //this.density();
-        //this.filterHmp321Info();
+       // this.filterHmp321Info();
         //this.filterHmp321Info_bysiftTrans();
         //this.filterHmp321Info_bysiftTrans_useDataBase();
         //this.testarraylength();
@@ -55,11 +55,11 @@ public class VariantSummary {
 //       this.mkBarplotOfSNPs();
 //       this.mkHmp321MafPlot();
 //       this.mkHmp321MafPlot_useR();
-//       this.SiftGerp_Correlation();
+ //      this.SiftGerp_Correlation();
       //this.countDeleteriousHmp321();
 //       this.checkTaxaNameSamewithFeiGroup();
 //       this.mkDepthOfHmp321();
-//       this.mkDepthSummary();
+       //this.mkDepthSummary();
        //this.countDeleteriousHmp32HighDepth();
 //       this.mkBurdenFile_deprecated();
 //       this.mkDistanceToB73();
@@ -69,6 +69,10 @@ public class VariantSummary {
 //       
        
     }
+    
+    /**
+     * 模板
+     */
     
     public void demo(){
         String infileS = "";
