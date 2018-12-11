@@ -29,24 +29,14 @@ public class BWAJiao {
         //this.checkDupli();
         //this.newCheckSecondData();
         //this.sampleData();
-        this.spiltBam();
+        this.splitBam();
+        this.splitBam_chr0_mit_chl();
         
         
     }
     
-    public void spiltBam(){
+    public void splitBam_chr0_mit_chl(){
         String infileS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/First1-60/First-1-60SM.t.txt"; //nameSet的路径
-        String outfileS = "/data2/aoyue/output/spiltBamfile"; 
-        //String outfileDirS = "/Users/Aoyue/Documents";
-       /**
-        * 先建立好要拆分的文件夹 1-42，在spiltBamfile目录下
-        */
-//        for(int i =0 ; i < 42; i++){
-//            int j= i+1;
-//            String filename = PStringUtils.getNDigitNumber(3, j);
-//            File f = new File(outfileDirS, filename);
-//            f.mkdirs();
-//        }
         RowTable<String> t = new RowTable<>(infileS);
         List<String> namelist = t.getColumn(0);
         Collections.sort(namelist);
@@ -57,11 +47,52 @@ public class BWAJiao {
             try{
                 String inputDirS = "/data2/aoyue/output/bamfile/";
                 BufferedWriter bw = IOUtils.getTextWriter(scriptS);
-                for(int j=0; j<42;j++){
-                    int m = j+1;
-                    String chr = PStringUtils.getNDigitNumber(3, m);
-                    String outputDirS = "/data2/aoyue/output/spiltBamfile/" + chr + "/";
-                    bw.write("samtools view -h " + inputDirS + bamName + ".rmdup.bam " + m +" -o " + outputDirS + bamName + ".chr" + chr +".bam");
+                String chr0 = PStringUtils.getNDigitNumber(3, 0);
+                String outputDirS = "/data2/aoyue/output/spiltBamfile/" + chr0 + "/";
+                bw.write("samtools view -h " + inputDirS + bamName + ".rmdup.bam " + 0 +" -o " + outputDirS + bamName + ".chr" + chr0 +".bam");
+                bw.newLine();
+                String chr43 = PStringUtils.getNDigitNumber(3, 43);
+                outputDirS = "/data2/aoyue/output/spiltBamfile/" + chr43 + "/";
+                bw.write("samtools view -h " + inputDirS + bamName + ".rmdup.bam " + 43 +" -o " + outputDirS + bamName + ".chr" + chr43 +".bam");
+                bw.newLine();
+                String chr44 = PStringUtils.getNDigitNumber(3, 44);
+                outputDirS = "/data2/aoyue/output/spiltBamfile/" + chr44 + "/";
+                bw.write("samtools view -h " + inputDirS + bamName + ".rmdup.bam " + 44 +" -o " + outputDirS + bamName + ".chr" + chr44 +".bam");
+                bw.newLine();
+                bw.flush();bw.close();
+            }
+            catch(Exception e){
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }     
+    }
+    
+    public void splitBam(){
+        String infileS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/First1-60/First-1-60SM.t.txt"; //nameSet的路径
+        //String outfileDirS = "/Users/Aoyue/Documents";
+       /**
+        * 先建立好要拆分的文件夹 0-44，在splitBamfile目录下
+        */
+//        for(int i =0 ; i < 45; i++){
+//            String filename = PStringUtils.getNDigitNumber(3, i);
+//            File f = new File(outfileDirS, filename);
+//            f.mkdirs();
+//        }
+        RowTable<String> t = new RowTable<>(infileS);
+        List<String> namelist = t.getColumn(0);
+        Collections.sort(namelist);
+        for(int i =0; i < namelist.size(); i++){ //一共有60个循环
+            String bamName = namelist.get(i);
+            String scriptS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/First1-60/splitbam/" + bamName + "_split.sh";
+            //samtools view -h mergeWheat24SM.bam 44 -o mergeWheat24SM.chr44.bam
+            try{
+                String inputDirS = "/data2/aoyue/output/bamfile/";
+                BufferedWriter bw = IOUtils.getTextWriter(scriptS);
+                for(int j=0; j<45;j++){
+                    String chr = PStringUtils.getNDigitNumber(3, j);
+                    String outputDirS = "/data2/aoyue/output/splitBamfile/" + chr + "/";
+                    bw.write("samtools view -h " + inputDirS + bamName + ".rmdup.bam " + j +" -o " + outputDirS + bamName + ".chr" + chr +".bam");
                     bw.newLine();
                 }
                 bw.flush();bw.close();
