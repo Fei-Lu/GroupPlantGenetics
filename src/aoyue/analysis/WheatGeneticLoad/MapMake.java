@@ -22,7 +22,21 @@ public class MapMake {
         //this.sortRs_ID();
         //this.countCaseInLuLab();
         //this.countCaseInJiaoLab();
-        this.countCaseInLingLab();
+        //this.countCaseInLingLab();
+        this.countCatgory();
+    }
+    
+    public void countCatgory(){
+        String infileS = "/Users/Aoyue/Documents/sum.txt";
+        RowTable<String> t = new RowTable<>(infileS);
+        List<String> l = t.getColumn(4);
+        System.out.println(l.size() + " list个数");
+        Set<String> s = new HashSet<>(l);
+        System.out.println(s.size() + " set个数");
+        System.out.println(s);
+        for(String a : s){
+            System.out.println(a + "    " + Collections.frequency(l, a));
+        }
     }
     
     public void sortRs_ID(){

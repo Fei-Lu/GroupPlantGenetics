@@ -27,8 +27,107 @@ public class BWAJiao {
         //this.getName();
         //this.sort();
         //this.checkDupli();
-        this.newCheckSecondData();
+        //this.newCheckSecondData();
+        //this.sampleData();
+        this.spiltBam();
         
+        
+    }
+    
+    public void spiltBam(){
+        String infileS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/First1-60/First-1-60SM.t.txt"; //nameSet的路径
+        String outfileS = "/data2/aoyue/output/spiltBamfile"; 
+        //String outfileDirS = "/Users/Aoyue/Documents";
+       /**
+        * 先建立好要拆分的文件夹 1-42，在spiltBamfile目录下
+        */
+//        for(int i =0 ; i < 42; i++){
+//            int j= i+1;
+//            String filename = PStringUtils.getNDigitNumber(3, j);
+//            File f = new File(outfileDirS, filename);
+//            f.mkdirs();
+//        }
+        RowTable<String> t = new RowTable<>(infileS);
+        List<String> namelist = t.getColumn(0);
+        Collections.sort(namelist);
+        for(int i =0; i < namelist.size(); i++){ //一共有60个循环
+            String bamName = namelist.get(i);
+            String scriptS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/First1-60/splitbam/" + bamName + "_spilt.sh";
+            //samtools view -h mergeWheat24SM.bam 44 -o mergeWheat24SM.chr44.bam
+            try{
+                String inputDirS = "/data2/aoyue/output/bamfile/";
+                BufferedWriter bw = IOUtils.getTextWriter(scriptS);
+                for(int j=0; j<42;j++){
+                    int m = j+1;
+                    String chr = PStringUtils.getNDigitNumber(3, m);
+                    String outputDirS = "/data2/aoyue/output/spiltBamfile/" + chr + "/";
+                    bw.write("samtools view -h " + inputDirS + bamName + ".rmdup.bam " + m +" -o " + outputDirS + bamName + ".chr" + chr +".bam");
+                    bw.newLine();
+                }
+                bw.flush();bw.close();
+            }
+            catch(Exception e){
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }     
+    }
+    
+    public void sampleData(){
+        String infile1S = "/data2/sharedData/Jiao/ABD/HRV-L1_1.fq.gz";
+        String infile2S = "/data2/sharedData/Jiao/ABD/HRV-L1_2.fq.gz";
+        String outfile1S = "/data2/aoyue/test/HRV-L1_test_1.fq.gz";
+        String outfile2S = "/data2/aoyue/test/HRV-L1_test_2.fq.gz";
+        String fastaS = "/data2/aoyue/HRV-L1_fasta_1.fa";
+        
+        int readNum = 100000;
+        int startPoint = 100000;
+        int fastaNum = 1000;
+        try{
+            BufferedReader br1 = IOUtils.getTextGzipReader(infile1S);
+            BufferedReader br2 = IOUtils.getTextGzipReader(infile2S);
+            BufferedWriter bw1 = IOUtils.getTextGzipWriter(outfile1S);
+            BufferedWriter bw2 = IOUtils.getTextGzipWriter(outfile2S);
+            BufferedWriter bwf = IOUtils.getTextGzipWriter(fastaS);
+            String temp = null;
+            int cnt = 0;
+            while((temp = br1.readLine()) != null){
+                cnt++;
+                if(cnt < startPoint){
+                    br1.readLine();br1.readLine();br1.readLine();
+                    br2.readLine();br2.readLine();br2.readLine();br2.readLine();
+                }
+                else{
+                    bw1.write(temp+"\n");bw1.write(br1.readLine()+"\n");bw1.write(br1.readLine()+"\n");bw1.write(br1.readLine()+"\n");
+                    bw2.write(br2.readLine()+"\n");bw2.write(br2.readLine()+"\n");bw2.write(br2.readLine()+"\n");bw2.write(br2.readLine()+"\n");
+                    for (int i = 0; i < readNum-1; i++) {
+                            bw1.write(br1.readLine()+"\n");
+                            temp = br1.readLine();bw1.write(temp+"\n");
+                            bw1.write(br1.readLine()+"\n");bw1.write(br1.readLine()+"\n");
+                            bw2.write(br2.readLine()+"\n");bw2.write(br2.readLine()+"\n");bw2.write(br2.readLine()+"\n");bw2.write(br2.readLine()+"\n");
+                            if (i > fastaNum) continue;
+                            bwf.write(">"+String.valueOf(i));
+                            bwf.newLine();
+                            bwf.write(temp);
+                            bwf.newLine();
+                        }
+                        bw1.flush();bw1.close();
+                        bw2.flush();bw2.close();
+                        bwf.flush();bwf.close();
+                        br1.close();
+                        br2.close();
+                        break;
+                }
+            }
+            System.out.println(String.valueOf(readNum) + " reads are sampled from"+ "HRV-L1");
+            
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+ 
+        System.out.println("这是BWAJiao出口");
     }
     
     /**
