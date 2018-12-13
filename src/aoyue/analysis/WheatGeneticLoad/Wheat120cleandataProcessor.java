@@ -9,6 +9,7 @@ import format.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -22,19 +23,77 @@ import utils.PStringUtils;
  *
  * @author Aoyue
  */
-public class BWAJiao {
-    public BWAJiao(){
+public class Wheat120cleandataProcessor {
+    public Wheat120cleandataProcessor(){
         //this.getName();
         //this.sort();
         //this.checkDupli();
         //this.newCheckSecondData();
         //this.sampleData();
-        this.splitBam();
-        this.splitBam_chr0_mit_chl();
-        
-        
+//        this.splitBam();
+//        this.splitBam_chr0_mit_chl();
+        //this.calSingleChrSize();
+        this.mergeCalFile();
     }
     
+    public Wheat120cleandataProcessor(String inDirS, String outS, String suffix, String unit){
+        new Statistic(inDirS, outS, suffix, unit);
+    }
+    
+    public void mergeCalFile(){
+        String inDirS = "/Users/Aoyue/Documents/calFirstSize/";
+        String OriginS = "/Users/Aoyue/Documents/calFirst.chrmerge.txt";
+        String outfileS = "/Users/Aoyue/Documents/calFirst.chr0-44.txt";
+        
+        RowTable<String> t = new RowTable<>(OriginS);
+        List[] l = new List[45];
+        for(int i = 0; i < 45;i++){
+            l[i]=new ArrayList();
+        }
+        for(int i=0; i < 45; i++){
+            String chr = PStringUtils.getNDigitNumber(3, i);
+            String infileS = inDirS + "calFirst.chr" + chr + ".bam.txt";
+            RowTable<String> tt = new RowTable<>(infileS);
+            l[i] = tt.getColumn(1);
+            if((i == 0) || (i == 43) || (i == 44)){
+                t.addColumn(chr + "_Size(MB)", l[i]);
+            }
+            else{
+                t.addColumn(chr + "_Size(GB)", l[i]);
+            }
+        }
+        t.writeTextTable(outfileS, IOFileFormat.Text);
+    }
+    
+    public void calSingleChrSize(){
+        String inDirS = "/data2/aoyue/output/spiltBamfile/";
+        String outDirS = "/data2/aoyue/calFirstSize/";
+        try{
+            BufferedWriter bw = IOUtils.getTextWriter("/Users/Aoyue/Documents/script.txt");
+            for(int i = 0; i < 45; i++){
+                String chr = PStringUtils.getNDigitNumber(3, i);
+                String chrDirS = inDirS + chr;
+                String suffix = ".chr" + chr + ".bam";
+                String outS = outDirS + "calFirst" + suffix + ".txt";
+                if((i == 0) || (i == 43) || (i == 44)){
+                    bw.write("java -jar /data2/aoyue/calFileSize.jar ");
+                    bw.write(chrDirS);bw.write(" ");bw.write(outS);bw.write(" ");bw.write(".chr");bw.write(chr);bw.write(".bam ");bw.write("MB");
+                    bw.newLine();
+                }
+                else{
+                    bw.write("java -jar /data2/aoyue/calFileSize.jar ");
+                    bw.write(chrDirS);bw.write(" ");bw.write(outS);bw.write(" ");bw.write(".chr");bw.write(chr);bw.write(".bam ");bw.write("GB");
+                    bw.newLine();
+                }
+            }
+            bw.flush();bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
     public void splitBam_chr0_mit_chl(){
         String infileS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/First1-60/First-1-60SM.t.txt"; //nameSet的路径
         RowTable<String> t = new RowTable<>(infileS);
@@ -255,8 +314,6 @@ public class BWAJiao {
         RowTable<String> t = new RowTable<>(infileS);
         t.sortAsText(0);
         t.writeTextTable(outfileS, IOFileFormat.Text);
-        
-        
     }
     
     public void getName(){
@@ -271,8 +328,6 @@ public class BWAJiao {
         
         String infileDirS = "/Volumes/Seagate Backup Plus Drive/NHT151096_60s/release_1";
         String outfileS = "/Users/Aoyue/Documents/Jiao/001_db/60sample_later/Jiao60_later.txt";
-        
-        
         Set<String> s = new HashSet<>();
         File[] fs = new File(infileDirS).listFiles();
         fs = IOUtils.listFilesEndsWith(fs, ".gz");
@@ -301,12 +356,17 @@ public class BWAJiao {
         catch(Exception e){
             e.printStackTrace();
             System.exit(1);
-            
         }
     }
     
-    
-    public static void main (String[] args){
-        new BWAJiao();
+    /**
+     * 
+     * @param p 
+     */
+    public static void main (String[] p){
+//        System.out.println("To use this calFileSize jar, please add 4 params\n@param1: infileDirS @param2: outfileS @param3: suffix @param4: unit, You can choose TB GB MB KB");
+//        new Wheat120cleandataProcessor(p[0], p[1], p[2], p[3]);
+        
+    new Wheat120cleandataProcessor();
     }  
 }

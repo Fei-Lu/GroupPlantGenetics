@@ -28,7 +28,7 @@ import utils.IOUtils;
  */
 public class DataOrginazed {
     public DataOrginazed(){
-        //this.listAllFiles();
+        this.listAllFiles();
         this.listSpecificalFiles();
         this.md5();
         this.checkMd5();
