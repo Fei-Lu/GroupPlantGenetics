@@ -5,6 +5,7 @@
  */
 package aoyue.analysis.WheatGeneticLoad;
 
+import aoyue.utils.FileMkdir;
 import format.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -30,14 +31,203 @@ public class Wheat120cleandataProcessor {
         //this.checkDupli();
         //this.newCheckSecondData();
         //this.sampleData();
-//        this.splitBam();
+        //this.splitBam();
 //        this.splitBam_chr0_mit_chl();
         //this.calSingleChrSize();
-        this.mergeCalFile();
+        //this.mergeCalFile();
+        //this.mkIndexFile();
+        //this.cp_First();
+        this.cpFirstChr();
+        this.cp_Second();
+        
+        
     }
     
     public Wheat120cleandataProcessor(String inDirS, String outS, String suffix, String unit){
         new Statistic(inDirS, outS, suffix, unit);
+    }
+    
+    public void cp_Second(){
+        
+    }
+    
+    public void cpFirstChr(){
+//        String doc = "/Users/Aoyue/Documents/"; //进入doc目录下操作
+//        String outfileS = doc + "First-cp_split.bam_chr000-016.sh"; //写出的脚本文件路径 (需要改)
+//        String outParentS = "/mnt/usb/";
+//        String output = "ABD001_split.bam_chr000-016/";
+//        String outputS = outParentS + output;//脚本中的命令，目标文件夹 （需要改）
+        
+//        String doc = "/Users/Aoyue/Documents/"; //进入doc目录下操作
+//        String outfileS = doc + "First-cp_split.bam_chr017-038.sh"; //写出的脚本文件路径 (需要改)
+//        String outParentS = "/mnt/usb/";
+//        String output = "ABD001_split.bam_chr017-038/";
+//        String outputS = outParentS + output;//脚本中的命令，目标文件夹 （需要改）
+        
+//        String doc = "/Users/Aoyue/Documents/"; //进入doc目录下操作
+//        String outfileS = doc + "First-cp_split.bam_chr039-040.sh"; //写出的脚本文件路径 (需要改)
+//        String outParentS = "/mnt/usb/";
+//        String output = "ABD001_split.bam_chr039-040/";
+//        String outputS = outParentS + output;//脚本中的命令，目标文件夹 （需要改）
+//        
+        String doc = "/Users/Aoyue/Documents/"; //进入doc目录下操作
+        String outfileS = doc + "First-cp_split.bam_chr041-044.sh"; //写出的脚本文件路径 (需要改)
+        String outParentS = "/mnt/usb/";
+        String output = "ABD001_split.bam_chr041-044/";
+        String outputS = outParentS + output;//脚本中的命令，目标文件夹 （需要改）
+        
+        try{
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            for(int j=0; j<45;j++){
+                //if(j>16) continue;
+                
+//                if(j<17) continue;
+//                if(j>38) continue;
+                
+//                if(j<39) continue;
+//                if(j>40) continue;
+                
+                if(j<41) continue;
+                if(j>44) continue;
+                
+                
+                String chr = PStringUtils.getNDigitNumber(3, j);
+                String infileDirS = "/data2/aoyue/output/splitBamfile/" + chr + "/";
+                StringBuilder sb = new StringBuilder();
+                sb.append("cp Rf ").append(infileDirS).append(" ").append(outputS);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+        
+        try{
+            BufferedReader br = IOUtils.getTextReader(outfileS);
+            System.out.println(br.readLine());
+            System.out.println(br.readLine());
+            br.close();
+            
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+        
+    
+    
+    public void cp_First(){
+//        String doc = "/Users/Aoyue/Documents/"; //进入doc目录下操作
+//        String infileS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/First1-60/First-1-60SM.t.txt"; //读取的list文件路径
+//        String outfileS = doc + "First-cp_fixmate.pos.bam_1-28.sh"; //写出的脚本文件路径 (需要改)
+//        String infileDirS = "/data2/aoyue/output/bamsorted/"; //脚本中的命令，查找数据的地方 (需要改)
+//        String output = "ABD001_fixmate.pos.bam_1-28/"; //脚本中的命令，目标文件夹 （需要改）
+//        String outfileDirS = "/mnt/usb/" + output; //脚本中的命令，存放目标文件的文件夹路径
+//        String suffix = ".fixmate.pos.bam"; //脚本中的命令，list中的后缀名
+        
+        String doc = "/Users/Aoyue/Documents/"; //进入doc目录下操作
+        String infileS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/First1-60/First-1-60SM.t.txt"; //读取的list文件路径
+        String outfileS = doc + "First-cp_fixmate.pos.bam_29-55.sh"; //写出的脚本文件路径 (需要改)
+        String infileDirS = "/data2/aoyue/output/bamsorted/"; //脚本中的命令，查找数据的地方 (需要改)
+        String output = "ABD001_fixmate.pos.bam_29-55/"; //脚本中的命令，目标文件夹 （需要改）
+        String outfileDirS = "/mnt/usb/" + output; //脚本中的命令，存放目标文件的文件夹路径
+        String suffix = ".fixmate.pos.bam"; //脚本中的命令，list中的后缀名
+        
+//        String doc = "/Users/Aoyue/Documents/"; //进入doc目录下操作
+//        String infileS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/First1-60/First-1-60SM.t.txt"; //读取的list文件路径
+//        String outfileS = doc + "First-cp_rmdup.bam_1-25.sh"; //写出的脚本文件路径
+//        String infileDirS = "/data2/aoyue/output/bamfile/"; //脚本中的命令，查找数据的地方
+//        String output = "ABD001_rmdup.bam_1-25/"; //脚本中的命令，目标文件夹
+//        String outfileDirS = "/mnt/usb/" + output; //脚本中的命令，存放目标文件的文件夹路径
+//        String suffix = ".rmdup.bam"; //脚本中的命令，list中的后缀名
+        
+//        String doc = "/Users/Aoyue/Documents/"; //进入doc目录下操作
+//        String infileS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/First1-60/First-1-60SM.t.txt"; //读取的list文件路径
+//        String outfileS = doc + "First-cp_rmdup.bam_26-55.sh"; //写出的脚本文件路径 (需要改)
+//        String infileDirS = "/data2/aoyue/output/bamfile/"; //脚本中的命令，查找数据的地方
+//        String output = "ABD001_rmdup.bam_26-55/"; //脚本中的命令，目标文件夹 （需要改）
+//        String outfileDirS = "/mnt/usb/" + output; //脚本中的命令，存放目标文件的文件夹路径
+//        String suffix = ".rmdup.bam"; //脚本中的命令，list中的后缀名
+
+//        String doc = "/Users/Aoyue/Documents/"; //进入doc目录下操作
+//        String infileS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/First1-60/First-1-60SM.t.txt"; //读取的list文件路径
+//        String outfileS = doc + "First-cp_rmdup.bam_56-60.sh"; //写出的脚本文件路径 (需要改)
+//        String infileDirS = "/data2/aoyue/output/bamfile/"; //脚本中的命令，查找数据的地方
+//        String output = "ABD001_rmdup.bam_56-60/"; //脚本中的命令，目标文件夹 （需要改）
+//        String outfileDirS = "/mnt/usb/" + output; //脚本中的命令，存放目标文件的文件夹路径
+//        String suffix = ".rmdup.bam"; //脚本中的命令，list中的后缀名
+
+
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String temp = br.readLine(); //读入表头
+            int cnt =0;
+            while((temp = br.readLine()) != null){
+                cnt++;
+                
+ //               if(cnt > 25) continue;
+//                if(cnt < 26) continue;
+//                if(cnt > 55) continue;
+                //if(cnt > 28) continue;
+                if(cnt <29) continue;
+                if(cnt >55) continue;
+                
+                StringBuilder sb = new StringBuilder();
+                sb.append("cp -Rf ").append(infileDirS).append(temp).append(suffix).append(" ").append(outfileDirS);
+                sb.append(" && ");
+                sb.append("cp -Rf ").append(infileDirS).append(temp).append(suffix).append(".bai").append(" ").append(outfileDirS);
+                
+                bw.write(sb.toString());bw.newLine();
+            }
+            br.close();bw.flush();bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+        
+        try{
+            BufferedReader br = IOUtils.getTextReader(outfileS);
+            System.out.println(br.readLine());
+            System.out.println(br.readLine());
+            br.close();
+            
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+    
+    public void mkIndexFile(){
+        String infileS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/First1-60/First-1-60SM.t.txt";
+        RowTable<String> t = new RowTable<>(infileS);
+        List<String> namelist = t.getColumn(0);
+        Collections.sort(namelist);
+        for(int i =0; i < namelist.size(); i++){ //一共有60个循环
+            String bamName = namelist.get(i);
+            String scriptS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/First1-60/index/" + bamName + "_index.sh";
+            //samtools index mergeWheat24SM.bam
+            try{
+                BufferedWriter bw = IOUtils.getTextWriter(scriptS);
+                for(int j=0; j<45;j++){
+                    String chr = PStringUtils.getNDigitNumber(3, j);
+                    String outputDirS = "/data2/aoyue/output/splitBamfile/" + chr + "/";
+                    bw.write("samtools index " + outputDirS + bamName + ".chr" + chr + ".bam");
+                    bw.newLine();
+                }
+                bw.flush();bw.close();
+            }
+            catch(Exception e){
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }         
     }
     
     public void mergeCalFile(){
@@ -128,22 +318,15 @@ public class Wheat120cleandataProcessor {
     }
     
     public void splitBam(){
-        String infileS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/First1-60/First-1-60SM.t.txt"; //nameSet的路径
-        //String outfileDirS = "/Users/Aoyue/Documents";
-       /**
-        * 先建立好要拆分的文件夹 0-44，在splitBamfile目录下
-        */
-//        for(int i =0 ; i < 45; i++){
-//            String filename = PStringUtils.getNDigitNumber(3, i);
-//            File f = new File(outfileDirS, filename);
-//            f.mkdirs();
-//        }
+        //String infileS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/First1-60/First-1-60SM.t.txt"; //nameSet的路径
+        String infileS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/Second1-60/Second-1-60SM.t.txt";
         RowTable<String> t = new RowTable<>(infileS);
         List<String> namelist = t.getColumn(0);
         Collections.sort(namelist);
         for(int i =0; i < namelist.size(); i++){ //一共有60个循环
             String bamName = namelist.get(i);
-            String scriptS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/First1-60/splitbam/" + bamName + "_split.sh";
+            //String scriptS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/First1-60/splitbam/" + bamName + "_split.sh";
+            String scriptS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/Second1-60/splitbam/" + bamName + "_split.sh";
             //samtools view -h mergeWheat24SM.bam 44 -o mergeWheat24SM.chr44.bam
             try{
                 String inputDirS = "/data2/aoyue/output/bamfile/";
@@ -151,7 +334,8 @@ public class Wheat120cleandataProcessor {
                 for(int j=0; j<45;j++){
                     String chr = PStringUtils.getNDigitNumber(3, j);
                     String outputDirS = "/data2/aoyue/output/splitBamfile/" + chr + "/";
-                    bw.write("samtools view -h " + inputDirS + bamName + ".rmdup.bam " + j +" -o " + outputDirS + bamName + ".chr" + chr +".bam");
+                    bw.write("samtools view -h " + inputDirS + bamName + ".rmdup.bam " + j +" -o " + outputDirS + bamName + ".chr" + chr +".bam && samtools index " + 
+                            outputDirS + bamName + ".chr" + chr + ".bam");
                     bw.newLine();
                 }
                 bw.flush();bw.close();
