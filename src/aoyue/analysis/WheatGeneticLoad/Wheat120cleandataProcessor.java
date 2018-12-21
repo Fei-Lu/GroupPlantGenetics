@@ -33,18 +33,51 @@ public class Wheat120cleandataProcessor {
         //this.sampleData();
         //this.splitBam();
 //        this.splitBam_chr0_mit_chl();
-        //this.calSingleChrSize();
+//        this.calSingleChrSize();
         //this.mergeCalFile();
         //this.mkIndexFile();
         //this.cp_First();
-        this.cpFirstChr();
-        this.cp_Second();
+//        this.cpFirstChr();
+//        this.cp_Second();
+        this.mergeSplitbam();
         
         
     }
     
     public Wheat120cleandataProcessor(String inDirS, String outS, String suffix, String unit){
         new Statistic(inDirS, outS, suffix, unit);
+    }
+    
+    public void mergeSplitbam(){
+        String infileS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/Second1-60/Second-1-60SM.t.txt";
+        String outfileDirS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/mv_secondSplitbam/";
+        String oriPathDirS = "/data2/aoyue/splitBamfile_Second/";
+        String desPathDirS = "/data2/sharedData/Jiao/splitBamfile/";
+        
+        RowTable<String> t = new RowTable<>(infileS);
+        List<String> namelist = t.getColumn(0);
+        Collections.sort(namelist);
+        
+        for(int i =0; i < namelist.size(); i++){
+            String bamName = namelist.get(i);
+            String scriptS = outfileDirS + bamName + "-mv_secondSplitbam.sh";
+            try{
+                BufferedWriter bw = IOUtils.getTextWriter(scriptS);
+                for(int j=0; j<45;j++){
+                    String chr = PStringUtils.getNDigitNumber(3, j);
+                    String oriPathS = oriPathDirS + chr + "/";
+                    String desPathchrDirS = desPathDirS + chr + "/";
+                    bw.write("mv " + oriPathS + bamName + ".chr" + chr + ".bam "+ desPathchrDirS + " && " 
+                            + "mv " + oriPathS + bamName + ".chr" + chr + ".bam.bai "+ desPathchrDirS);
+                    bw.newLine();
+                }
+                bw.flush();bw.close();
+            }
+            catch(Exception e){
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
     }
     
     public void cp_Second(){
@@ -231,9 +264,13 @@ public class Wheat120cleandataProcessor {
     }
     
     public void mergeCalFile(){
-        String inDirS = "/Users/Aoyue/Documents/calFirstSize/";
-        String OriginS = "/Users/Aoyue/Documents/calFirst.chrmerge.txt";
-        String outfileS = "/Users/Aoyue/Documents/calFirst.chr0-44.txt";
+//        String inDirS = "/Users/Aoyue/Documents/calFirstSize/";  //没条染色体的文件存储
+//        String OriginS = "/Users/Aoyue/Documents/calFirst.chrmerge.txt";  //文件第一列的取样名字
+//        String outfileS = "/Users/Aoyue/Documents/calFirst.chr0-44.txt";  //合并后的文件夹
+        
+        String inDirS = "/Users/Aoyue/Documents/calSecondSize/";
+        String OriginS = "/Users/Aoyue/Documents/calSecond.chrmerge.txt"; //到时候copy其中一个文件中的一个
+        String outfileS = "/Users/Aoyue/Documents/calSecond.chr0-44.txt";
         
         RowTable<String> t = new RowTable<>(OriginS);
         List[] l = new List[45];
@@ -242,7 +279,8 @@ public class Wheat120cleandataProcessor {
         }
         for(int i=0; i < 45; i++){
             String chr = PStringUtils.getNDigitNumber(3, i);
-            String infileS = inDirS + "calFirst.chr" + chr + ".bam.txt";
+            //String infileS = inDirS + "calFirst.chr" + chr + ".bam.txt";
+            String infileS = inDirS + "calSecond.chr" + chr + ".bam.txt";
             RowTable<String> tt = new RowTable<>(infileS);
             l[i] = tt.getColumn(1);
             if((i == 0) || (i == 43) || (i == 44)){
@@ -256,15 +294,20 @@ public class Wheat120cleandataProcessor {
     }
     
     public void calSingleChrSize(){
-        String inDirS = "/data2/aoyue/output/spiltBamfile/";
-        String outDirS = "/data2/aoyue/calFirstSize/";
+//        String inDirS = "/data2/aoyue/output/spiltBamfile/";
+//        String outDirS = "/data2/aoyue/calFirstSize/";
+        
+        String inDirS = "/data2/aoyue/output/splitBamfile/";
+        String outDirS = "/data2/aoyue/calSecondSize/";
         try{
-            BufferedWriter bw = IOUtils.getTextWriter("/Users/Aoyue/Documents/script.txt");
+            BufferedWriter bw = IOUtils.getTextWriter("/Users/Aoyue/Documents/Java-jar-script.txt");
             for(int i = 0; i < 45; i++){
+                //java -jar /data2/aoyue/calFileSize.jar /data2/aoyue/output/spiltBamfile/000 /data2/aoyue/calFirstSize/calFirst.chr000.bam.txt .chr000.bam MB
                 String chr = PStringUtils.getNDigitNumber(3, i);
                 String chrDirS = inDirS + chr;
                 String suffix = ".chr" + chr + ".bam";
-                String outS = outDirS + "calFirst" + suffix + ".txt";
+                //String outS = outDirS + "calFirst" + suffix + ".txt";
+                String outS = outDirS + "calSecond" + suffix + ".txt";
                 if((i == 0) || (i == 43) || (i == 44)){
                     bw.write("java -jar /data2/aoyue/calFileSize.jar ");
                     bw.write(chrDirS);bw.write(" ");bw.write(outS);bw.write(" ");bw.write(".chr");bw.write(chr);bw.write(".bam ");bw.write("MB");
@@ -277,6 +320,17 @@ public class Wheat120cleandataProcessor {
                 }
             }
             bw.flush();bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+        try{
+            BufferedReader br = IOUtils.getTextReader("/Users/Aoyue/Documents/Java-jar-script.txt");
+            System.out.println(br.readLine());
+            System.out.println(br.readLine());
+            br.close();
+            
         }
         catch(Exception e){
             e.printStackTrace();
@@ -320,6 +374,7 @@ public class Wheat120cleandataProcessor {
     public void splitBam(){
         //String infileS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/First1-60/First-1-60SM.t.txt"; //nameSet的路径
         String infileS = "/Users/Aoyue/Documents/Data/project/wheatVMapII/Jiao/002_script/Second1-60/Second-1-60SM.t.txt";
+        //String infileS = "/Users/Aoyue/Documents/DKM.t.txt";
         RowTable<String> t = new RowTable<>(infileS);
         List<String> namelist = t.getColumn(0);
         Collections.sort(namelist);
