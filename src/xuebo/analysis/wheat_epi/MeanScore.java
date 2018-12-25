@@ -5,7 +5,6 @@
  */
 package xuebo.analysis.wheat_epi;
 import format.dna.FastaByte;
-import pipeline.cpScore.*;
 import java.io.BufferedReader;
 import utils.IOUtils;
 import java.io.BufferedWriter;

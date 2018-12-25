@@ -4,7 +4,6 @@
  * and open the template in the editor.
  */
 package xuebo.analysis.Annotationtwo;
-import pipeline.cpScore.*;
 import java.io.BufferedReader;
 import utils.IOUtils;
 import java.io.BufferedWriter;

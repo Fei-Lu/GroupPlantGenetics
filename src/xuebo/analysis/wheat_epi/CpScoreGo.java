@@ -5,7 +5,6 @@
  */
 package xuebo.analysis.wheat_epi;
 
-import pipeline.cpScore.*;
 import java.io.BufferedWriter;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;

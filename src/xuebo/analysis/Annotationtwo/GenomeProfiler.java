@@ -5,7 +5,6 @@
  */
 package xuebo.analysis.Annotationtwo;
 
-import pipeline.cpScore.*;
 import com.koloboke.collect.map.hash.HashByteByteMap;
 import com.koloboke.collect.map.hash.HashIntIntMap;
 import com.koloboke.collect.map.hash.HashIntIntMaps;

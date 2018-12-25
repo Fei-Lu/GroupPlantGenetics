@@ -5,7 +5,6 @@
  */
 package aoyue.analysis.WheatGeneticLoad;
 
-import aoyue.utils.FileMkdir;
 import format.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
