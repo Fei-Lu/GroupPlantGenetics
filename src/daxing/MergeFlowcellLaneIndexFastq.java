@@ -86,7 +86,7 @@ public class MergeFlowcellLaneIndexFastq {
                 barcodeForR1=inputWellBarcode.getCellAsString(i, 1);
                 barcodeForR2=inputWellBarcode.getCellAsString(i, 2);
                 fqList.get(i).addBarcode(wellID, barcodeForR1, barcodeForR2);
-                line=fqList.get(i).taxonName+"\t"+temp[0]+"\t"+temp[1]+"\t"+temp[2]+"\t"+wellID+"\t"+barcodeForR1+"\t"+barcodeForR2+"\t"+fqList.get(i).taxonName;
+                line=fqList.get(i).getTaxonName()+"\t"+temp[0]+"\t"+temp[1]+"\t"+temp[2]+"\t"+wellID+"\t"+barcodeForR1+"\t"+barcodeForR2+"\t"+fqList.get(i).getTaxonName();
                 wellBarcodeOutputStream.write(line);wellBarcodeOutputStream.newLine();
             }
             System.out.println(flowcellLaneIndex+" has "+fqList.size()+" samples");

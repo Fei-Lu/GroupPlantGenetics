@@ -7,20 +7,16 @@ package aoyue.analysis.MaizeGeneticLoad;
 
 import format.table.RowTable;
 import format.table.TableInterface;
+import utils.IOUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import utils.IOUtils;
 
 /**
  *
@@ -281,7 +277,7 @@ public class DataOrginazed {
 
     private void checkMd5() {
         //ori 文件 54de998c7883a4592a1683bec2590d64  K16HL0119_1_clean.fq.gz
-        //des文件 MD5 (K16HL0133_2_clean.fq.gz) = 52c7a9d501d5fd7b3d0deaf3aae1c715
+        //des文件 md5 (K16HL0133_2_clean.fq.gz) = 52c7a9d501d5fd7b3d0deaf3aae1c715
         String des = "/Users/Aoyue/Documents/111md5.txt"; //mac生成的md5文件
         String ori = "/Users/Aoyue/Documents/111originmd5.txt"; //原始md5
         HashMap<String, String> fmd5Map = new HashMap<>(); //建立一个键值对应的hashmap,此时hashmap为空。下文会把原始的ori文件放入hashmap中去

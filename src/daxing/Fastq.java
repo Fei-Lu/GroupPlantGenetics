@@ -20,11 +20,11 @@ import java.util.TreeSet;
  * @author xudaxing
  */
 public class Fastq implements Swapper, IntComparator {
-    List<String> flowcellLaneIndex=null;
-    List<String> tileCoordinates=null;
-    String taxonName=null;
-    List<long[]> reads=null;
-    boolean isThisFastqOnlyContainOneFlowcellLaneIndex=false;
+    private List<String> flowcellLaneIndex=null;
+    private List<String> tileCoordinates=null;
+    private String taxonName=null;
+    private List<long[]> reads=null;
+    private boolean isThisFastqOnlyContainOneFlowcellLaneIndex=false;
 
     //两种fastq构造器，一种是根据正常的fastq文件，另一种是根据简化板的fastq文件
     Fastq(String fastq1, String fastq2, String sampleID){
@@ -95,10 +95,10 @@ public class Fastq implements Swapper, IntComparator {
         this.tileCoordinates=new ArrayList<>();
         this.reads=new ArrayList<>();
         this.taxonName=sampleID;
-        BufferedReader br1=null;
-        BufferedReader br2=null;
-        String temp1=null;
-        String temp2=null;
+        BufferedReader br1;
+        BufferedReader br2;
+        String temp1;
+        String temp2;
         int count=0;
         try{
             br1 = IOUtils.getTextReader(fastq1);
@@ -137,8 +137,8 @@ public class Fastq implements Swapper, IntComparator {
     }
 
     public void addBarcode(String wellID, String barcodeForR1, String barcodeForR2){
-        String read1=null;
-        String read2=null;
+        String read1;
+        String read2;
         List<long[]> tags= new ArrayList<>();
         for(int i=0;i<reads.size();i++){
             String[] read1read2=TagReads.getReadsFromTag(reads.get(i),(short)160,(short)160);
@@ -289,6 +289,10 @@ public class Fastq implements Swapper, IntComparator {
         catch(Exception e){
             e.printStackTrace();
         }
+    }
+
+    public String getTaxonName(){
+        return this.taxonName;
     }
 
 }
