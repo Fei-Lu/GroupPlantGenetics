@@ -22,7 +22,7 @@ public class MergeFlowcellLaneIndexFastq {
 
     MergeFlowcellLaneIndexFastq(Fastqs fastqs){
         this.fastqs=fastqs;
-        if(fastqs.isEveryFastqHasOnlyOneFlowcellLaneIndex){
+        if(fastqs.getIsEveryFastqHasOnlyOneFlowcellLaneIndex()){
             this.readFlowcellLaneIndexFastqMap();
         }
         else{
@@ -33,7 +33,7 @@ public class MergeFlowcellLaneIndexFastq {
 
     private void readFlowcellLaneIndexFastqMap(){
         flowcellLaneIndexFastqMap=new HashMap<>();
-        List<Fastq> fastqList=this.fastqs.fastqList;
+        List<Fastq> fastqList=this.fastqs.getFastqList();
         flowcellLaneIndexFastqMap = fastqList.stream().collect(groupingBy(Fastq::getFlowcellLaneIndex));
     }
 
@@ -44,7 +44,8 @@ public class MergeFlowcellLaneIndexFastq {
         ){
             List<Fastq> l;
             String[] tempForFlowcellLaneIndex;
-            String lineForWellBarcodeOutputFileS="SampleID"+"\t"+"Flowcell-ID"+"\t"+"Lane"+"\t"+"Library-index"+"\t"+"Well-ID"+"\t"+"E1-Barcode"+"\t"+"E2-Barcode"+"\t"+"SampleID";
+            String lineForWellBarcodeOutputFileS="SampleID"+"\t"+"Flowcell-ID"+"\t"
+                    +"Lane"+"\t"+"Library-index"+"\t"+"Well-ID"+"\t"+"E1-Barcode"+"\t"+"E2-Barcode"+"\t"+"SampleID";
             String lineForLibrariesFastqMap="Flowcell-ID"+"\t"+"Lane"+"\t"+"Library-index"+"\t"+"R1Path"+"\t"+"R2Path";
             bw1.write(lineForWellBarcodeOutputFileS); bw1.newLine();
             bw2.write(lineForWellBarcodeOutputFileS); bw2.newLine();
@@ -60,11 +61,14 @@ public class MergeFlowcellLaneIndexFastq {
                 for(int i=1;i<l.size();i++){
                     fq.mergeFastq(l.get(i));
                 }
-                String r1FastqOutput=new File(librariesOutputDirS, fq.getFlowcellLaneIndex()+"_"+"R1.fastq").getAbsolutePath();
-                String r2FastqOutput=new File(librariesOutputDirS, fq.getFlowcellLaneIndex()+"_"+"R2.fastq").getAbsolutePath();
+                String r1FastqOutput=
+                        new File(librariesOutputDirS, fq.getFlowcellLaneIndex()+"_"+"R1.fastq").getAbsolutePath();
+                String r2FastqOutput=
+                        new File(librariesOutputDirS, fq.getFlowcellLaneIndex()+"_"+"R2.fastq").getAbsolutePath();
                 fq.writeFastq(r1FastqOutput, r2FastqOutput);
                 tempForFlowcellLaneIndex=str.split("_");
-                bw2.write(tempForFlowcellLaneIndex[0]+"\t"+tempForFlowcellLaneIndex[1]+"\t"+tempForFlowcellLaneIndex[2]+"\t"+r1FastqOutput+"\t"+r2FastqOutput);
+                bw2.write(tempForFlowcellLaneIndex[0]+"\t"+tempForFlowcellLaneIndex[1]
+                        +"\t"+tempForFlowcellLaneIndex[2]+"\t"+r1FastqOutput+"\t"+r2FastqOutput);
                 bw2.newLine();
             }
             bw1.flush();bw2.flush();
@@ -86,7 +90,8 @@ public class MergeFlowcellLaneIndexFastq {
                 barcodeForR1=inputWellBarcode.getCellAsString(i, 1);
                 barcodeForR2=inputWellBarcode.getCellAsString(i, 2);
                 fqList.get(i).addBarcode(wellID, barcodeForR1, barcodeForR2);
-                line=fqList.get(i).getTaxonName()+"\t"+temp[0]+"\t"+temp[1]+"\t"+temp[2]+"\t"+wellID+"\t"+barcodeForR1+"\t"+barcodeForR2+"\t"+fqList.get(i).getTaxonName();
+                line=fqList.get(i).getTaxonName()+"\t"+temp[0]+"\t"+temp[1]+"\t"+temp[2]+"\t"+wellID+"\t"+barcodeForR1
+                        +"\t"+barcodeForR2+"\t"+fqList.get(i).getTaxonName();
                 wellBarcodeOutputStream.write(line);wellBarcodeOutputStream.newLine();
             }
             System.out.println(flowcellLaneIndex+" has "+fqList.size()+" samples");

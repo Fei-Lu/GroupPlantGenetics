@@ -16,9 +16,9 @@ import static java.util.stream.Collectors.toSet;
  * @author xudaxing
  */
 public class Fastqs {
-    List<Fastq> fastqList=null;
-    List<String> taxonNameList=null;
-    boolean isEveryFastqHasOnlyOneFlowcellLaneIndex=false;
+    private List<Fastq> fastqList;
+    private List<String> taxonNameList;
+    private boolean isEveryFastqHasOnlyOneFlowcellLaneIndex=false;
 
     Fastqs(String sampleFastqMapFileS){
         this.readAllFastq(sampleFastqMapFileS);
@@ -94,6 +94,14 @@ public class Fastqs {
                 .collect(toSet());
         System.out.println("Current sampleFastqMap have "+s.size()+" differnet flowcellLaneIndex");
         return s;
+    }
+
+    public List<Fastq> getFastqList(){
+        return this.fastqList;
+    }
+
+    public boolean getIsEveryFastqHasOnlyOneFlowcellLaneIndex(){
+        return this.isEveryFastqHasOnlyOneFlowcellLaneIndex;
     }
 
 }

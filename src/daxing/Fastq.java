@@ -20,10 +20,10 @@ import java.util.TreeSet;
  * @author xudaxing
  */
 public class Fastq implements Swapper, IntComparator {
-    private List<String> flowcellLaneIndex=null;
-    private List<String> tileCoordinates=null;
-    private String taxonName=null;
-    private List<long[]> reads=null;
+    private List<String> flowcellLaneIndex;
+    private List<String> tileCoordinates;
+    private String taxonName;
+    private List<long[]> reads;
     private boolean isThisFastqOnlyContainOneFlowcellLaneIndex=false;
 
     //两种fastq构造器，一种是根据正常的fastq文件，另一种是根据简化板的fastq文件

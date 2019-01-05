@@ -11,9 +11,9 @@ import java.util.ArrayList;
  * @author xudaxing
  */
 public class Go {
-    private String workingDirS = null;
-    private String sampleIDFastqMapFileS = null;
-    private String wellBarcodeFileS = null;
+    private String workingDirS;
+    private String sampleIDFastqMapFileS;
+    private String wellBarcodeFileS;
     private String[] subDirS = {"allFlowcellLaneIndexFastq","barcodeFile","barcodeFastq"};
 
     Go(String parameterFileS){
