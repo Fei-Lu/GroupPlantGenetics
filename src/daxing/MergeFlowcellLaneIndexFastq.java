@@ -17,8 +17,8 @@ import static java.util.stream.Collectors.groupingBy;
  * @author xudaxing
  */
 public class MergeFlowcellLaneIndexFastq {
-    Fastqs fastqs =null;
-    Map<String, List<Fastq>> flowcellLaneIndexFastqMap =null;
+    private Fastqs fastqs;
+    private Map<String, List<Fastq>> flowcellLaneIndexFastqMap;
 
     MergeFlowcellLaneIndexFastq(Fastqs fastqs){
         this.fastqs=fastqs;
@@ -42,8 +42,8 @@ public class MergeFlowcellLaneIndexFastq {
         try(BufferedWriter bw1 = IOUtils.getTextWriter(wellBarcodeOutputFileS);
             BufferedWriter bw2 =IOUtils.getTextWriter(LibrariesFastqMap)
         ){
-            List<Fastq> l =null;
-            String[] tempForFlowcellLaneIndex=null;
+            List<Fastq> l;
+            String[] tempForFlowcellLaneIndex;
             String lineForWellBarcodeOutputFileS="SampleID"+"\t"+"Flowcell-ID"+"\t"+"Lane"+"\t"+"Library-index"+"\t"+"Well-ID"+"\t"+"E1-Barcode"+"\t"+"E2-Barcode"+"\t"+"SampleID";
             String lineForLibrariesFastqMap="Flowcell-ID"+"\t"+"Lane"+"\t"+"Library-index"+"\t"+"R1Path"+"\t"+"R2Path";
             bw1.write(lineForWellBarcodeOutputFileS); bw1.newLine();
