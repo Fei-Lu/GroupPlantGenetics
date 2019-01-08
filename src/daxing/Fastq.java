@@ -6,7 +6,6 @@ import cern.colt.function.IntComparator;
 import com.koloboke.collect.map.hash.HashByteByteMap;
 import format.dna.BaseEncoder;
 import utils.IOUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;

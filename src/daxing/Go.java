@@ -1,11 +1,13 @@
 package daxing;
 
+import daxing.md5.PCA;
 import format.table.RowTable;
 import utils.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.util.ArrayList;
+
 /**
  *
  * @author xudaxing
@@ -74,9 +76,11 @@ public class Go {
     }
 
     public static void main(String[] args) {
-        new Go("/Users/xudaxing/Desktop/AM/parameter.txt");
+        //new Go("/Users/xudaxing/Desktop/AM/parameter.txt");
         //MD5.getMD5FromDir((new File("/Users/xudaxing/Desktop/out")),new File("/Users/xudaxing/Desktop/md5.txt"));
         //md5.checkMD5ForDir(new File("/Users/xudaxing/Desktop/md5.txt"));
+        PCA.extractRandomRowFromFile("/Users/xudaxing/Desktop/mkTagsBySampleLog.txt",
+                "/Users/xudaxing/Desktop/mkTagsBySampleLog2.txt",1000, true);
     }
 }
 
