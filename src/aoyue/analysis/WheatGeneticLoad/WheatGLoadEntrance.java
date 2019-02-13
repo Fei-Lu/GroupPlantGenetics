@@ -12,8 +12,8 @@ import utils.IOFileFormat;
  *
  * @author Aoyue
  */
-public class WheatGLoadEntraince {
-    public WheatGLoadEntraince(){
+public class WheatGLoadEntrance {
+    public WheatGLoadEntrance(){
         this.firstProcess();
         
     }
@@ -24,7 +24,7 @@ public class WheatGLoadEntraince {
     
     
     public static void main (String[] args){
-        new WheatGLoadEntraince();
+        new WheatGLoadEntrance();
         
        
         

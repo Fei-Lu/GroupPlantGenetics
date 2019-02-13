@@ -5,26 +5,35 @@
  */
 package aoyue.analysis.MaizeGeneticLoad;
 
+import java.io.File;
+
 
 
 /**
  *
  * @author feilu
  */
-public class GLoadEntraince {
-    public GLoadEntraince() {
+public class GLoadEntrance {
+    public GLoadEntrance() {
         //this.dataOrginazed();
-        this.analysisPipeline();;
+        this.analysisPipeline();
         
         
         
         
     }
+    
+    public GLoadEntrance(String a) {
+        new PopGenPara(a);
+    }
     public void analysisPipeline(){
         //new VariantSummary();
         //new Recombination();
         //new TaxaInfo();
-        new Expression();
+        //new Expression();
+        //new popGenGroup();
+        new PopGenPara();
+        
         
     }
 
@@ -36,10 +45,15 @@ public class GLoadEntraince {
     public static void main (String[] args){
         //String inFileS = "/Users/Aoyue/Documents/Data/pipeline/hapScanner/Parameters_hapScanner.txt";
         //new HapScanner (inFileS);
-        new GLoadEntraince();
-       //System.out.println("2222");
+        System.out.println("this is the entrance of maize GLoadEntrance");
+        
+        //new GLoadEntrance(args[0]);
+        new GLoadEntrance();
+        
+    }
+       
         
        
         
-    }  
+    
 }
