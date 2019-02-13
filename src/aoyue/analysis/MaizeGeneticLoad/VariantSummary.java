@@ -40,7 +40,7 @@ public class VariantSummary {
     
     public VariantSummary(){
         //this.countSite();
-        //this.subSetTest();
+        this.subSetTest();
         //this.densityTest_deprecated();
         //this.densityTest();
         //this.density();
@@ -49,7 +49,7 @@ public class VariantSummary {
         //this.filterHmp321Info_bysiftTrans_useDataBase();
         //this.testarraylength();
 //        this.summarizeTranscript_deprecated();
-        //this.summarizeTranscript2();
+        this.summarizeTranscript2();
        //this.classifySNPs();
 //       this.binarySearchtest();
 //       this.mkBarplotOfSNPs();
@@ -58,8 +58,8 @@ public class VariantSummary {
  //      this.SiftGerp_Correlation();
       //this.countDeleteriousHmp321();
 //       this.checkTaxaNameSamewithFeiGroup();
-//       this.mkDepthOfHmp321();
-       //this.mkDepthSummary();
+       this.mkDepthOfHmp321();
+       this.mkDepthSummary();
        //this.countDeleteriousHmp32HighDepth();
 //       this.mkBurdenFile_deprecated();
 //       this.mkDistanceToB73();
@@ -400,7 +400,6 @@ public class VariantSummary {
             }
             bw.flush();
             bw.close();
-            
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -419,7 +418,8 @@ public class VariantSummary {
         String hmpInfoFileS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/001_hmp321Info_filter/hmp321Info_filter_chr010_AGPv4_AnnoDB.txt";
         String taxaDepthDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/007_hmp321DeleCount/001_hmp321Depth/taxa/";
         int snpNum = 0;
-        int size = 20000; //这里我增加了抽样的位点数
+        //int size = 20000; //这里我增加了抽样的位点数
+        int size = 50000;
         try {
             BufferedReader br = IOUtils.getTextReader(hmpInfoFileS);
             String temp = br.readLine();
@@ -441,8 +441,8 @@ public class VariantSummary {
             for (int i = 0; i < taxa.length; i++) {
                 taxa[i] = l.get(i+9);
             }
-            TIntArrayList[] depthList = new TIntArrayList[taxa.length];
-            for (int i = 0; i < taxa.length; i++) depthList[i] = new TIntArrayList();
+            TIntArrayList[] depthList = new TIntArrayList[taxa.length]; //建立一个整型list类型的数组，每个元素是一个list,一共有 taxa.length个list
+            for (int i = 0; i < taxa.length; i++) depthList[i] = new TIntArrayList(); //对list进行初始化
             cnt = 0;
             while ((temp = br.readLine()) != null) {
                 cnt++; // 对snp开始计数

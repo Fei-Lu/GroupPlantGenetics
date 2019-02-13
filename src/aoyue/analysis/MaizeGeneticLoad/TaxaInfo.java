@@ -26,7 +26,7 @@ import utils.PStringUtils;
 public class TaxaInfo {
 
     public TaxaInfo() {
-        //this.checkTaxaCategory();
+        this.checkTaxaCategory();
         //this.taxaGroupSummary();
         //this.removeSpacing();
         //this.checkCategoryandAddGermplasm();

@@ -99,17 +99,32 @@ public class Delicay {
         /**
          * 查找某列数据的种类及个数,含表头
          */
-        this.countCaseInGroup();
+        //this.countCaseInGroup();
         /**
          * 对数据进行排序，打印出来。
          */
-        this.sort();
+        //this.sort();
+        this.testbreak();
+        
         
         
         
               
          
     }
+    
+    public void testbreak(){
+        String a = "009";
+        int i = Integer.valueOf(a);
+        System.out.println(i);
+
+        
+    
+        
+        
+    }
+    
+    
     
             
     
