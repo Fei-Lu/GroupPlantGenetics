@@ -2,14 +2,12 @@ package daxing;
 
 import format.table.RowTable;
 import utils.IOUtils;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import static java.util.stream.Collectors.groupingBy;
 
 /**

@@ -20,7 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import utils.IOUtils;
-import utils.KStringUtils;
+import utils.PStringUtils;
 import utils.PStringUtils;
 import zhouyao.analysis.wheatHapMap.YaoIOUtils;
 import lipengKang.analysis.fourDIdentify;

@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import utils.IOUtils;
-import utils.KStringUtils;
+import utils.PStringUtils;
 import zhouyao.analysis.wheatHapMap.YaoIOUtils;
 
 /**
@@ -91,7 +91,7 @@ public class mafToMfa {
                     StringBuilder sorghum = new StringBuilder();
                     temp = br.readLine();
                     if (temp.startsWith("s wheatA")) {
-                        List<String> aList = KStringUtils.fastSplit(temp);
+                        List<String> aList = PStringUtils.fastSplit(temp);
                         List<String> aListNew = new ArrayList<>();
                         for (int i = 0; i < aList.size(); i++) {
 
@@ -108,7 +108,7 @@ public class mafToMfa {
 
                     //wheatA-wheatD-
                     if (temp.startsWith("s wheatD")) {
-                        List<String> bList = KStringUtils.fastSplit(temp);
+                        List<String> bList = PStringUtils.fastSplit(temp);
                         List<String> bListNew = new ArrayList<>();
                         for (int i = 0; i < bList.size(); i++) {
 
@@ -122,7 +122,7 @@ public class mafToMfa {
                         temp = br.readLine();
                         //wheatA-wheatD-wheatB-
                         if (temp.startsWith("s wheatB")) {
-                            List<String> aList = KStringUtils.fastSplit(temp);
+                            List<String> aList = PStringUtils.fastSplit(temp);
                             List<String> aListNew = new ArrayList<>();
                             for (int i = 0; i < aList.size(); i++) {
 
@@ -136,7 +136,7 @@ public class mafToMfa {
                             temp = br.readLine();
                             //wheatA-wheatD-wheatB-barley-   
                             if (temp.startsWith("s barley")) {
-                                List<String> cList = KStringUtils.fastSplit(temp);
+                                List<String> cList = PStringUtils.fastSplit(temp);
                                 List<String> cListNew = new ArrayList<>();
                                 for (int i = 0; i < cList.size(); i++) {
 
@@ -150,7 +150,7 @@ public class mafToMfa {
                                 temp = br.readLine();
                                 //wheatA-wheatD-wheatB-barley-stiffbrome-
                                 if (temp.startsWith("s stiffbrome")) {
-                                    List<String> dList = KStringUtils.fastSplit(temp);
+                                    List<String> dList = PStringUtils.fastSplit(temp);
                                     List<String> dListNew = new ArrayList<>();
                                     for (int i = 0; i < dList.size(); i++) {
 
@@ -164,7 +164,7 @@ public class mafToMfa {
                                     temp = br.readLine();
                                     //wheatA-wheatD-wheatB-barley-stiffbrome-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = KStringUtils.fastSplit(temp);
+                                        List<String> eList = PStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -178,7 +178,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatD-wheatB-barley-stiffbrome-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = PStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -192,7 +192,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-wheatB-barley-stiffbrome-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -231,7 +231,7 @@ public class mafToMfa {
 
                                         } else {//wheatA-wheatD-wheatB-barley-stiffbrome-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -278,7 +278,7 @@ public class mafToMfa {
 
                                     } else {//wheatA-wheatD-wheatB-barley-stiffbrome-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = PStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -293,7 +293,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-wheatB-barley-stiffbrome-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -341,7 +341,7 @@ public class mafToMfa {
 
                                         } else {////wheatA-wheatD-wheatB-barley-stiffbrome-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -396,7 +396,7 @@ public class mafToMfa {
 
                                 } else {//wheatA-wheatD-wheatB-barley-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = KStringUtils.fastSplit(temp);
+                                        List<String> eList = PStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -411,7 +411,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatD-wheatB-barley-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = PStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -426,7 +426,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-wheatB-barley-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -472,7 +472,7 @@ public class mafToMfa {
 
                                         } else {//wheatA-wheatD-wheatB-barley-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -524,7 +524,7 @@ public class mafToMfa {
                                         }
                                     } else {////wheatA-wheatD-wheatB-barley-mazie-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = PStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -539,7 +539,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-wheatB-barley-mazie-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -592,7 +592,7 @@ public class mafToMfa {
                                             }
                                         } else {// //wheatA-wheatD-wheatB-barley-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -653,7 +653,7 @@ public class mafToMfa {
 
                             } else {// //wheatA-wheatD-wheatB-stiffbrome-
                                 if (temp.startsWith("s stiffbrome")) {
-                                    List<String> dList = KStringUtils.fastSplit(temp);
+                                    List<String> dList = PStringUtils.fastSplit(temp);
                                     List<String> dListNew = new ArrayList<>();
                                     for (int i = 0; i < dList.size(); i++) {
 
@@ -668,7 +668,7 @@ public class mafToMfa {
                                     temp = br.readLine();
                                     //wheatA-wheatD-wheatB-stiffbrome-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = KStringUtils.fastSplit(temp);
+                                        List<String> eList = PStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -683,7 +683,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatD-wheatB-stiffbrome-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = PStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -697,7 +697,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-wheatB-stiffbrome-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -742,7 +742,7 @@ public class mafToMfa {
                                             }
                                         } else {  //wheatA-wheatD-wheatB-stiffbrome-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -863,7 +863,7 @@ public class mafToMfa {
 
                                         } else { //wheatA-wheatD-wheatB-stiffbrome-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -923,7 +923,7 @@ public class mafToMfa {
                                     }
                                 } else {//wheatA-wheatD-wheatB-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = KStringUtils.fastSplit(temp);
+                                        List<String> eList = PStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -938,7 +938,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatD-wheatB-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = PStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -953,7 +953,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-wheatB-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1006,7 +1006,7 @@ public class mafToMfa {
 
                                         } else {//wheatA-wheatD-wheatB-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1063,7 +1063,7 @@ public class mafToMfa {
                                         }
                                     } else { //wheatA-wheatD-wheatB-mazie-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = PStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -1078,7 +1078,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-wheatB-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1137,7 +1137,7 @@ public class mafToMfa {
 
                                         } else {//wheatA-wheatD-wheatB-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1208,7 +1208,7 @@ public class mafToMfa {
 
                             //wheatA-wheatD-barley-
                             if (temp.startsWith("s barley")) {
-                                List<String> cList = KStringUtils.fastSplit(temp);
+                                List<String> cList = br.fastSplit(temp);
                                 List<String> cListNew = new ArrayList<>();
                                 for (int i = 0; i < cList.size(); i++) {
 
@@ -1223,7 +1223,7 @@ public class mafToMfa {
                                 temp = br.readLine();
                                 //wheatA-wheatD-barley-stiffbrome-
                                 if (temp.startsWith("s stiffbrome")) {
-                                    List<String> dList = KStringUtils.fastSplit(temp);
+                                    List<String> dList = br.fastSplit(temp);
                                     List<String> dListNew = new ArrayList<>();
                                     for (int i = 0; i < dList.size(); i++) {
 
@@ -1238,7 +1238,7 @@ public class mafToMfa {
                                     temp = br.readLine();
                                     //wheatA-wheatD-barley-stiffbrome-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = KStringUtils.fastSplit(temp);
+                                        List<String> eList = br.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -1253,7 +1253,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatD-barley-stiffbrome-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -1268,7 +1268,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-barley-stiffbrome-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1314,7 +1314,7 @@ public class mafToMfa {
                                             }
                                         } else {//wheatA-wheatD-barley-stiffbrome-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1368,7 +1368,7 @@ public class mafToMfa {
 
                                     } else {//wheatA-wheatD-barley-stiffbrome-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -1383,7 +1383,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-barley-stiffbrome-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1434,7 +1434,7 @@ public class mafToMfa {
                                             }
                                         } else {//wheatA-wheatD-barley-stiffbrome-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1494,7 +1494,7 @@ public class mafToMfa {
 
                                 } else { //wheatA-wheatD-barley-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = KStringUtils.fastSplit(temp);
+                                        List<String> eList = br.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -1509,7 +1509,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatD-barley-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -1524,7 +1524,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-barley-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1575,7 +1575,7 @@ public class mafToMfa {
                                             }
                                         } else {//wheatA-wheatD-barley-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1633,7 +1633,7 @@ public class mafToMfa {
                                         }
                                     } else {//wheatA-wheatD-barley-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -1648,7 +1648,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-barley-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1707,7 +1707,7 @@ public class mafToMfa {
 
                                         } else {  //wheatA-wheatD-barley-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1774,7 +1774,7 @@ public class mafToMfa {
 
                             } else {//wheatA-wheatD-stiffbrome-
                                 if (temp.startsWith("s stiffbrome")) {
-                                    List<String> dList = KStringUtils.fastSplit(temp);
+                                    List<String> dList = br.fastSplit(temp);
                                     List<String> dListNew = new ArrayList<>();
                                     for (int i = 0; i < dList.size(); i++) {
 
@@ -1789,7 +1789,7 @@ public class mafToMfa {
                                     temp = br.readLine();
                                     //wheatA-wheatD-stiffbrome-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = KStringUtils.fastSplit(temp);
+                                        List<String> eList = br.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -1804,7 +1804,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatD-stiffbrome-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -1819,7 +1819,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-stiffbrome-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1872,7 +1872,7 @@ public class mafToMfa {
                                             }
                                         } else {//wheatA-wheatD-stiffbrome-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1930,7 +1930,7 @@ public class mafToMfa {
                                         }
                                     } else { //wheatA-wheatD-stiffbrome-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -1945,7 +1945,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-stiffbrome-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2003,7 +2003,7 @@ public class mafToMfa {
                                             }
                                         } else {//wheatA-wheatD-stiffbrome-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2070,7 +2070,7 @@ public class mafToMfa {
 
                                 } else {//wheatA-wheatD-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = KStringUtils.fastSplit(temp);
+                                        List<String> eList = br.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -2085,7 +2085,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatD-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -2100,7 +2100,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2160,7 +2160,7 @@ public class mafToMfa {
 
                                         } else {//wheatA-wheatD-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2223,7 +2223,7 @@ public class mafToMfa {
                                         }
                                     } else {//wheatA-wheatD-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -2238,7 +2238,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2303,7 +2303,7 @@ public class mafToMfa {
 
                                         } else { //wheatA-wheatD-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2380,7 +2380,7 @@ public class mafToMfa {
                     } else //wheatA-wheatB-
                     {
                         if (temp.startsWith("s wheatB")) {
-                            List<String> aList = KStringUtils.fastSplit(temp);
+                            List<String> aList = br.fastSplit(temp);
                             List<String> aListNew = new ArrayList<>();
                             for (int i = 0; i < aList.size(); i++) {
 
@@ -2395,7 +2395,7 @@ public class mafToMfa {
                             temp = br.readLine();
                             //wheatA-wheatB-barley-
                             if (temp.startsWith("s barley")) {
-                                List<String> cList = KStringUtils.fastSplit(temp);
+                                List<String> cList = br.fastSplit(temp);
                                 List<String> cListNew = new ArrayList<>();
                                 for (int i = 0; i < cList.size(); i++) {
 
@@ -2410,7 +2410,7 @@ public class mafToMfa {
                                 temp = br.readLine();
                                 //wheatA-wheatB-barley-stiffbrome-
                                 if (temp.startsWith("s stiffbrome")) {
-                                    List<String> dList = KStringUtils.fastSplit(temp);
+                                    List<String> dList = br.fastSplit(temp);
                                     List<String> dListNew = new ArrayList<>();
                                     for (int i = 0; i < dList.size(); i++) {
 
@@ -2425,7 +2425,7 @@ public class mafToMfa {
                                     temp = br.readLine();
                                     //wheatA-wheatB-barley-stiffbrome-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = KStringUtils.fastSplit(temp);
+                                        List<String> eList = br.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -2440,7 +2440,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatB-barley-stiffbrome-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -2456,7 +2456,7 @@ public class mafToMfa {
                                             //wheatA-wheatB-barley-stiffbrome-rice-maize-sorghum
 
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2503,7 +2503,7 @@ public class mafToMfa {
                                         } else {
                                             //wheatA-wheatB-barley-stiffbrome-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2556,7 +2556,7 @@ public class mafToMfa {
 
                                     } else {////wheatA-wheatB-barley-stiffbrome-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -2571,7 +2571,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatB-barley-stiffbrome-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2623,7 +2623,7 @@ public class mafToMfa {
 
                                         } else {////wheatA-wheatB-barley-stiffbrome-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2683,7 +2683,7 @@ public class mafToMfa {
                                 } else {
                                     // //wheatA-wheatB-barley-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = KStringUtils.fastSplit(temp);
+                                        List<String> eList = br.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -2698,7 +2698,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatB-barley-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -2713,7 +2713,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatB-barley-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2765,7 +2765,7 @@ public class mafToMfa {
                                         } else {
                                             //wheatA-wheatB-barley-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2824,7 +2824,7 @@ public class mafToMfa {
 
                                     } else { //wheatA-wheatB-barley-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -2839,7 +2839,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatB-barley-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2896,7 +2896,7 @@ public class mafToMfa {
 
                                         } else {// //wheatA-wheatB-barley-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2962,7 +2962,7 @@ public class mafToMfa {
 
                             } else {////wheatA-wheatB-stiffbrome
                                 if (temp.startsWith("s stiffbrome")) {
-                                    List<String> dList = KStringUtils.fastSplit(temp);
+                                    List<String> dList = br.fastSplit(temp);
                                     List<String> dListNew = new ArrayList<>();
                                     for (int i = 0; i < dList.size(); i++) {
 
@@ -2977,7 +2977,7 @@ public class mafToMfa {
                                     temp = br.readLine();
                                     //wheatA-wheatB-stiffbrome-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = KStringUtils.fastSplit(temp);
+                                        List<String> eList = br.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -2992,7 +2992,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatB-stiffbrome-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -3007,7 +3007,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatB-stiffbrome-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3058,7 +3058,7 @@ public class mafToMfa {
                                         } else {
                                             ////wheatA-wheatB-stiffbrome-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3116,7 +3116,7 @@ public class mafToMfa {
                                     } else {
                                         // //wheatA-wheatB-stiffbrome-mazie-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -3131,7 +3131,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatB-stiffbrome-mazie-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3187,7 +3187,7 @@ public class mafToMfa {
                                             }
                                         } else {////wheatA-wheatB-stiffbrome-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3252,7 +3252,7 @@ public class mafToMfa {
                                     }
                                 } else {// //wheatA-wheatB-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = KStringUtils.fastSplit(temp);
+                                        List<String> eList = br.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -3267,7 +3267,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         ////wheatA-wheatB-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -3282,7 +3282,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             ////wheatA-wheatB-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3341,7 +3341,7 @@ public class mafToMfa {
                                         } else {//wheatA-wheatB-rice-sorghum
 
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3405,7 +3405,7 @@ public class mafToMfa {
 
                                     } else {//wheatA-wheatB-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -3420,7 +3420,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatB-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3484,7 +3484,7 @@ public class mafToMfa {
                                         } else {  //wheatA-wheatB-sorghum
 
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3558,7 +3558,7 @@ public class mafToMfa {
                         } else {
                             //wheatA-barley
                             if (temp.startsWith("s barley")) {
-                                List<String> cList = KStringUtils.fastSplit(temp);
+                                List<String> cList = br.fastSplit(temp);
                                 List<String> cListNew = new ArrayList<>();
                                 for (int i = 0; i < cList.size(); i++) {
 
@@ -3573,7 +3573,7 @@ public class mafToMfa {
                                 temp = br.readLine();
                                 //wheatA-barley-stiffbrome-
                                 if (temp.startsWith("s stiffbrome")) {
-                                    List<String> dList = KStringUtils.fastSplit(temp);
+                                    List<String> dList = br.fastSplit(temp);
                                     List<String> dListNew = new ArrayList<>();
                                     for (int i = 0; i < dList.size(); i++) {
 
@@ -3588,7 +3588,7 @@ public class mafToMfa {
                                     temp = br.readLine();
                                     //wheatA-barley-stiffbrome-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = KStringUtils.fastSplit(temp);
+                                        List<String> eList = br.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -3603,7 +3603,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-barley-stiffbrome-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -3618,7 +3618,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-barley-stiffbrome-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3671,7 +3671,7 @@ public class mafToMfa {
                                         } else {
                                             //wheatA-barley-stiffbrome-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3730,7 +3730,7 @@ public class mafToMfa {
                                     } else {
                                         //wheatA-barley-stiffbrome-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -3745,7 +3745,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-barley-stiffbrome-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3803,7 +3803,7 @@ public class mafToMfa {
                                         } else {
                                             // //wheatA-barley-stiffbrome-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3871,7 +3871,7 @@ public class mafToMfa {
                                 } else {
                                     //wheatA-barley-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = KStringUtils.fastSplit(temp);
+                                        List<String> eList = br.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -3886,7 +3886,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         // //wheatA-barley-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -3901,7 +3901,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             // //wheatA-barley-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3960,7 +3960,7 @@ public class mafToMfa {
                                         } else {
                                             ////wheatA-barley-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4024,7 +4024,7 @@ public class mafToMfa {
                                     } else {
                                         //wheatA-barley-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -4039,7 +4039,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-barley-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4104,7 +4104,7 @@ public class mafToMfa {
                                         } else {
                                             //wheatA-barley-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4178,7 +4178,7 @@ public class mafToMfa {
                             } else {
                                 //wheatA-stiffbrome-
                                 if (temp.startsWith("s stiffbrome")) {
-                                    List<String> dList = KStringUtils.fastSplit(temp);
+                                    List<String> dList = br.fastSplit(temp);
                                     List<String> dListNew = new ArrayList<>();
                                     for (int i = 0; i < dList.size(); i++) {
 
@@ -4193,7 +4193,7 @@ public class mafToMfa {
                                     temp = br.readLine();
                                     //wheatA-stiffbrome-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = KStringUtils.fastSplit(temp);
+                                        List<String> eList = br.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -4208,7 +4208,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-stiffbrome-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -4223,7 +4223,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-stiffbrome-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4281,7 +4281,7 @@ public class mafToMfa {
                                         } else {
                                             //wheatA-stiffbrome-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4346,7 +4346,7 @@ public class mafToMfa {
                                     } else {
                                         //wheatA-stiffbrome-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = br.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -4361,7 +4361,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-stiffbrome-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = br.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4425,7 +4425,7 @@ public class mafToMfa {
                                         } else {
                                             ////wheatA-stiffbrome-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4498,7 +4498,7 @@ public class mafToMfa {
                                 } else {
                                     //wheatA-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = KStringUtils.fastSplit(temp);
+                                        List<String> eList = PStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -4513,7 +4513,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = PStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -4528,7 +4528,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4593,7 +4593,7 @@ public class mafToMfa {
                                         } else {
                                             //wheatA-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4665,7 +4665,7 @@ public class mafToMfa {
                                     } else {
                                         //whestA-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = KStringUtils.fastSplit(temp);
+                                            List<String> fList = PStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -4680,7 +4680,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //whestA-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4749,7 +4749,7 @@ public class mafToMfa {
                                         } else {
                                             //wheatA-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = KStringUtils.fastSplit(temp);
+                                                List<String> gList = PStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 

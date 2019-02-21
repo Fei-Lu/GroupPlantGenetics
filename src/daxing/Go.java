@@ -1,6 +1,6 @@
 package daxing;
 
-import daxing.md5.PCA;
+import daxing.md5.MD5;
 import format.table.RowTable;
 import utils.IOUtils;
 
@@ -79,8 +79,11 @@ public class Go {
         //new Go("/Users/xudaxing/Desktop/AM/parameter.txt");
         //MD5.getMD5FromDir((new File("/Users/xudaxing/Desktop/out")),new File("/Users/xudaxing/Desktop/md5.txt"));
         //md5.checkMD5ForDir(new File("/Users/xudaxing/Desktop/md5.txt"));
-        PCA.extractRandomRowFromFile("/Users/xudaxing/Desktop/mkTagsBySampleLog.txt",
-                "/Users/xudaxing/Desktop/mkTagsBySampleLog2.txt",1000, true);
+//        PCA.extractRandomRowFromFile("/Users/xudaxing/Desktop/mkTagsBySampleLog.txt",
+//                "/Users/xudaxing/Desktop/mkTagsBySampleLog2.txt",1000, true);
+        String md5OfDB= MD5.getMD5FromFile(new File("/Users/xudaxing/Desktop/tt/rawSNP.bin"));
+        String md5OfLocal = MD5.getMD5FromFile(new File("/Users/xudaxing/Desktop/rawSNP.bin"));
+
     }
 }
 
