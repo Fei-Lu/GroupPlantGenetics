@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Set;
 import utils.Benchmark;
 import utils.IOUtils;
-import utils.KStringUtils;
+import  lipengKang.analysis.KStringUtils;
 import utils.PStringUtils;
 import lipengKang.analysis.ParseCDSFasta;
 

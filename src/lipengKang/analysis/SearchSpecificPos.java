@@ -31,28 +31,8 @@ public class SearchSpecificPos {
         String temp = null;
         String[] tem = null;
         int pos = 0;
-        int m=	176447509
-                
-                
-                ;
-        //ctaaagcgcgcgacccacacccggccatctggacgagcgccatgccccgatga
-//gatggcgctaaagcgcgcgacccacacccggccatctggacgagcgccatgccccgatga
-//gtaggagggcgcggcggccgctgcaaaacccggggcgcgagcccgggcagagcggccgtc
-//58560
-//60
-/*tcccccgaaagggaatcgggttaagatttcctg
-ccccggcagatagcgcgatcacgcgcatcccccgaaagggaatcgggttaagatttcctg
-agccgggatgtggcggtttacggcgacgttaggaagtccggagacgccgacgggggcctc
-58800
-60*/
-//CTAAAGCGCGCGACCCACACCCGGCCATCTGGACGAGCGCCATGCCCCGATGA
-//GATGGCGCTAAAGCGCGCGACCCACACCCGGCCATCTGGACGAGCGCCATGCCCCGATGA
-//GTAGGAGGGCGCGGCGGCCGCTGCAAAACCCGGGGCGCGAGCCCGGGCAGAGCGGCCGTC
-//58560
-//60
-//s sorghum.chr1 16875472 11 -  80884392 GTGTTGTGAGG
-//tatcctaaa
-//acggctatc
+        int m=	43711;//pay attention this number is 1 based
+        
         try {
             while ((temp = br.readLine()) != null) {
                 if (temp.startsWith(">")) {
@@ -72,7 +52,7 @@ caacacggggaaacttaccaggtctagacatagcaaggattgacaggctctctttcttga
 ttctatgggtggtggtgcatggccgttcttagttggtggagcgatttgtctggttaattc
 148080
 60*/
-                    System.out.println(temp.substring((int) (m-60*Math.floor(m/60))));
+                    System.out.println(temp.substring((int) (m-60*Math.floor(m/60)-1)));
                     System.out.println(temp);
                     temp = br.readLine();
                     pos = pos + temp.length();
@@ -111,8 +91,4 @@ ttctatgggtggtggtgcatggccgttcttagttggtggagcgatttgtctggttaattc
     }
 
 }
-/*ctaaagcgcgcgacccacacccggccatctggacgagcgccatgccccgatga
-gtaggagggcgcggcggccgctgcaaaacccggggcgcgagcccgggcagagcggccgtc
-gcggcagatcttggtggtagtagcaaatattcaaatgagaactttgaaggccgaagagga
-gaaaggttccatgtgaacggcacttgcacatgggtaagccgatcctaagggacggggtaa
-ccccggcagatagcgcgatcacgcgcat*/
+
