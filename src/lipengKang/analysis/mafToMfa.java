@@ -11,8 +11,7 @@ import java.io.BufferedWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import utils.IOUtils;
-import utils.PStringUtils;
+ import lipengKang.analysis.KStringUtils;
 import zhouyao.analysis.wheatHapMap.YaoIOUtils;
 
 /**
@@ -91,7 +90,7 @@ public class mafToMfa {
                     StringBuilder sorghum = new StringBuilder();
                     temp = br.readLine();
                     if (temp.startsWith("s wheatA")) {
-                        List<String> aList = PStringUtils.fastSplit(temp);
+                        List<String> aList = KStringUtils.fastSplit(temp);
                         List<String> aListNew = new ArrayList<>();
                         for (int i = 0; i < aList.size(); i++) {
 
@@ -108,7 +107,7 @@ public class mafToMfa {
 
                     //wheatA-wheatD-
                     if (temp.startsWith("s wheatD")) {
-                        List<String> bList = PStringUtils.fastSplit(temp);
+                        List<String> bList = KStringUtils.fastSplit(temp);
                         List<String> bListNew = new ArrayList<>();
                         for (int i = 0; i < bList.size(); i++) {
 
@@ -122,7 +121,7 @@ public class mafToMfa {
                         temp = br.readLine();
                         //wheatA-wheatD-wheatB-
                         if (temp.startsWith("s wheatB")) {
-                            List<String> aList = PStringUtils.fastSplit(temp);
+                            List<String> aList = KStringUtils.fastSplit(temp);
                             List<String> aListNew = new ArrayList<>();
                             for (int i = 0; i < aList.size(); i++) {
 
@@ -136,7 +135,7 @@ public class mafToMfa {
                             temp = br.readLine();
                             //wheatA-wheatD-wheatB-barley-   
                             if (temp.startsWith("s barley")) {
-                                List<String> cList = PStringUtils.fastSplit(temp);
+                                List<String> cList = KStringUtils.fastSplit(temp);
                                 List<String> cListNew = new ArrayList<>();
                                 for (int i = 0; i < cList.size(); i++) {
 
@@ -150,7 +149,7 @@ public class mafToMfa {
                                 temp = br.readLine();
                                 //wheatA-wheatD-wheatB-barley-stiffbrome-
                                 if (temp.startsWith("s stiffbrome")) {
-                                    List<String> dList = PStringUtils.fastSplit(temp);
+                                    List<String> dList = KStringUtils.fastSplit(temp);
                                     List<String> dListNew = new ArrayList<>();
                                     for (int i = 0; i < dList.size(); i++) {
 
@@ -164,7 +163,7 @@ public class mafToMfa {
                                     temp = br.readLine();
                                     //wheatA-wheatD-wheatB-barley-stiffbrome-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = PStringUtils.fastSplit(temp);
+                                        List<String> eList = KStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -178,7 +177,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatD-wheatB-barley-stiffbrome-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = PStringUtils.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -192,7 +191,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-wheatB-barley-stiffbrome-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -231,7 +230,7 @@ public class mafToMfa {
 
                                         } else {//wheatA-wheatD-wheatB-barley-stiffbrome-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -278,7 +277,7 @@ public class mafToMfa {
 
                                     } else {//wheatA-wheatD-wheatB-barley-stiffbrome-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = PStringUtils.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -293,7 +292,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-wheatB-barley-stiffbrome-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -341,7 +340,7 @@ public class mafToMfa {
 
                                         } else {////wheatA-wheatD-wheatB-barley-stiffbrome-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -396,7 +395,7 @@ public class mafToMfa {
 
                                 } else {//wheatA-wheatD-wheatB-barley-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = PStringUtils.fastSplit(temp);
+                                        List<String> eList = KStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -411,7 +410,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatD-wheatB-barley-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = PStringUtils.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -426,7 +425,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-wheatB-barley-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -472,7 +471,7 @@ public class mafToMfa {
 
                                         } else {//wheatA-wheatD-wheatB-barley-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -510,10 +509,10 @@ public class mafToMfa {
                                                 }
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -524,7 +523,7 @@ public class mafToMfa {
                                         }
                                     } else {////wheatA-wheatD-wheatB-barley-mazie-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = PStringUtils.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -539,7 +538,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-wheatB-barley-mazie-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -592,7 +591,7 @@ public class mafToMfa {
                                             }
                                         } else {// //wheatA-wheatD-wheatB-barley-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -625,20 +624,20 @@ public class mafToMfa {
 
                                             } else {
                                                 //wheatA-wheatD-wheatB-barley
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 for (int i = 0; i < wheatA.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
@@ -653,7 +652,7 @@ public class mafToMfa {
 
                             } else {// //wheatA-wheatD-wheatB-stiffbrome-
                                 if (temp.startsWith("s stiffbrome")) {
-                                    List<String> dList = PStringUtils.fastSplit(temp);
+                                    List<String> dList = KStringUtils.fastSplit(temp);
                                     List<String> dListNew = new ArrayList<>();
                                     for (int i = 0; i < dList.size(); i++) {
 
@@ -668,7 +667,7 @@ public class mafToMfa {
                                     temp = br.readLine();
                                     //wheatA-wheatD-wheatB-stiffbrome-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = PStringUtils.fastSplit(temp);
+                                        List<String> eList = KStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -683,7 +682,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatD-wheatB-stiffbrome-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = PStringUtils.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -697,7 +696,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-wheatB-stiffbrome-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -708,10 +707,10 @@ public class mafToMfa {
                                                 }
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
                                                 bd.write(barley.toString());
@@ -723,17 +722,17 @@ public class mafToMfa {
 
                                             } else {
                                                 //wheatA-wheatD-wheatB-stiffbrome-rice-maize
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -742,7 +741,7 @@ public class mafToMfa {
                                             }
                                         } else {  //wheatA-wheatD-wheatB-stiffbrome-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -863,7 +862,7 @@ public class mafToMfa {
 
                                         } else { //wheatA-wheatD-wheatB-stiffbrome-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -923,7 +922,7 @@ public class mafToMfa {
                                     }
                                 } else {//wheatA-wheatD-wheatB-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = PStringUtils.fastSplit(temp);
+                                        List<String> eList = KStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -938,7 +937,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatD-wheatB-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = PStringUtils.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -953,7 +952,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-wheatB-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1006,7 +1005,7 @@ public class mafToMfa {
 
                                         } else {//wheatA-wheatD-wheatB-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1063,7 +1062,7 @@ public class mafToMfa {
                                         }
                                     } else { //wheatA-wheatD-wheatB-mazie-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = PStringUtils.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -1078,7 +1077,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-wheatB-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1137,7 +1136,7 @@ public class mafToMfa {
 
                                         } else {//wheatA-wheatD-wheatB-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1161,7 +1160,7 @@ public class mafToMfa {
                                                 for (int i = 0; i < wheatA.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bd.write(barley.toString());
@@ -1172,22 +1171,22 @@ public class mafToMfa {
                                                 continue;
 
                                             } else {//wheatA-wheatD-wheatB
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bd.write(barley.toString());
@@ -1208,7 +1207,7 @@ public class mafToMfa {
 
                             //wheatA-wheatD-barley-
                             if (temp.startsWith("s barley")) {
-                                List<String> cList = br.fastSplit(temp);
+                                List<String> cList = KStringUtils.fastSplit(temp);
                                 List<String> cListNew = new ArrayList<>();
                                 for (int i = 0; i < cList.size(); i++) {
 
@@ -1223,7 +1222,7 @@ public class mafToMfa {
                                 temp = br.readLine();
                                 //wheatA-wheatD-barley-stiffbrome-
                                 if (temp.startsWith("s stiffbrome")) {
-                                    List<String> dList = br.fastSplit(temp);
+                                    List<String> dList = KStringUtils.fastSplit(temp);
                                     List<String> dListNew = new ArrayList<>();
                                     for (int i = 0; i < dList.size(); i++) {
 
@@ -1238,7 +1237,7 @@ public class mafToMfa {
                                     temp = br.readLine();
                                     //wheatA-wheatD-barley-stiffbrome-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = br.fastSplit(temp);
+                                        List<String> eList = KStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -1253,7 +1252,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatD-barley-stiffbrome-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -1268,7 +1267,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-barley-stiffbrome-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1280,9 +1279,9 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
@@ -1295,9 +1294,9 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-wheatD-barley-stiffbrome-rice-maize
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
@@ -1305,7 +1304,7 @@ public class mafToMfa {
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -1314,7 +1313,7 @@ public class mafToMfa {
                                             }
                                         } else {//wheatA-wheatD-barley-stiffbrome-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1326,16 +1325,16 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -1344,19 +1343,19 @@ public class mafToMfa {
                                                 continue;
 
                                             } else {//wheatA-wheatD-barley-stiffbrome-rice
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -1368,7 +1367,7 @@ public class mafToMfa {
 
                                     } else {//wheatA-wheatD-barley-stiffbrome-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -1383,7 +1382,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-barley-stiffbrome-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1395,15 +1394,15 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 bf.write(rice.toString());
@@ -1413,20 +1412,20 @@ public class mafToMfa {
                                                 continue;
 
                                             } else {    //wheatA-wheatD-barley-stiffbrome-maize
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -1434,7 +1433,7 @@ public class mafToMfa {
                                             }
                                         } else {//wheatA-wheatD-barley-stiffbrome-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1446,18 +1445,18 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bf.write(rice.toString());
@@ -1467,21 +1466,21 @@ public class mafToMfa {
 
                                             } else {
                                                 //wheatA-wheatD-barley-stiffbrome
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bf.write(rice.toString());
@@ -1494,7 +1493,7 @@ public class mafToMfa {
 
                                 } else { //wheatA-wheatD-barley-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = br.fastSplit(temp);
+                                        List<String> eList = KStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -1509,7 +1508,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatD-barley-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -1524,7 +1523,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-barley-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1536,14 +1535,14 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
@@ -1553,20 +1552,20 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-wheatD-barley-rice-maize
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -1575,7 +1574,7 @@ public class mafToMfa {
                                             }
                                         } else {//wheatA-wheatD-barley-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1587,19 +1586,19 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -1607,22 +1606,22 @@ public class mafToMfa {
                                                 continue;
 
                                             } else {//wheatA-wheatD-barley-rice
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -1633,7 +1632,7 @@ public class mafToMfa {
                                         }
                                     } else {//wheatA-wheatD-barley-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -1648,7 +1647,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-barley-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1660,17 +1659,17 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
@@ -1681,23 +1680,23 @@ public class mafToMfa {
 
                                             } else {
                                                 //wheatA-wheatD-barley-maize
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -1707,7 +1706,7 @@ public class mafToMfa {
 
                                         } else {  //wheatA-wheatD-barley-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1719,20 +1718,20 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
@@ -1743,23 +1742,23 @@ public class mafToMfa {
 
                                             } else {
                                                 //wheatA-wheatD-barley
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
@@ -1774,7 +1773,7 @@ public class mafToMfa {
 
                             } else {//wheatA-wheatD-stiffbrome-
                                 if (temp.startsWith("s stiffbrome")) {
-                                    List<String> dList = br.fastSplit(temp);
+                                    List<String> dList = KStringUtils.fastSplit(temp);
                                     List<String> dListNew = new ArrayList<>();
                                     for (int i = 0; i < dList.size(); i++) {
 
@@ -1789,7 +1788,7 @@ public class mafToMfa {
                                     temp = br.readLine();
                                     //wheatA-wheatD-stiffbrome-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = br.fastSplit(temp);
+                                        List<String> eList = KStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -1804,7 +1803,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatD-stiffbrome-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -1819,7 +1818,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-stiffbrome-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1831,12 +1830,12 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
@@ -1849,12 +1848,12 @@ public class mafToMfa {
 
                                             } else {
                                                 //wheatA-wheatD-stiffbrome-rice-maize
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
@@ -1862,7 +1861,7 @@ public class mafToMfa {
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -1872,7 +1871,7 @@ public class mafToMfa {
                                             }
                                         } else {//wheatA-wheatD-stiffbrome-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1884,19 +1883,19 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -1905,22 +1904,22 @@ public class mafToMfa {
 
                                             } else {
                                                 //wheatA-wheatD-stiffbrome-rice
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -1930,7 +1929,7 @@ public class mafToMfa {
                                         }
                                     } else { //wheatA-wheatD-stiffbrome-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -1945,7 +1944,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-stiffbrome-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -1957,18 +1956,18 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 bf.write(rice.toString());
@@ -1978,23 +1977,23 @@ public class mafToMfa {
 
                                             } else {
                                                 //wheatA-wheatD-stiffbrome-maize
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -2003,7 +2002,7 @@ public class mafToMfa {
                                             }
                                         } else {//wheatA-wheatD-stiffbrome-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2015,21 +2014,21 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bf.write(rice.toString());
@@ -2038,24 +2037,24 @@ public class mafToMfa {
                                                 continue;
 
                                             } else {//wheatA-wheatD-stiffbrome
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bf.write(rice.toString());
@@ -2070,7 +2069,7 @@ public class mafToMfa {
 
                                 } else {//wheatA-wheatD-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = br.fastSplit(temp);
+                                        List<String> eList = KStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -2085,7 +2084,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatD-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -2100,7 +2099,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2112,15 +2111,15 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
@@ -2133,15 +2132,15 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-wheatD-rice-maize
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
@@ -2150,7 +2149,7 @@ public class mafToMfa {
 
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
 
@@ -2160,7 +2159,7 @@ public class mafToMfa {
 
                                         } else {//wheatA-wheatD-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2172,22 +2171,22 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -2195,25 +2194,25 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-wheatD-rice
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -2223,7 +2222,7 @@ public class mafToMfa {
                                         }
                                     } else {//wheatA-wheatD-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -2238,7 +2237,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatD-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2250,18 +2249,18 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
@@ -2274,18 +2273,18 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-wheatD-maize
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
@@ -2294,7 +2293,7 @@ public class mafToMfa {
                                                 bf.write(rice.toString());
 
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -2303,7 +2302,7 @@ public class mafToMfa {
 
                                         } else { //wheatA-wheatD-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2315,21 +2314,21 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
 
@@ -2342,24 +2341,24 @@ public class mafToMfa {
                                                 continue;
 
                                             } else {//wheatA-wheatD
-                                                ba.write(wheatA.toString());
-                                                bb.write(wheatD.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                ba.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bc.write(wheatB.toString());
@@ -2380,7 +2379,7 @@ public class mafToMfa {
                     } else //wheatA-wheatB-
                     {
                         if (temp.startsWith("s wheatB")) {
-                            List<String> aList = br.fastSplit(temp);
+                            List<String> aList = KStringUtils.fastSplit(temp);
                             List<String> aListNew = new ArrayList<>();
                             for (int i = 0; i < aList.size(); i++) {
 
@@ -2395,7 +2394,7 @@ public class mafToMfa {
                             temp = br.readLine();
                             //wheatA-wheatB-barley-
                             if (temp.startsWith("s barley")) {
-                                List<String> cList = br.fastSplit(temp);
+                                List<String> cList = KStringUtils.fastSplit(temp);
                                 List<String> cListNew = new ArrayList<>();
                                 for (int i = 0; i < cList.size(); i++) {
 
@@ -2410,7 +2409,7 @@ public class mafToMfa {
                                 temp = br.readLine();
                                 //wheatA-wheatB-barley-stiffbrome-
                                 if (temp.startsWith("s stiffbrome")) {
-                                    List<String> dList = br.fastSplit(temp);
+                                    List<String> dList = KStringUtils.fastSplit(temp);
                                     List<String> dListNew = new ArrayList<>();
                                     for (int i = 0; i < dList.size(); i++) {
 
@@ -2425,7 +2424,7 @@ public class mafToMfa {
                                     temp = br.readLine();
                                     //wheatA-wheatB-barley-stiffbrome-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = br.fastSplit(temp);
+                                        List<String> eList = KStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -2440,7 +2439,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatB-barley-stiffbrome-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -2456,7 +2455,7 @@ public class mafToMfa {
                                             //wheatA-wheatB-barley-stiffbrome-rice-maize-sorghum
 
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2468,11 +2467,11 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
@@ -2483,17 +2482,17 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-wheatB-barley-stiffbrome-rice-maize
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -2503,7 +2502,7 @@ public class mafToMfa {
                                         } else {
                                             //wheatA-wheatB-barley-stiffbrome-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2515,16 +2514,16 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -2532,20 +2531,20 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-wheatB-barley-stiffbrome-rice
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -2556,7 +2555,7 @@ public class mafToMfa {
 
                                     } else {////wheatA-wheatB-barley-stiffbrome-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -2571,7 +2570,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatB-barley-stiffbrome-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2583,15 +2582,15 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 bf.write(rice.toString());
@@ -2600,20 +2599,20 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-wheatB-barley-stiffbrome-maize
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -2623,7 +2622,7 @@ public class mafToMfa {
 
                                         } else {////wheatA-wheatB-barley-stiffbrome-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2635,18 +2634,18 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bf.write(rice.toString());
@@ -2655,21 +2654,21 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-wheatB-barley-stiffbrome
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bf.write(rice.toString());
@@ -2683,7 +2682,7 @@ public class mafToMfa {
                                 } else {
                                     // //wheatA-wheatB-barley-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = br.fastSplit(temp);
+                                        List<String> eList = KStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -2698,7 +2697,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatB-barley-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -2713,7 +2712,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatB-barley-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2725,14 +2724,14 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
@@ -2742,20 +2741,20 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-wheatB-barley-rice-maize
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -2765,7 +2764,7 @@ public class mafToMfa {
                                         } else {
                                             //wheatA-wheatB-barley-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2777,19 +2776,19 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -2797,22 +2796,22 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-wheatB-barley-rice
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -2824,7 +2823,7 @@ public class mafToMfa {
 
                                     } else { //wheatA-wheatB-barley-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -2839,7 +2838,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatB-barley-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2851,17 +2850,17 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
@@ -2871,23 +2870,23 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-wheatB-barley-maize
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -2896,7 +2895,7 @@ public class mafToMfa {
 
                                         } else {// //wheatA-wheatB-barley-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -2908,20 +2907,20 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
@@ -2931,23 +2930,23 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-wheatB-barley
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
@@ -2962,7 +2961,7 @@ public class mafToMfa {
 
                             } else {////wheatA-wheatB-stiffbrome
                                 if (temp.startsWith("s stiffbrome")) {
-                                    List<String> dList = br.fastSplit(temp);
+                                    List<String> dList = KStringUtils.fastSplit(temp);
                                     List<String> dListNew = new ArrayList<>();
                                     for (int i = 0; i < dList.size(); i++) {
 
@@ -2977,7 +2976,7 @@ public class mafToMfa {
                                     temp = br.readLine();
                                     //wheatA-wheatB-stiffbrome-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = br.fastSplit(temp);
+                                        List<String> eList = KStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -2992,7 +2991,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-wheatB-stiffbrome-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -3007,7 +3006,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatB-stiffbrome-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3019,13 +3018,13 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
                                                 bd.write(barley.toString());
@@ -3036,20 +3035,20 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-wheatB-stiffbrome-rice-maize
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -3058,7 +3057,7 @@ public class mafToMfa {
                                         } else {
                                             ////wheatA-wheatB-stiffbrome-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3070,19 +3069,19 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -3090,22 +3089,22 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-wheatB-stiffbrome-rice
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -3116,7 +3115,7 @@ public class mafToMfa {
                                     } else {
                                         // //wheatA-wheatB-stiffbrome-mazie-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -3131,7 +3130,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatB-stiffbrome-mazie-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3143,18 +3142,18 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 bf.write(rice.toString());
@@ -3162,23 +3161,23 @@ public class mafToMfa {
                                                 bh.write(sorghum.toString());
                                                 continue;
                                             } else {//wheatA-wheatB-stiffbrome-maize
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -3187,7 +3186,7 @@ public class mafToMfa {
                                             }
                                         } else {////wheatA-wheatB-stiffbrome-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3199,21 +3198,21 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bf.write(rice.toString());
@@ -3222,24 +3221,24 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-wheatB-stiffbrome 
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bf.write(rice.toString());
@@ -3252,7 +3251,7 @@ public class mafToMfa {
                                     }
                                 } else {// //wheatA-wheatB-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = br.fastSplit(temp);
+                                        List<String> eList = KStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -3267,7 +3266,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         ////wheatA-wheatB-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -3282,7 +3281,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             ////wheatA-wheatB-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3294,16 +3293,16 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 bd.write(barley.toString());
@@ -3314,23 +3313,23 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 ////wheatA-wheatB-rice-maize
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -3341,7 +3340,7 @@ public class mafToMfa {
                                         } else {//wheatA-wheatB-rice-sorghum
 
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3353,22 +3352,22 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -3376,25 +3375,25 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-wheatB-rice
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -3405,7 +3404,7 @@ public class mafToMfa {
 
                                     } else {//wheatA-wheatB-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -3420,7 +3419,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-wheatB-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3432,19 +3431,19 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 bd.write(barley.toString());
@@ -3455,26 +3454,26 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-wheatB-maize
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -3484,7 +3483,7 @@ public class mafToMfa {
                                         } else {  //wheatA-wheatB-sorghum
 
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3496,22 +3495,22 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bd.write(barley.toString());
@@ -3522,25 +3521,25 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-wheatB
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bd.write(barley.toString());
@@ -3558,7 +3557,7 @@ public class mafToMfa {
                         } else {
                             //wheatA-barley
                             if (temp.startsWith("s barley")) {
-                                List<String> cList = br.fastSplit(temp);
+                                List<String> cList = KStringUtils.fastSplit(temp);
                                 List<String> cListNew = new ArrayList<>();
                                 for (int i = 0; i < cList.size(); i++) {
 
@@ -3573,7 +3572,7 @@ public class mafToMfa {
                                 temp = br.readLine();
                                 //wheatA-barley-stiffbrome-
                                 if (temp.startsWith("s stiffbrome")) {
-                                    List<String> dList = br.fastSplit(temp);
+                                    List<String> dList = KStringUtils.fastSplit(temp);
                                     List<String> dListNew = new ArrayList<>();
                                     for (int i = 0; i < dList.size(); i++) {
 
@@ -3588,7 +3587,7 @@ public class mafToMfa {
                                     temp = br.readLine();
                                     //wheatA-barley-stiffbrome-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = br.fastSplit(temp);
+                                        List<String> eList = KStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -3603,7 +3602,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-barley-stiffbrome-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -3618,7 +3617,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-barley-stiffbrome-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3630,14 +3629,14 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
@@ -3648,20 +3647,20 @@ public class mafToMfa {
 
                                             } else {
                                                 //wheatA-barley-stiffbrome-rice-maize
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -3671,7 +3670,7 @@ public class mafToMfa {
                                         } else {
                                             //wheatA-barley-stiffbrome-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3683,19 +3682,19 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -3703,23 +3702,23 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-barley-stiffbrome-rice
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -3730,7 +3729,7 @@ public class mafToMfa {
                                     } else {
                                         //wheatA-barley-stiffbrome-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -3745,7 +3744,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-barley-stiffbrome-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3757,18 +3756,18 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 bf.write(rice.toString());
@@ -3777,23 +3776,23 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-barley-stiffbrome-maize
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -3803,7 +3802,7 @@ public class mafToMfa {
                                         } else {
                                             // //wheatA-barley-stiffbrome-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3815,21 +3814,21 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bf.write(rice.toString());
@@ -3839,27 +3838,27 @@ public class mafToMfa {
                                             } else {
 
                                                 //wheatA-barley-stiffbrome
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
                                                
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -3871,7 +3870,7 @@ public class mafToMfa {
                                 } else {
                                     //wheatA-barley-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = br.fastSplit(temp);
+                                        List<String> eList = KStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -3886,7 +3885,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         // //wheatA-barley-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -3901,7 +3900,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             // //wheatA-barley-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3913,17 +3912,17 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
@@ -3934,24 +3933,24 @@ public class mafToMfa {
                                             } else {
 
                                                 //wheatA-barley-rice-maize
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
 
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -3960,7 +3959,7 @@ public class mafToMfa {
                                         } else {
                                             ////wheatA-barley-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -3972,47 +3971,47 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bg.write(maize.toString());
                                                 bh.write(sorghum.toString());
                                                 continue;
                                             } else {      ////wheatA-barley-rice
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -4024,7 +4023,7 @@ public class mafToMfa {
                                     } else {
                                         //wheatA-barley-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -4039,7 +4038,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-barley-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4051,20 +4050,20 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
@@ -4075,26 +4074,26 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-barley-maize
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -4104,7 +4103,7 @@ public class mafToMfa {
                                         } else {
                                             //wheatA-barley-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4116,23 +4115,23 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
@@ -4142,26 +4141,26 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-barley
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 be.write(stiffbrome.toString());
@@ -4178,7 +4177,7 @@ public class mafToMfa {
                             } else {
                                 //wheatA-stiffbrome-
                                 if (temp.startsWith("s stiffbrome")) {
-                                    List<String> dList = br.fastSplit(temp);
+                                    List<String> dList = KStringUtils.fastSplit(temp);
                                     List<String> dListNew = new ArrayList<>();
                                     for (int i = 0; i < dList.size(); i++) {
 
@@ -4193,7 +4192,7 @@ public class mafToMfa {
                                     temp = br.readLine();
                                     //wheatA-stiffbrome-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = br.fastSplit(temp);
+                                        List<String> eList = KStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -4208,7 +4207,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-stiffbrome-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -4223,7 +4222,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-stiffbrome-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4235,17 +4234,17 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
@@ -4256,23 +4255,23 @@ public class mafToMfa {
                                             } else {
 
                                                 //wheatA-stiffbrome-rice-maize
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -4281,7 +4280,7 @@ public class mafToMfa {
                                         } else {
                                             //wheatA-stiffbrome-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4293,22 +4292,22 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -4316,26 +4315,26 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 ////wheatA-stiffbrome-rice
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -4346,7 +4345,7 @@ public class mafToMfa {
                                     } else {
                                         //wheatA-stiffbrome-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = br.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -4361,7 +4360,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-stiffbrome-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = br.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4373,21 +4372,21 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 bf.write(rice.toString());
@@ -4396,26 +4395,26 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-stiffbrome-maize
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -4425,7 +4424,7 @@ public class mafToMfa {
                                         } else {
                                             ////wheatA-stiffbrome-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4437,24 +4436,24 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bf.write(rice.toString());
@@ -4463,27 +4462,27 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-stiffbrome
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bf.write(rice.toString());
@@ -4498,7 +4497,7 @@ public class mafToMfa {
                                 } else {
                                     //wheatA-rice-
                                     if (temp.startsWith("s rice")) {
-                                        List<String> eList = PStringUtils.fastSplit(temp);
+                                        List<String> eList = KStringUtils.fastSplit(temp);
                                         List<String> eListNew = new ArrayList<>();
                                         for (int i = 0; i < eList.size(); i++) {
 
@@ -4513,7 +4512,7 @@ public class mafToMfa {
                                         temp = br.readLine();
                                         //wheatA-rice-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = PStringUtils.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -4528,7 +4527,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //wheatA-rice-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4540,20 +4539,20 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
@@ -4564,26 +4563,26 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-rice-maize
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -4593,7 +4592,7 @@ public class mafToMfa {
                                         } else {
                                             //wheatA-rice-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4605,25 +4604,25 @@ public class mafToMfa {
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
 
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -4632,28 +4631,28 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-rice
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bg.write(maize.toString());
@@ -4665,7 +4664,7 @@ public class mafToMfa {
                                     } else {
                                         //whestA-maize-
                                         if (temp.startsWith("s maize")) {
-                                            List<String> fList = PStringUtils.fastSplit(temp);
+                                            List<String> fList = KStringUtils.fastSplit(temp);
                                             List<String> fListNew = new ArrayList<>();
                                             for (int i = 0; i < fList.size(); i++) {
 
@@ -4680,7 +4679,7 @@ public class mafToMfa {
                                             temp = br.readLine();
                                             //whestA-maize-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4691,23 +4690,23 @@ public class mafToMfa {
                                                 }
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
@@ -4718,29 +4717,29 @@ public class mafToMfa {
                                                 continue;
                                             } else {
                                                 //wheatA-maize
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
                                                 bf.write(rice.toString());
                                                 bg.write(maize.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     sorghum.append('-');
                                                 }
                                                 bh.write(sorghum.toString());
@@ -4749,7 +4748,7 @@ public class mafToMfa {
                                         } else {
                                             //wheatA-sorghum
                                             if (temp.startsWith("s sorghum")) {
-                                                List<String> gList = PStringUtils.fastSplit(temp);
+                                                List<String> gList = KStringUtils.fastSplit(temp);
                                                 List<String> gListNew = new ArrayList<>();
                                                 for (int i = 0; i < gList.size(); i++) {
 
@@ -4760,26 +4759,26 @@ public class mafToMfa {
                                                 }
                                                 tem = gListNew.toArray(new String[gListNew.size()]);
                                                 sorghum.append(tem[6]);
-                                                ba.write(wheatA.toString());
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
-                                                    wheatD.append('-');
+                                                ba.write(wheatD.toString());
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
+                                                    wheatA.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     barley.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     stiffbrome.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     rice.append('-');
                                                 }
-                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                for (int i = 0; i < wheatD.toString().length(); i++) {
                                                     maize.append('-');
                                                 }
-                                                bb.write(wheatD.toString());
+                                                bb.write(wheatA.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
                                                 be.write(stiffbrome.toString());
@@ -4822,15 +4821,15 @@ public class mafToMfa {
     }
 
     public static void main(String[] args) {
-    /* String wheatADir = "/data1/home/lipeng/result/CNEr/axt/A/formal/merge/wheatA.mfa";
-        String wheatDDir = "/data1/home/lipeng/result/CNEr/axt/A/formal/merge/wheatD.mfa";
-        String wheatBDir = "/data1/home/lipeng/result/CNEr/axt/A/formal/merge/wheatB.mfa";
-        String barleyDir = "/data1/home/lipeng/result/CNEr/axt/A/formal/merge/barley.mfa";
-        String riceDir = "/data1/home/lipeng/result/CNEr/axt/A/formal/merge/rice.mfa";
-        String stiffbromeDir = "/data1/home/lipeng/result/CNEr/axt/A/formal/merge/stiffbrome.mfa";
-        String maizeDir = "/data1/home/lipeng/result/CNEr/axt/A/formal/merge/maize.mfa";
-        String sorghumDir = "/data1/home/lipeng/result/CNEr/axt/A/formal/merge/sorghum.mfa";
-        String mafDir = "/data1/home/lipeng/result/CNEr/axt/A/formal/merge/wheatAcpy.maf";*/
+ /*String wheatADir = "/data1/home/lipeng/result/CNEr/axt/D/gerp/wheatA.mfa";
+        String wheatDDir = "/data1/home/lipeng/result/CNEr/axt/D/gerp/wheatD.mfa";
+        String wheatBDir = "/data1/home/lipeng/result/CNEr/axt/D/gerp/wheatB.mfa";
+        String barleyDir = "/data1/home/lipeng/result/CNEr/axt/D/gerp/barley.mfa";
+        String riceDir = "/data1/home/lipeng/result/CNEr/axt/D/gerp/rice.mfa";
+        String stiffbromeDir = "/data1/home/lipeng/result/CNEr/axt/D/gerp/stiffbrome.mfa";
+        String maizeDir = "/data1/home/lipeng/result/CNEr/axt/D/gerp/maize.mfa";
+        String sorghumDir = "/data1/home/lipeng/result/CNEr/axt/D/gerp/sorghum.mfa";
+        String mafDir = "/data1/home/lipeng/result/CNEr/axt/D/gerp/wheatD.maf";*/
 
        String wheatADir = "/Users/kanglipeng/Desktop/iwgsc_refseqv1.1_genes_2017July06/wheatA.mfa";
         String wheatDDir = "/Users/kanglipeng/Desktop/iwgsc_refseqv1.1_genes_2017July06/wheatD.mfa";

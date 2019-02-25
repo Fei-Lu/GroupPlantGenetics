@@ -5,14 +5,27 @@
  */
 package lipengKang.analysis;
 
+import com.koloboke.collect.map.hash.HashIntIntMap;
+import com.koloboke.collect.map.hash.HashIntIntMaps;
+import format.range.RangeValStr;
 import gnu.trove.list.array.TIntArrayList;
-import utils.IOUtils;
-import utils.PStringUtils;
-
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import utils.Benchmark;
+import utils.IOUtils;
+import  lipengKang.analysis.KStringUtils;
+import utils.PStringUtils;
+import lipengKang.analysis.ParseCDSFasta;
 
 /**
  *
@@ -110,7 +123,7 @@ String outfile =null;
 
             while ((temp = br.readLine()) != null) {
 
-                List<String> tList = PStringUtils.fastSplit(temp);
+                List<String> tList = KStringUtils.fastSplit(temp);
                 List<String> tListNew = new ArrayList<>();
                 if (!temp.startsWith("s wheatA.chr")){ 
                     continue;
