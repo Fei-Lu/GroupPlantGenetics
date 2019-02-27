@@ -1,4 +1,4 @@
-package daxing;
+package daxing.barcode;
 
 import analysis.pipeline.grt.TagUtils;
 import com.koloboke.collect.map.hash.HashByteByteMap;

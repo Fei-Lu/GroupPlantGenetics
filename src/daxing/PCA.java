@@ -1,4 +1,4 @@
-package daxing.md5;
+package daxing;
 
 import utils.IOUtils;
 

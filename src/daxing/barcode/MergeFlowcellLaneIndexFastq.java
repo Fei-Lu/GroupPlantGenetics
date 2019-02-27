@@ -1,4 +1,4 @@
-package daxing;
+package daxing.barcode;
 
 import format.table.RowTable;
 import utils.IOUtils;

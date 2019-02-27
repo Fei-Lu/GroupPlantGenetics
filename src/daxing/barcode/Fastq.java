@@ -1,4 +1,4 @@
-package daxing;
+package daxing.barcode;
 
 import cern.colt.GenericSorting;
 import cern.colt.Swapper;
