@@ -1,12 +1,13 @@
 package daxing.md5;
 
+import utils.Benchmark;
 import utils.IOUtils;
 import utils.PArrayUtils;
-import javax.xml.bind.DatatypeConverter;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.nio.file.Files;
+import java.io.FileInputStream;
 import java.security.MessageDigest;
 import java.util.*;
 
@@ -15,50 +16,40 @@ import java.util.*;
  * @author xudaxing
  */
 public class MD5 {
-    public static String getMD5FromString(String str) {
-        String myMD5=null;
-        try {
-            MessageDigest md = MessageDigest.getInstance("md5");
-            md.update(Byte.parseByte(str));
-            byte[] digest = md.digest();
-            myMD5 = DatatypeConverter.printHexBinary(digest).toUpperCase();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        return myMD5;
-    }
 
-    public static boolean checkMD5ForString(String str,String hash){
-        String strHash=MD5.getMD5FromString(str);
-        return strHash.equals(hash);
-    }
-
-    public static String getMD5FromFile(File file){
-        String myMD5=null;
+    public static String getMD5(String inputFile){
+        String md5Value=null;
+        MessageDigest md=null;
+        FileInputStream fis=null;
         try{
-            MessageDigest md=MessageDigest.getInstance("md5");
-            md.update(Files.readAllBytes(file.toPath()));
+            md=MessageDigest.getInstance("md5");
+            fis=new FileInputStream(inputFile);
+            byte[] b=new byte[65536];
+            int count;
+            while ((count=fis.read(b))!=-1){
+                md.update(b,0,count);
+            }
+            fis.close();
             byte[] digest=md.digest();
-            myMD5=DatatypeConverter.printHexBinary(digest).toUpperCase();
+            StringBuilder sb=new StringBuilder();
+            for(int i=0;i<digest.length;i++){
+                sb.append(Integer.toString((digest[i] & 0xff) + 0x100, 16).substring(1));
+            }
+            md5Value=sb.toString().toUpperCase();
         }
         catch (Exception e){
             e.printStackTrace();
         }
-        return myMD5;
+        return md5Value;
     }
 
-    public static boolean checkMD5ForFile(File file, String hash){
-        String fileHash=MD5.getMD5FromFile(file);
-        return fileHash.equals(hash);
-    }
-
-    public static void getMD5FromDir(File inputDirS, File outfileMD5){
+    public static void getMD5(String inputDir, String outfileMD5){
+        long start = System.nanoTime();
         int numThreads = 32;
         if(Runtime.getRuntime().availableProcessors()<32) {
             numThreads=Runtime.getRuntime().availableProcessors();
         }
-        File[] file = IOUtils.listRecursiveFiles(inputDirS);
+        File[] file = IOUtils.listRecursiveFiles(new File(inputDir));
         if(file.length<numThreads){
             numThreads=file.length;
         }
@@ -73,13 +64,13 @@ public class MD5 {
             Arrays.stream(subLibIndices)
                     .filter(index-> (!(file[index].getName().contains(".DS_Store"))))
                     .forEach(index-> {
-                        String md5Value=MD5.getMD5FromFile(file[index]);
+                        String md5Value=MD5.getMD5(file[index].getAbsolutePath());
                         String fName = file[index].getAbsolutePath();
                         md5ValuePathMap.put(md5Value, fName);
                     });
         }
         try{
-            bw=IOUtils.getTextWriter(outfileMD5.getAbsolutePath());
+            bw=IOUtils.getTextWriter(outfileMD5);
             for(Map.Entry<String,String> entry:md5ValuePathMap.entrySet()){
                 //System.out.println(entry.getKey()+"  "+entry.getValue());
                 bw.write(entry.getKey()+"  "+entry.getValue());
@@ -90,16 +81,23 @@ public class MD5 {
         catch(Exception e){
             e.printStackTrace();
         }
+        System.out.println("getMD5 from "+inputDir+" is complemeted in " + String.format("%.4f", Benchmark.getTimeSpanMinutes(start)) + " minutes");
     }
 
-    public static void checkMD5ForDir(File hashFileS){
+    public static boolean checkMD5(String inputFile, String hash){
+        String fileHash=MD5.getMD5(inputFile);
+        return fileHash.equals(hash);
+    }
+
+    public static void checkMD5(String inputHashFile){
+        long start = System.nanoTime();
         int numThreads = 32;
         if(Runtime.getRuntime().availableProcessors()<32) {
             numThreads=Runtime.getRuntime().availableProcessors();
         }
         List<String> md5ValuePath=new ArrayList<>();
         String line;
-        try(BufferedReader br=IOUtils.getTextReader(hashFileS.getAbsolutePath())){
+        try(BufferedReader br=IOUtils.getTextReader(inputHashFile)){
             while((line=br.readLine())!=null){
                 md5ValuePath.add(line);
             }
@@ -121,15 +119,16 @@ public class MD5 {
                 String[] md5Value=valuePath.split("  ");
                 String value=md5Value[0];
                 String path=md5Value[1];
-                boolean f=MD5.checkMD5ForFile(new File(path), value);
+                boolean f=MD5.checkMD5(path, value);
                 if(!f){
                     System.out.println("False  "+path+": "+value);
                 }
                 else{
-                    System.out.println("True  "+path+": "+value);
+                    //System.out.println("True  "+path+": "+value);
                 }
             });
         }
+        System.out.println("CheckMD5 is complemeted in " + String.format("%.4f", Benchmark.getTimeSpanMinutes(start)) + " minutes");
     }
 
 }
