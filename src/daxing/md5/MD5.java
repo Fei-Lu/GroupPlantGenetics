@@ -8,6 +8,8 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.util.*;
 
@@ -24,10 +26,14 @@ public class MD5 {
         try{
             md=MessageDigest.getInstance("md5");
             fis=new FileInputStream(inputFile);
-            byte[] b=new byte[65536];
-            int count;
-            while ((count=fis.read(b))!=-1){
-                md.update(b,0,count);
+            if(fis.available()<(1024*1024*500)){
+                md.update(Files.readAllBytes(Paths.get(inputFile)));
+            } else {
+                byte[] b=new byte[65536];
+                int count;
+                while ((count=fis.read(b))!=-1){
+                    md.update(b,0,count);
+                }
             }
             fis.close();
             byte[] digest=md.digest();
