@@ -26,7 +26,7 @@ public class MD5 {
         try{
             md=MessageDigest.getInstance("md5");
             fis=new FileInputStream(inputFile);
-            if(fis.available()<(1024*1024*500)){
+            if(fis.available()<(1024*1024*1024)){
                 md.update(Files.readAllBytes(Paths.get(inputFile)));
             } else {
                 byte[] b=new byte[65536];
