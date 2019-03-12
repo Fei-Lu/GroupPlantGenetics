@@ -3,7 +3,6 @@ package daxing.md5;
 import utils.Benchmark;
 import utils.IOUtils;
 import utils.PArrayUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -67,7 +66,8 @@ public class MD5 {
             for (int j = 0; j < subLibIndices.length; j++) {
                 subLibIndices[j] = indices[i][0]+j;
             }
-            Arrays.stream(subLibIndices)
+            List<Integer> integerList=new ArrayList<>(subLibIndices.length);
+            integerList.parallelStream()
                     .filter(index-> (!(file[index].getName().contains(".DS_Store"))))
                     .forEach(index-> {
                         String md5Value=MD5.getMD5(file[index].getAbsolutePath());
@@ -120,7 +120,8 @@ public class MD5 {
             for (int j = 0; j < subLibIndices.length; j++) {
                 subLibIndices[j] = indices[i][0]+j;
             }
-            Arrays.stream(subLibIndices).forEach(index->{
+            List<Integer> integerList=new ArrayList<>(subLibIndices.length);
+            integerList.parallelStream().forEach(index->{
                 String valuePath=md5ValuePath.get(index);
                 String[] md5Value=valuePath.split("  ");
                 String value=md5Value[0];
