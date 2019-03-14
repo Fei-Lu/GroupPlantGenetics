@@ -86,8 +86,8 @@ public class ThreePrimeExpressionProfiler {
  
     public ThreePrimeExpressionProfiler (String parameterFileS) {
         this.parseParameters(parameterFileS);
-        this.mkPosGeneMap();
-//        this.parseFq(); //Remove Ts?
+//        this.mkPosGeneMap();
+        this.parseFq(); //Remove Ts?
         //////this.mkIndexOfReference(); //one-time set, not requried for standard runs
 //        this.starAlignment(); 
         this.mkGeneCountTable();
@@ -592,7 +592,7 @@ public class ThreePrimeExpressionProfiler {
         }
         fqFileSList = new ArrayList<>(fqSet);
         Collections.sort(fqFileSList);
-        barcodeLengths = new int[fqFileSList.size()];
+        barcodeLengths = new int[fqFileSList.size()];//不同的样本可能带有不同长度的barcode
         barcodeLists = new ArrayList[fqFileSList.size()];
         taxaLists = new ArrayList[fqFileSList.size()];
         barcodeTaxaMaps = new HashMap[fqFileSList.size()];
@@ -608,7 +608,7 @@ public class ThreePrimeExpressionProfiler {
         }
         for (int i = 0; i < t.getRowNumber(); i++) {
             int index = Collections.binarySearch(fqFileSList, t.getCell(i, 3));
-            String taxon = t.getCell(i, 0) + "_"+ t.getCell(i, 2);
+            String taxon = t.getCell(i, 0) + "_"+ t.getCell(i, 2);//这个连接起来的taxon就是我们要找的index信息
             allTaxaList.add(taxon);
             taxaLists[index].add(taxon);
             barcodeLists[index].add(t.getCell(i, 1));

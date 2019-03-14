@@ -39,7 +39,8 @@ public class RNAseq {
 //          this.genenumber();
 //         this.notSDI();
 //           this.test5();
-//            this.parseFile()            this.parseReads();
+//            this.parseFile()           
+//            this.parseReads();
 //            this.getGeneInfor();
  //           this.getGTFInfor();
 //            this.getEachGeneInfor();

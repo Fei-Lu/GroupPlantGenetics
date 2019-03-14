@@ -93,12 +93,12 @@ public class ThreePrimeExpressionProfiler_new {
 //        this.parseFq(); //Remove Ts?remove
         //////this.mkIndexOfReference(); //one-time set, not requried for standard runs
 //        this.starAlignment(); 
-//       this.mkGeneCountTable();
+       this.mkGeneCountTable();
 //        this.isNot3UTR();
         this.dataValumn();
         
     }
-    public void dataValumn() throws IOException{
+    public void dataValumn() {
         String subFqDirS = new File (this.outputDirS, subDirS[0]).getAbsolutePath();
 //        String subFqDirS = "xujun/TEP/TEPOut/subFastqs";
         File[] fs = new File(subFqDirS).listFiles();
@@ -121,11 +121,18 @@ public class ThreePrimeExpressionProfiler_new {
         fList.stream().forEach(f -> {
             //进到seqtk里面去
 //            for(int i=1;i<=10;i++){
-                StringBuilder sb = new StringBuilder();
-                sb.append("seqtk sample -s100 ").append(f+" ").append(3000000).append(" > ").append(" "+3000000+f.getName());
-//                sb.append("cut -c 10 ").append(f+" ").append(" > ").append(" "+10+f.getName());
-                String command = sb.toString();
-                System.out.println(command);  
+//                StringBuilder cd= new StringBuilder() ;
+//                cd.append("cd /Users/xujun/seqtk/seqtk");
+//                String cdcommand = cd.toString();
+//                Runtime rt = Runtime.getRuntime();
+//                Process pcd = rt.exec(cdcommand);
+//                StringBuilder sb = new StringBuilder();
+////                sb.append("seqtk sample -s100 ").append(f+" ").append(3000000+" ").append(" >> ").append(" "+3000000+f.getName());
+//                sb.append("/Users/xujun/seqtk/seqtk sample -s100 ").append(f+" ").append(3000000+" ").append(" >> ").append(" "+3000000+f.getName());
+////                sb.append("cut -c 10 ").append(f+" ").append(" > ").append(" "+10+f.getName());
+//                String command = sb.toString();
+//                System.out.println(command);  
+//             }
                 try {
 //                    Runtime rt = Runtime.getRuntime();
 //                    Process p = rt.exec(command);
@@ -138,18 +145,48 @@ public class ThreePrimeExpressionProfiler_new {
 //                        bw.newLine();
 //                    }
 //                    p.waitFor();//输出流的截获
-//                    File dir = new File(new File (this.outputDirS, subDirS[4]).getAbsolutePath());//想要输出文件的位置路径
+//                    File dir = new File(new File (this.outputDirS, subDirS[4]).getAbsolutePath());//想要输出文件的位置路径  
                     File dir = new File(new File (this.outputDirS, subDirS[4]).getAbsolutePath());
-                    String []cmdarry ={"/bin/bash","-c",command};
-                    Process p=Runtime.getRuntime().exec(cmdarry,null,dir);
-                    p.waitFor();
+//                    StringBuilder cd= new StringBuilder() ;
+//                    cd.append("cd /Users/xujun/seqtk/seqtk");
+//                    String cdcommand = cd.toString();
+//                    String []cddarry ={"/bin/bash","-c",cdcommand};
+//                    Process cdp=Runtime.getRuntime().exec(cddarry,null,dir);
+//                    cdp.waitFor();
+                    for( int i = 1 ;i<=10;i++){
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("/Users/xujun/seqtk sample -s100 ").append(f+" ").append(3000000*i+" ").append(" >> ").append(" "+3000000*i+f.getName());
+                        String command = sb.toString();
+                        System.out.println(command);  
+                        String []cmdarry ={"/bin/bash","-c",command};
+                        Process p=Runtime.getRuntime().exec(cmdarry,null,dir);
+                        p.waitFor();
+                    }
+                    
+                   
                 }
                 catch (Exception e) {
                     e.printStackTrace();
                 }
-                System.out.println("Finished "+3000000+f.getName());
+//                System.out.println("Finished "+3000000+f.getName());
 //            }             
         });
+
+//        fList.stream().forEach(f -> {
+//                StringBuilder sb = new StringBuilder();
+//                sb.append("cut -c 10 ").append(f+" ").append(" > ").append(" "+10+f.getName());
+//                String command = sb.toString();
+//                System.out.println(command);  
+//                try {
+//                    File dir = new File(new File (this.outputDirS, subDirS[4]).getAbsolutePath());
+//                    String []cmdarry ={"/bin/bash","-c",command};
+//                    Process p=Runtime.getRuntime().exec(cmdarry,null,dir);
+//                    p.waitFor();
+//                }
+//                catch (Exception e) {
+//                    e.printStackTrace();
+//                }          
+//        });
     }
     private void mkGeneCountTable1 () {
         int [] count = new int[allTaxaList.size()];

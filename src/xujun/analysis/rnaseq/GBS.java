@@ -5,6 +5,7 @@
  */
 package xujun.analysis.rnaseq;
 
+import format.range.RangeValStr;
 import format.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -25,16 +26,19 @@ import xuebo.analysis.annotation.FStringUtils;
 public class GBS {
     public GBS(){
 //        this.barcode();
-//        this.DisIndex();
-        this.barcode();
+        this.DisIndex();
+//        this.barcode();
     }
     private void DisIndex(){
         String sampleInfor="/Users/xujun/Desktop/indexNews.txt";
-        RowTable rt=new RowTable(sampleInfor);
-        HashMap hm=new HashMap();
+        RowTable rt=new RowTable(sampleInfor); 
+        HashMap<String, List> indexBarcodeListMap = new HashMap<>();
+        HashMap barcodeSampleMap=new HashMap();
         List library=new ArrayList();
         for(int i=0;i<rt.getRowNumber();i++){
-            hm.put( rt.getCellAsString(i, 1).substring(1),rt.getCell(i, 0));
+            barcodeSampleMap.put( rt.getCellAsString(i, 3),rt.getCellAsString(i, 4));
+            List barcodePool = new ArrayList();
+//            indexBarcodeListMap.put(rt.getCellAsString(i, 2), rt.getCell(i, 3));
             if(!library.contains(rt.getCell(i, 0))){
                 library.add(rt.getCell(i, 0));
             }
@@ -48,10 +52,10 @@ public class GBS {
                 String temp1=null;String index=null;
                 while((temp1 = br.readLine()) != null){
                     index=temp1.split(" ")[1].split(":")[3].substring(1, 6);
-                    if(hm.get(index)!=null){
-                        int pos=library.indexOf(hm.get(index));
-                        count[pos]++;
-                    }
+//                    if(hm.get(index)!=null){
+//                        int pos=library.indexOf(hm.get(index));
+//                        count[pos]++;
+//                    }
                     br.readLine();br.readLine();br.readLine();
                     
                 }
@@ -67,6 +71,79 @@ public class GBS {
                 e.printStackTrace();
             }
 
+    }
+    private void DisIndex1(){
+        String sampleInfor="/Users/xujun/Desktop/indexNews.txt";
+        RowTable rt=new RowTable(sampleInfor);
+        HashMap hm=new HashMap();
+        HashMap<String, BufferedWriter> libraryWriterMap1 = new HashMap<>(); 
+        HashMap<String, BufferedWriter> libraryWriterMap2 = new HashMap<>();
+        List library=new ArrayList();
+        for(int i=0;i<rt.getRowNumber();i++){
+            hm.put( rt.getCellAsString(i, 2).substring(1),rt.getCell(i, 0));
+            if(!library.contains(rt.getCell(i, 0))){
+                library.add(rt.getCell(i, 0));                
+            }
+        }
+        BufferedWriter[] bws1 = new BufferedWriter[library.size()];
+        BufferedWriter[] bws2 = new BufferedWriter[library.size()];
+        for(int i=0;i<library.size();i++){
+            bws1[i] = IOUtils.getTextWriter(library.get(i).toString()+"R1");
+            libraryWriterMap1.put(library.get(i).toString(), bws1[i]);
+            bws2[i] = IOUtils.getTextWriter(library.get(i).toString()+"R2");
+            libraryWriterMap2.put(library.get(i).toString(), bws2[i]);
+        }
+        
+        String infileDirS = "/Users/xujun/Desktop";
+        String outfileDirS = "/Users/xujun/Desktop";
+        int count [] =new int [library.size()];
+        File[] fs = new File(infileDirS).listFiles();
+        HashSet<String> nameSet = new HashSet();
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) continue;
+            nameSet.add(fs[i].getName().split("_")[0]);
+        }
+        nameSet.parallelStream().forEach(name -> {
+            String infile1 = new File (infileDirS, name+"R1.fq.gz").getAbsolutePath();
+            String infile2 = new File (infileDirS, name+"R2.fq.gz").getAbsolutePath();
+            String outfile = new File (outfileDirS).getAbsolutePath();
+            try {            
+                BufferedReader br1 = utils.IOUtils.getTextGzipReader(infile1);
+                BufferedReader br2 = utils.IOUtils.getTextGzipReader(infile2);
+                BufferedWriter bw1 = utils.IOUtils.getTextWriter(outfileDirS);
+                BufferedWriter bw2 = utils.IOUtils.getTextWriter(outfileDirS);
+                BufferedWriter tw1 = null;BufferedWriter tw2 = null;
+                String temp1=null;String temp2=null;String index=null;
+                while((temp1 = br1.readLine()) != null){
+                    temp2=br2.readLine();
+                    index=temp1.split(" ")[1].split(":")[3].substring(1, 6);
+                    if(hm.get(index)!=null){
+                        tw1 = libraryWriterMap1.get(hm.get(index));
+                        tw1.write(temp1);tw1.newLine();
+                        tw1.write(br1.readLine());tw1.newLine();tw1.write(br1.readLine());tw1.newLine();tw1.write(br1.readLine());tw1.newLine();   
+                        tw2 =libraryWriterMap2.get(hm.get(index));
+                        tw2.write(temp1);tw2.newLine();
+                        tw2.write(br2.readLine());tw2.newLine();tw2.write(br2.readLine());tw2.newLine();tw2.write(br2.readLine());tw2.newLine();   
+                    }else{
+                        br1.readLine();br1.readLine();br1.readLine();
+                        br2.readLine();br2.readLine();br2.readLine();
+                    }
+                    
+                    
+                }
+                br1.close();br2.close();
+                for (int i = 0; i < library.size(); i++) {
+                    bws1[i].flush();bws1[i].close();
+                    bws2[i].flush();bws2[i].close();
+                }
+            }
+            
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        });
+            
     }
     private void barcode () {
         String sampleInfor="/Users/xujun/Desktop/barcodeNews.txt";

@@ -17,7 +17,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.io. * ;
 import static java.lang.String.format;
+import java.util.Collection;
 import java.util.Collections;
+import static java.util.Collections.list;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -27,6 +29,8 @@ import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
 import utils.IOFileFormat;
 import utils.IOUtils;
+import utils.PStringUtils;
+import static xujun.analysis.rnaseq.GBS.getKeyList;
 
 /**
  *
@@ -37,20 +41,86 @@ public class DistinguishSample {
     public String ID;
     Read[] reads=null;
     int phredScale = Integer.MIN_VALUE;
-    public DistinguishSample() throws IOException, FileNotFoundException {
+    public DistinguishSample()  {
  //         this.fastqToFasta1();
 //          this.testxlsx();
 //          this.sampleFastq1 ();
 //         this.test();
  //          this.genecount();
 //            this.cut12base();
-            this.anyWrong();
+//            this.anyWrong();
+            this.changewheatgtf();
     }
      /**
      * Build a byte converter to convert AscII byte following the BaseCoder rules
      * A(00000000), C(00000001), G(00000010), T(0000000011), others(00000100)
      * @return 
      */
+    public static void changewheatgtf(){//按照老师的将一条染色体分成两条
+        String sampleInfor="/Users/xujun/Desktop/apartchro.txt";
+        RowTable rt=new RowTable(sampleInfor);
+        HashMap chrnum=new HashMap();
+        HashMap numnum = new HashMap () ;
+        HashMap chroStart = new HashMap ();
+        List<String> h1= new ArrayList();
+        for(int i=0;i<rt.getRowNumber();i++){
+            chrnum.put( rt.getCell(i, 5),rt.getCell(i, 3));
+            numnum.put(rt.getCell(i, 5),rt.getCell(i, 0));    
+            chroStart.put(rt.getCell(i, 0),rt.getCell(i, 4));
+        }
+//        String inputFile="/Users/xujun/Downloads/iwgsc_refseqv1.0_HighConf_2017Mar13.gff3";
+        String inputFile="/Users/xujun/Downloads/wheat.gtf";
+        String temp=null;String [] tem = null;
+        try{
+            BufferedReader br = utils.IOUtils.getTextReader(inputFile);
+            BufferedWriter bw = utils.IOUtils.getTextWriter("/Users/xujun/Downloads/rightchangewheat.gtf");
+            while((temp=br.readLine())!=null){  
+                List<String> tList= PStringUtils.fastSplit(temp);
+                tem = tList.toArray(new String[tList.size()]);
+                if(!tem[0].equals("chrUn")){
+                    h1=getKeyList(chrnum,tem[0]);
+                    Collections.sort(h1);
+                    if(Integer.valueOf(tem[4].toString()) < Integer.valueOf(h1.get(0))){
+                        bw.write(String.valueOf(numnum.get( String.valueOf(h1.get(0)))));
+                        String start = String.valueOf(chroStart.get(String.valueOf(numnum.get( String.valueOf(h1.get(0))))));
+                        String out=temp.replace(tem[0],"");
+                        String out1 = out.replace(tem[3],String.valueOf(Integer.valueOf(tem[3])-Integer.valueOf(start)));
+                        bw.write(out1.replace(tem[4],String.valueOf(Integer.valueOf(tem[4])-Integer.valueOf(start))));
+                        bw.newLine();
+                    }else{
+                        bw.write(String.valueOf(numnum.get( String.valueOf(h1.get(1)))));
+                        String start = String.valueOf(chroStart.get(String.valueOf(numnum.get( String.valueOf(h1.get(1))))));
+                        String out=temp.replace(tem[0],"");
+                        String out1 = out.replace(tem[3],String.valueOf(Integer.valueOf(tem[3])-Integer.valueOf(start)));
+                        bw.write(out1.replace(tem[4],String.valueOf(Integer.valueOf(tem[4])-Integer.valueOf(start))));
+//                        bw.write(temp.replace(tem[0],""));
+                        bw.newLine();
+                    }
+                }else{
+                    bw.write('0');
+                    bw.write(temp.replace(tem[0],""));
+                    bw.newLine();
+                }
+            }
+            br.close();
+            bw.flush();bw.close();
+//            System.out.println(count);
+        }
+        catch (Exception ex) {
+//               System.out.println(count);
+               ex.printStackTrace();
+               
+        }
+    }
+    public static List<String> getKeyList(HashMap<String,String> map,String value){//the method to get key from value
+         List<String> keyList = new ArrayList();
+         for(String getKey: map.keySet()){
+             if(map.get(getKey).equals(value)){
+                 keyList.add(getKey);
+             }
+         }
+         return keyList;
+     }
     public static void anyWrong(){
         String inputFile="/Users/xujun/Desktop/PLATE-seq_1.clean.fq";
         String temp=null;int count=0;

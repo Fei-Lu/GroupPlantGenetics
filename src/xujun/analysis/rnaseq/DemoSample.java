@@ -27,7 +27,7 @@ import java.util.Set;
 import utils.IOUtils;
 import utils.PStringUtils;
 public class DemoSample{
-    public DemoSample() throws IOException, FileNotFoundException {
+    public DemoSample()  {
 
 //          this.testL33();
 //           this.mappedread();
@@ -41,9 +41,9 @@ public class DemoSample{
 //            this.test5();
 //            this.CompareTwoCountMethod();
 //            this.LibraryCompare();
-//            this.HTSeqCount();
+            this.HTSeqCount();
 //            this.countCompare();
-            this.TPMHTSeq();
+//            this.TPMHTSeq();
 //            this.CoDectededGene();
 //            this.testLexo();
 //            this.pattern();
@@ -388,16 +388,14 @@ public void CompareTwoCountMethod(){
         }   
     }
 public void HTSeqCount(){//顺序是HTSeq里面的顺序
-//    String HTSeqFile="/Users/xujun/Desktop/TEP/TEPOut/HTSeqLibrary/.txt";
-    List<String> nameList=new ArrayList<>();
-//    Set <String> nameSet = new HashSet <> ();
+
+    List <String> nameList=new ArrayList<>();
     List<String> fileList=new ArrayList<>();
-//    Set <String> fileSet = new HashSet <> ();
-    String subFqDirS = new File ("/Users/xujun/Desktop/TEP/TEPOut/HTSeqLibrary").getAbsolutePath();
+    String subFqDirS = new File ("/data1/home/junxu/wheat/doubleAlign-Plateseq/HTSeqCount").getAbsolutePath();
     File[] fs = new File(subFqDirS).listFiles();   
-    fs = IOUtils.listFilesEndsWith(fs, ".txt");
+    fs = IOUtils.listFilesEndsWith(fs, "Count.txt");
     List<File> fList = Arrays.asList(fs);
-    int [][] count=new int[45795][fList.size()];
+    int [][] count=new int[110790][fList.size()];
     fList.stream().forEach(f -> {
         String temp=null;String[] tem = null;
         fileList.add(f.getName());
@@ -406,37 +404,39 @@ public void HTSeqCount(){//顺序是HTSeq里面的顺序
             while((temp = br.readLine()) != null){
                 List<String> tList= PStringUtils.fastSplit(temp);
                 tem = tList.toArray(new String[tList.size()]);
-                if(tem[0].startsWith("gene")){
-                    if(!nameList.contains(tem[0].split(":")[1])){
-                        nameList.add(tem[0].split(":")[1]);
+                if(tem[0].startsWith("Traes")){
+                    if(!nameList.contains(tem[0])){
+                        nameList.add(tem[0]);
                     }
-                    int index=nameList.indexOf(tem[0].split(":")[1]);
+                    int index=nameList.indexOf(tem[0]);
                     count[index][fileList.indexOf(f.getName())]+=Integer.parseInt(tem[1]);
-                }
+                }      
             }
             
         }
         catch (Exception ex) {
-            System.out.println(tem+"\t1234");  
+            System.out.println(tem[0]+"\t1234");  
             ex.printStackTrace();
 
         }
     });
-    String outputFileS = new File ("/Users/xujun/Desktop/TEP/TEPOut/countResult.txt").getAbsolutePath();
-    
+    Collections.sort(fileList);
+    String outputFileS = new File ("/data1/home/junxu/wheat/doubleAlign-Plateseq/HTSeqCount/double-Plateseq-countResult.txt").getAbsolutePath();
     try{
         StringBuilder sb = new StringBuilder();
         BufferedWriter bw = IOUtils.getTextWriter(outputFileS);
         sb.append("Gene"+"\t");
         for(int i=0;i<fileList.size();i++){            
-            sb.append(fileList.get(i)+"\t");
+            sb.append(fileList.get(i).replace("Count.txt", "")+"\t");
         }
         bw.write(sb.toString());
         bw.newLine();
         for(int i=0;i<count.length;i++){
-            sb = new StringBuilder();
-            sb.append(nameList.get(i)+"\t");
+            sb = new StringBuilder();  
             for(int j=0;j<fileList.size();j++){
+                if(j==0){
+                    sb.append(nameList.get(i)+"\t");
+                }
                 sb.append(count[i][j]+"\t");           
             }
             bw.write(sb.toString());
@@ -633,10 +633,10 @@ public void test5 () throws IOException {
         }
         });      
      }
-    public void testL33 () throws IOException {
+    public void testL33 () throws IOException {//
         String barcodeFileS = "/Users/xujun/Desktop/barcodepool.txt";
         String inputDirS ="/Users/xujun/Desktop/RNA_seq/twice/clean_data";
-        String outputDirS = "/Users/xujun/Desktop/RNA_seq/L3-1/clean_data/test";        
+        String outputDirS = "/Users/xujun/Desktop/RNA_seq/L3-1/clean_data";        
         RowTable<String> rt = new RowTable<>(barcodeFileS);
         int rowNumber = rt.getRowNumber();
         int columnNumber = rt.getColumnNumber();
@@ -709,9 +709,10 @@ public void test5 () throws IOException {
                 bw.flush();bw.close();
                 Collections.shuffle(w); 
                 Collections.shuffle(q); 
-                int randomSeriesLength = 1000;
+                int randomSeriesLength = 10000;
                 List<Integer> randomSeries = w.subList(0, randomSeriesLength+1);
                 List<Integer> randomq = q.subList(0, randomSeriesLength+1);
+                System.out.println(p);
                 for (int k = 1;  k<randomSeriesLength+1; k++) {
                    if (k % 25 == 0){ 
                       System.out.println(randomq.get(k)+ " "); 
@@ -747,10 +748,10 @@ public void test5 () throws IOException {
         }
         });      
      }
-    public void testLexo ()  {
+    public void testLexo ()  {//lexogen是不带barcpde的所以单独写了一个
         String barcodeFileS = "/Users/xujun/Desktop/barcodepool.txt";
         String inputDirS ="/Users/xujun/Desktop/RNA_seq/L3-1/clean_data/L3-1";
-        String outputDirS = "/Users/xujun/Desktop/RNA_seq/L3-1/clean_data/test";        
+        String outputDirS = "/Users/xujun/Desktop/RNA_seq/L3-1/clean_data";        
         RowTable<String> rt = new RowTable<>(barcodeFileS);
         int rowNumber = rt.getRowNumber();
         int columnNumber = rt.getColumnNumber();
