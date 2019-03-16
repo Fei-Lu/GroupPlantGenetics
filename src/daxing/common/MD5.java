@@ -1,4 +1,4 @@
-package daxing.md5;
+package daxing.common;
 
 import utils.Benchmark;
 import utils.IOUtils;
@@ -18,6 +18,11 @@ import java.util.*;
  */
 public class MD5 {
 
+    /**
+     * 返回输入文件的MD5值
+     * @param inputFile 输入文件的绝对路径
+     * @return 返回输入文件inputFile的MD5值
+     */
     public static String getMD5(String inputFile){
         String md5Value=null;
         MessageDigest md=null;
@@ -48,6 +53,11 @@ public class MD5 {
         return md5Value;
     }
 
+    /**
+     * 以标准MD5文件的形式返回一个目录下所有文件的MD5值。在服务器上默认使用32个核；在个人电脑上默认使用全部核
+     * @param inputDir 输入目录的绝对路径
+     * @param outfileMD5 包含MD5值的输出文件绝对路径
+     */
     public static void getMD5(String inputDir, String outfileMD5){
         long start = System.nanoTime();
         int numThreads = 32;
@@ -90,11 +100,21 @@ public class MD5 {
         System.out.println("getMD5 from "+inputDir+" is complemeted in " + String.format("%.4f", Benchmark.getTimeSpanMinutes(start)) + " minutes");
     }
 
+    /**
+     * 判断输入文件与MD5值是否相等
+     * @param inputFile 输入文件的绝对路径
+     * @param hash MD5值
+     * @return 如果输入文件的MD5值与给定MD5值相等就返回true
+     */
     public static boolean checkMD5(String inputFile, String hash){
         String fileHash=MD5.getMD5(inputFile);
-        return fileHash.equals(hash);
+        return fileHash.equals(hash.toUpperCase());
     }
 
+    /**
+     * 对标准MD5文件进行校验。在服务器上默认使用32个核；在个人电脑上默认使用全部核
+     * @param inputHashFile 输入的标准MD5文件
+     */
     public static void checkMD5(String inputHashFile){
         long start = System.nanoTime();
         int numThreads = 32;
