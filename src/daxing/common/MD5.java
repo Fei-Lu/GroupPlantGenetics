@@ -76,7 +76,7 @@ public class MD5 {
             for (int j = 0; j < subLibIndices.length; j++) {
                 subLibIndices[j] = indices[i][0]+j;
             }
-            List<Integer> integerList=new ArrayList<>(subLibIndices.length);
+            List<Integer> integerList=Arrays.asList(subLibIndices);
             integerList.parallelStream()
                     .filter(index-> (!(file[index].getName().contains(".DS_Store"))))
                     .forEach(index-> {
@@ -140,7 +140,7 @@ public class MD5 {
             for (int j = 0; j < subLibIndices.length; j++) {
                 subLibIndices[j] = indices[i][0]+j;
             }
-            List<Integer> integerList=new ArrayList<>(subLibIndices.length);
+            List<Integer> integerList=Arrays.asList(subLibIndices);
             integerList.parallelStream().forEach(index->{
                 String valuePath=md5ValuePath.get(index);
                 String[] md5Value=valuePath.split("  ");
