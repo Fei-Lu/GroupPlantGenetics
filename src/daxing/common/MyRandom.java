@@ -52,9 +52,8 @@ public class MyRandom {
             List<String> l= new ArrayList<>(numberOfRowsForExtract);
             String line;
             String header=null;
+            if (head) {header=br.readLine();}
             while ((line=br.readLine())!=null){
-                if (head) {header=br.readLine();}
-                line=br.readLine();
                 l.add(line);
             }
             Collections.shuffle(l, new Random());
