@@ -18,12 +18,15 @@ public class WheatGLoadEntrance {
         
     }
     public void firstProcess(){
-        new MapMake();
+        //new MapMake();
+        //new Wheat120cleandataProcessor();
+        new Wheat120bamProcessor();
         
     }
     
     
     public static void main (String[] args){
+        System.out.println("Here is the entrance of wheatGload !");
         new WheatGLoadEntrance();
         
        

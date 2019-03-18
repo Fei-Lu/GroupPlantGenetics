@@ -29,7 +29,7 @@ public class DataOrginazed {
         this.md5();
         this.checkMd5();
         //this.test();
-        //this.coverage();
+        this.coverage();
         this.sample();
         //this.insertTxt();
         //this.findlost();

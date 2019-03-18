@@ -30,7 +30,7 @@ public class Wheat120cleandataProcessor {
         //this.checkDupli();
         //this.newCheckSecondData();
         //this.sampleData();
-        //this.splitBam();
+        this.splitBam();
 //        this.splitBam_chr0_mit_chl();
 //        this.calSingleChrSize();
         //this.mergeCalFile();
@@ -601,10 +601,10 @@ public class Wheat120cleandataProcessor {
      * 
      * @param p 
      */
-    public static void main (String[] p){
+    //public static void main (String[] p){
 //        System.out.println("To use this calFileSize jar, please add 4 params\n@param1: infileDirS @param2: outfileS @param3: suffix @param4: unit, You can choose TB GB MB KB");
 //        new Wheat120cleandataProcessor(p[0], p[1], p[2], p[3]);
         
-    new Wheat120cleandataProcessor();
-    }  
+    //new Wheat120cleandataProcessor();
+    //}  
 }

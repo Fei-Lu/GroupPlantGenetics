@@ -29,10 +29,10 @@ public class PopGenPara {
 
     public PopGenPara() {
         //this.getGroups();
-        //this.mkFstCommands();
+        this.mkFstCommands();
         //this.fstTable();
         //this.mergeChrFst();
-        //this.mkPiCommand();
+        this.mkPiCommand();
         //this.averagePi();
         //this.mkPiCommandbasedWindow();
         //this.mergeChrPi();
@@ -538,6 +538,10 @@ public class PopGenPara {
             e.printStackTrace();
         }
     }
+    
+    /**
+     * 这个方法有一个亮点，就是将写出的几十个脚本，统一写在一个脚本中，执行一下。
+     */
     
     public void mkFstCommands () {
         /******************** 输入文件的准备 ***************************/
