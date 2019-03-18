@@ -39,27 +39,27 @@ public class MyRandom {
     }
 
     /**
-     * 从一个文件中随机抽取行，组成新文件
+     * 从VCF文件中随机抽取行，组成新文件
      * @param inputFile 输入文件
      * @param outFile 输出文件
      * @param numberOfRowsForExtract 提取的行数
-     * @param head 输入文件是否包含表头
      */
-    public static void extractRandomRowFromFile(String inputFile, String outFile, int numberOfRowsForExtract,
-                                                boolean head){
+    public static void extractRandomRowFromVCF(String inputFile, String outFile, int numberOfRowsForExtract){
         try(BufferedReader br= IOUtils.getTextReader(inputFile); BufferedWriter bw =IOUtils.getTextWriter(outFile)){
             long numberOfRows = Files.lines(Paths.get(inputFile)).count();
-            List<String> l= new ArrayList<>(numberOfRowsForExtract);
-            String line;
-            String header=null;
-            if (head) {header=br.readLine();}
+            List<String> l= new ArrayList<>((int)numberOfRows);
+            String line=br.readLine();
+            while (line.startsWith("##")){
+                line=br.readLine();
+            }
+            String header=line;
             while ((line=br.readLine())!=null){
                 l.add(line);
             }
             Collections.shuffle(l, new Random());
-            if(head) {bw.write(header);}
-            for(int i=0;i<numberOfRowsForExtract;i++){
-                bw.write(l.get(i));
+            bw.write(header);
+            for(String str:l){
+                bw.write(str);
                 bw.newLine();
             }
             bw.flush();
