@@ -97,7 +97,7 @@ public class MD5 {
         catch(Exception e){
             e.printStackTrace();
         }
-        System.out.println("getMD5 from "+inputDir+" is complemeted in " + String.format("%.4f", Benchmark.getTimeSpanMinutes(start)) + " minutes");
+        System.out.println("getMD5 from "+inputDir+" is completed in " + String.format("%.4f", Benchmark.getTimeSpanMinutes(start)) + " minutes");
     }
 
     /**
@@ -155,7 +155,7 @@ public class MD5 {
                 }
             });
         }
-        System.out.println("CheckMD5 is complemeted in " + String.format("%.4f", Benchmark.getTimeSpanMinutes(start)) + " minutes");
+        System.out.println("CheckMD5 is completed in " + String.format("%.4f", Benchmark.getTimeSpanMinutes(start)) + " minutes");
     }
 
 }
