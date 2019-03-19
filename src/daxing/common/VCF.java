@@ -42,6 +42,6 @@ public class VCF {
         }catch (Exception e){
             e.printStackTrace();
         }
-        System.out.println("smallVCF is completed in " + String.format("%.4f", Benchmark.getTimeSpanSeconds(start)) + " seconds");
+        System.out.println("completed in " + String.format("%.4f", Benchmark.getTimeSpanSeconds(start)) + " seconds");
     }
 }
