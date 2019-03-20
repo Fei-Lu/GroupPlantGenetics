@@ -27,8 +27,8 @@ public class MD5 {
      */
     public static String getMD5FromFile(String inputFile){
         String md5Value=null;
-        MessageDigest md=null;
-        FileInputStream fis=null;
+        MessageDigest md;
+        FileInputStream fis;
         try{
             md=MessageDigest.getInstance("md5");
             fis=new FileInputStream(inputFile);
