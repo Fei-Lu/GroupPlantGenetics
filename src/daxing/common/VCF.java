@@ -1,6 +1,5 @@
 package daxing.common;
 
-import gnu.trove.list.array.TIntArrayList;
 import utils.Benchmark;
 import utils.IOUtils;
 import utils.PStringUtils;
@@ -76,15 +75,19 @@ public class VCF {
         System.out.println("completed in " + String.format("%.4f", Benchmark.getTimeSpanSeconds(start)) + " seconds");
     }
 
+    /**
+     * 返回VCF文件所有taxa的总数
+     * @return 返回VCF文件所有taxa的总数
+     */
     public int getNumberOfTaxa(){
         return header.size()-9;
     }
 
-    public TIntArrayList getGenotypeMissingRate(String outFile){
-        TIntArrayList rateOfAllTaxaWithMissingGenotype= new TIntArrayList();
+    public double[] getGenotypeMissingRate(){
+        double[] rateOfAllTaxaWithMissingGenotype= new double[data.size()];
         for(int i=0,size=data.size();i<size;i++){
-            int numberOfEachTaxaWithMissingGenotype=(int)data.get(i).stream().skip(9).filter(ele->ele.equals("./.")).count();
-            rateOfAllTaxaWithMissingGenotype.add(numberOfEachTaxaWithMissingGenotype/this.getNumberOfTaxa());
+            double numberOfEachTaxaWithMissingGenotype=(double)data.get(i).stream().skip(9).filter(ele->ele.equals("./.")).count();
+            rateOfAllTaxaWithMissingGenotype[i]=numberOfEachTaxaWithMissingGenotype/this.getNumberOfTaxa();
         }
         return rateOfAllTaxaWithMissingGenotype;
     }
