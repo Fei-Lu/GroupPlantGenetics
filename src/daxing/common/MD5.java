@@ -71,7 +71,7 @@ public class MD5 {
         }
         ConcurrentHashMap<String,String> md5ValuePathMap=new ConcurrentHashMap<>();
         BufferedWriter bw=null;
-        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetNumber(file.length, numThreads);
+        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(file.length, numThreads);
         for (int i = 0; i < indices.length; i++) {
             Integer[] subLibIndices = new Integer[indices[i][1]-indices[i][0]];
             for (int j = 0; j < subLibIndices.length; j++) {
@@ -119,7 +119,7 @@ public class MD5 {
         }
         ConcurrentHashMap<String,String> md5ValuePathMap=new ConcurrentHashMap<>();
         BufferedWriter bw=null;
-        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetNumber(file.length, numThreads);
+        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(file.length, numThreads);
         for (int i = 0; i < indices.length; i++) {
             Integer[] subLibIndices = new Integer[indices[i][1]-indices[i][0]];
             for (int j = 0; j < subLibIndices.length; j++) {
@@ -184,7 +184,7 @@ public class MD5 {
         if(md5ValuePath.size()<numThreads){
             numThreads=md5ValuePath.size();
         }
-        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetNumber(md5ValuePath.size(), numThreads);
+        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(md5ValuePath.size(), numThreads);
         for (int i = 0; i < indices.length; i++) {
             Integer[] subLibIndices = new Integer[indices[i][1]-indices[i][0]];
             for (int j = 0; j < subLibIndices.length; j++) {
