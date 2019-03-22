@@ -58,13 +58,14 @@ public class VCF {
                     .lines()
                     .filter(index -> (!index.startsWith("#")))
                     .collect(Collectors.toList());
-            Collections.shuffle(data, new Random());
+            int[] randomIndex=RandomArray.getRandomNonrepetitionArray(numberOfRowsForExtract,0,data.size());
+            Arrays.sort(randomIndex);
             for(String str:metaAndHeader){
                 bw.write(str);
                 bw.newLine();
             }
-            for(int i=0;i<numberOfRowsForExtract;i++){
-                bw.write(data.get(i));
+            for(int i=0;i<randomIndex.length;i++){
+                bw.write(data.get(randomIndex[i]));
                 bw.newLine();
             }
             bw.flush();
@@ -82,22 +83,23 @@ public class VCF {
     public static void extractRandomRowFromVCF(String inputFile, Integer numberOfRowsForExtract) {
         long start = System.nanoTime();
         String outFile=inputFile.replaceAll(".vcf$", "sample.vcf");
-        try (BufferedWriter bw = IOUtils.getTextWriter(outFile)) {
-            List<String> metaAndHeader= Files.newBufferedReader(Paths.get(inputFile))
-                    .lines()
-                    .filter(index->index.startsWith("#"))
-                    .collect(Collectors.toList());
+        try (BufferedWriter bw=IOUtils.getTextWriter(outFile)) {
+            List<String> metaAndHeader=Files.newBufferedReader(Paths.get(inputFile))
+                                            .lines().limit(30)
+                                            .filter(e->e.startsWith("#"))
+                                            .collect(Collectors.toList());
             List<String> data=Files.newBufferedReader(Paths.get(inputFile))
-                    .lines()
-                    .filter(index -> (!index.startsWith("#")))
-                    .collect(Collectors.toList());
-            Collections.shuffle(data, new Random());
+                                   .lines()
+                                   .filter(index -> (!index.startsWith("#")))
+                                   .collect(Collectors.toList());
+            int[] randomIndex=RandomArray.getRandomNonrepetitionArray(numberOfRowsForExtract,0,data.size());
+            Arrays.sort(randomIndex);
             for(String str:metaAndHeader){
                 bw.write(str);
                 bw.newLine();
             }
-            for(int i=0;i<numberOfRowsForExtract;i++){
-                bw.write(data.get(i));
+            for(int i=0;i<randomIndex.length;i++){
+                bw.write(data.get(randomIndex[i]));
                 bw.newLine();
             }
             bw.flush();
