@@ -3,6 +3,8 @@ package daxing.common;
 import utils.Benchmark;
 import utils.IOUtils;
 import utils.PArrayUtils;
+import utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -162,10 +164,11 @@ public class MD5 {
     }
 
     /**
-     * 对标准MD5文件进行校验。在服务器上默认使用32个核；在个人电脑上默认使用全部核
-     * @param inputHashFile 输入的标准MD5文件
+     * 对标准MD5文件进行校验(MD5文件需在待检测目录下)。在服务器上默认使用32个核；在个人电脑上默认使用全部核
+     * @param inputHashFile 输入的标准MD5文件的绝对路径
      */
     public static void checkMD5(String inputHashFile){
+        String inputDir=new File(inputHashFile).getParent();
         long start = System.nanoTime();
         int numThreads = 32;
         if(Runtime.getRuntime().availableProcessors()<32) {
@@ -193,9 +196,9 @@ public class MD5 {
             List<Integer> integerList=Arrays.asList(subLibIndices);
             integerList.parallelStream().forEach(index->{
                 String valuePath=md5ValuePath.get(index);
-                String[] md5Value=valuePath.split("  ");
-                String value=md5Value[0];
-                String path=md5Value[1];
+                List<String> md5Value= PStringUtils.fastSplit(valuePath,"  ");
+                String value=md5Value.get(0);
+                String path=inputDir+"/"+md5Value.get(1);
                 boolean f=MD5.checkMD5(path, value);
                 if(!f){
                     System.out.println("False  "+path+": "+value);
