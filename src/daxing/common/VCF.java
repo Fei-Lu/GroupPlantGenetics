@@ -51,7 +51,7 @@ public class VCF {
         long start = System.nanoTime();
         try (BufferedWriter bw = IOUtils.getTextWriter(outFile)) {
             List<String> metaAndHeader= Files.newBufferedReader(Paths.get(inputFile))
-                    .lines()
+                    .lines().limit(30)
                     .filter(index->index.startsWith("#"))
                     .collect(Collectors.toList());
             List<String> data=Files.newBufferedReader(Paths.get(inputFile))
