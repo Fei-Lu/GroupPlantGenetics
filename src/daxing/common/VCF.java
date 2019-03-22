@@ -3,12 +3,18 @@ package daxing.common;
 import utils.Benchmark;
 import utils.IOUtils;
 import utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class VCF {
@@ -45,9 +51,9 @@ public class VCF {
      * 从VCF文件中随机抽取行，组成新文件
      * @param inputFile VCF输入文件
      * @param outFile 输出文件
-     * @param numberOfRowsForExtract 提取的行数
+     * @param numberOfRow 提取的行数
      */
-    public static void extractRandomRowFromVCF(String inputFile, String outFile, Integer numberOfRowsForExtract) {
+    public static void extractRandomRowFromVCF(String inputFile, String outFile, Integer numberOfRow) {
         long start = System.nanoTime();
         try (BufferedWriter bw = IOUtils.getTextWriter(outFile)) {
             List<String> metaAndHeader= Files.newBufferedReader(Paths.get(inputFile))
@@ -58,7 +64,7 @@ public class VCF {
                     .lines()
                     .filter(index -> (!index.startsWith("#")))
                     .collect(Collectors.toList());
-            int[] randomIndex=RandomArray.getRandomNonrepetitionArray(numberOfRowsForExtract,0,data.size());
+            int[] randomIndex=RandomArray.getRandomNonrepetitionArray(numberOfRow,0,data.size());
             Arrays.sort(randomIndex);
             for(String str:metaAndHeader){
                 bw.write(str);
@@ -78,9 +84,9 @@ public class VCF {
     /**
      * 从VCF文件中随机抽取行，在输入文件的目录下生成新的VCF文件（后缀是sample.vcf）
      * @param inputFile VCF输入文件
-     * @param numberOfRowsForExtract 提取的行数
+     * @param numberOfRow 提取的行数
      */
-    public static void extractRandomRowFromVCF(String inputFile, Integer numberOfRowsForExtract) {
+    public static void extractRandomRowFromVCF(String inputFile, Integer numberOfRow) {
         long start = System.nanoTime();
         String outFile=inputFile.replaceAll(".vcf$", "sample.vcf");
         try (BufferedWriter bw=IOUtils.getTextWriter(outFile)) {
@@ -92,7 +98,7 @@ public class VCF {
                                    .lines()
                                    .filter(index -> (!index.startsWith("#")))
                                    .collect(Collectors.toList());
-            int[] randomIndex=RandomArray.getRandomNonrepetitionArray(numberOfRowsForExtract,0,data.size());
+            int[] randomIndex=RandomArray.getRandomNonrepetitionArray(numberOfRow,0,data.size());
             Arrays.sort(randomIndex);
             for(String str:metaAndHeader){
                 bw.write(str);
@@ -122,9 +128,16 @@ public class VCF {
             System.exit(1);
         }
         List<String> chrNumPathList=new ArrayList<>();
-        File f=new File(vcfDir);
-        for(int i=0;i<chrNumber.length;i++){
-            chrNumPathList.add(vcfDir+"/"+"chr"+PStringUtils.getNDigitNumber(3,chrNumber[i])+".vcf");
+        File[] files=IOUtils.listRecursiveFiles(new File(vcfDir));
+        Pattern p=Pattern.compile("\\d+");
+        for(int i=0;i<files.length;i++){
+            Matcher m=p.matcher(files[i].getName());
+            if(m.find()){
+                int num=Integer.valueOf(m.group());
+                if(Arrays.stream(chrNumber).anyMatch(e->e==num)){
+                    chrNumPathList.add(files[i].getAbsolutePath());
+                }
+            }
         }
         return chrNumPathList;
     }
