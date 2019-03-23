@@ -139,6 +139,8 @@ public class VCF {
                 }
             }
         }
+        System.out.println("found "+chrNumPathList.size()+" chromosomes in "+vcfDir+", they are");
+        chrNumPathList.stream().forEach(System.out::println);
         return chrNumPathList;
     }
 
