@@ -166,41 +166,73 @@ public class VCF {
     }
 
     /**
-     * 将输入目录下的VCF文件按照染色体编号进行融合，形成各个染色体VCF
-     * @param inputVcfDir 包含VCF文件的输入路径
+     * 将输入目录下的VCF文件(如"chr001.vcf", "chr002.vcf"等)按照染色体进行融合，形成各个染色体VCF（不包含"chr000.vcf"、"chr043.vcf"和"chr044.vcf"）
+     * @param inputVcfDir 包含VCF的绝对路径
+     * @param outputVcfDir merge后的绝对输出路径
      */
-    public static void mergeVcfToChr(String inputVcfDir){
+    public static void mergeVcfToChr(String inputVcfDir, String outputVcfDir){
         File[] filesOri=IOUtils.listRecursiveFiles(new File(inputVcfDir));
         File[] files=IOUtils.listFilesEndsWith(filesOri,"vcf");
         Arrays.sort(files);
         VCF vcf1;
-        VCF vcf2;
-        for(int i=0;i<files.length;i++){
-            int a=StringUtils.getNumFromString(files[i].getName());
-            if(a==0) continue;
-            int b=StringUtils.getNumFromString(files[i+1].getName());
+        for(int i=0;i<files.length-1;i++){
+            int a=StringTool.getNumFromString(files[i].getName());
+            if((a==0)||(a&1)==0) continue;  //a需为奇数
+            int b=StringTool.getNumFromString(files[i+1].getName());
             if(b>=43) continue;
             if((b-a)==1){
                 vcf1=new VCF(files[i]);
-                vcf2=new VCF(files[i+1]);
-                vcf1.addVCF(vcf2);
+                vcf1.addVCF(new VCF(files[i+1]));
+                vcf1.write(outputVcfDir, VCF.numToChrMap.get(a)+".vcf");
             }
-
+            i++;
         }
     }
 
     /**
-     * 将输入目录下的VCF文件融合为一个VCF文件，不包含ChrUn、Mit和Chl
+     * 将输入目录下的所有VCF文件（如"chr001.vcf", "chr002.vcf"等）融合为一个"ChrAll.vcf"文件(不包含"chr000.vcf"、"chr043.vcf"和"chr044.vcf")
      * @param inputVcfDir 包含VCF文件的输入路径
      */
-    public static void mergeVcf(String inputVcfDir){
+    public static void mergeAllVcf(String inputVcfDir){
         File[] filesOri=IOUtils.listRecursiveFiles(new File(inputVcfDir));
         File[] files=IOUtils.listFilesEndsWith(filesOri,"vcf");
         Arrays.sort(files);
+        VCF vcf1=null;
+        Integer flag=0;
         for(int i=0;i<files.length;i++){
-            //
+            int a=StringTool.getNumFromString(files[i].getName());
+            if((a==0)||(a>=43)) continue;
+            vcf1=new VCF(files[i]);
+            flag=i;
+            break;
         }
+        for(int i=0;i<files.length;i++){
+            int a=StringTool.getNumFromString(files[i].getName());
+            if((a==0)||(a>=43)) continue;
+            if(i==flag.intValue()) continue;
+            vcf1.addVCF(new VCF(files[i]));
+        }
+        vcf1.write(inputVcfDir,"ChrAll.vcf");
+    }
 
+    /**
+     * 将输入目录下的所有VCF文件（如"chr001.vcf", "chr002.vcf"等）融合为一个"ChrAll.vcf"文件
+     * @param inputVcfDir
+     * @param flag 是否包含("chr000.vcf"、"chr043.vcf"和"chr044.vcf")
+     */
+    public static void mergeAllVcf(String inputVcfDir, boolean flag){
+        if(flag==true){
+            File[] filesOri=IOUtils.listRecursiveFiles(new File(inputVcfDir));
+            File[] files=IOUtils.listFilesEndsWith(filesOri,"vcf");
+            Arrays.sort(files);
+            VCF vcf1=new VCF(files[0]);
+            for(int i=1;i<files.length;i++){
+                vcf1.addVCF(new VCF(files[i]));
+            }
+            vcf1.write(inputVcfDir,"ChrAll.vcf");
+        }else {
+            VCF.mergeAllVcf(inputVcfDir);
+        }
     }
 
     /**
@@ -226,22 +258,42 @@ public class VCF {
         return rateOfAllTaxaWithMissingGenotype;
     }
 
+    /**
+     * 将指定的VCF与这个VCF进行融合（两个VCF的meta与header必须相同）
+     * @param vcf 指定的VCF对象
+     * @return 当VCF对象域data在调用后发生变化时返回true
+     */
     public boolean addVCF(VCF vcf){
         return this.data.addAll(vcf.data);
     }
 
-    public void write(String inputFile){
-        try(BufferedWriter bw=IOUtils.getTextWriter(inputFile)){
+    public void write(String outFile){
+        try(BufferedWriter bw=IOUtils.getTextWriter(outFile)){
             bw.write(this.meta);
+            StringBuilder sb=new StringBuilder();
             for(int i=0;i<header.size();i++){
-                bw.write(header.get(i));
-                bw.write("\t");
+                sb.append(header.get(i));
+                sb.append("\t");
             }
-            //
+            sb.deleteCharAt(sb.length()-1).append("\n");
+            bw.write(sb.toString());
+            sb=new StringBuilder();
+            bw.write(sb.toString());
+            for(int i=0;i<data.size();i++){
+                for(int j=0;j<data.get(i).size();j++){
+                    sb=sb.append(data.get(i).get(j)).append("\t");
+                }
+                sb.deleteCharAt(sb.length()-1).append("\n");
+                bw.write(sb.toString());
+                sb=new StringBuilder();
+            }
+            bw.flush();
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
 
-
+    public void write(String outputDir, String fileName){
+       this.write(outputDir+"/"+fileName);
     }
 }
