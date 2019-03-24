@@ -3,7 +3,7 @@ package daxing.common;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class StringUtils {
+public class StringTool {
 
     public static int getNumFromString(String str){
         Pattern p=Pattern.compile("\\d+");
