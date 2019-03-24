@@ -3,28 +3,30 @@ package daxing.common;
 import utils.Benchmark;
 import utils.IOUtils;
 import utils.PStringUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class VCF {
 
     private String meta;
     private List<String> header;
     private List<List<String>> data;
+    public static Map<Integer,String> numToChrMap=VCF.getNumToChrMap();
 
     public VCF(String inputFile){
         this.initilize(inputFile);
+    }
+
+    public VCF(File inputFile){
+        this.initilize(inputFile.getAbsolutePath());
     }
 
     private void initilize(String inputFile){
@@ -45,6 +47,25 @@ public class VCF {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    private static Map<Integer, String> getNumToChrMap(){
+        Map<Integer,String> numChrMap=new HashMap<>();
+        List<Integer> numOfChr=IntStream.range(1,43).boxed().collect(Collectors.toList());
+        List<Integer> int1_7= IntStream.range(1,8).boxed().collect(Collectors.toList());
+        List<Integer> chrList=new ArrayList<>();
+        for(int i=0;i<6;i++){
+            chrList.addAll(int1_7);
+        }
+        Collections.sort(chrList);
+        String abd=String.join("", Collections.nCopies(7,"AABBDD"));
+        numChrMap.put(0, "ChrUn");
+        for(int i=0;i<numOfChr.size();i++){
+            numChrMap.put(numOfChr.get(i),"Chr"+chrList.get(i)+abd.charAt(i));
+        }
+        numChrMap.put(43, "Mit");
+        numChrMap.put(44, "Chl");
+        return numChrMap;
     }
 
     /**
@@ -121,7 +142,7 @@ public class VCF {
      * @param chrNumber 打断后的染色体编号
      * @return 染色体编号对应的所有VCF文件路径
      */
-    public static List<String> getVcfFullPath(String vcfDir, int[] chrNumber){
+    public static List<String> getAllVcfPathInSpecfiedDir(String vcfDir, int[] chrNumber){
         int temp=(int)Arrays.stream(chrNumber).distinct().count();
         if(chrNumber.length>temp){
             System.out.println("please check your input array, it contains duplicate value");
@@ -144,26 +165,43 @@ public class VCF {
         return chrNumPathList;
     }
 
-
-    public static Map<String,Integer> mergeFractionalChr(String input){
-        BufferedReader br;
-        String temp;
-        List<Integer> chr=new ArrayList<>();
-        List<Integer> snpNum=new ArrayList<>();
-        try {
-            br=IOUtils.getTextReader(input);
-            while ((temp=br.readLine())!=null){
-                List<String> l=PStringUtils.fastSplit(temp);
-                chr.add(Integer.valueOf(l.get(0)));
-
+    /**
+     * 将输入目录下的VCF文件按照染色体编号进行融合，形成各个染色体VCF
+     * @param inputVcfDir 包含VCF文件的输入路径
+     */
+    public static void mergeVcfToChr(String inputVcfDir){
+        File[] filesOri=IOUtils.listRecursiveFiles(new File(inputVcfDir));
+        File[] files=IOUtils.listFilesEndsWith(filesOri,"vcf");
+        Arrays.sort(files);
+        VCF vcf1;
+        VCF vcf2;
+        for(int i=0;i<files.length;i++){
+            int a=StringUtils.getNumFromString(files[i].getName());
+            if(a==0) continue;
+            int b=StringUtils.getNumFromString(files[i+1].getName());
+            if(b>=43) continue;
+            if((b-a)==1){
+                vcf1=new VCF(files[i]);
+                vcf2=new VCF(files[i+1]);
+                vcf1.addVCF(vcf2);
             }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
 
-        return null;
+        }
     }
 
+    /**
+     * 将输入目录下的VCF文件融合为一个VCF文件，不包含ChrUn、Mit和Chl
+     * @param inputVcfDir 包含VCF文件的输入路径
+     */
+    public static void mergeVcf(String inputVcfDir){
+        File[] filesOri=IOUtils.listRecursiveFiles(new File(inputVcfDir));
+        File[] files=IOUtils.listFilesEndsWith(filesOri,"vcf");
+        Arrays.sort(files);
+        for(int i=0;i<files.length;i++){
+            //
+        }
+
+    }
 
     /**
      *
@@ -186,5 +224,24 @@ public class VCF {
             rateOfAllTaxaWithMissingGenotype[i]=numberOfEachTaxaWithMissingGenotype/this.getNumberOfTaxa();
         }
         return rateOfAllTaxaWithMissingGenotype;
+    }
+
+    public boolean addVCF(VCF vcf){
+        return this.data.addAll(vcf.data);
+    }
+
+    public void write(String inputFile){
+        try(BufferedWriter bw=IOUtils.getTextWriter(inputFile)){
+            bw.write(this.meta);
+            for(int i=0;i<header.size();i++){
+                bw.write(header.get(i));
+                bw.write("\t");
+            }
+            //
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+
     }
 }
