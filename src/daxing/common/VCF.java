@@ -167,7 +167,7 @@ public class VCF {
 
     /**
      * 将输入目录下的VCF文件(如"chr001.vcf", "chr002.vcf"等)按照染色体进行融合，形成各个染色体VCF（不包含"chr000.vcf"、"chr043.vcf"和"chr044.vcf"）
-     * @param inputVcfDir 包含VCF的绝对路径
+     * @param inputVcfDir VCF目录
      * @param outputVcfDir merge后的绝对输出路径
      */
     public static void mergeVcfToChr(String inputVcfDir, String outputVcfDir){
@@ -184,16 +184,51 @@ public class VCF {
                 vcf1=new VCF(files[i]);
                 vcf1.addVCF(new VCF(files[i+1]));
                 vcf1.write(outputVcfDir, VCF.numToChrMap.get(a)+".vcf");
+                i++;
             }
-            i++;
+        }
+    }
+
+    /**
+     * 将输入目录下的VCF文件(如"chr001.vcf", "chr002.vcf"等)按照染色体进行融合，形成各个染色体VCF（如"Chr1A", "Chr1B"等）
+     * @param inputVcfDir VCF目录
+     * @param outputVcfDir VCF目录
+     * @param contains 是否将"chr000.vcf"、"chr043.vcf"和"chr044.vcf"转换成"ChrUn.vcf", "Mit.vcf", "Chl.vcf"
+     */
+    public static void mergeVcfToChr(String inputVcfDir, String outputVcfDir, boolean contains){
+        if(contains){
+            VCF.mergeVcfToChr(inputVcfDir, outputVcfDir);
+            String[] str={"ChrUn.vcf", "Mit.vcf", "Chl.vcf"};
+            File[] filesOri=IOUtils.listRecursiveFiles(new File(inputVcfDir));
+            File[] files=IOUtils.listFilesEndsWith(filesOri,"vcf");
+            VCF vcf1;
+            for(int i=0;i<files.length;i++){
+                if (files[i].getName().contains("chr000")){
+                    vcf1=new VCF(files[i]);
+                    vcf1.write(outputVcfDir, str[0]);
+                    continue;
+                }
+                if (files[i].getName().contains("chr043")){
+                    vcf1=new VCF(files[i]);
+                    vcf1.write(outputVcfDir, str[1]);
+                    continue;
+                }
+                if (files[i].getName().contains("chr044")){
+                    vcf1=new VCF(files[i]);
+                    vcf1.write(outputVcfDir, str[2]);
+                    continue;
+                }
+            }
+        }else {
+            VCF.mergeVcfToChr(inputVcfDir, outputVcfDir);
         }
     }
 
     /**
      * 将输入目录下的所有VCF文件（如"chr001.vcf", "chr002.vcf"等）融合为一个"ChrAll.vcf"文件(不包含"chr000.vcf"、"chr043.vcf"和"chr044.vcf")
-     * @param inputVcfDir 包含VCF文件的输入路径
+     * @param inputVcfDir VCF目录
      */
-    public static void mergeAllVcf(String inputVcfDir){
+    public static void mergeNumVcf(String inputVcfDir){
         File[] filesOri=IOUtils.listRecursiveFiles(new File(inputVcfDir));
         File[] files=IOUtils.listFilesEndsWith(filesOri,"vcf");
         Arrays.sort(files);
@@ -217,11 +252,11 @@ public class VCF {
 
     /**
      * 将输入目录下的所有VCF文件（如"chr001.vcf", "chr002.vcf"等）融合为一个"ChrAll.vcf"文件
-     * @param inputVcfDir
-     * @param flag 是否包含("chr000.vcf"、"chr043.vcf"和"chr044.vcf")
+     * @param inputVcfDir VCF目录
+     * @param contains 是否包含("chr000.vcf"、"chr043.vcf"和"chr044.vcf")
      */
-    public static void mergeAllVcf(String inputVcfDir, boolean flag){
-        if(flag==true){
+    public static void mergeNumVcf(String inputVcfDir, boolean contains){
+        if(contains==true){
             File[] filesOri=IOUtils.listRecursiveFiles(new File(inputVcfDir));
             File[] files=IOUtils.listFilesEndsWith(filesOri,"vcf");
             Arrays.sort(files);
@@ -231,7 +266,66 @@ public class VCF {
             }
             vcf1.write(inputVcfDir,"ChrAll.vcf");
         }else {
-            VCF.mergeAllVcf(inputVcfDir);
+            VCF.mergeNumVcf(inputVcfDir);
+        }
+    }
+
+    /**
+     * 将输入目录下的所有VCF文件（如"Chr1A.vcf", "Chr1B.vcf"等）融合为一个"ChrAll.vcf"文件(不包含"ChrUn.vcf"、"Chl.vcf"和"Mit.vcf")
+     * @param inputVcfDir VCF目录
+     */
+    public static void mergeChrVcf(String inputVcfDir){
+        File[] filesOri=IOUtils.listRecursiveFiles(new File(inputVcfDir));
+        File[] files=IOUtils.listFilesEndsWith(filesOri,"vcf");
+        Arrays.sort(files);
+        VCF vcf1=null;
+        String[] str={"ChrUn.vcf", "Chl.vcf", "Mit.vcf"};
+        List<Integer> l=new ArrayList<>();
+        Integer f=null;
+        for(int i=0;i<files.length;i++){
+            if (files[i].getName().equals(str[0])) {
+                l.add(i);
+                continue;
+            }
+            if (files[i].getName().equals(str[1])){
+                l.add(i);
+                continue;
+            }
+            if (files[i].getName().equals(str[2])){
+                l.add(i);
+                continue;
+            }
+        }
+        for(int i=0;i<files.length;i++){
+            if(l.contains(i)) continue;
+            vcf1=new VCF(files[i]);
+            f=i;
+            break;
+        }
+        for(int i=0;i<files.length;i++){
+            if(l.contains(i)) continue;
+            if(i==f.intValue())continue;
+            vcf1.addVCF(new VCF(files[i]));
+        }
+        vcf1.write(inputVcfDir,"ChrAll.vcf");
+    }
+
+    /**
+     * 将输入目录下的所有VCF文件（如"Chr1A.vcf", "Chr1B.vcf"等）融合为一个"ChrAll.vcf"文件
+     * @param inputVcfDir VCF目录
+     * @param contains 是否包含"ChrUn.vcf"、"Chl.vcf"和"Mit.vcf"
+     */
+    public static void mergeChrVcf(String inputVcfDir, boolean contains){
+        if(contains==true){
+            File[] filesOri=IOUtils.listRecursiveFiles(new File(inputVcfDir));
+            File[] files=IOUtils.listFilesEndsWith(filesOri,"vcf");
+            VCF vcf1=new VCF(files[0]);
+            for(int i=1;i<files.length;i++){
+                vcf1.addVCF(new VCF(files[i]));
+            }
+            vcf1.write(inputVcfDir,"ChrAll.vcf");
+        }else {
+            VCF.mergeChrVcf(inputVcfDir);
         }
     }
 
@@ -244,6 +338,14 @@ public class VCF {
     }
 
     public List<List<String>> getData(){return this.data;}
+
+    /**
+     * 根据VCF文件的CHR和POS对该对象排序
+     */
+    public void sort(){
+        Comparator<List<String>> c=Comparator.comparing(e->Integer.valueOf(e.get(0)));
+        data.sort(c.thenComparing(e->Integer.valueOf(e.get(1))));
+    }
 
     /**
      *
@@ -268,6 +370,7 @@ public class VCF {
     }
 
     public void write(String outFile){
+        this.sort();
         try(BufferedWriter bw=IOUtils.getTextWriter(outFile)){
             bw.write(this.meta);
             StringBuilder sb=new StringBuilder();
@@ -295,5 +398,9 @@ public class VCF {
 
     public void write(String outputDir, String fileName){
        this.write(outputDir+"/"+fileName);
+    }
+
+    public void writeVcfToSplitedChrNum(String outputFile, String chrConvertionRuleFile){
+
     }
 }
