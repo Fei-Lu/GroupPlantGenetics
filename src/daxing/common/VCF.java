@@ -3,6 +3,7 @@ package daxing.common;
 import utils.Benchmark;
 import utils.IOUtils;
 import utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -400,7 +401,26 @@ public class VCF {
        this.write(outputDir+"/"+fileName);
     }
 
-    public void writeVcfToSplitedChrNum(String outputFile, String chrConvertionRuleFile){
-
+    public void writeVcfToSplitedChrNum(String chrConvertionRuleFile, String outputDir){
+        this.sort();
+        Set<Integer> s;
+        s=data.stream().flatMap(e->e.stream().limit(1)).mapToInt(Integer::valueOf).boxed().collect(Collectors.toCollection(HashSet::new));
+        int[] increment;
+        try(BufferedReader br=IOUtils.getTextReader(chrConvertionRuleFile)){
+            increment=br.lines().skip(1).map(e-> PStringUtils.fastSplit(e).get(4)).mapToInt(Integer::valueOf).toArray();
+            StringBuilder sb=new StringBuilder();
+            for(int i=0;i<header.size();i++){
+                sb.append(header.get(i));
+                sb.append("\t");
+            }
+            sb.deleteCharAt(sb.length()-1).append("\n");
+            for(int i=0;i<data.size();i++){
+                for(int j=0;j<data.get(i).size();j++){
+                    //
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }
