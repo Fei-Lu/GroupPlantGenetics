@@ -169,15 +169,15 @@ public class GRTAnalysis {
                 }
             }
             for(int i=0;i<range200_500.size();i++){
-                bw1.write(range200_500.get(i)[0]);
+                bw1.write(String.valueOf(range200_500.get(i)[0]));
                 bw1.write("\t");
-                bw1.write(range200_500.get(i)[1]);
+                bw1.write(String.valueOf(range200_500.get(i)[1]));
                 bw1.newLine();
             }
             for(int i=0;i<range500_1000.size();i++){
-                bw2.write(range500_1000.get(i)[0]);
+                bw2.write(String.valueOf(range500_1000.get(i)[0]));
                 bw2.write("\t");
-                bw2.write(range500_1000.get(i)[1]);
+                bw2.write(String.valueOf(range500_1000.get(i)[1]));
                 bw2.newLine();
             }
             bw1.flush();bw2.flush();
