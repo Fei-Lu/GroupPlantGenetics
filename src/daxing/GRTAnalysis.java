@@ -15,11 +15,16 @@ public class GRTAnalysis {
 //                "/Users/xudaxing/Desktop/cutter1.txt","/Users/xudaxing/Desktop/cutter2.txt");
 //        GRTAnalysis.mergeCutSite("/Users/xudaxing/Desktop/cutter1.txt",
 //                "/Users/xudaxing/Desktop/cutter2.txt","/Users/xudaxing/Desktop/cutSite.txt");
-        GRTAnalysis.calculateGRTCutSite("/Users/xudaxing/Desktop/cutter1.txt",
-                "/Users/xudaxing/Desktop/cutter2.txt",
-                "/Users/xudaxing/Desktop/cutSite.txt",
-                "/Users/xudaxing/Desktop/range200_500.txt",
-                "/Users/xudaxing/Desktop/range500_1000.txt");
+//        GRTAnalysis.calculateGRTCutSite("/data1/home/daxing/temp/cutter1.txt",
+//                "/data1/home/daxing/temp/cutter2.txt",
+//                "/data1/home/daxing/temp/cutSite.txt",
+//                "/data1/home/daxing/temp/range200_500_2.txt",
+//                "/data1/home/daxing/temp/range500_1000_2.txt");
+        GRTAnalysis.calculateGRTCutSite2("/data1/home/daxing/temp/cutter1.txt",
+                "/data1/home/daxing/temp/cutter2.txt",
+                "/data1/home/daxing/temp/cutSite.txt",
+                "/data1/home/daxing/temp/range200_500_2.txt",
+                "/data1/home/daxing/temp/range500_1000_2.txt");
     }
 
     /**
@@ -163,7 +168,7 @@ public class GRTAnalysis {
                         range500_1000.add(a);
                         cnt2++;
                         if(cnt2%1000 == 0){
-                            System.out.println(String.valueOf(cnt2)+" cutsites covering 500-100bp have been found");
+                            System.out.println(String.valueOf(cnt2)+" cutsites covering 500-1000bp have been found");
                         }
                     }
                 }
@@ -251,22 +256,22 @@ public class GRTAnalysis {
                         range500_1000.add(a);
                         cnt2++;
                         if(cnt2%1000 == 0){
-                            System.out.println(String.valueOf(cnt2)+" cutsites covering 500-100bp have been found");
+                            System.out.println(String.valueOf(cnt2)+" cutsites covering 500-1000bp have been found");
                         }
                         break;
                     }
                 }
             }
             for(int i=0;i<range200_500.size();i++){
-                bw1.write(range200_500.get(i)[0]);
+                bw1.write(String.valueOf(range200_500.get(i)[0]));
                 bw1.write("\t");
-                bw1.write(range200_500.get(i)[1]);
+                bw1.write(String.valueOf(range200_500.get(i)[1]));
                 bw1.newLine();
             }
             for(int i=0;i<range500_1000.size();i++){
-                bw2.write(range500_1000.get(i)[0]);
+                bw2.write(String.valueOf(range500_1000.get(i)[0]));
                 bw2.write("\t");
-                bw2.write(range500_1000.get(i)[1]);
+                bw2.write(String.valueOf(range500_1000.get(i)[1]));
                 bw2.newLine();
             }
             bw1.flush();bw2.flush();
