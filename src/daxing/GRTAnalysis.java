@@ -3,7 +3,6 @@ package daxing;
 import daxing.common.StringTool;
 import utils.Benchmark;
 import utils.IOUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.util.*;
@@ -15,16 +14,11 @@ public class GRTAnalysis {
 //                "/Users/xudaxing/Desktop/cutter1.txt","/Users/xudaxing/Desktop/cutter2.txt");
 //        GRTAnalysis.mergeCutSite("/Users/xudaxing/Desktop/cutter1.txt",
 //                "/Users/xudaxing/Desktop/cutter2.txt","/Users/xudaxing/Desktop/cutSite.txt");
-//        GRTAnalysis.calculateGRTCutSite("/data1/home/daxing/temp/cutter1.txt",
-//                "/data1/home/daxing/temp/cutter2.txt",
-//                "/data1/home/daxing/temp/cutSite.txt",
-//                "/data1/home/daxing/temp/range200_500_2.txt",
-//                "/data1/home/daxing/temp/range500_1000_2.txt");
-        GRTAnalysis.calculateGRTCutSite2("/data1/home/daxing/temp/cutter1.txt",
-                "/data1/home/daxing/temp/cutter2.txt",
-                "/data1/home/daxing/temp/cutSite.txt",
-                "/data1/home/daxing/temp/range200_500_2.txt",
-                "/data1/home/daxing/temp/range500_1000_2.txt");
+//        GRTAnalysis.calculateGRTCutSite("/Users/xudaxing/Desktop/cutter1.txt",
+//                "/Users/xudaxing/Desktop/cutter2.txt",
+//                "/Users/xudaxing/Desktop/cutSite.txt",
+//                "/Users/xudaxing/Desktop/range200_500.txt",
+//                "/Users/xudaxing/Desktop/range500_1000.txt");
     }
 
     /**
@@ -116,10 +110,10 @@ public class GRTAnalysis {
      */
     public static void calculateGRTCutSite(String cutter1InputFile, String cutter2InputFile, String cutSiteInputFile, String range200_500OutFile, String range500_1000OutFile){
         try(BufferedReader br1=IOUtils.getTextReader(cutter1InputFile);
-        BufferedReader br2=IOUtils.getTextReader(cutter2InputFile);
-        BufferedReader br=IOUtils.getTextReader(cutSiteInputFile);
-        BufferedWriter bw1=IOUtils.getTextWriter(range200_500OutFile);
-        BufferedWriter bw2=IOUtils.getTextWriter(range500_1000OutFile)){
+            BufferedReader br2=IOUtils.getTextReader(cutter2InputFile);
+            BufferedReader br=IOUtils.getTextReader(cutSiteInputFile);
+            BufferedWriter bw1=IOUtils.getTextWriter(range200_500OutFile);
+            BufferedWriter bw2=IOUtils.getTextWriter(range500_1000OutFile)){
             Set<Integer> l1=new HashSet<>();
             Set<Integer> l2=new HashSet<>();
             Set<Integer> bamH1CutSite=new HashSet<>();
@@ -158,7 +152,7 @@ public class GRTAnalysis {
                         range200_500.add(a);
                         cnt1++;
                         if(cnt1%1000 == 0){
-                            System.out.println(String.valueOf(cnt1)+" cutsites covering 200-500bp have been found");
+                            System.out.println(cnt1+" cutsites covering 200-500bp have been found");
                         }
                     }
                     else {
@@ -168,7 +162,7 @@ public class GRTAnalysis {
                         range500_1000.add(a);
                         cnt2++;
                         if(cnt2%1000 == 0){
-                            System.out.println(String.valueOf(cnt2)+" cutsites covering 500-1000bp have been found");
+                            System.out.println(cnt2+" cutsites covering 500-1000bp have been found");
                         }
                     }
                 }
@@ -245,7 +239,7 @@ public class GRTAnalysis {
                         range200_500.add(a);
                         cnt1++;
                         if(cnt1%1000 == 0){
-                            System.out.println(String.valueOf(cnt1)+" cutsites covering 200-500bp have been found");
+                            System.out.println(cnt1+" cutsites covering 200-500bp have been found");
                         }
                         break;
                     }
@@ -256,7 +250,7 @@ public class GRTAnalysis {
                         range500_1000.add(a);
                         cnt2++;
                         if(cnt2%1000 == 0){
-                            System.out.println(String.valueOf(cnt2)+" cutsites covering 500-1000bp have been found");
+                            System.out.println(cnt2+" cutsites covering 500-1000bp have been found");
                         }
                         break;
                     }
