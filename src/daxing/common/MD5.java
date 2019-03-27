@@ -163,5 +163,10 @@ public class MD5 {
         System.out.println("completed in " + String.format("%.4f", Benchmark.getTimeSpanMinutes(start)) + " minutes");
     }
 
+    public static boolean checkTwoFileMD5(String inputFile1, String inputFile2){
+        String md5value1=MD5.getMD5FromFile(inputFile1);
+        return MD5.checkMD5(inputFile2, md5value1);
+    }
+
 }
 
