@@ -31,7 +31,7 @@ public class SearchSpecificPos {
         String temp = null;
         String[] tem = null;
         int pos = 0;
-        int m=	43711;//pay attention this number is 1 based
+        int m=70557;//pay attention this number is 1 based
         
         try {
             while ((temp = br.readLine()) != null) {

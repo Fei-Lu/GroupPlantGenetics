@@ -53,4 +53,14 @@ public class KStringUtils extends PStringUtils {
         List<String> ls = fastSplit(line, ".");
         return ls;
       }
+      /**
+     * Return a list of split String using Guava splitter, dot
+     * @param line
+     * @return 
+     */
+    
+      public static List<String> fastSplitSemicolon (String line) {
+        List<String> ls = fastSplit(line, ";");
+        return ls;
+      }
 }

@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import  lipengKang.analysis.KStringUtils;
+import lipengKang.analysis.KStringUtils;
 import zhouyao.analysis.wheatHapMap.YaoIOUtils;
 
 /**
@@ -54,7 +54,8 @@ public class mafToMfaA {
 
         String temp = null;
         String[] tem = null;
-
+        long mfabps = 0;
+        long mfaUnemptybps =0;
         try {
             ba.write(">wheatA");
             ba.newLine();
@@ -72,23 +73,39 @@ public class mafToMfaA {
             bg.newLine();
             bh.write(">sorghum");
             bh.newLine();
+            StringBuilder wheatA = new StringBuilder();
+
+            StringBuilder wheatD = new StringBuilder();
+
+            StringBuilder wheatB = new StringBuilder();
+
+            StringBuilder barley = new StringBuilder();
+
+            StringBuilder stiffbrome = new StringBuilder();
+
+            StringBuilder rice = new StringBuilder();
+
+            StringBuilder maize = new StringBuilder();
+
+            StringBuilder sorghum = new StringBuilder();
             while ((temp = br.readLine()) != null) {
                 if (temp.startsWith("a")) {
-                    StringBuilder wheatA = new StringBuilder();
+                    
+                    wheatA = new StringBuilder();
 
-                    StringBuilder wheatD = new StringBuilder();
+                    wheatD = new StringBuilder();
 
-                    StringBuilder wheatB = new StringBuilder();
+                    wheatB = new StringBuilder();
 
-                    StringBuilder barley = new StringBuilder();
+                    barley = new StringBuilder();
 
-                    StringBuilder stiffbrome = new StringBuilder();
+                    stiffbrome = new StringBuilder();
 
-                    StringBuilder rice = new StringBuilder();
+                    rice = new StringBuilder();
 
-                    StringBuilder maize = new StringBuilder();
+                    maize = new StringBuilder();
 
-                    StringBuilder sorghum = new StringBuilder();
+                    sorghum = new StringBuilder();
                     temp = br.readLine();
                     if (temp.startsWith("s wheatA")) {
                         List<String> aList = KStringUtils.fastSplit(temp);
@@ -104,6 +121,8 @@ public class mafToMfaA {
                         wheatA.append(tem[6]);
 
                     }
+                    mfabps = mfabps + wheatA.toString().length();             
+                    mfaUnemptybps=mfaUnemptybps+wheatA.toString().replaceAll("-", "").length();
                     temp = br.readLine();
 
                     //wheatA-wheatD-
@@ -893,7 +912,7 @@ public class mafToMfaA {
                                                 continue;
 
                                             } else {//wheatA-wheatD-wheatB-stiffbrome
-                                               //!!!!!
+                                                //!!!!!
                                                 ba.write(wheatA.toString());
                                                 bb.write(wheatD.toString());
                                                 bc.write(wheatB.toString());
@@ -3846,7 +3865,7 @@ public class mafToMfaA {
                                                 for (int i = 0; i < wheatA.toString().length(); i++) {
                                                     wheatB.append('-');
                                                 }
-                                               
+
                                                 bb.write(wheatD.toString());
                                                 bc.write(wheatB.toString());
                                                 bd.write(barley.toString());
@@ -4787,6 +4806,38 @@ public class mafToMfaA {
                                                 bg.write(maize.toString());
                                                 bh.write(sorghum.toString());
                                                 continue;
+                                            } else {
+                                                ba.write(wheatA.toString());
+                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                    wheatD.append('-');
+                                                }
+                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                    wheatB.append('-');
+                                                }
+                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                    barley.append('-');
+                                                }
+                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                    stiffbrome.append('-');
+                                                }
+                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                    rice.append('-');
+                                                }
+                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                    maize.append('-');
+                                                }
+                                                for (int i = 0; i < wheatA.toString().length(); i++) {
+                                                    sorghum.append('-');
+                                                }
+
+                                                bb.write(wheatD.toString());
+                                                bc.write(wheatB.toString());
+                                                bd.write(barley.toString());
+                                                be.write(stiffbrome.toString());
+                                                bf.write(rice.toString());
+                                                bg.write(maize.toString());
+                                                bh.write(sorghum.toString());
+
                                             }
                                         }
                                     }
@@ -4797,7 +4848,8 @@ public class mafToMfaA {
 
                 }
             }
-
+            System.out.println("wheatA.mfa includes "+mfabps+ " bp");
+System.out.println("wheatA.mfa includes unempty "+mfaUnemptybps+ " bp");
             ba.flush();
             ba.close();
             bb.flush();
@@ -4823,25 +4875,25 @@ public class mafToMfaA {
     }
 
     public static void main(String[] args) {
-    /* String wheatADir =    "/data1/home/lipeng/result/CNEr/axt/A/formal/merge/gerp/wheatA.mfa";
-        String wheatDDir = "/data1/home/lipeng/result/CNEr/axt/A/formal/merge/gerp/wheatD.mfa";
-        String wheatBDir = "/data1/home/lipeng/result/CNEr/axt/A/formal/merge/gerp/wheatB.mfa";
-        String barleyDir = "/data1/home/lipeng/result/CNEr/axt/A/formal/merge/gerp/barley.mfa";
-        String riceDir =   "/data1/home/lipeng/result/CNEr/axt/A/formal/merge/gerp/rice.mfa";
-        String stiffbromeDir = "/data1/home/lipeng/result/CNEr/axt/A/formal/merge/gerp/stiffbrome.mfa";
-        String maizeDir =  "/data1/home/lipeng/result/CNEr/axt/A/formal/merge/gerp/maize.mfa";
-        String sorghumDir ="/data1/home/lipeng/result/CNEr/axt/A/formal/merge/gerp/sorghum.mfa";
-        String mafDir =    "/data1/home/lipeng/result/CNEr/axt/A/formal/merge/gerp/wheatA1.maf";*/
+       /* String wheatADir =    "/data1/home/lipeng/result/CNEr/axt/A/gerp/wheatA.mfa";
+        String wheatDDir = "/data1/home/lipeng/result/CNEr/axt/A/gerp/wheatD.mfa";
+        String wheatBDir = "/data1/home/lipeng/result/CNEr/axt/A/gerp/wheatB.mfa";
+        String barleyDir = "/data1/home/lipeng/result/CNEr/axt/A/gerp/barley.mfa";
+        String riceDir =   "/data1/home/lipeng/result/CNEr/axt/A/gerp/rice.mfa";
+        String stiffbromeDir = "/data1/home/lipeng/result/CNEr/axt/A/gerp/stiffbrome.mfa";
+        String maizeDir =  "/data1/home/lipeng/result/CNEr/axt/A/gerp/maize.mfa";
+        String sorghumDir ="/data1/home/lipeng/result/CNEr/axt/A/gerp/sorghum.mfa";
+        String mafDir =    "/data1/home/lipeng/result/CNEr/axt/A/gerp/wheatA.maf";*/
 
-       String wheatADir = "/Users/kanglipeng/Desktop/iwgsc_refseqv1.1_genes_2017July06/wheatA.mfa";
-        String wheatDDir = "/Users/kanglipeng/Desktop/iwgsc_refseqv1.1_genes_2017July06/wheatD.mfa";
-        String wheatBDir = "/Users/kanglipeng/Desktop/iwgsc_refseqv1.1_genes_2017July06/wheatB.mfa";
-        String barleyDir = "/Users/kanglipeng/Desktop/iwgsc_refseqv1.1_genes_2017July06/barley.mfa";
-        String riceDir = "/Users/kanglipeng/Desktop/iwgsc_refseqv1.1_genes_2017July06/rice.mfa";
-        String stiffbromeDir = "/Users/kanglipeng/Desktop/iwgsc_refseqv1.1_genes_2017July06/stiffbrome.mfa";
-        String maizeDir = "/Users/kanglipeng/Desktop/iwgsc_refseqv1.1_genes_2017July06/maize.mfa";
-        String sorghumDir = "/Users/kanglipeng/Desktop/iwgsc_refseqv1.1_genes_2017July06/sorghum.mfa";
-        String mafDir = "/Users/kanglipeng/Desktop/iwgsc_refseqv1.1_genes_2017July06/test.maf";
+    String wheatADir = "/Users/kanglipeng/Desktop/gerptest/wheatA.mfa";
+        String wheatDDir = "/Users/kanglipeng/Desktop/gerptest/wheatD.mfa";
+        String wheatBDir = "/Users/kanglipeng/Desktop/gerptest/wheatB.mfa";
+        String barleyDir = "/Users/kanglipeng/Desktop/gerptest/barley.mfa";
+        String riceDir = "/Users/kanglipeng/Desktop/gerptest/rice.mfa";
+        String stiffbromeDir = "/Users/kanglipeng/Desktop/gerptest/stiffbrome.mfa";
+        String maizeDir = "/Users/kanglipeng/Desktop/gerptest/maize.mfa";
+        String sorghumDir = "/Users/kanglipeng/Desktop/gerptest/sorghum.mfa";
+        String mafDir = "/Users/kanglipeng/Desktop/gerptest/25.maf";
         new mafToMfaA(mafDir, wheatADir, wheatDDir, wheatBDir, riceDir, sorghumDir, maizeDir, barleyDir, stiffbromeDir);
     }
 }

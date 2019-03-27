@@ -62,5 +62,28 @@ public class RandomArray {
     }  
     return result;  
 }    
+  
+    public static long[] randomLongCommon(long min, long max, int n){  
+    if (n > (max - min + 1) || max < min) {  
+           return null;  
+       }  
+    long[] result = new long[n];  
+    int count = 0;  
+    while(count < n) {  
+        long num = (long) (Math.random() * (max - min)) + min;  
+        boolean flag = true;  
+        for (int j = 0; j < n; j++) {  
+            if(num == result[j]){  
+                flag = false;  
+                break;  
+            }  
+        }  
+        if(flag){  
+            result[count] = num;  
+            count++;  
+        }  
+    }  
+    return result;  
+}  
 }
 
