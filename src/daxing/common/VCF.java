@@ -169,7 +169,7 @@ public class VCF {
         File[] files=IOUtils.listFilesEndsWith(filesOri,"vcf");
         Arrays.sort(files);
         VCF vcf1=null;
-        Integer flag=0;
+        int flag=0;
         for(int i=0;i<files.length;i++){
             int a=StringTool.getNumFromString(files[i].getName());
             if((a==0)||(a>=43)) continue;
@@ -180,7 +180,7 @@ public class VCF {
         for(int i=0;i<files.length;i++){
             int a=StringTool.getNumFromString(files[i].getName());
             if((a==0)||(a>=43)) continue;
-            if(i==flag.intValue()) continue;
+            if(i==flag) continue;
             vcf1.addVCF(new VCF(files[i]));
         }
         vcf1.write(inputVcfDir,"ChrAll.vcf");
@@ -192,7 +192,7 @@ public class VCF {
      * @param contains 是否包含("chr000.vcf"、"chr043.vcf"和"chr044.vcf")
      */
     public static void mergeNumVcf(String inputVcfDir, boolean contains){
-        if(contains==true){
+        if(contains){
             File[] filesOri=IOUtils.listRecursiveFiles(new File(inputVcfDir));
             File[] files=IOUtils.listFilesEndsWith(filesOri,"vcf");
             Arrays.sort(files);
@@ -280,8 +280,7 @@ public class VCF {
     public void writeVcfToSplitedChrNum(String outputDir){
         this.sort();
         List<Integer> chrNumList=data.stream().flatMap(e->e.stream().limit(1)).mapToInt(Integer::valueOf).boxed()
-                              .distinct().collect(Collectors.toCollection(ArrayList::new));
-        Collections.sort(chrNumList);
+                              .distinct().sorted().collect(Collectors.toCollection(ArrayList::new));
         Map<Integer, BufferedWriter> strToBufferedWriterMap=new HashMap<>();
         Integer key;
         BufferedWriter value;
