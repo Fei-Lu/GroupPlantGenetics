@@ -9,8 +9,6 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -148,16 +146,13 @@ public class VCF {
             System.out.println("please check your input array, it contains duplicate value");
             System.exit(1);
         }
+        List<Integer> chrNumList=Arrays.stream(chrNumber).boxed().collect(Collectors.toList());
         List<String> chrNumPathList=new ArrayList<>();
         File[] files=IOUtils.listRecursiveFiles(new File(vcfDir));
-        Pattern p=Pattern.compile("\\d+");
         for(int i=0;i<files.length;i++){
-            Matcher m=p.matcher(files[i].getName());
-            if(m.find()){
-                int num=Integer.valueOf(m.group());
-                if(Arrays.stream(chrNumber).anyMatch(e->e==num)){
-                    chrNumPathList.add(files[i].getAbsolutePath());
-                }
+            Integer fileName=StringTool.getNumFromString(files[i].getName());
+            if(chrNumList.contains(fileName)){
+                chrNumPathList.add(files[i].getAbsolutePath());
             }
         }
         System.out.println("found "+chrNumPathList.size()+" chromosomes in "+vcfDir+", they are");
