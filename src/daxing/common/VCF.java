@@ -3,6 +3,7 @@ package daxing.common;
 import utils.Benchmark;
 import utils.IOUtils;
 import utils.PStringUtils;
+import utils.Tuple;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -17,7 +18,7 @@ public class VCF {
     private String meta;
     private List<String> header;
     private List<List<String>> data;
-    public static Map<Integer,String> numToChrMap=VCF.getNumToChrMap();
+    public static Map<Integer,String> chrToChrMap =VCF.getchrToChrMap();
 
     public VCF(String inputFile){
         this.initilize(inputFile);
@@ -47,8 +48,8 @@ public class VCF {
         }
     }
 
-    private static Map<Integer, String> getNumToChrMap(){
-        Map<Integer,String> numChrMap=new HashMap<>();
+    private static Map<Integer, String> getchrToChrMap(){
+        Map<Integer,String> chrToChrMap=new HashMap<>();
         List<Integer> numOfChr=IntStream.range(1,43).boxed().collect(Collectors.toList());
         List<Integer> int1_7= IntStream.range(1,8).boxed().collect(Collectors.toList());
         List<Integer> chrList=new ArrayList<>();
@@ -57,13 +58,13 @@ public class VCF {
         }
         Collections.sort(chrList);
         String abd=String.join("", Collections.nCopies(7,"AABBDD"));
-        numChrMap.put(0, "ChrUn");
+        chrToChrMap.put(0, "ChrUn");
         for(int i=0;i<numOfChr.size();i++){
-            numChrMap.put(numOfChr.get(i),"Chr"+chrList.get(i)+abd.charAt(i));
+            chrToChrMap.put(numOfChr.get(i),"Chr"+chrList.get(i)+abd.charAt(i));
         }
-        numChrMap.put(43, "Mit");
-        numChrMap.put(44, "Chl");
-        return numChrMap;
+        chrToChrMap.put(43, "Mit");
+        chrToChrMap.put(44, "Chl");
+        return chrToChrMap;
     }
 
     /**
@@ -97,7 +98,7 @@ public class VCF {
         }catch (Exception e){
             e.printStackTrace();
         }
-        System.out.println("completed in " + String.format("%.4f", Benchmark.getTimeSpanSeconds(start)) + " seconds");
+        System.out.println(outFile+" completed in " + String.format("%.4f", Benchmark.getTimeSpanSeconds(start)) + " seconds");
     }
 
     /**
@@ -131,32 +132,71 @@ public class VCF {
         }catch (Exception e){
             e.printStackTrace();
         }
-        System.out.println("completed in " + String.format("%.4f", Benchmark.getTimeSpanSeconds(start)) + " seconds");
+        System.out.println(outFile+" completed in " + String.format("%.4f", Benchmark.getTimeSpanSeconds(start)) + " seconds");
     }
 
     /**
-     * 根据VCF目录和染色体编号，返回对应染色体编号的各个VCF文件路径
-     * @param vcfDir VCF目录
-     * @param chrNumber 打断后的染色体编号
-     * @return 染色体编号对应的所有VCF文件路径
+     * 对输入目录下所有VCF文件按照一定的比率随机抽取行组成新的VCF样品文件
+     * @param inputVcfDir  指定的VCF输入目录
+     * @param outputVCFDir 指定的VCF输出目录
+     * @param chrSnpNum 每个染色体SNP的数量
+     * @param rate 随机抽取行的比率，需为小数，如0.01， 0.5等
      */
-    public static List<String> getAllVcfPathInSpecfiedDir(String vcfDir, int[] chrNumber){
-        int temp=(int)Arrays.stream(chrNumber).distinct().count();
-        if(chrNumber.length>temp){
+    public static void extractRandomRowFromVcfDir(String inputVcfDir, String outputVCFDir, Tuple<int[], int[]> chrSnpNum, double rate){
+        int[] chrArray=chrSnpNum.getFirstElement();
+        int[] snpNumArray=chrSnpNum.getSecondElement();
+        int[] rateOfSnpNum=Arrays.stream(snpNumArray).map(e->(int)Math.round(e*rate)).toArray();
+        List<String> pathInputList=VCF.getAllVcfInputPath(inputVcfDir, chrArray);
+        List<String> pathOutputList=VCF.getAllVcfOutputPath(outputVCFDir, chrArray);
+        IntStream.range(0, chrArray.length).forEach(e-> VCF.extractRandomRowFromVCF(pathInputList.get(e), pathOutputList.get(e), rateOfSnpNum[e]));
+    }
+
+    /**
+     * 根据VCF目录和染色体编号，返回对应染色体编号的各个VCF文件输入路径
+     * @param vcfInputDir VCF目录
+     * @param chrArray 染色体编号
+     * @return 染色体编号对应的所有VCF文件输入路径
+     */
+    public static List<String> getAllVcfInputPath(String vcfInputDir, int[] chrArray){
+        int temp=(int)Arrays.stream(chrArray).distinct().count();
+        if(chrArray.length>temp){
             System.out.println("please check your input array, it contains duplicate value");
             System.exit(1);
         }
-        List<Integer> chrNumList=Arrays.stream(chrNumber).boxed().collect(Collectors.toList());
-        List<String> chrNumPathList=new ArrayList<>();
-        File[] files=IOUtils.listRecursiveFiles(new File(vcfDir));
+        List<Integer> chrList=Arrays.stream(chrArray).boxed().collect(Collectors.toList());
+        List<String> chrPathList=new ArrayList<>();
+        File[] files=IOUtils.listRecursiveFiles(new File(vcfInputDir));
         for(int i=0;i<files.length;i++){
             Integer fileName=StringTool.getNumFromString(files[i].getName());
-            if(chrNumList.contains(fileName)){
-                chrNumPathList.add(files[i].getAbsolutePath());
+            if(chrList.contains(fileName)){
+                chrPathList.add(files[i].getAbsolutePath());
             }
         }
-        System.out.println("found "+chrNumPathList.size()+" chromosomes in "+vcfDir+", they are");
-        chrNumPathList.stream().forEach(System.out::println);
+        Collections.sort(chrPathList);
+        System.out.println("found "+chrPathList.size()+" chromosomes in "+vcfInputDir+", they are");
+        chrPathList.stream().forEach(System.out::println);
+        return chrPathList;
+    }
+
+    /**
+     * 根据VCF目录和染色体编号，返回对应染色体编号的各个VCF文件输出路径
+     * @param vcfOutputDir vcf目录
+     * @param chrArray 染色体编号
+     * @return 染色体编号对应的所有VCF文件输出路径
+     */
+    public static List<String> getAllVcfOutputPath(String vcfOutputDir, int[] chrArray){
+        int temp=(int)Arrays.stream(chrArray).distinct().count();
+        if(chrArray.length>temp){
+            System.out.println("please check your input array, it contains duplicate value");
+            System.exit(1);
+        }
+        List<String> chrNumPathList=new ArrayList<>();
+        String outputPath;
+        for(int e:chrArray){
+            outputPath=vcfOutputDir+"/chr"+PStringUtils.getNDigitNumber(3, e)+"sample.vcf";
+            chrNumPathList.add(outputPath);
+        }
+        Collections.sort(chrNumPathList);
         return chrNumPathList;
     }
 
@@ -277,15 +317,15 @@ public class VCF {
        this.write(outputDir+"/"+fileName);
     }
 
-    public void writeVcfToSplitedChrNum(String outputDir){
+    public void writeVcfToSplitedChr(String outputDir){
         this.sort();
-        List<Integer> chrNumList=data.stream().flatMap(e->e.stream().limit(1)).mapToInt(Integer::valueOf).boxed()
+        List<Integer> chrList=data.stream().flatMap(e->e.stream().limit(1)).mapToInt(Integer::valueOf).boxed()
                               .distinct().sorted().collect(Collectors.toCollection(ArrayList::new));
         Map<Integer, BufferedWriter> strToBufferedWriterMap=new HashMap<>();
         Integer key;
         BufferedWriter value;
-        for(int i=0;i<chrNumList.size();i++){
-            key=chrNumList.get(i);
+        for(int i=0;i<chrList.size();i++){
+            key=chrList.get(i);
             value=IOUtils.getTextWriter(outputDir+"/chr"+PStringUtils.getNDigitNumber(3, key)+".vcf");
             strToBufferedWriterMap.put(key, value);
         }
