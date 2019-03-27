@@ -3,7 +3,6 @@ package daxing.common;
 import utils.Benchmark;
 import utils.IOUtils;
 import utils.PStringUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -167,65 +166,6 @@ public class VCF {
     }
 
     /**
-     * 将输入目录下的VCF文件(如"chr001.vcf", "chr002.vcf"等)按照染色体进行融合，形成各个染色体VCF（不包含"chr000.vcf"、"chr043.vcf"和"chr044.vcf"）
-     * @param inputVcfDir VCF目录
-     * @param outputVcfDir merge后的绝对输出路径
-     */
-    public static void mergeVcfToChr(String inputVcfDir, String outputVcfDir){
-        File[] filesOri=IOUtils.listRecursiveFiles(new File(inputVcfDir));
-        File[] files=IOUtils.listFilesEndsWith(filesOri,"vcf");
-        Arrays.sort(files);
-        VCF vcf1;
-        for(int i=0;i<files.length-1;i++){
-            int a=StringTool.getNumFromString(files[i].getName());
-            if((a==0)||(a&1)==0) continue;  //a需为奇数
-            int b=StringTool.getNumFromString(files[i+1].getName());
-            if(b>=43) continue;
-            if((b-a)==1){
-                vcf1=new VCF(files[i]);
-                vcf1.addVCF(new VCF(files[i+1]));
-                vcf1.write(outputVcfDir, VCF.numToChrMap.get(a)+".vcf");
-                i++;
-            }
-        }
-    }
-
-    /**
-     * 将输入目录下的VCF文件(如"chr001.vcf", "chr002.vcf"等)按照染色体进行融合，形成各个染色体VCF（如"Chr1A", "Chr1B"等）
-     * @param inputVcfDir VCF目录
-     * @param outputVcfDir VCF目录
-     * @param contains 是否将"chr000.vcf"、"chr043.vcf"和"chr044.vcf"转换成"ChrUn.vcf", "Mit.vcf", "Chl.vcf"
-     */
-    public static void mergeVcfToChr(String inputVcfDir, String outputVcfDir, boolean contains){
-        if(contains){
-            VCF.mergeVcfToChr(inputVcfDir, outputVcfDir);
-            String[] str={"ChrUn.vcf", "Mit.vcf", "Chl.vcf"};
-            File[] filesOri=IOUtils.listRecursiveFiles(new File(inputVcfDir));
-            File[] files=IOUtils.listFilesEndsWith(filesOri,"vcf");
-            VCF vcf1;
-            for(int i=0;i<files.length;i++){
-                if (files[i].getName().contains("chr000")){
-                    vcf1=new VCF(files[i]);
-                    vcf1.write(outputVcfDir, str[0]);
-                    continue;
-                }
-                if (files[i].getName().contains("chr043")){
-                    vcf1=new VCF(files[i]);
-                    vcf1.write(outputVcfDir, str[1]);
-                    continue;
-                }
-                if (files[i].getName().contains("chr044")){
-                    vcf1=new VCF(files[i]);
-                    vcf1.write(outputVcfDir, str[2]);
-                    continue;
-                }
-            }
-        }else {
-            VCF.mergeVcfToChr(inputVcfDir, outputVcfDir);
-        }
-    }
-
-    /**
      * 将输入目录下的所有VCF文件（如"chr001.vcf", "chr002.vcf"等）融合为一个"ChrAll.vcf"文件(不包含"chr000.vcf"、"chr043.vcf"和"chr044.vcf")
      * @param inputVcfDir VCF目录
      */
@@ -268,65 +208,6 @@ public class VCF {
             vcf1.write(inputVcfDir,"ChrAll.vcf");
         }else {
             VCF.mergeNumVcf(inputVcfDir);
-        }
-    }
-
-    /**
-     * 将输入目录下的所有VCF文件（如"Chr1A.vcf", "Chr1B.vcf"等）融合为一个"ChrAll.vcf"文件(不包含"ChrUn.vcf"、"Chl.vcf"和"Mit.vcf")
-     * @param inputVcfDir VCF目录
-     */
-    public static void mergeChrVcf(String inputVcfDir){
-        File[] filesOri=IOUtils.listRecursiveFiles(new File(inputVcfDir));
-        File[] files=IOUtils.listFilesEndsWith(filesOri,"vcf");
-        Arrays.sort(files);
-        VCF vcf1=null;
-        String[] str={"ChrUn.vcf", "Chl.vcf", "Mit.vcf"};
-        List<Integer> l=new ArrayList<>();
-        Integer f=null;
-        for(int i=0;i<files.length;i++){
-            if (files[i].getName().equals(str[0])) {
-                l.add(i);
-                continue;
-            }
-            if (files[i].getName().equals(str[1])){
-                l.add(i);
-                continue;
-            }
-            if (files[i].getName().equals(str[2])){
-                l.add(i);
-                continue;
-            }
-        }
-        for(int i=0;i<files.length;i++){
-            if(l.contains(i)) continue;
-            vcf1=new VCF(files[i]);
-            f=i;
-            break;
-        }
-        for(int i=0;i<files.length;i++){
-            if(l.contains(i)) continue;
-            if(i==f.intValue())continue;
-            vcf1.addVCF(new VCF(files[i]));
-        }
-        vcf1.write(inputVcfDir,"ChrAll.vcf");
-    }
-
-    /**
-     * 将输入目录下的所有VCF文件（如"Chr1A.vcf", "Chr1B.vcf"等）融合为一个"ChrAll.vcf"文件
-     * @param inputVcfDir VCF目录
-     * @param contains 是否包含"ChrUn.vcf"、"Chl.vcf"和"Mit.vcf"
-     */
-    public static void mergeChrVcf(String inputVcfDir, boolean contains){
-        if(contains==true){
-            File[] filesOri=IOUtils.listRecursiveFiles(new File(inputVcfDir));
-            File[] files=IOUtils.listFilesEndsWith(filesOri,"vcf");
-            VCF vcf1=new VCF(files[0]);
-            for(int i=1;i<files.length;i++){
-                vcf1.addVCF(new VCF(files[i]));
-            }
-            vcf1.write(inputVcfDir,"ChrAll.vcf");
-        }else {
-            VCF.mergeChrVcf(inputVcfDir);
         }
     }
 
@@ -401,23 +282,42 @@ public class VCF {
        this.write(outputDir+"/"+fileName);
     }
 
-    public void writeVcfToSplitedChrNum(String chrConvertionRuleFile, String outputDir){
+    public void writeVcfToSplitedChrNum(String outputDir){
         this.sort();
-        Set<Integer> s;
-        s=data.stream().flatMap(e->e.stream().limit(1)).mapToInt(Integer::valueOf).boxed().collect(Collectors.toCollection(HashSet::new));
-        int[] increment;
-        try(BufferedReader br=IOUtils.getTextReader(chrConvertionRuleFile)){
-            increment=br.lines().skip(1).map(e-> PStringUtils.fastSplit(e).get(4)).mapToInt(Integer::valueOf).toArray();
-            StringBuilder sb=new StringBuilder();
-            for(int i=0;i<header.size();i++){
-                sb.append(header.get(i));
-                sb.append("\t");
+        List<Integer> chrNumList=data.stream().flatMap(e->e.stream().limit(1)).mapToInt(Integer::valueOf).boxed()
+                              .distinct().collect(Collectors.toCollection(ArrayList::new));
+        Collections.sort(chrNumList);
+        Map<Integer, BufferedWriter> strToBufferedWriterMap=new HashMap<>();
+        Integer key;
+        BufferedWriter value;
+        for(int i=0;i<chrNumList.size();i++){
+            key=chrNumList.get(i);
+            value=IOUtils.getTextWriter(outputDir+"/chr"+PStringUtils.getNDigitNumber(3, key)+".vcf");
+            strToBufferedWriterMap.put(key, value);
+        }
+        StringBuilder sb=new StringBuilder();
+        sb.append(meta);
+        for(int i=0;i<header.size();i++){
+            sb.append(header.get(i));
+            sb.append("\t");
+        }
+        sb.deleteCharAt(sb.length()-1).append("\n");
+        try{
+            for(Map.Entry<Integer, BufferedWriter> entry:strToBufferedWriterMap.entrySet()){
+                entry.getValue().write(sb.toString());
             }
-            sb.deleteCharAt(sb.length()-1).append("\n");
             for(int i=0;i<data.size();i++){
                 for(int j=0;j<data.get(i).size();j++){
-                    //
+                    key=Integer.valueOf(data.get(i).get(0));
+                    value=strToBufferedWriterMap.get(key);
+                    value.write(data.get(i).stream().collect(Collectors.joining("\t")));
+                    value.newLine();
+                    break;
                 }
+            }
+            for(Map.Entry<Integer, BufferedWriter> entry:strToBufferedWriterMap.entrySet()){
+                entry.getValue().flush();
+                entry.getValue().close();
             }
         }catch (Exception e){
             e.printStackTrace();
