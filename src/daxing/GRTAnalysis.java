@@ -276,7 +276,7 @@ public class GRTAnalysis {
         }
     }
 
-    public static void main(String[] args){
-        new GRTAnalysis();
-    }
+//    public static void main(String[] args){
+//        new GRTAnalysis();
+//    }
 }
