@@ -317,6 +317,10 @@ public class VCF {
        this.write(outputDir+"/"+fileName);
     }
 
+    /**
+     * 将VCF按照"chr000.vcf, chr001.vcf"的形式进行输出
+     * @param outputDir 输出目录
+     */
     public void writeVcfToSplitedChr(String outputDir){
         this.sort();
         List<Integer> chrList=data.stream().flatMap(e->e.stream().limit(1)).mapToInt(Integer::valueOf).boxed()
