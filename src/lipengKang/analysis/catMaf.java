@@ -16,24 +16,25 @@ import lipengKang.analysis.KStringUtils;
  * @author kanglipeng
  */
 public class catMaf {
-    public catMaf(String mafDir){
-    this.catSpecificMaf(mafDir);
-    }
-    public void catSpecificMaf(String mafDir){
 
-     try {
+    public catMaf(String mafDir) {
+        this.catSpecificMaf(mafDir);
+    }
+
+    public void catSpecificMaf(String mafDir) {
+
+        try {
             BufferedReader br = IOUtils.getTextReader(mafDir);
             String temp = null;
             String[] tem = null;
-long x=0;
+            long Num = 0;
             while ((temp = br.readLine()) != null) {
 
                 List<String> tList = KStringUtils.fastSplit(temp);
                 List<String> tListNew = new ArrayList<>();
-              
-                if (temp.startsWith("s wheatD.chr")) {
-                
-                
+
+                if (temp.startsWith("s wheatA.chr")) {
+
                     for (int j = 0; j < tList.size(); j++) {
 
                         if (tList.get(j) != null && !tList.get(j).equals("")) {
@@ -45,19 +46,22 @@ long x=0;
                     if (tem == null || tem.length == 0) {
                         continue;
                     }
-                  x=x+tem[6].length();}
-   
-}      System.out.println(x);    
+                    int alignedSeqSize = Integer.parseInt(tem[3]);
+                    Num = Num + alignedSeqSize;
+                }
+            }
+            System.out.println(Num);
+            br.close();
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
-        }}
-public static void main(String[]args){
-    String mafDir="/Users/kanglipeng/Desktop/iwgsc_refseqv1.1_genes_2017July06/test.maf";
-new catMaf(mafDir);
+        }
+    }
 
+    public static void main(String[] args) {
+        String mafDir = "/Users/kanglipeng/Desktop/gerptest/25.maf";
+        new catMaf(mafDir);
 
-}
-
+    }
 
 }
