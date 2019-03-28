@@ -165,7 +165,14 @@ public class MD5 {
 
     public static boolean checkTwoFileMD5(String inputFile1, String inputFile2){
         String md5value1=MD5.getMD5FromFile(inputFile1);
-        return MD5.checkMD5(inputFile2, md5value1);
+        boolean res=MD5.checkMD5(inputFile2, md5value1);
+        if(res) {
+            System.out.println("These two files are equal");
+        }
+        else {
+            System.out.println("These two files are not equal");
+        }
+        return res;
     }
 
 }
