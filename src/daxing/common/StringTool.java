@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 public class StringTool {
 
     /**
-     * 返回一个字符串中首次出现的数字,如果没有则系统退出
+     * 返回一个字符串中首次出现的数字,如果没有则返回Integer最小值
      * @param str 字符串
      * @return 返回一个字符串中首次出现的数字
      */
