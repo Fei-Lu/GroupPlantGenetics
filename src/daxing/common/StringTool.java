@@ -19,9 +19,8 @@ public class StringTool {
             return Integer.valueOf(m.group());
         }else {
             System.out.println(str+":"+"\t"+"don not contains any number");
-            System.exit(1);
+            return Integer.MIN_VALUE;
         }
-        return Integer.MIN_VALUE;
     }
 
     /**
