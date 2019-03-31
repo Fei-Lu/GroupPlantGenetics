@@ -163,43 +163,13 @@ public class VCF {
             System.out.println("please check your input array, it contains duplicate value");
             System.exit(1);
         }
+        File[] files=IOUtils.listRecursiveFiles(new File(vcfInputDir));
         List<Integer> chrList=Arrays.stream(chrArray).boxed().collect(Collectors.toList());
-        List<String> chrPathList=new ArrayList<>();
-        File[] files=IOUtils.listRecursiveFiles(new File(vcfInputDir));
-        for(int i=0;i<files.length;i++){
-            Integer fileName=StringTool.getNumFromString(files[i].getName());
-            if(chrList.contains(fileName)){
-                chrPathList.add(files[i].getAbsolutePath());
-            }
-        }
-        Collections.sort(chrPathList);
-        System.out.println("found "+chrPathList.size()+" chromosomes in "+vcfInputDir+", they are");
-        chrPathList.stream().forEach(System.out::println);
-        return chrPathList;
+        return Arrays.stream(files).filter(e->chrList.contains(StringTool.getNumFromString(e.getName()))).map(File::getAbsolutePath).collect(Collectors.toList());
     }
 
     /**
-     * 根据VCF目录和染色体编号，返回对应染色体编号的各个VCF文件输入路径
-     * @param vcfInputDir VCF目录
-     * @param chrArray 染色体编号
-     * @return 染色体编号对应的所有VCF文件输入路径
-     */
-    public static List<String> getAllVcfInputPath2(String vcfInputDir, int[] chrArray){
-        int temp=(int)Arrays.stream(chrArray).distinct().count();
-        if(chrArray.length>temp){
-            System.out.println("please check your input array, it contains duplicate value");
-            System.exit(1);
-        }
-        File[] files=IOUtils.listRecursiveFiles(new File(vcfInputDir));
-        return Arrays.stream(files).filter(e->{
-            List<Integer> chrList= Arrays.stream(chrArray).boxed().collect(Collectors.toList());
-            Integer integerOfFileName=StringTool.getNumFromString(e.getName());
-            if(chrList.contains(integerOfFileName)) return true;
-            else return false;}).map(File::getAbsolutePath).collect(Collectors.toList());
-    }
-
-    /**
-     * 根据VCF目录和染色体编号，返回对应染色体编号的各个VCF文件输出路径
+     * 根据VCF目录和染色体编号，返回对应染色体编号的各个VCF文件输出路径(默认输出的VCF文件后缀为"chr001sample.vcf")
      * @param vcfOutputDir vcf目录
      * @param chrArray 染色体编号
      * @return 染色体编号对应的所有VCF文件输出路径
