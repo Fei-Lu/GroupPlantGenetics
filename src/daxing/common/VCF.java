@@ -4,12 +4,14 @@ import utils.Benchmark;
 import utils.IOUtils;
 import utils.PStringUtils;
 import utils.Tuple;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -194,24 +196,24 @@ public class VCF {
      * 将输入目录下的所有VCF文件（如"chr001.vcf", "chr002.vcf"等）融合为一个"ChrAll.vcf"文件(不包含"chr000.vcf"、"chr043.vcf"和"chr044.vcf")
      * @param inputVcfDir VCF目录
      */
-    public static void mergeNumVcf(String inputVcfDir){
-        File[] filesOri=IOUtils.listRecursiveFiles(new File(inputVcfDir));
-        File[] files=IOUtils.listFilesEndsWith(filesOri,"vcf");
-        Arrays.sort(files);
+    public static void mergeVCF(String inputVcfDir){
+        File[] files=IOUtils.listRecursiveFiles(new File(inputVcfDir));
+        File[] vcfFiles=IOUtils.listFilesEndsWith(files,"vcf");
+        Arrays.sort(vcfFiles);
         VCF vcf1=null;
         int flag=0;
-        for(int i=0;i<files.length;i++){
-            int a=StringTool.getNumFromString(files[i].getName());
+        for(int i=0;i<vcfFiles.length;i++){
+            int a=StringTool.getNumFromString(vcfFiles[i].getName());
             if((a==0)||(a>=43)) continue;
-            vcf1=new VCF(files[i]);
+            vcf1=new VCF(vcfFiles[i]);
             flag=i;
             break;
         }
-        for(int i=0;i<files.length;i++){
-            int a=StringTool.getNumFromString(files[i].getName());
+        for(int i=0;i<vcfFiles.length;i++){
+            int a=StringTool.getNumFromString(vcfFiles[i].getName());
             if((a==0)||(a>=43)) continue;
             if(i==flag) continue;
-            vcf1.addVCF(new VCF(files[i]));
+            vcf1.addVCF(new VCF(vcfFiles[i]));
         }
         vcf1.write(inputVcfDir,"ChrAll.vcf");
     }
@@ -221,19 +223,67 @@ public class VCF {
      * @param inputVcfDir VCF目录
      * @param contains 是否包含("chr000.vcf"、"chr043.vcf"和"chr044.vcf")
      */
-    public static void mergeNumVcf(String inputVcfDir, boolean contains){
+    public static void mergeVCF(String inputVcfDir, boolean contains){
         if(contains){
-            File[] filesOri=IOUtils.listRecursiveFiles(new File(inputVcfDir));
-            File[] files=IOUtils.listFilesEndsWith(filesOri,"vcf");
-            Arrays.sort(files);
-            VCF vcf1=new VCF(files[0]);
-            for(int i=1;i<files.length;i++){
-                vcf1.addVCF(new VCF(files[i]));
+            File[] files=IOUtils.listRecursiveFiles(new File(inputVcfDir));
+            File[] vcfFiles=IOUtils.listFilesEndsWith(files,"vcf");
+            Arrays.sort(vcfFiles);
+            VCF vcf1=new VCF(vcfFiles[0]);
+            for(int i=1;i<vcfFiles.length;i++){
+                vcf1.addVCF(new VCF(vcfFiles[i]));
             }
             vcf1.write(inputVcfDir,"ChrAll.vcf");
         }else {
-            VCF.mergeNumVcf(inputVcfDir);
+            VCF.mergeVCF(inputVcfDir);
         }
+    }
+
+    /**
+     * 将一个目录下的所有VCF文件按照染色体进行融合（默认不包含"chr000.vcf"、"chr043.vcf"和"chr044.vcf"）形成"Chr1A.vcf"、"Chr1B.vcf"等
+     *
+     * @param inputVcfDir "chr001.vcf", "chr002.vcf"等
+     * @param outputVcfDir "Chr1A.vcf", "Chr1B.vcf"等
+     */
+    public static void mergeVCFtoChr(String inputVcfDir, String outputVcfDir){
+        File[] files=IOUtils.listRecursiveFiles(new File(inputVcfDir));
+        File[] vcfFile=IOUtils.listFilesEndsWith(files, "vcf");
+        Predicate<File> p= file -> {
+            int chrNum=StringTool.getNumFromString(file.getName());
+            if(chrNum==0 || chrNum==43 || chrNum==44) return true;
+            return false;
+        };
+        File[] vcfFile1_44=Arrays.stream(vcfFile).filter(p.negate()).toArray(File[]::new);
+        int[] chr=Arrays.stream(vcfFile1_44).map(File::getName).map(StringTool::getNumFromString).mapToInt(Integer::intValue).toArray();
+        int odd;
+        for(int i=0;i<chr.length;i++){
+            odd=chr[i];
+            if((odd&1)==0){
+                continue;
+            }
+            if(i<chr.length-2 && (chr[i+1]&1)==1){
+                odd=chr[i+1];
+                i=i+1;
+            }
+            if(i<chr.length-2 && (chr[i+1]-chr[i])==1){
+                VCF vcf=new VCF(vcfFile1_44[i]);
+                vcf.addVCF(new VCF(vcfFile1_44[i+1]));
+                vcf.write(outputVcfDir, VCF.chrToChrMap.get(chr[i])+".vcf");
+            }
+            if(i<chr.length-2 && (chr[i+1]-chr[i])>=1){
+                i=i+1;
+            }
+            if (i==chr.length-1){
+                continue;
+            }
+            if(i==chr.length-2){
+                if((chr[i+1]-chr[i])==1){
+                    VCF vcf=new VCF(vcfFile1_44[i]);
+                    vcf.addVCF(new VCF(vcfFile1_44[i+1]));
+                    vcf.write(outputVcfDir, VCF.chrToChrMap.get(chr[i])+".vcf");
+                }
+            }
+        }
+
     }
 
     /**
