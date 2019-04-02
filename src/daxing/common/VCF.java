@@ -318,6 +318,20 @@ public class VCF {
     }
 
     /**
+     *
+     * @return  the taxon number which having genotype
+     */
+    public int[] getGenotypeNonMissingNum(){
+        int[] numOfAllTaxaWithNonMissedGenotype=new int[data.size()];
+        int taxaNum=this.getNumberOfTaxa();
+        for(int i=0,size=data.size();i<size;i++){
+            int numberOfEachTaxaWithMissingGenotype=(int)data.get(i).stream().skip(9).filter(ele->ele.equals("./.")).count();
+            numOfAllTaxaWithNonMissedGenotype[i]=taxaNum-numberOfEachTaxaWithMissingGenotype;
+        }
+        return numOfAllTaxaWithNonMissedGenotype;
+    }
+
+    /**
      * 将指定的VCF与这个VCF进行融合（两个VCF的meta与header必须相同）
      * @param vcf 指定的VCF对象
      * @return 当VCF对象域data在调用后发生变化时返回true
