@@ -1,4 +1,4 @@
-package daxing;
+package daxing.informal;
 
 import utils.IOUtils;
 import utils.PStringUtils;
