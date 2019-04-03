@@ -86,7 +86,7 @@ public class VCF {
                     .lines()
                     .filter(index -> (!index.startsWith("#")))
                     .collect(Collectors.toList());
-            int[] randomIndex=RandomArray.getRandomNonrepetitionArray(numberOfRow,0,data.size());
+            int[] randomIndex= ArrayTool.getRandomNonrepetitionArray(numberOfRow,0,data.size());
             Arrays.sort(randomIndex);
             for(String str:metaAndHeader){
                 bw.write(str);
@@ -120,7 +120,7 @@ public class VCF {
                                    .lines()
                                    .filter(index -> (!index.startsWith("#")))
                                    .collect(Collectors.toList());
-            int[] randomIndex=RandomArray.getRandomNonrepetitionArray(numberOfRow,0,data.size());
+            int[] randomIndex= ArrayTool.getRandomNonrepetitionArray(numberOfRow,0,data.size());
             Arrays.sort(randomIndex);
             for(String str:metaAndHeader){
                 bw.write(str);
@@ -318,10 +318,10 @@ public class VCF {
     }
 
     /**
-     *
+     * 统计每个variant中具有基因型的taxon数目
      * @return  the taxon number which having genotype
      */
-    public int[] getGenotypeNonMissingNum(){
+    public int[] getGenotypedTaxonNum(){
         int[] numOfAllTaxaWithNonMissedGenotype=new int[data.size()];
         int taxaNum=this.getNumberOfTaxa();
         for(int i=0,size=data.size();i<size;i++){
