@@ -66,12 +66,8 @@ public class Test {
         });
     }
 
-    /**
-     *
-     * @param args
-     */
-    public static void main(String[] args) {
-        int[] a=IntStream.range(0,45).toArray();
-        Test.calcalateGenotypedTaxonNum(args[0],args[1],a);
-    }
+//    public static void main(String[] args) {
+//        int[] a=IntStream.range(0,45).toArray();
+//        Test.calcalateGenotypedTaxonNum(args[0],args[1],a);
+//    }
 }
