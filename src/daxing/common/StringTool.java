@@ -24,6 +24,19 @@ public class StringTool {
     }
 
     /**
+     * if the given string is all numeric, return true
+     * @param str
+     * @return true, if the given string is all numeric
+     */
+    public static boolean isNumeric(String str){
+        byte[] a=str.getBytes();
+        for (int i = 0; i < a.length; i++) {
+            if (a[i]<48 || a[i]>57) return false;
+        }
+        return true;
+    }
+
+    /**
      * 返回一个字符串中子字符串出现的index数组
      * @param str 字符串
      * @param subStr 子字符串
