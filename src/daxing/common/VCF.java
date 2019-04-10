@@ -304,6 +304,17 @@ public class VCF {
         data.sort(c.thenComparing(e->Integer.valueOf(e.get(1))));
     }
 
+    public void removeVarianceWithHighGenotypeMissingRate(double genotypeMissingRate){
+        double threshold= this.getNumberOfTaxa()*(1-genotypeMissingRate);
+        int[] genotyedTaxonNum=this.getGenotypedTaxonNum();
+        int[] reservedLine=IntStream.range(0,genotyedTaxonNum.length).filter(e->genotyedTaxonNum[e]>=threshold).toArray();
+        List<List<String>> l=new ArrayList<>(reservedLine.length);
+        for (int value : reservedLine) {
+            l.add(data.get(value));
+        }
+        this.data=l;
+    }
+
     /**
      *
      * @return 返回所有位点的基因型缺失比例
