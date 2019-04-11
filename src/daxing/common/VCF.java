@@ -320,12 +320,14 @@ public class VCF {
      * @return 返回所有位点的基因型缺失比例
      */
     public double[] getGenotypeMissingRate(){
-        double[] rateOfAllTaxaWithMissingGenotype= new double[data.size()];
+        double[] genotypeMissingRate= new double[data.size()];
         for(int i=0,size=data.size();i<size;i++){
-            double numberOfEachTaxaWithMissingGenotype=(double)data.get(i).stream().skip(9).filter(ele->ele.equals("./.")).count();
-            rateOfAllTaxaWithMissingGenotype[i]=numberOfEachTaxaWithMissingGenotype/this.getNumberOfTaxa();
+            String info=data.get(i).stream().limit(8).collect(Collectors.toList()).get(7);
+            String ns=PStringUtils.fastSplit(info, ";").get(2);
+            int nsValue=Integer.valueOf(PStringUtils.fastSplit(ns, "=").get(1));
+            genotypeMissingRate[i]=(this.getNumberOfTaxa()-nsValue)/this.getNumberOfTaxa();
         }
-        return rateOfAllTaxaWithMissingGenotype;
+        return genotypeMissingRate;
     }
 
     /**
@@ -333,13 +335,14 @@ public class VCF {
      * @return  the taxon number which having genotype
      */
     public int[] getGenotypedTaxonNum(){
-        int[] numOfAllTaxaWithNonMissedGenotype=new int[data.size()];
-        int taxaNum=this.getNumberOfTaxa();
+        int[] numberOfSamplesWithAllele =new int[data.size()];
         for(int i=0,size=data.size();i<size;i++){
-            int numberOfEachTaxaWithMissingGenotype=(int)data.get(i).stream().skip(9).filter(ele->ele.equals("./.")).count();
-            numOfAllTaxaWithNonMissedGenotype[i]=taxaNum-numberOfEachTaxaWithMissingGenotype;
+            String info=data.get(i).stream().limit(8).collect(Collectors.toList()).get(7);
+            String ns=PStringUtils.fastSplit(info, ";").get(2);
+            int nsValue=Integer.valueOf(PStringUtils.fastSplit(ns, "=").get(1));
+            numberOfSamplesWithAllele[i]=nsValue;
         }
-        return numOfAllTaxaWithNonMissedGenotype;
+        return numberOfSamplesWithAllele;
     }
 
     /**

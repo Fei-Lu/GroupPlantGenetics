@@ -9,6 +9,10 @@ import java.util.Set;
 
 public class LibraryOfGRT {
 
+    public static void splitLibrary(String barcodeFile, String libraryFastqMapFile){
+        //
+    }
+
     public static String getFlowCellLaneIndex(String r1FastqFile, String r2FastqFile){
         Set<String> s=new HashSet<>();
         String temp1;
