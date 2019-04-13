@@ -69,15 +69,15 @@ public class Test {
         });
     }
 
-    public static void getRes(String inputDir){
+    public static void getRes(String inputDir, String outDir){
         File[] files1=IOUtils.listRecursiveFiles(new File(inputDir));
-        File[] files=IOUtils.listFilesEndsWith(files1, "txt");
+        File[] files=IOUtils.listFilesStartsWith(files1, "chr");
         List<Map<Integer, Integer>> l= Arrays.stream(files).map(File::getAbsolutePath).map(RowTableTool<String>::new)
                 .map(e->e.getMap(1)).map(CollectionTool::changeToIntMap).collect(Collectors.toList());
         Map<Integer, Integer> res=new HashMap<>();
-        res.putAll(l.get(0));
+        res.putAll(l.get(1));
         Integer key, value, tempValue;
-        for (int i = 1; i < l.size(); i++) {
+        for (int i = 2; i < l.size(); i++) {
             for (Map.Entry<Integer, Integer> entry:l.get(i).entrySet()){
                 key=entry.getKey();
                 value=entry.getValue();
@@ -103,7 +103,7 @@ public class Test {
 ////        String[] names=namesList.toArray(new String[namesList.size()]);
 ////        BarPlot barPlot=new BarPlot(values, names);
 ////        barPlot.showGraph();
-        try(BufferedWriter bw=IOUtils.getTextWriter(inputDir+"/all.txt")){
+        try(BufferedWriter bw=IOUtils.getTextWriter(outDir+"/all.txt")){
             bw.write("key"+"\t"+"value");
             bw.newLine();
             StringBuilder sb=new StringBuilder();
@@ -121,16 +121,14 @@ public class Test {
 
 
 //    public static void main(String[] args) {
-//        File[] f=IOUtils.listRecursiveFiles(new File(args[0]));
-//        File[] files=IOUtils.listFilesEndsWith(f, ".vcf");
-//        VCF vcf1=new VCF(files[0]);
-//        vcf1.removeVarianceWithHighGenotypeMissingRate(0.9);
-//        System.out.println(files[0].getName()+"\t"+ vcf1.getData().size());
+//        int[] chrs=IntStream.range(1, 45).toArray();
+//        List<String> inputFile=VCF.getAllVcfInputPath(args[0], chrs);
+//        VCF vcf1=new VCF(inputFile.get(0));
+//        vcf1.removeVarianceWithHighGenotypeMissingRate(0.97);
 //        VCF vcf;
-//        for (int i = 1; i <files.length ; i++) {
-//            vcf=new VCF(files[i]);
-//            vcf.removeVarianceWithHighGenotypeMissingRate(0.9);
-//            System.out.println(files[i].getName()+"\t"+vcf.getData().size());
+//        for (int i = 1; i < inputFile.size(); i++) {
+//            vcf=new VCF(inputFile.get(i));
+//            vcf.removeVarianceWithHighGenotypeMissingRate(0.97);
 //            vcf1.addVCF(vcf);
 //        }
 //        vcf1.write(args[1]);
