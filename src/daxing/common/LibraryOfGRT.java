@@ -83,8 +83,8 @@ public class LibraryOfGRT extends LibraryInfo {
             System.out.println("Parsing " + fastqR1 + "\t" + fastqR2);
             Read[] reads1_2;
             boolean b;
-            BufferedWriter bwError1=IOUtils.getNIOTextWriter("/Users/xudaxing/Desktop/test/sequencingError-1.fq");
-            BufferedWriter bwError2=IOUtils.getNIOTextWriter("/Users/xudaxing/Desktop/test/sequencingError-2.fq");
+            BufferedWriter bwError1=IOUtils.getNIOTextWriter(new File(outputDir, "sequencingError-1.fq").getAbsolutePath());
+            BufferedWriter bwError2=IOUtils.getNIOTextWriter(new File(outputDir, "sequencingError-2.fq").getAbsolutePath());
             while ((read1ID = br1.readLine()) != null) {
                 read2ID = br2.readLine();
                 seq1=br1.readLine();
