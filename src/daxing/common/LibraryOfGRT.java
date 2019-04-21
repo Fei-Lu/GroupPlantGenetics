@@ -1,6 +1,7 @@
 package daxing.common;
 
 import analysis.pipeline.grt.LibraryInfo;
+import format.dna.Read;
 import utils.IOUtils;
 import utils.PArrayUtils;
 import java.io.BufferedReader;
@@ -32,19 +33,22 @@ public class LibraryOfGRT extends LibraryInfo {
                 String[] taxaNames = this.getTaxaNames(index);
                 String cutter1 = this.getCutter1();
                 String cutter2 = this.getCutter2();
-                this.splitBarcode(fastqR1, fastqR2, barcodeR1TaxaMap, barcodeR2TaxaMap, taxaNames, outputDir, cutter1, cutter2);
+                this.splitBarcode(libs[index], fastqR1, fastqR2, barcodeR1TaxaMap, barcodeR2TaxaMap, taxaNames, outputDir, cutter1, cutter2);
             });
         }
     }
 
-    private void splitBarcode(String fastqR1, String fastqR2,
+    private void splitBarcode(String lib, String fastqR1, String fastqR2,
                               HashMap<String, Set<String>> barcodeR1TaxaMap, HashMap<String, Set<String>> barcodeR2TaxaMap, String[] taxaNames, String outputDir, String cutter1, String cutter2){
         HashMap<String, BufferedWriter[]> taxaWriterMap = new HashMap<>();
         BufferedWriter bw1, bw2;
         BufferedWriter[] bwArray;
+        File outputSubDir;
         for (String str:taxaNames){
-            bw1= IOUtils.getNIOTextWriter(new File(outputDir, str+"-1.fq").getAbsolutePath());
-            bw2= IOUtils.getNIOTextWriter(new File(outputDir, str+"-2.fq").getAbsolutePath());
+            outputSubDir=new File(outputDir, str);
+            outputSubDir.mkdir();
+            bw1= IOUtils.getNIOTextWriter(new File(outputSubDir, str+"-1.fq").getAbsolutePath());
+            bw2= IOUtils.getNIOTextWriter(new File(outputSubDir, str+"-2.fq").getAbsolutePath());
             bwArray=new BufferedWriter[2];
             bwArray[0]=bw1;
             bwArray[1]=bw2;
@@ -70,38 +74,33 @@ public class LibraryOfGRT extends LibraryInfo {
             String[] barcodeR2 = bSetR2.toArray(new String[bSetR2.size()]);
             Arrays.sort(barcodeR1);
             Arrays.sort(barcodeR2);
-            String temp1;
-            String temp2;
-            int index1 = -1;
-            int index2 = -1;
-            Set<String> taxaSR1;
-            Set<String> taxaSR2;
+            String read1ID, read2ID, seq1, seq2;
+            int index1, index2;
+            Set<String> taxaSR1, taxaSR2;
             int totalCnt = 0;
             int processedCnt = 0;
+            int lenBarcodeR1, lenBarcodeR2;
             System.out.println("Parsing " + fastqR1 + "\t" + fastqR2);
-            String[] read1;
-            String[] read2;
-            while ((temp1 = br1.readLine()) != null) {
-                temp2 = br2.readLine();
+            Read[] reads1_2;
+            boolean b;
+            BufferedWriter bwError1=IOUtils.getNIOTextWriter("/Users/xudaxing/Desktop/test/sequencingError-1.fq");
+            BufferedWriter bwError2=IOUtils.getNIOTextWriter("/Users/xudaxing/Desktop/test/sequencingError-2.fq");
+            while ((read1ID = br1.readLine()) != null) {
+                read2ID = br2.readLine();
+                seq1=br1.readLine();
+                seq2=br2.readLine();
                 totalCnt++;
                 if (totalCnt%10000000 == 0) {
                     System.out.println("Total read count: "+totalCnt+"\tPassed read count: "+processedCnt);
                 }
-                read1=new String[4];
-                read2=new String[4];
-                read1[0]=temp1;
-                read1[1]=br1.readLine();
-                read1[2]=br1.readLine();
-                read1[3]=br1.readLine();
-                read2[0]=temp2;
-                read2[1]=br2.readLine();
-                read2[2]=br2.readLine();
-                read2[3]=br2.readLine();
-                index1 = Arrays.binarySearch(barcodeR1, read1[1]);
-                index2 = Arrays.binarySearch(barcodeR2, read2[1]);
-                if (index1 == -1 || index2 == -1) {
-                    System.out.println(read1[1]);
-                    System.out.println(read1[2]);
+                index1 = Arrays.binarySearch(barcodeR1, seq1);
+                index2 = Arrays.binarySearch(barcodeR2, seq2);
+                b=(index1 == -1 || index2==-1 );
+                if (b){
+                    bwError1.write(String.join("\n", read1ID, seq1, br1.readLine(), br1.readLine()));
+                    bwError1.newLine();
+                    bwError2.write(String.join("\n", read2ID, seq2, br2.readLine(), br2.readLine()));
+                    bwError2.newLine();
                     continue;
                 }
                 index1 = -index1 - 2;
@@ -111,26 +110,43 @@ public class LibraryOfGRT extends LibraryInfo {
                 Set<String> newSet = new HashSet<>(taxaSR1);
                 newSet.retainAll(taxaSR2);
                 if (newSet.size() != 1) {
+                    bwError1.write(String.join("\n", read1ID, seq1, br1.readLine(), br1.readLine()));
+                    bwError1.newLine();
+                    bwError2.write(String.join("\n", read2ID, seq2, br2.readLine(), br2.readLine()));
+                    bwError2.newLine();
                     continue;
                 }
+                lenBarcodeR1=barcodeR1[index1].length();
+                lenBarcodeR2=barcodeR2[index2].length();
+                reads1_2=new Read[2];
+                reads1_2[0]=new Read(read1ID, seq1.substring(lenBarcodeR1), br1.readLine(), br1.readLine().substring(lenBarcodeR1), 33);
+                reads1_2[1]=new Read(read2ID, seq2.substring(lenBarcodeR2), br2.readLine(), br2.readLine().substring(lenBarcodeR2), 33);
                 bwArray = taxaWriterMap.get(newSet.iterator().next());
-                for (int i = 0; i < read1.length; i++) {
-                    if(i==1){
-                        bwArray[0].write(read1[i].substring(barcodeR1[index1].length()));
-                        bwArray[0].newLine();
-                        bwArray[1].write(read2[i].substring(barcodeR2[index2].length()));
-                        bwArray[1].newLine();
-                    }
-                    bwArray[0].write(read1[i]);
-                    bwArray[0].newLine();
-                    bwArray[1].write(read2[i]);
-                    bwArray[1].newLine();
-                }
+                bwArray[0].write(String.join("\n", read1ID, reads1_2[0].getSequence(), reads1_2[0].getDescription(), reads1_2[0].getQualS(33)));
+                bwArray[0].newLine();
+                bwArray[1].write(String.join("\n", read2ID, reads1_2[1].getSequence(), reads1_2[1].getDescription(), reads1_2[1].getQualS(33)));
+                bwArray[1].newLine();
                 processedCnt++;
             }
+            br1.close();
+            br2.close();
+            bwError1.flush();
+            bwError1.close();
+            bwError2.flush();
+            bwError2.close();
+            for (BufferedWriter[] bufferedWriters: taxaWriterMap.values()){
+                bufferedWriters[0].flush();
+                bufferedWriters[1].flush();
+                bufferedWriters[0].close();
+                bufferedWriters[1].close();
+            }
+            System.out.println("Total read count: "+totalCnt+"\nPassed read count: "+processedCnt);
+            System.out.println("The probability of sequencing error in the reads of the "+lib+" library is "+((double)totalCnt-processedCnt)/totalCnt);
         }catch (Exception e){
             e.printStackTrace();
         }
     }
+
+
 
 }
