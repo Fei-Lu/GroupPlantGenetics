@@ -45,8 +45,8 @@ public class VariantSummary {
         //this.densityTest();
         //this.density();
        // this.filterHmp321Info();
-        //this.filterHmp321Info_bysiftTrans();
-        //this.filterHmp321Info_bysiftTrans_useDataBase();
+        this.filterHmp321Info_bysiftTrans();
+        this.filterHmp321Info_bysiftTrans_useDataBase();
         //this.testarraylength();
 //        this.summarizeTranscript_deprecated();
         this.summarizeTranscript2();

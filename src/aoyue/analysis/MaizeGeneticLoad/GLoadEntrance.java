@@ -17,22 +17,21 @@ public class GLoadEntrance {
     public GLoadEntrance() {
         //this.dataOrginazed();
         this.analysisPipeline();
-        
-        
-        
-        
     }
     
     public GLoadEntrance(String a) {
         new PopGenPara(a);
     }
+    
     public void analysisPipeline(){
         //new VariantSummary();
         //new Recombination();
         //new TaxaInfo();
         //new Expression();
         //new popGenGroup();
-        new PopGenPara();
+        //new PopGenPara();
+        //new VCFprocessor();
+        new ItolTree();
         
         
     }

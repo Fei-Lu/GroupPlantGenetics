@@ -26,7 +26,7 @@ import utils.PStringUtils;
 public class TaxaInfo {
 
     public TaxaInfo() {
-        this.checkTaxaCategory();
+        //this.checkTaxaCategory();
         //this.taxaGroupSummary();
         //this.removeSpacing();
         //this.checkCategoryandAddGermplasm();
@@ -38,12 +38,100 @@ public class TaxaInfo {
         //this.selectUseful();
         //this.removemixed();
         //new B73Distance();
-        this.countTaxaInGroup();
+        //this.countTaxaInGroup();
         //this.MDSwithHighDepth();
+        //this.testPCA();
+        this.addGrouptoMDSmatrix();
         
         
         
         
+        
+        
+        
+    }
+    
+    /**
+     * 将自己抽取的9236 SNPs
+     */
+    
+    public void addGrouptoMDSmatrix (){
+        String infileS = "/Users/Aoyue/project/maizeGeneticLoad/001_variantSummary/012_PCA/004_mds_matrix.txt";
+        String groupFileS = "/Users/Aoyue/project/maizeGeneticLoad/005_popGen/000_group/geneticGroup.manual.txt";
+        String outfileS = "/Users/Aoyue/project/maizeGeneticLoad/001_variantSummary/012_PCA/004_mds_matrix.addgroup.txt";
+        try{
+            BufferedReader br = IOUtils.getTextReader(groupFileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            HashMap<String,String> hm = new HashMap<>();
+            String temp = br.readLine();
+            List<String> l = new ArrayList<>();
+            while((temp = br.readLine()) != null){
+                l = PStringUtils.fastSplit(temp);
+                String taxa = l.get(0); String group = l.get(4);
+                hm.put(taxa, group);
+            }
+            br.close();
+            System.out.println(hm.size() + "    hashMap");
+            
+            br=IOUtils.getTextReader(infileS);
+            temp = br.readLine();
+            bw.write(  "Taxa\tGroup\tPC1\tPC2\tPC3\tPC4\tPC5\tPC6\tPC7\tPC8\tPC9\tPC10\n");
+            while((temp = br.readLine()) != null){
+                l = PStringUtils.fastSplit(temp);
+                String taxa = l.get(0); String group = hm.get(taxa);
+                StringBuilder sb = new StringBuilder();
+                sb.append(taxa).append("\t").append(group);
+                for(int i =2; i<l.size(); i++){
+                    sb.append("\t").append(l.get(i));
+                }
+                bw.write(sb.toString());bw.newLine();
+            }
+            br.close();bw.flush();bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+    
+    /**
+     * 将IBS matrix矩阵添加分组信息，进行PCA练习,按照网页上教学的方法进行测试。
+     */
+    public void testPCA(){
+        String infileS = "/Users/Aoyue/project/maizeGeneticLoad/001_variantSummary/012_PCA/003_distance_matrix_fei.txt";
+        String groupFileS = "/Users/Aoyue/project/maizeGeneticLoad/005_popGen/000_group/geneticGroup.manual.txt";
+        String outfileS = "/Users/Aoyue/project/maizeGeneticLoad/001_variantSummary/012_PCA/003_distance_matrix_fei.addgroup.txt";
+        try{
+            BufferedReader br = IOUtils.getTextReader(groupFileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            HashMap<String,String> hm = new HashMap<>();
+            String temp = br.readLine();
+            List<String> l = new ArrayList<>();
+            while((temp = br.readLine()) != null){
+                l = PStringUtils.fastSplit(temp);
+                String taxa = l.get(0); String group = l.get(4);
+                hm.put(taxa, group);
+            }
+            br.close();
+            System.out.println(hm.size() + "    hashMap");
+            
+            br=IOUtils.getTextReader(infileS);
+            while((temp = br.readLine()) != null){
+                l = PStringUtils.fastSplit(temp);
+                String taxa = l.get(0); String group = hm.get(taxa);
+                StringBuilder sb = new StringBuilder();
+                sb.append(taxa).append("\t").append(group);
+                for(int i =1; i<l.size(); i++){
+                    sb.append("\t").append(l.get(i));
+                }
+                bw.write(sb.toString());bw.newLine();
+            }
+            br.close();bw.flush();bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
         
     }
     
