@@ -55,8 +55,9 @@ public class Wheat120bamProcessor {
     }
 
     /**
-     * 目的：根据已做的测试，在chr1A chr1B chr1D染色体中对选定的椭圆进行过滤。 1.计算chr1A的平均覆盖度和SD，输出到 CHROM
-     * POS	AverageDepth	SD 文件中； 多线程运行！ 2.根据散点图中和椭圆的2a位置判断，将椭圆内需要保留的位点放入一个List
+     * 目的：根据已做的测试，在chr1A chr1B chr1D染色体中对选定的椭圆进行过滤。 
+     * 1.计算chr1A的平均覆盖度和SD，输出到 CHROM POS	AverageDepth	SD 文件中；多线程运行！
+     * 2.根据散点图中和椭圆的2a位置判断，将椭圆内需要保留的位点放入一个List
      * posinEllipseList库中; 单线程，考虑到每个椭圆的大小位置不一样
      * 3.将chr1A文件读进去，根究posinEllipseList库进行过滤筛选；
      */

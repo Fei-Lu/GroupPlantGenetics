@@ -33,7 +33,7 @@ public class Wheat120cleandataProcessor {
         this.splitBam();
 //        this.splitBam_chr0_mit_chl();
 //        this.calSingleChrSize();
-        //this.mergeCalFile();
+        this.mergeCalFile();
         //this.mkIndexFile();
         //this.cp_First();
 //        this.cpFirstChr();

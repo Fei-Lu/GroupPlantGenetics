@@ -20,7 +20,8 @@ public class WheatGLoadEntrance {
     public void firstProcess(){
         //new MapMake();
         //new Wheat120cleandataProcessor();
-        new Wheat120bamProcessor();
+        //new Wheat120bamProcessor();
+        new Wheat200cleanDataProcessor();
         
     }
     
