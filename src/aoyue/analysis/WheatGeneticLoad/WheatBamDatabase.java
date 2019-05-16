@@ -29,9 +29,9 @@ public class WheatBamDatabase {
 //        this.VMapIABDgenome(); //deprecated this method
 //        this.VMapIDgenome(); //deprecated this method
         
-        //this.VMapIgenomeMethod2();
-        //this.mergeVMapIbamDB(); 
-        //this.wheatJiaoABDgenome();
+        this.VMapIgenomeMethod2();
+        this.mergeVMapIbamDB(); 
+        this.wheatJiaoABDgenome();
         //this.renameJiaoABD();
         this.mergeVMapIJiaobamDB();
         
@@ -44,7 +44,7 @@ public class WheatBamDatabase {
         String outfileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/003_step3_VMapIandJiao/AllWheatBamDatabase.txt";
         try{
             //只读入表头
-            BufferedReader br = IOUtils.getTextReader("/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/000_step1/VMapI_A_bam.txt");
+            BufferedReader br = IOUtils.getTextReader("/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/000_step1_method2/VMapI_A_bam.txt");
             BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             bw.write(br.readLine());bw.newLine();
             br.close();
@@ -114,14 +114,14 @@ public class WheatBamDatabase {
         try{
             BufferedReader br = IOUtils.getTextReader(infileS);
             BufferedWriter bw = IOUtils.getTextWriter(outfileS);
-            bw.write("DataBaseID\tSeqID\tAccessions\tGenome-type\tBam-Path\tInsert-size(bp)\tSequencing-platform\tCoverage\tDataSource"); bw.newLine();
+            bw.write("DataBaseID\tTaxa\tAccessions\tGenome-type\tBam-Path\tInsert-size(bp)\tSequencing-platform\tCoverage\tDataSource"); bw.newLine();
             String temp = br.readLine(); //表头
             while((temp = br.readLine()) != null){
-                String seqID = PStringUtils.fastSplit(temp).get(0);
+                String taxa = PStringUtils.fastSplit(temp).get(3);
                 String accessions = PStringUtils.fastSplit(temp).get(1);
                 String databaseID = PStringUtils.fastSplit(temp).get(2);
                 StringBuilder sb = new StringBuilder();
-                sb.append(databaseID).append("\t").append(seqID).append("\t").append(accessions).append("\t").append("ABD\t").append("/data3/wgs/bam/ABD/" + databaseID + ".rmdup.bam").append("\t").
+                sb.append(databaseID).append("\t").append(taxa).append("\t").append(accessions).append("\t").append("ABD\t").append("/data3/wgs/bam/ABD/" + databaseID + ".rmdup.bam").append("\t").
                         append("350\t").append("Illumina HiSeq X\t").append("10X\tJiaoLab");
                 bw.write(sb.toString()); bw.newLine();
             }
@@ -163,9 +163,10 @@ public class WheatBamDatabase {
             try{
                 BufferedReader br = IOUtils.getTextReader(infileS);
                 BufferedWriter bw = IOUtils.getTextWriter(outfileS);
-                bw.write("DataBaseID\tSeqID\tAccessions\tGenome-type\tBam-Path\tInsert-size(bp)\tSequencing-platform\tCoverage\tDataSource"); bw.newLine();
+                bw.write("DataBaseID\tTaxa\tAccessions\tGenome-type\tBam-Path\tInsert-size(bp)\tSequencing-platform\tCoverage\tDataSource"); bw.newLine();
                 String temp = br.readLine(); //表头
                 while((temp = br.readLine()) != null){
+                    String taxa = PStringUtils.fastSplit(temp).get(2);
                     String seqID = PStringUtils.fastSplit(temp).get(0);
                     String accessions = PStringUtils.fastSplit(temp).get(1);
                     String databaseID = null;
@@ -185,7 +186,7 @@ public class WheatBamDatabase {
                         databaseID = seqID.replaceFirst("D0", "D00");
                     }
                     StringBuilder sb = new StringBuilder();
-                    sb.append(databaseID).append("\t").append(seqID).append("\t").append(accessions).append("\t").append(genome).append("\t").append("/data3/wgs/bam/" + genome + "/" + 
+                    sb.append(databaseID).append("\t").append(taxa).append("\t").append(accessions).append("\t").append(genome).append("\t").append("/data3/wgs/bam/" + genome + "/" + 
                             databaseID + ".rmdup.bam").append("\t").
                             append("350\t").append("NovaSeq 6000\t").append("3X\tLuLab");
                     bw.write(sb.toString()); bw.newLine();
