@@ -21,7 +21,8 @@ public class WheatGLoadEntrance {
         //new MapMake();
         //new Wheat120cleandataProcessor();
         //new Wheat120bamProcessor();
-        new Wheat200cleanDataProcessor();
+        //new Wheat200cleanDataProcessor();
+        new WheatBamDatabase();
         
     }
     
