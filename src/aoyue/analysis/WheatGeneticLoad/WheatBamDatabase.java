@@ -28,8 +28,9 @@ public class WheatBamDatabase {
 //        this.VMapIABgenome(); //deprecated this method
 //        this.VMapIABDgenome(); //deprecated this method
 //        this.VMapIDgenome(); //deprecated this method
-        //this.mergeVMapIbamDB(); 
+        
         //this.VMapIgenomeMethod2();
+        //this.mergeVMapIbamDB(); 
         //this.wheatJiaoABDgenome();
         //this.renameJiaoABD();
         this.mergeVMapIJiaobamDB();
@@ -120,7 +121,7 @@ public class WheatBamDatabase {
                 String accessions = PStringUtils.fastSplit(temp).get(1);
                 String databaseID = PStringUtils.fastSplit(temp).get(2);
                 StringBuilder sb = new StringBuilder();
-                sb.append(databaseID).append("\t").append(seqID).append("\t").append(accessions).append("\t").append("ABD\t").append("/data3/wgs/bam/ABD/").append("\t").
+                sb.append(databaseID).append("\t").append(seqID).append("\t").append(accessions).append("\t").append("ABD\t").append("/data3/wgs/bam/ABD/" + databaseID + ".rmdup.bam").append("\t").
                         append("350\t").append("Illumina HiSeq X\t").append("10X\tJiaoLab");
                 bw.write(sb.toString()); bw.newLine();
             }
@@ -146,7 +147,7 @@ public class WheatBamDatabase {
         String outfileDirS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/000_step1_method2/";
         
         File[] fs = new File(infileDirS).listFiles();
-        fs = IOUtils.listFilesStartsWith(fs, "VMapI");
+        fs = IOUtils.listFilesStartsWith(fs, "VMapI_");
         for (int i=0; i<fs.length;i++){
             System.out.println(fs[i].getName());
         }
@@ -184,8 +185,9 @@ public class WheatBamDatabase {
                         databaseID = seqID.replaceFirst("D0", "D00");
                     }
                     StringBuilder sb = new StringBuilder();
-                    sb.append(databaseID).append("\t").append(seqID).append("\t").append(accessions).append("\t").append(genome).append("\t").append("/data3/wgs/bam/" + genome + "/").append("\t").
-                            append("350\t").append("NovaSeq 6000\t").append("3X\tVMapI");
+                    sb.append(databaseID).append("\t").append(seqID).append("\t").append(accessions).append("\t").append(genome).append("\t").append("/data3/wgs/bam/" + genome + "/" + 
+                            databaseID + ".rmdup.bam").append("\t").
+                            append("350\t").append("NovaSeq 6000\t").append("3X\tLuLab");
                     bw.write(sb.toString()); bw.newLine();
                 }
                 br.close();bw.flush();bw.close();
@@ -211,7 +213,7 @@ public class WheatBamDatabase {
      * 3.进行for循环，合并文件。
      */
     public void mergeVMapIbamDB(){
-        String infileDirS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/000_step1";
+        String infileDirS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/000_step1_method2";
         String outfileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/001_mergeVMapI/VMapI_allBam.txt";
         String[] genomes = {"A", "AB", "ABD", "D"};
         try{
