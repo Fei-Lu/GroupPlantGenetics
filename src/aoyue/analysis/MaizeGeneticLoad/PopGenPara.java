@@ -29,19 +29,60 @@ public class PopGenPara {
 
     public PopGenPara() {
         //this.getGroups();
-        this.mkFstCommands();
+        //this.mkFstCommands();
         //this.fstTable();
         //this.mergeChrFst();
-        this.mkPiCommand();
+        //this.mkPiCommand();
         //this.averagePi();
         //this.mkPiCommandbasedWindow();
         //this.mergeChrPi();
         //this.mkTajimaDCommandbasedWindow();
-        this.mergeChrTajimaD();
+        //this.mergeChrTajimaD();
+        this.mergePi10KwindowBased();
+        
+        
     }
+    
+ 
     
     public PopGenPara(String b) {
         //this.fstTable(b);
+        
+    }
+    
+    public void mergePi10KwindowBased(){
+        String infileDirS = "/Users/Aoyue/project/maizeGeneticLoad/005_popGen/002_parameters/002_pi/001_pi10KwindowBased/";
+        String outfileS = "/Users/Aoyue/project/maizeGeneticLoad/005_popGen/002_parameters/002_pi/003_mergePi10KwindowBased/Merged_pi10K.txt";
+//        File[] fs = new File(infileDirS).listFiles();
+//        fs = IOUtils.listFilesEndsWith(fs, ".txt");
+//        for(int i =0; i < fs.length; i ++){
+//            System.out.print(fs[i] + "\n");
+//        }
+        String[] infilename = {"Teosinte_pi10K.txt","Tropical_subtropical_pi10K.txt","Mixed_pi10K.txt",
+            "China_specific_pi10K.txt","Non_stiff_stalk_pi10K.txt","Stiff_stalk_pi10K.txt"};
+        String[] group = {"Teosinte","Tropical-subtropical","Mixed","China specific","Non-stiff stalk","Stiff stalk"};
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileDirS + "China_specific_pi10K.txt");
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            bw.write(br.readLine() + "\tGeneticGruop\n" );
+            for(int i = 0; i < group.length; i++){
+                String infileS = infileDirS + infilename[i];
+                br = IOUtils.getTextReader(infileS);
+                String temp = br.readLine(); //read header
+                while((temp = br.readLine()) != null){
+                    bw.write(temp + "\t" + group[i] + "\n");
+                }
+                br.close();
+            }
+            bw.flush();bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        
+        
         
     }
     

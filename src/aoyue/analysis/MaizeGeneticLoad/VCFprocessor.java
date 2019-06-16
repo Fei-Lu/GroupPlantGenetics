@@ -31,8 +31,8 @@ public class VCFprocessor {
     
     public void randomVCF(){
         String infileS = "/Users/Aoyue/project/maizeGeneticLoad/maf_fei/popgen/group/random_chr10_hmp321.vcf.gz";
-        //String outfileS = "/Users/Aoyue/project/maizeGeneticLoad/001_variantSummary/013_structure/chr10_hmp321.subset.vcf.gz";
-        String outfileS = "/Users/Aoyue/project/maizeGeneticLoad/001_variantSummary/013_structure/chr10_hmp321.subset.small.vcf.gz";
+        String outfileS = "/Users/Aoyue/project/maizeGeneticLoad/001_variantSummary/013_structure/chr10_hmp321.subset.vcf.gz";
+        //String outfileS = "/Users/Aoyue/project/maizeGeneticLoad/001_variantSummary/013_structure/chr10_hmp321.subset.small.vcf.gz";
         try{
             BufferedReader br = IOUtils.getTextGzipReader(infileS);
             BufferedWriter bw = IOUtils.getTextGzipWriter(outfileS);
@@ -52,8 +52,8 @@ public class VCFprocessor {
                             }
                             // 第3列是alt的信息，若有2个等位基因，则去除这一行
                             double r = Math.random();
-                            //if (r > 0.25) {
-                            if(r > 0.001){
+                            if (r > 0.3) {
+                            //if(r > 0.001){
                                 continue; //返回带正号的 double 值，该值大于等于 0.0 且小于 1.0。返回值是一个伪随机选择的数，在该范围内（近似）均匀分布
                             }
                             bw.write(temp);
@@ -71,7 +71,7 @@ public class VCFprocessor {
     }
 
     /**
-     * Goaal: 将抽样的10条染色体合并成一条完整的VCF； Step1:先写表头；Step2:在按行读。
+     * Goal: 将抽样的10条染色体合并成一条完整的VCF； Step1:先写表头；Step2:在按行读。
      */
     public void mergeSubsetVCF() {
         String infileDirS = "/Users/Aoyue/project/maizeGeneticLoad/001_variantSummary/010_subsetVCF";

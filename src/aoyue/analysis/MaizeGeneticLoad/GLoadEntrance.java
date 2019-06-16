@@ -29,9 +29,9 @@ public class GLoadEntrance {
         //new TaxaInfo();
         //new Expression();
         //new popGenGroup();
-        //new PopGenPara();
-        //new VCFprocessor();
-        new ItolTree();
+        new PopGenPara();
+       // new VCFprocessor();
+        //new ItolTree();
         
         
     }

@@ -556,7 +556,7 @@ public class VariantSummary {
     /**
      * 大方向是 每个位点pos 的ref 和 derived allele是多变的，所以在确定显隐性的时候每个位点情况都是不同。
      * 对于10条染色体的每个位点，都是这样每个位点每个位点进行统计的，所有位点的统计结果都汇总到taxa中去，
-     * 这里以taxa为单位，可以计算出 dele 的位点数，也可以算出，在这些为点数中，有多少个位点是 dele。 矛盾啊！
+     * 这里以taxa为单位，可以计算出 dele 的位点数，也可以算出，在这些为点数中，有多少个位点是 dele。 
      */
       private void countDeleteriousHmp321 () {
         String hmpDirS = "/Volumes/Lulab3T_14/hmp321_agp4";
