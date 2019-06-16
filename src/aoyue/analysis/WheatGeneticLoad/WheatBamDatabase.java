@@ -29,13 +29,121 @@ public class WheatBamDatabase {
 //        this.VMapIABDgenome(); //deprecated this method
 //        this.VMapIDgenome(); //deprecated this method
         
-        this.VMapIgenomeMethod2();
-        this.mergeVMapIbamDB(); 
-        this.wheatJiaoABDgenome();
+//        this.VMapIgenomeMethod2();
+        //this.mergeVMapIbamDB(); 
+        //this.wheatJiaoABDgenome();
         //this.renameJiaoABD();
-        this.mergeVMapIJiaobamDB();
+//        this.mergeVMapIJiaobamDB();
+
+//        this.wheatLuABDgenome();
+        //this.mergeVMapIJiaoLubamDB();
+        //this.renameLuABD();
         
         
+        
+    }
+    
+    public void renameLuABD(){
+        String infileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/source/Lu_ABD/Lu_ABD_SeqIDAccession.txt";
+        String outfileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/004_step4_luABD/renameLu.sh";
+        /**
+         * SeqID	Accessions	DatabaseID	Taxa
+            BT01373	CItr 1517	TW0174	CItr1517
+            BT01374	PI 46041	TW0175	PI46041
+            BT01375	PI 61693	TW0176	PI61693
+         */
+        try{
+            ///data3/wgs/bam/ABD
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            
+            String temp = br.readLine(); // header
+            while((temp = br.readLine()) != null){
+                String seqID = PStringUtils.fastSplit(temp).get(0);
+                String databaseID = PStringUtils.fastSplit(temp).get(2);
+                StringBuilder sb = new StringBuilder();
+                sb.append("mv /data3/wgs/wheat200bam/").append(seqID).append("/").append(seqID).append(".sort.dedup.bam /data3/wgs/bam/ABD/").append(databaseID).append(".rmdup.bam")
+                        .append(" && ").
+                        append("mv /data3/wgs/wheat200bam/").append(seqID).append("/").append(seqID).append(".sort.dedup.bai /data3/wgs/bam/ABD/").append(databaseID).append(".rmdup.bam.bai");
+                bw.write(sb.toString()); bw.newLine();
+            }
+            br.close();bw.flush();bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+    
+    public void mergeVMapIJiaoLubamDB(){
+        String infileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/001_mergeVMapI/VMapI_allBam.txt";
+        String infileS1 = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/002_step2_jiao/Jiao_ABD_bam.txt";
+        String infileS2 = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/004_step4_luABD/Lu_ABD_bam.txt";
+        String outfileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/005_step5_mergeVMapIandJiaoandLu/All619WheatBamDatabase.txt";
+        try{
+            //只读入表头
+            BufferedReader br = IOUtils.getTextReader("/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/000_step1_method2/VMapI_A_bam.txt");
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            bw.write(br.readLine());bw.newLine();
+            br.close();
+            br = IOUtils.getTextReader(infileS);
+            String temp = br.readLine(); //表头
+            while((temp = br.readLine()) != null){
+                bw.write(temp); bw.newLine();
+            }
+            br.close();
+
+            br=IOUtils.getTextReader(infileS1);
+            temp = br.readLine(); //表头
+            while((temp = br.readLine()) != null){
+                bw.write(temp); bw.newLine();
+            }
+            br.close();
+            
+            br=IOUtils.getTextReader(infileS2);
+            temp = br.readLine(); //表头
+            while((temp = br.readLine()) != null){
+                bw.write(temp); bw.newLine();
+            }
+            
+            br.close();bw.flush();bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+    
+    public void wheatLuABDgenome(){
+        String infileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/source/Lu_ABD/Lu_ABD_SeqIDAccession.txt";
+        String outfileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/004_step4_luABD/Lu_ABD_bam_temp.txt";
+        String outfileS1 = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/004_step4_luABD/Lu_ABD_bam.txt";
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            bw.write("DataBaseID\tTaxa\tAccessions\tGenome-type\tBam-Path\tInsert-size(bp)\tSequencing-platform\tCoverage\tDataSource"); bw.newLine();
+            String temp = br.readLine(); //表头
+            while((temp = br.readLine()) != null){
+                String taxa = PStringUtils.fastSplit(temp).get(3);
+                String accessions = PStringUtils.fastSplit(temp).get(1);
+                String databaseID = PStringUtils.fastSplit(temp).get(2);
+                StringBuilder sb = new StringBuilder();
+                sb.append(databaseID).append("\t").append(taxa).append("\t").append(accessions).append("\t").append("ABD\t").append("/data3/wgs/bam/ABD/" + databaseID + ".rmdup.bam").append("\t").
+                        append("300\t").append("BGISEQ500\t").append("10X\tLuLab");
+                bw.write(sb.toString()); bw.newLine();
+            }
+            br.close();bw.flush();bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+        
+        RowTable t = new RowTable(outfileS);
+        t.sortAsText(0);
+        t.writeTextTable(outfileS1, IOFileFormat.Text);
+        
+        new File(outfileS).delete();
     }
     
     public void mergeVMapIJiaobamDB(){

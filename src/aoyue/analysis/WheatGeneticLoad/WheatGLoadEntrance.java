@@ -29,8 +29,9 @@ public class WheatGLoadEntrance {
     
     public static void main (String[] args){
         System.out.println("Here is the entrance of wheatGload !");
-        new WheatGLoadEntrance();
-        
+        System.out.println("I made some revise on itellij ");
+        //new WheatGLoadEntrance();
+
        
         
     }  

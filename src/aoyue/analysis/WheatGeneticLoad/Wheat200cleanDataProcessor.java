@@ -26,8 +26,8 @@ import utils.PStringUtils;
 public class Wheat200cleanDataProcessor {
 
     public Wheat200cleanDataProcessor() {
-        //this.GetIDlist();
-        //this.mergeIDlist();
+        this.GetIDlist();
+        this.mergeIDlist();
         this.calFastqbp();
         //this.sampleFastQC();
         this.fastQC();
