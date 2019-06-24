@@ -22,7 +22,8 @@ public class WheatGLoadEntrance {
         //new Wheat120cleandataProcessor();
         //new Wheat120bamProcessor();
         //new Wheat200cleanDataProcessor();
-        new WheatBamDatabase();
+        //new WheatBamDatabase();
+        new WheatABandDcleandataProcessor();
         
     }
     
@@ -30,7 +31,7 @@ public class WheatGLoadEntrance {
     public static void main (String[] args){
         System.out.println("Here is the entrance of wheatGload !");
         System.out.println("I made some revise on itellij ");
-        //new WheatGLoadEntrance();
+        new WheatGLoadEntrance();
 
        
         

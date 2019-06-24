@@ -11,6 +11,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import utils.IOFileFormat;
@@ -29,7 +30,7 @@ public class WheatBamDatabase {
 //        this.VMapIABDgenome(); //deprecated this method
 //        this.VMapIDgenome(); //deprecated this method
         
-//        this.VMapIgenomeMethod2();
+        //this.VMapIgenomeMethod2();
         //this.mergeVMapIbamDB(); 
         //this.wheatJiaoABDgenome();
         //this.renameJiaoABD();
@@ -39,8 +40,130 @@ public class WheatBamDatabase {
         //this.mergeVMapIJiaoLubamDB();
         //this.renameLuABD();
         
+        //this.getCOV();
+        this.getTaxaBamMap();
         
         
+        
+    }
+    
+    /**
+     * Get taxaBamMap from clean.fq.gz data
+     * 
+     * === goal file ===
+     * Taxa	Coverage-Of-All-Bams	"Bams(A list of bams of the taxon, seperated by the delimiter of Tab)"
+     * TW0001	3	/data3/wgs/bam/ABD/TW0001.rmdup.bam
+     * 
+     * === central file ===
+     * 以Lu_ABD_SeqIDAccession.txt为核心如下，根据DatabaseID找SeqID,和Bam-Path，建立2个HashMap
+     * SeqID	Accessions	DatabaseID	Taxa
+     * BT01373	CItr 1517	TW0174	CItr1517
+     * 
+     * ==== cov file ===
+     * SeqID	Cov
+     * BT01339	11.49206897
+     * 
+     * === db file ===
+     * DataBaseID	Taxa	Accessions	Genome-type	Bam-Path	Insert-size(bp)	Sequencing-platform	Coverage	DataSource
+     * A0001	TRI18435	TRI 18435	A	/data3/wgs/bam/A/A0001.rmdup.bam	350	NovaSeq 6000	3X	LuLab
+     */
+    public void getTaxaBamMap(){
+        
+        /**********************LuLab_ABD******************************/
+//        String infileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/source/Lu_ABD/Lu_ABD_SeqIDAccession.txt";
+//        String outfileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/003_fastCall/000_uploadParameters/002_getTaxaBamMap/taxaBamMap_Lu_ABD.txt";
+//        String covfileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/003_fastCall/000_uploadParameters/001_calCOV/calCOV_Lu_ABD.txt";
+//        String dbfileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/005_step5_mergeVMapIandJiaoandLu/All619WheatBamDatabase_20190531.txt";
+        
+        /**********************JiaoLab_ABD******************************/
+//        String infileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/source/Jiao_ABD/Jiao_ABD_SeqIDAccession.txt";
+//        String outfileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/003_fastCall/000_uploadParameters/002_getTaxaBamMap/taxaBamMap_Jiao_ABD.txt";
+//        String covfileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/003_fastCall/000_uploadParameters/001_calCOV/calCOV_Jiao_ABD.txt";
+//        String dbfileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/005_step5_mergeVMapIandJiaoandLu/All619WheatBamDatabase_20190531.txt";
+        
+        /**********************VMapI_ABD******************************/
+        String infileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/source/VMapI_ABD.txt";
+        String outfileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/003_fastCall/000_uploadParameters/002_getTaxaBamMap/taxaBamMap_VMapI_ABD.txt";
+        String covfileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/003_fastCall/000_uploadParameters/001_calCOV/calCOV_VMapI_ABD.txt";
+        String dbfileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/001_bamDatabase/005_step5_mergeVMapIandJiaoandLu/All619WheatBamDatabase_20190531.txt";
+        
+        
+        
+        
+        HashMap<String,Double> hmSeqCov = new HashMap<>();
+        HashMap<String,String> hmDataBaseIDBampath = new HashMap<>();
+        
+        RowTable<String> t = new RowTable<>(covfileS);
+        for(int i=0;i<t.getRowNumber();i++){
+            hmSeqCov.put(t.getCell(i, 0), t.getCellAsDouble(i, 1));
+        }
+        
+        t= new RowTable(dbfileS);
+        for(int i =0; i<t.getRowNumber();i++){
+            hmDataBaseIDBampath.put(t.getCell(i,0), t.getCell(i, 4));
+        }
+        
+        try{
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            bw.write("Taxa\tCoverage-Of-All-Bams\t\"Bams(A list of bams of the taxon, seperated by the delimiter of Tab)\"");
+            bw.newLine();
+            String temp = br.readLine();
+            while((temp=br.readLine()) != null){
+                String seqID = PStringUtils.fastSplit(temp).get(0);
+                String databaseID = PStringUtils.fastSplit(temp).get(2);
+                bw.write(databaseID + "\t" + hmSeqCov.get(seqID) + "\t" + hmDataBaseIDBampath.get(databaseID));
+                bw.newLine();
+            }
+            br.close(); bw.flush(); bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+    
+    /**
+     * Get cov from rmdup.bam file
+     */
+    
+    public void getCOV (){
+        String infileDirS = "/Users/Aoyue/Documents/cov";
+        String outfileS = "/Users/Aoyue/Documents/stat_cov2.txt";
+        File[] fs = new File(infileDirS).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, ".COV.txt");
+        Arrays.sort(fs);
+        try{
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            bw.write("DataBaseID\tCoverage-Of-All-Bams\n");
+            for(int i = 0; i < fs.length; i++){
+                String infileS = fs[i].getAbsolutePath();
+                BufferedReader br = IOUtils.getTextReader(infileS);
+                String temp ;
+                List<Integer> l = new ArrayList<>();
+                HashMap<Integer,String> hm = new HashMap<>();
+                while((temp = br.readLine()) != null){
+                    String cov = PStringUtils.fastSplit(temp).get(1);
+                    int fre = Integer.parseInt(PStringUtils.fastSplit(temp).get(2));
+                    hm.put(fre,cov);
+                    l.add(fre);
+                }
+               Collections.sort(l,Collections.reverseOrder());
+               String dataBaseID = fs[i].getName().split("_1_10M20M")[0];
+               int max = Collections.max(l); String cov = hm.get(max);
+               int covN = Integer.parseInt(cov);
+//               if( covN == 1){
+//                   cov = hm.get(l.get(1));
+//               }
+               bw.write(dataBaseID + "\t" + cov + "\n");
+               br.close();
+            }
+            bw.flush();bw.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
     
     public void renameLuABD(){
