@@ -39,7 +39,7 @@ import utils.PStringUtils;
 public class VariantSummary {
     
     public VariantSummary(){
-        //this.countSite();
+        this.countSite();
         this.subSetTest();
         //this.densityTest_deprecated();
         //this.densityTest();

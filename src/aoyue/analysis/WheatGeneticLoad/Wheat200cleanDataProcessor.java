@@ -31,7 +31,72 @@ public class Wheat200cleanDataProcessor {
         this.calFastqbp();
         //this.sampleFastQC();
         this.fastQC();
+        this.mkParameterchr1_42();
+        this.mkJavaCmdchr1_42();
 
+    }
+    
+    /**
+     * 本方法的目的是：建立42条染色体的java 运行脚本。
+     */
+    public void mkJavaCmdchr1_42() {
+        String outfileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/003_fastCall/000_uploadParameters/04_javaCMD/fastCall_chr1_42.sh";
+        //nohup java -Xms200g -Xmx500g -jar FastCall.jar parameters_001_FastCall.txt > log_001_fastcall.txt &
+        try {
+            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            for (int i = 0; i < 45; i++) {
+                String chr = PStringUtils.getNDigitNumber(3, i);
+                bw.write("java -Xms200g -Xmx500g -jar FastCall.jar parameters_");
+                bw.write(chr);
+                bw.write("_FastCall.txt > log_");
+                bw.write(chr);
+                bw.write("_fastcall.txt");
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+    
+    /**
+     * 本方法的目的是：建立42条染色体的parameters文件。
+     */
+    public void mkParameterchr1_42() {
+        String outfileDirS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/003_fastCall/000_uploadParameters/003_Parameters";
+        try {
+            for (int i = 0; i < 45; i++) {
+                String chr = PStringUtils.getNDigitNumber(3, i);
+                String outfileS = new File(outfileDirS, "parameters_" + chr + "_FastCall.txt").getAbsolutePath();
+                BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+                StringBuilder sb = new StringBuilder();
+                sb.append("Author: Fei Lu\n");
+                sb.append("Email: flu@genetics.ac.cn; dr.lufei@gmail.com\n");
+                sb.append("Homepage: https://plantgeneticslab.weebly.com/\n").append("\n");
+                sb.append("#This WGS SNP discovery pipeline are designed for both heterozygous and inbred species, especially the depth is high (e.g. >10X each taxon).\n");
+                sb.append("#To run and pipeline, the machine should have Java 8 and samtools installed. The lib directory should stay with FastCall.jar in the same folder. Command (e.g.): java -Xmx200g -jar FastCall.jar parameter.txt > log.txt &\n");
+                sb.append("#To specify reference, bam direcotory, chromosome, and output direcotory, please edit the the parameters below. Also, please keep the order of parameters.\n").append("\n").append("\n");
+                sb.append("#Parameter1:\tReference genome file with an index file (.fai). The reference should be in FastA format. Chromosomes are labled as 1-based numbers (1,2,3,4,5...).\n");
+                sb.append("/data1/publicData/wheat/reference/v1.0/ABD/abd_iwgscV1.fa").append("\n").append("\n");
+                sb.append("#Parameter2:\tTaxa bam information file, including the info about what bams are included for each taxon\n");
+                sb.append("/data4/home/aoyue/vmap2/abd/taxaBamMap.txt").append("\n").append("\n");
+                sb.append("#Parameter3:\tChromosome or region on which genotyping will be performed (e.g. chromosome 1 is designated as 1. Region 1bp to 100000bp on chromosome 1 is 1:1,100000)\n");
+                sb.append(i).append("\n").append("\n");
+                sb.append("#Parameter4:\tVCF output directory\n");
+                sb.append("/data4/home/aoyue/vmap2/abd/rawVCF/").append("\n").append("\n");
+                sb.append("#Parameter5:\tNumber of threads for pileup\n");
+                sb.append("32");
+                bw.write(sb.toString());bw.newLine();
+                bw.flush();
+                bw.close();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
     
     
