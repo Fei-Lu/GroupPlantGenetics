@@ -1,7 +1,11 @@
 package daxing.common;
 
+import daxing.informal.ChrPos;
+import utils.PStringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,4 +58,12 @@ public class StringTool {
         }
         return indexes.stream().mapToInt(Integer::intValue).toArray();
     }
+
+    public static String changeNumToChr(String str){
+        int num=StringTool.getNumFromString(str);
+        String numStr= PStringUtils.getNDigitNumber(3, num);
+        Map<Integer, String> map= ChrPos.getNumToChrMap();
+        return str.replace(numStr, map.get(num));
+    }
+
 }
