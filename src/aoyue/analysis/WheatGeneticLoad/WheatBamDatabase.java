@@ -30,8 +30,8 @@ public class WheatBamDatabase {
 //        this.VMapIABDgenome(); //deprecated this method
 //        this.VMapIDgenome(); //deprecated this method
         
-        //this.VMapIgenomeMethod2();
-        //this.mergeVMapIbamDB(); 
+        this.VMapIgenomeMethod2();
+        this.mergeVMapIbamDB(); 
         //this.wheatJiaoABDgenome();
         //this.renameJiaoABD();
 //        this.mergeVMapIJiaobamDB();

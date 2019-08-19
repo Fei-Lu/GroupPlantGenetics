@@ -43,9 +43,9 @@ public class GeneFeature {
     public GeneFeature (String infileS) {
 //        this.readFileFromGTF(infileS);
 //        this.readFromMaizeGFF(infileS);
-        this.readFromCheageWheatGFF(infileS);
+        this.readFromChangeWheatGFF(infileS);
     }
-    public void readFromCheageWheatGFF (String infileS) {
+    public void readFromChangeWheatGFF (String infileS) {
         String geneName=null;
         int geneIndex=0;
         int transcriptIndex=0;

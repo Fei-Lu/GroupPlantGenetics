@@ -92,6 +92,7 @@ public class WheatTEP {
     
     List<String> diffValumnMethodList = new ArrayList<String>();
     int geneNumber = 110790;
+//    int geneNumber = 110882;
 
  
     public WheatTEP (String parameterFileS) {
@@ -102,27 +103,27 @@ public class WheatTEP {
 //        this.starAlignmentPair();
 //        this.mkPosGeneMap();
 //        this.parseFq(); //Remove Ts?
-        this.mkIndexOfReference(); //one-time set, not requried for standard runs
+//        this.mkIndexOfReference(); //one-time set, not requried for standard runs
 //        this.starAlignmentPair();
-        this.mkGeneCountTableSE();
+//        this.mkGeneCountTableSE();
 //        this.mkGeneCountTablePE();
 //        this.HTSeqCountSingle();
-//        this.HTSeqCountDouble();
-//        this.MergeHTSeq();
+        this.HTSeqCountDouble();
+        this.MergeHTSeq();
 //        this.countTPM();
-        this.expGene();
+//        this.expGene();
     }
     public void expGene(){
 //        RowTable rt = new RowTable(new File (this.outputDirS,subDirS[3]).getAbsolutePath()+"/countResult.txt");
 //        RowTable rt = new RowTable("/data1/home/junxu/analysis0215/7/countResult.txt");
-        RowTable rt = new RowTable("/Users/xujun/Desktop/eQTL/doubleAll-TPM.txt");
+        RowTable rt = new RowTable("/Users/xujun/Desktop/eQTL/total/Homology/190425/countResult.txt");
         int isExp [][] = new int [this.geneNumber][rt.getColumnNumber()];
 //        List<String> fileList=new ArrayList<>();
 //        List<String> geneList=new ArrayList<>();
+//        System.out.println(rt.getColumnNumber()+"/t"+rt.getRowNumber());
         for(int i=0; i< rt.getRowNumber();i++){
-            for(int j=0; j < rt.getColumnNumber();j++){
-                
-                if(rt.getCellAsDouble(i, j)>1){
+            for(int j=1; j < rt.getColumnNumber()-1;j++){
+                if(rt.getCellAsInteger(i, j)>1){
                     isExp[i][j]=1;
                 }else{
                     isExp[i][j]=0;
@@ -130,7 +131,7 @@ public class WheatTEP {
             }
         }
         try {
-            BufferedWriter bw = IOUtils.getTextWriter(new File(this.outputDirS,subDirS[3]).getAbsolutePath()+"/expGene.txt");
+            BufferedWriter bw = IOUtils.getTextWriter(new File("/Users/xujun/Desktop/eQTL/total/Homology/190425").getAbsolutePath()+"/expGene.txt");
             for(int i =0;i<isExp.length;i++){
                 for(int j=0;j<isExp[i].length;j++){
                     bw.write(isExp[i][j]+"\t");
@@ -184,26 +185,36 @@ public class WheatTEP {
         fList.stream().forEach(f -> {
                 try { 
                     File dir = new File(new File (this.outputDirS,subDirS[0]).getAbsolutePath());
-                    for( int i = 1 ;i<=12;i++){
-//                    if (f.length() < 1100000000){
-//                        StringBuilder sb = new StringBuilder();
-//                        sb.append("cp "+f+" "+dir);
-//                        String command = sb.toString();
-//                        System.out.println(command); 
-//                        Process p=Runtime.getRuntime().exec(command);
-//                        p.waitFor();
-//                    }else{
+//                    for( int i = 1 ;i<=12;i++){
+                    if (f.length() < 1810000000){
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("cp "+f+" "+dir);
+                        String command = sb.toString();
+                        System.out.println(command); 
+                        Process p=Runtime.getRuntime().exec(command);
+                        p.waitFor();
+                    }else{
                         StringBuilder sb = new StringBuilder();
 //                        sb.append("/data1/home/junxu/wheat/seqtk/seqtk sample -s100 ").append(f+" ").append(1000000*i+" ").append(" >> ").append(" "+1000000*i+f.getName());
-                        sb.append("/data1/home/junxu/wheat/seqtk/seqtk sample -s100 ").append(f+" ").append(1000000*i+" ").append(" >> ").append(" "+1000000*i+f.getName());
+                        sb.append("/data1/home/junxu/wheat/seqtk/seqtk sample ").append(f+" ").append(5000000+" ").append(" >> ").append(" "+5000000+f.getName());
                         String command = sb.toString();
                         System.out.println(command);  
                         String []cmdarry ={"/bin/bash","-c",command};
                         Process p=Runtime.getRuntime().exec(cmdarry,null,dir);
                         p.waitFor();
-//                    }
-                        
-                    } 
+                    }    
+//                    } 
+//                    for( int i = 1 ;i<=20;i++){
+//                        StringBuilder sb = new StringBuilder();
+////                        sb.append("/data1/home/junxu/wheat/seqtk/seqtk sample -s100 ").append(f+" ").append(1000000*i+" ").append(" >> ").append(" "+1000000*i+f.getName());
+//                        sb.append("/data1/home/junxu/wheat/seqtk/seqtk sample ").append(f+" ").append(5000000+" ").append(" >> ").append(" "+5000000+f.getName().replace(".fq", "-"+i+".fq"));
+//                        String command = sb.toString();
+//                        System.out.println(command);  
+//                        String []cmdarry ={"/bin/bash","-c",command};
+//                        Process p=Runtime.getRuntime().exec(cmdarry,null,dir);
+//                        p.waitFor();
+////                    }    
+//                    } 
                 }
                 catch (Exception e) {
                     e.printStackTrace();
@@ -220,8 +231,8 @@ public class WheatTEP {
             StringBuilder sb = new StringBuilder();
             sb.append("htseq-count").append(" -m intersection-nonempty -s no ");
             sb.append(f);
-//            sb.append(" "+"/data1/home/junxu/wheat/rightchangewheat.gtf").append(" >> ");
-            sb.append(" "+this.gffFile).append(" >> ");
+            sb.append(" "+"/data1/home/junxu/wheat/rightchangewheat.gtf").append(" >> ");
+//            sb.append(" "+this.gffFile).append(" >> ");
             sb.append(f.getName().replace("Aligned.out.sam", "Count.txt"));
             String command = sb.toString();
             System.out.println(command);
@@ -247,8 +258,8 @@ public class WheatTEP {
             StringBuilder sb = new StringBuilder();
             sb.append("htseq-count").append(" -m intersection-nonempty -s reverse ");
             sb.append(f);
-            sb.append(" /data1/home/junxu/wheat/rightchangewheat.gtf").append(" >> ");
-//            sb.append(" "+"/data1/home/junxu/wheat/rightchangewheat.gtf").append(" >> ");
+            sb.append(" /data1/home/junxu/wheat_v1.1_Lulab.gtf").append(" >> ");
+//            sb.append(" "+this.gffFile).append(" >> ");
             sb.append(f.getName().replace("Aligned.out.sam", "Count.txt"));
             String command = sb.toString();
             System.out.println(command);
@@ -265,12 +276,12 @@ public class WheatTEP {
         });
     }
     public void MergeHTSeq(){
-        List <String> nameList=new ArrayList<>();
+        HashMap<Integer,String> namePos = new HashMap();
         List<String> fileList=new ArrayList<>();
-        String subGeneCountDirS = new File (this.outputDirS,subDirS[2]).getAbsolutePath();
-//        String subGeneCountDirS = new File ("/Users/xujun/Desktop/wheat/HTSeqCount-s-no/double-SiPAS").getAbsolutePath();
+//        String subGeneCountDirS = new File (this.outputDirS,subDirS[2]).getAbsolutePath();
+        String subGeneCountDirS = new File ("/data1/home/junxu/wheat/doubleAll/UniqPE/count").getAbsolutePath();
         File[] fs = new File(subGeneCountDirS).listFiles();   
-        fs = IOUtils.listFilesEndsWith(fs, "Count.txt");
+        fs = IOUtils.listFilesEndsWith(fs, ".txt");
         List<File> fList = Arrays.asList(fs);
         for(int i=0;i < fList.size();i++){
             fileList.add(fList.get(i).getName().replace("Count.txt", ""));
@@ -282,37 +293,44 @@ public class WheatTEP {
         }
         fList.stream().forEach(f -> {
             String temp=null;String[] tem = null;
+            int contG=0;
             try{           
                 BufferedReader br = IOUtils.getTextReader(f.getAbsolutePath());
+                int a=0;
                 while((temp = br.readLine()) != null){
+                    a++;
                     List<String> tList= PStringUtils.fastSplit(temp);
                     tem = tList.toArray(new String[tList.size()]);
     //                if(tem[0].startsWith("ERCC")){
-                      if(tem[0].startsWith("TraesCS")||tem[0].startsWith("ERCC")){
-                        if(!nameList.contains(tem[0])){
-                            nameList.add(tem[0]);
-                        }
-                        int index=nameList.indexOf(tem[0]);
-                        geneCount[index][fileList.indexOf(f.getName().replace("Count.txt", ""))]=Integer.parseInt(tem[1]);
-                    }      
+                      if(tem[0].startsWith("TraesCS")){
+//                        if(!nameList.contains(tem[0])){
+//                            nameList.add(tem[0]);
+//                        }
+                        namePos.put(contG, tem[0]);
+//                        int index=nameList.indexOf(tem[0]);
+//                        geneCount[index][fileList.indexOf(f.getName().replace(".txt", ""))]=Integer.parseInt(tem[1]);
+                        geneCount[contG][fileList.indexOf(f.getName().replace("Count.txt", ""))]=Integer.parseInt(tem[1]);
+                    }  
+                    contG++;
+                    if(a>110790){
+                        break;
+                    }
                 }
-
             }
             catch (Exception ex) {
                 System.out.println(tem[0]+"\t1234");  
                 ex.printStackTrace();
-
             }
         });
-        String outputFileS = new File (this.outputDirS,subDirS[3]).getAbsolutePath()+"/countResult.txt";
-//        String outputFileS = new File (this.outputDirS,subDirS[2]+"RowAndRPKM-countResult.txt").getAbsolutePath();
+//        String outputFileS = new File (this.outputDirS,subDirS[3]).getAbsolutePath()+"/countResult.txt";
+        String outputFileS = new File ("/data1/home/junxu/wheat/doubleAll/UniqPE/count/countResult.txt").getAbsolutePath();
         try{
             StringBuilder sb = new StringBuilder();
             BufferedWriter bw = IOUtils.getTextWriter(outputFileS);
 //            sb.append("Gene\tChr\tStart\tEnd\tStrand\t");
             sb.append("Gene\t");
             for(int i=0;i<fileList.size();i++){            
-                sb.append(fileList.get(i).replace("Count.txt", "")+"\t");
+                sb.append(fileList.get(i).replace(".txt", "")+"\t");
             }
             bw.write(sb.toString());
             bw.newLine();
@@ -321,7 +339,8 @@ public class WheatTEP {
                 for(int j=0;j<fileList.size();j++){
                     if(j==0){
 //                        RangeValStr r = geneNameRangeMap.get(nameList.get(i));
-                        sb.append(nameList.get(i)+"\t");//.append(r.chr).append("\t");
+//                        sb.append(nameList.get(i)+"\t");//.append(r.chr).append("\t");
+                        sb.append(namePos.get(i)+"\t");
 //                        sb.append(r.start).append("\t").append(r.end).append("\t").append(r.str+"\t");
                     }
                     sb.append(geneCount[i][j]+"\t");           
@@ -1298,6 +1317,7 @@ public class WheatTEP {
     }
      private void starAlignmentPair ()  {
         long startTimePoint = System.nanoTime();
+//        String subFqDirS = new File ("/data1/home/junxu/total/test-double").getAbsolutePath();
         String subFqDirS = new File (this.outputDirS,subDirS[0]).getAbsolutePath();
         File[] fs = new File(subFqDirS).listFiles();
         List<File> fList = new ArrayList(Arrays.asList());
@@ -1318,8 +1338,7 @@ public class WheatTEP {
             StringBuilder sb = new StringBuilder();
             sb.append(this.starPath).append(" --runThreadN ").append(numCores);
             sb.append(" --genomeDir ").append(this.referenceGenomeDirS);
-            sb.append(" --sjdbGTFfile ").append(this.gffFile);
-            sb.append(" --sjdbGTFtagExonParentTranscript Parent");
+            sb.append(" --genomeLoad LoadAndKeep");
             sb.append(" --readFilesIn ").append(infile1+" "+infile2);
 //            sb.append(" --readFilesCommand zcat ");
             sb.append(" --outFileNamePrefix ").append(new File(new File(this.outputDirS,subDirS[1]).getAbsolutePath(), f)
@@ -1367,7 +1386,8 @@ public class WheatTEP {
             StringBuilder sb = new StringBuilder();
             sb.append(this.starPath).append(" --runThreadN ").append(numCores);
             sb.append(" --genomeDir ").append(this.referenceGenomeDirS);
-            sb.append(" --sjdbGTFfile ").append(this.gffFile);
+            sb.append(" --genomeLoad LoadAndKeep");
+//            sb.append(" --sjdbGTFfile ").append(this.gffFile);
 //            sb.append(" --sjdbGTFtagExonParentTranscript Parent");
             sb.append(" --readFilesIn ").append(f);
 //            sb.append(" --readFilesCommand zcat ");
@@ -1394,6 +1414,7 @@ public class WheatTEP {
             }
             System.out.println("Finished"+f);
         });
+        
         StringBuilder time = new StringBuilder();
         time.append("Distinguish samples according to barcode and trim the barcode.").append("Took ").append(Benchmark.getTimeSpanSeconds(startTimePoint)).append(" seconds. Memory used: ").append(Benchmark.getUsedMemoryGb()).append(" Gb");
         System.out.println(time.toString());  
@@ -1401,21 +1422,20 @@ public class WheatTEP {
     
     private void mkIndexOfReference () {//最终小麦产生index的代码
         int numCores = Runtime.getRuntime().availableProcessors();
-//        String referenceGenomeFileS = "/data1/home/junxu/wheat/rnaseq20181204-ERCC/ERCC92/ERCC92.fa";
-        String referenceGenomeFileS = "/data1/home/junxu/wheat/rnaseq20181204-ERCC/ERCC92/merge/merge.fa";
+        String referenceGenomeFileS = "/data1/home/junxu/wheat/abd_iwgscV1.fa";
 //        String outputDirS = "/data1/home/junxu/wheat/starLib1";
-        String outputDirS = "/data1/home/junxu/wheat/rnaseq20181204-ERCC/ERCC92/merge/starLibMerge";
+        String outputDirS = "/data1/home/junxu/wheat/starLib1.1";
         try {
 //            StringBuilder sb = new StringBuilder("/data1/programs/STAR-2.6.0c/bin/Linux_x86_64/STAR");
             StringBuilder sb = new StringBuilder("/data1/home/junxu/wheat/STAR-2.6.1c/bin/Linux_x86_64/STAR");
             sb.append(" --runThreadN ").append(numCores).append(" --runMode genomeGenerate --genomeDir ").append(outputDirS);
 //            sb.append(" --sjdbGTFfile ").append("/data1/home/junxu/wheat/changewheat.gtf");//全局变量
-//            sb.append(" --sjdbGTFfile ").append("/data1/home/junxu/wheat/changeiwgsc_refseqv1.0_HighConf_2017Mar13.gff3");
-            sb.append(" --sjdbGTFfile ").append("/data1/home/junxu/wheat/rnaseq20181204-ERCC/ERCC92/merge/merge.gtf");
+            sb.append(" --sjdbGTFfile ").append("/data1/home/junxu/wheat_v1.1_Lulab.gtf");
 //            sb.append(" --sjdbGTFtagExonParentTranscript Parent");
             sb.append(" --genomeFastaFiles ").append(referenceGenomeFileS);
             sb.append(" --sjdbOverhang ").append(140);
-//            sb.append(" --genomeChrBinNbits 4");                        
+            sb.append(" --genomeChrBinNbits 17");  
+            sb.append(" --genomeSAsparseD 2");
             sb.append(" --limitGenomeGenerateRAM 40000000000");//已经设成13位数了
             String command = sb.toString();
             System.out.println(command);
@@ -1582,6 +1602,7 @@ public class WheatTEP {
 //        new WheatTEP(args[0]);
 //        new DistinguishSample();
 //        new DemoSample();
+        
     }
     
 }

@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import utils.IOUtils;
+import utils.PArrayUtils;
 import utils.PStringUtils;
 public class DemoSample{
     public DemoSample()  {
@@ -41,13 +42,109 @@ public class DemoSample{
 //            this.test5();
 //            this.CompareTwoCountMethod();
 //            this.LibraryCompare();
-            this.HTSeqCount();
+//            this.HTSeqCount();
 //            this.countCompare();
 //            this.TPMHTSeq();
 //            this.CoDectededGene();
 //            this.testLexo();
 //            this.pattern();
+//            this.HTSeqCountDouble();
+            this.splitBwaScript();
     }  
+    public void splitBwaScript(){
+        String infileS = "/Users/xujun/sh_htseq.sh";
+        String outfileDirS = "/Users/xujun/Documents/splitScript/";
+        String shfileS = "/Users/xujun/Documents/sh_htseq.sh";
+        try{
+        String[] outfileS= new String[32];
+        BufferedReader br = IOUtils.getTextReader(infileS);
+        BufferedWriter[] bw = new BufferedWriter[32];
+        for(int i=0;i<outfileS.length;i++){
+            String num = PStringUtils.getNDigitNumber(3, i+1);
+            outfileS[i]=new File(outfileDirS,"htseq_20190709_" + num + ".sh").getAbsolutePath();
+            bw[i] = IOUtils.getTextWriter(outfileS[i]);
+            String temp;
+            for(int j=0; j<6;j++){
+                if((temp = br.readLine()) != null){
+                    bw[i].write(temp);
+                    bw[i].newLine();
+                }
+            }
+            bw[i].flush();bw[i].close();
+        }
+        br.close();
+    }
+    catch(Exception e){
+        e.printStackTrace();
+        System.exit(1);
+    }
+     try{
+        File[] fs = new File(outfileDirS).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, ".sh");
+        Arrays.sort(fs);
+        BufferedWriter bw = IOUtils.getTextWriter(shfileS);
+        for(int i=0; i<fs.length;i++){
+            bw.write("sh " + fs[i].getName() + " &");
+            bw.newLine();
+        }
+        bw.flush();bw.close();
+    }
+    catch(Exception e){
+        e.printStackTrace();
+        System.exit(1);
+    }
+   }
+    public void HTSeqCountDouble(){
+//        String inputDirS = new File ("/data1/home/junxu/wheat/doubleAll/sams").getAbsolutePath();
+////        String inputDirS = "/Users/xujun/Desktop/TEP/TEPOut/sams";
+//        File[] fs = new File(inputDirS).listFiles();
+//        fs = IOUtils.listFilesEndsWith(fs, "Aligned.out.sam");
+//        List<File> fList = Arrays.asList(fs);
+//        fList.stream().forEach(f -> {  
+//            StringBuilder ob = new StringBuilder();
+//            ob.append("samtools view -h -q 255 -f 0x2 "+f+" > ");
+//            ob.append(f.getName().replace("Aligned.out.sam", "UniqPE.sam"));
+//            String commandob = ob.toString();
+//            System.out.println(commandob);
+//            try {
+//                File dir = new File(new File ("/data1/home/junxu/wheat/doubleAll/UniqPE").getAbsolutePath());
+//                String []cmdarryob ={"/bin/bash","-c",commandob};
+//                Process pob=Runtime.getRuntime().exec(cmdarryob,null,dir);
+//                pob.waitFor();
+//                pob.destroy();
+//            }
+//            catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//            System.out.println("Finished"+f);
+//        });
+//        int bounds=0;int[] 
+        File[] fs1 = new File("/data1/home/junxu/wheat/doubleAll/UniqPE").listFiles();
+        fs1 = IOUtils.listFilesEndsWith(fs1, "UniqPE.sam");
+        List<File> fList1 = Arrays.asList(fs1);
+//        bounds = PArrayUtils.getSubsetsIndicesBySubsetSize(fs1.length,);
+        fList1.stream().forEach(f -> {  
+            StringBuilder sb = new StringBuilder();
+            sb.append("htseq-count").append(" -m intersection-nonempty -s reverse ");
+            sb.append(f);
+            sb.append(" /data1/home/junxu/wheat/rightchangewheat.gtf").append(" >> ");
+//            sb.append(" "+this.gffFile).append(" >> ");
+            sb.append(f.getName().replace("UniqPE.sam", "Count.txt"));
+            String command = sb.toString();
+            System.out.println(command);
+            try {
+                File dir = new File(new File ("/data1/home/junxu/wheat/doubleAll/UniqPE/sh").getAbsolutePath());
+                String []cmdarry ={"/bin/bash","-c",command};
+                Process p=Runtime.getRuntime().exec(cmdarry,null,dir);
+                p.waitFor();
+                p.destroy();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+            System.out.println("Finished"+f);
+        });
+    }
     public void TPMHTSeq(){
         String HTSeqFile="/Users/xujun/Desktop/TEP/TEPOut/countResult.txt";
         String gff="/Users/xujun/Desktop/TEP/Zea_mays.AGPv4.38.modified.gff3";
