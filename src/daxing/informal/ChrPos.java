@@ -9,6 +9,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -79,7 +80,12 @@ public class ChrPos {
      */
     public static void merge(String chrPosPathDir, String outDir){
         File[] files=IOUtils.listRecursiveFiles(new File(chrPosPathDir));
-        List<File> filesList=Arrays.stream(files).filter(e->(!e.getName().contains(".DS_Store"))).collect(Collectors.toList());
+        Predicate<File> p= file -> {
+            int chrNum=StringTool.getNumFromString(file.getName());
+            if(chrNum==0 || chrNum==43 || chrNum==44) return true;
+            return false;
+        };
+        List<File> filesList=Arrays.stream(files).filter(e->(!e.getName().contains(".DS_Store"))).filter(p.negate()).collect(Collectors.toList());
         List<ChrPos> chrPoslist= new ArrayList<>();
         for (int i = 0; i < filesList.size(); i++) {
             chrPoslist.add(new ChrPos(filesList.get(i)));
@@ -102,7 +108,7 @@ public class ChrPos {
         }
         Collections.sort(chrList);
         String abd=String.join("", Collections.nCopies(7,"AABBDD"));
-        chrToChrMap.put(0, "ChrUn");
+        chrToChrMap.put(0, "Un");
         for(int i=0;i<numOfChr.size();i++){
             chrToChrMap.put(numOfChr.get(i),String.valueOf(chrList.get(i))+abd.charAt(i));
         }
