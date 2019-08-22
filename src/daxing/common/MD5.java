@@ -4,6 +4,7 @@ import utils.Benchmark;
 import utils.IOUtils;
 import utils.PArrayUtils;
 import utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -12,8 +13,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 /**
  *
@@ -66,13 +71,15 @@ public class MD5 {
         if(Runtime.getRuntime().availableProcessors()<32) {
             numThreads=Runtime.getRuntime().availableProcessors();
         }
-        File[] file = IOUtils.listRecursiveFiles(new File(inputDir));
-        if(file.length<numThreads){
-            numThreads=file.length;
+        File[] files = IOUtils.listRecursiveFiles(new File(inputDir));
+        Predicate<File> p=e->e.getName().contains(".DS_Store");
+        File[] fileArray= Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
+        if(fileArray.length<numThreads){
+            numThreads=fileArray.length;
         }
-        ConcurrentHashMap<String,String> md5ValuePathMap=new ConcurrentHashMap<>();
+        ConcurrentHashMap<String,String> md5PathValueMap=new ConcurrentHashMap<>();
         BufferedWriter bw=null;
-        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(file.length, numThreads);
+        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(fileArray.length, numThreads);
         for (int i = 0; i < indices.length; i++) {
             Integer[] subLibIndices = new Integer[indices[i][1]-indices[i][0]];
             for (int j = 0; j < subLibIndices.length; j++) {
@@ -80,19 +87,19 @@ public class MD5 {
             }
             List<Integer> integerList=Arrays.asList(subLibIndices);
             integerList.parallelStream()
-                    .filter(index-> (!(file[index].getName().contains(".DS_Store"))))
+                    .filter(index-> (!(fileArray[index].getName().contains("DS_Store."))))
                     .forEach(index-> {
-                        String md5Value=MD5.getMD5FromFile(file[index].getAbsolutePath());
-                        Path AbsolutePath = file[index].toPath();
+                        String md5Value=MD5.getMD5FromFile(fileArray[index].getAbsolutePath());
+                        Path AbsolutePath = fileArray[index].toPath();
                         Path relPath=AbsolutePath.subpath(Paths.get(inputDir).getNameCount(), AbsolutePath.getNameCount());
-                        md5ValuePathMap.put(md5Value, relPath.toString());
+                        md5PathValueMap.put(relPath.toString(), md5Value);
                     });
         }
         try{
             bw=IOUtils.getTextWriter(inputDir+"/md5.txt");
-            for(Map.Entry<String,String> entry:md5ValuePathMap.entrySet()){
+            for(Map.Entry<String,String> entry:md5PathValueMap.entrySet()){
                 //System.out.println(entry.getKey()+"  "+entry.getValue());
-                bw.write(entry.getKey()+"  "+entry.getValue());
+                bw.write(entry.getValue()+"  "+entry.getKey());
                 bw.newLine();
             }
             bw.flush();bw.close();
