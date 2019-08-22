@@ -87,7 +87,6 @@ public class MD5 {
             }
             List<Integer> integerList=Arrays.asList(subLibIndices);
             integerList.parallelStream()
-                    .filter(index-> (!(fileArray[index].getName().contains("DS_Store."))))
                     .forEach(index-> {
                         String md5Value=MD5.getMD5FromFile(fileArray[index].getAbsolutePath());
                         Path AbsolutePath = fileArray[index].toPath();
