@@ -1,6 +1,5 @@
 package daxing.common;
 
-import daxing.informal.ChrPos;
 import utils.PStringUtils;
 
 import java.util.ArrayList;
@@ -59,10 +58,15 @@ public class StringTool {
         return indexes.stream().mapToInt(Integer::intValue).toArray();
     }
 
+    /**
+     * 将字符串中首次出现的ChrID（如：021）替换为OriChrName（如：4B）
+     * @param str
+     * @return
+     */
     public static String changeNumToChr(String str){
         int num=StringTool.getNumFromString(str);
         String numStr= PStringUtils.getNDigitNumber(3, num);
-        Map<Integer, String> map= ChrPos.getNumToChrMap();
+        Map<Integer, String> map= ChrConvertionRule.getChrID_OriChrMap();
         return str.replace(numStr, map.get(num));
     }
 

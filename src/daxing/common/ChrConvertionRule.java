@@ -2,24 +2,26 @@ package daxing.common;
 
 import gnu.trove.list.array.TIntArrayList;
 import utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
  * VCF coordinates are 1-based;
  * 0-based coordinates in ChrNameMap class
  */
-public class ChrNameMap {
+public class ChrConvertionRule {
     private  int[] chrID;
     private  int[] endIndex;
     private  String[] oriChrName;
     private  int[] startIndexOnOriChr;
     private  int[] endIndexOnOriChr;
 
-    public ChrNameMap(Path chrConvertionRuleFile){
+    public ChrConvertionRule(Path chrConvertionRuleFile){
         this.initialize(chrConvertionRuleFile);
     }
 
@@ -169,5 +171,24 @@ public class ChrNameMap {
             return position+1;
         }
         return this.getStartIndexOnOriChr()[chrID]+position+1;
+    }
+
+    public static Map<Integer, String> getChrID_OriChrMap(){
+        Map<Integer,String> ChrID_OriChrMap=new HashMap<>();
+        List<Integer> numOfChr= IntStream.range(1,43).boxed().collect(Collectors.toList());
+        List<Integer> int1_7= IntStream.range(1,8).boxed().collect(Collectors.toList());
+        List<Integer> chrList=new ArrayList<>();
+        for(int i=0;i<6;i++){
+            chrList.addAll(int1_7);
+        }
+        Collections.sort(chrList);
+        String abd=String.join("", Collections.nCopies(7,"AABBDD"));
+        ChrID_OriChrMap.put(0, "Un");
+        for(int i=0;i<numOfChr.size();i++){
+            ChrID_OriChrMap.put(numOfChr.get(i),String.valueOf(chrList.get(i))+abd.charAt(i));
+        }
+        ChrID_OriChrMap.put(43, "Mit");
+        ChrID_OriChrMap.put(44, "Chl");
+        return ChrID_OriChrMap;
     }
 }
