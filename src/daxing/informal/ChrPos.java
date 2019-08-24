@@ -4,14 +4,17 @@ import daxing.common.StringTool;
 import gnu.trove.list.array.TIntArrayList;
 import utils.IOUtils;
 import utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class ChrPos {
     String chr=null;
@@ -97,24 +100,4 @@ public class ChrPos {
             chrPoslist.get(i).write(new File(outDir), StringTool.changeNumToChr(filesList.get(i).getName()));
         }
     }
-
-    public static Map<Integer, String> getNumToChrMap(){
-        Map<Integer,String> chrToChrMap=new HashMap<>();
-        List<Integer> numOfChr= IntStream.range(1,43).boxed().collect(Collectors.toList());
-        List<Integer> int1_7= IntStream.range(1,8).boxed().collect(Collectors.toList());
-        List<Integer> chrList=new ArrayList<>();
-        for(int i=0;i<6;i++){
-            chrList.addAll(int1_7);
-        }
-        Collections.sort(chrList);
-        String abd=String.join("", Collections.nCopies(7,"AABBDD"));
-        chrToChrMap.put(0, "Un");
-        for(int i=0;i<numOfChr.size();i++){
-            chrToChrMap.put(numOfChr.get(i),String.valueOf(chrList.get(i))+abd.charAt(i));
-        }
-        chrToChrMap.put(43, "Mit");
-        chrToChrMap.put(44, "Chl");
-        return chrToChrMap;
-    }
-
 }
