@@ -1,7 +1,6 @@
-package daxing.informal;
+package daxing.ancestralAllele;
 
 import daxing.common.ChrConvertionRule;
-import daxing.common.SeqByte;
 import utils.IOUtils;
 import utils.PArrayUtils;
 import utils.PStringUtils;

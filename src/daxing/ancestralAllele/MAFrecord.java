@@ -1,6 +1,4 @@
-package daxing.informal;
-
-import daxing.common.SeqByte;
+package daxing.ancestralAllele;
 
 import java.util.Arrays;
 import java.util.Comparator;

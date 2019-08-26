@@ -1,4 +1,4 @@
-package daxing.common;
+package daxing.ancestralAllele;
 
 import com.koloboke.collect.map.hash.HashByteByteMap;
 import com.koloboke.collect.map.hash.HashByteByteMaps;
