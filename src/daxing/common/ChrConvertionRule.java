@@ -1,5 +1,6 @@
 package daxing.common;
 
+import format.position.ChrPos;
 import gnu.trove.list.array.TIntArrayList;
 import utils.PStringUtils;
 
@@ -171,6 +172,17 @@ public class ChrConvertionRule {
             return position+1;
         }
         return this.getStartIndexOnOriChr()[chrID]+position+1;
+    }
+
+    /**
+     * 将vcf的ChrPos(1-based)转换为ref坐标（1-based）
+     * @param vcfChrPos
+     * @return reference position of VCF ChrPos
+     */
+    public int getRefPositionFromVCF(ChrPos vcfChrPos){
+        int chr=vcfChrPos.getChromosome();
+        int pos_O_based=vcfChrPos.getPosition()-1;
+        return this.getOriChrPositin(chr, pos_O_based);
     }
 
     public static Map<Integer, String> getChrID_OriChrMap(){

@@ -1,6 +1,8 @@
 package daxing.ancestralAllele;
 
 import daxing.common.ChrConvertionRule;
+import format.position.ChrPos;
+import gnu.trove.list.array.TIntArrayList;
 import utils.IOUtils;
 import utils.PArrayUtils;
 import utils.PStringUtils;
@@ -12,7 +14,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-
+/**
+ * 染色体按0-44划分，但mafRecord下的position还是1-based coordinates
+ */
 public class MAF {
 
     private List<MAFrecord>[] mafRecords;
@@ -147,6 +151,81 @@ public class MAF {
 
     public void setNumOfThreads(int numThreads){
         this.numThreads=numThreads;
+    }
+
+    public Map<ChrPos, String> getAllele(int indexOfTaxon1, int indexOfTaxon2, AllelesInfor allelesInfor){
+        ConcurrentHashMap<ChrPos, String> chrPosOutgroupAlleleMap=new ConcurrentHashMap<>();
+        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(this.getMafRecords().length, this.getNumThreads());
+        for (int i = 0; i < indices.length; i++) {
+            int[] subLibIndices = new int[indices[i][1]-indices[i][0]];
+            for (int j = 0; j < subLibIndices.length; j++) {
+                subLibIndices[j] = indices[i][0]+j;
+            }
+            Arrays.stream(subLibIndices).parallel().forEach(e->{
+                List<MAFrecord> maFrecordList=this.getMafRecords()[e];
+                List<ChrPos> chrPosList=allelesInfor.getChrPoss((short) e);
+                List<String> refAlleleList=allelesInfor.getRefAllele((short)e);
+                List<List<String>> altAlleleList=allelesInfor.getAltAllele((short)e);
+                ChrPos chrPos;
+                String refAllele;
+                List<String> altAllele;
+                String outGroupAllele;
+                int index;
+                for (int j = 0; j < chrPosList.size(); j++) {
+                    chrPos=chrPosList.get(j);
+                    index=this.binarySearch(chrPos);
+                    if (index<0) continue;
+                    refAllele=refAlleleList.get(j);
+                    altAllele=altAlleleList.get(j);
+                    outGroupAllele=maFrecordList.get(index).getAllele(1, 0, chrPos, refAllele, altAllele, this.chrConvertionRule);
+                    chrPosOutgroupAlleleMap.put(chrPos, outGroupAllele);
+                }
+            });
+        }
+        return chrPosOutgroupAlleleMap;
+    }
+
+    public List<int[]> getStartEnd(short chr){
+        List<int[]> list=new ArrayList<>();
+        String[] taxons=this.getMafRecords()[1].get(1).getTaxon();
+        int index=Arrays.binarySearch(taxons, this.getTaxonForOrder());
+        List<MAFrecord> maFrecordList=this.getMafRecords()[chr];
+        int[] startEnd;
+        for (int i = 0; i < maFrecordList.size(); i++) {
+            startEnd=maFrecordList.get(i).startEnd(index);
+            Arrays.sort(startEnd);
+            list.add(startEnd);
+        }
+        return list;
+    }
+
+    /**
+     * 判断给定的ChrPos是否位于比对内部，如果不在比对内部，则返回-1
+     * @param chrPos 来源于vcf文件的ChrPos，是1-based coordinates
+     * @return 给定ChrPos在染色体上对应的index
+     */
+    public int binarySearch(ChrPos chrPos){
+        short chr=chrPos.getChromosome();
+        int refPos=this.getChrConvertionRule().getRefPositionFromVCF(chrPos);
+        List<int[]> startEnd=this.getStartEnd(chr);
+        TIntArrayList start=new TIntArrayList();
+        TIntArrayList end=new TIntArrayList();
+        for (int i = 0; i < startEnd.size(); i++) {
+            start.add(startEnd.get(i)[0]);
+            end.add(startEnd.get(i)[1]);
+        }
+        int res=start.binarySearch(refPos);
+        int index;
+        if (res<0){
+            index=-res-2;
+            if (end.get(index)>=refPos){
+                return index;
+            }else {
+                return -1;
+            }
+        }else {
+            return res;
+        }
     }
 
 
