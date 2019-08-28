@@ -15,23 +15,23 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
- * 染色体按0-44划分，但mafRecord下的position还是1-based coordinates
+ * MAF类按0-44划分，但mafRecord下的position是0-based coordinates
  */
 public class MAF {
 
     private List<MAFrecord>[] mafRecords;
     private int numThreads=12;
-    private String taxonForOrder;
+    private int taxonIndexForOrder;   //triticum_aestivum在MAFrecord记录中的位置，上为0，下为1
     private ChrConvertionRule chrConvertionRule;
 
     /**
      *
-     * @param taxonForOrder must be in format like "hordeum_vulgare" or "triticum_aestivum"
+     * @param taxonIndexForOrder must be in format like "hordeum_vulgare" or "triticum_aestivum"
      * @param chrConvertionRule
      * @param mafInputFileDir
      */
-    public MAF(String taxonForOrder, ChrConvertionRule chrConvertionRule, Path mafInputFileDir){
-        this.taxonForOrder=taxonForOrder;
+    public MAF(int taxonIndexForOrder, ChrConvertionRule chrConvertionRule, Path mafInputFileDir){
+        this.taxonIndexForOrder = taxonIndexForOrder;
         this.chrConvertionRule=chrConvertionRule;
         this.initialize(mafInputFileDir);
     }
@@ -117,18 +117,16 @@ public class MAF {
                     });
         }
         List<MAFrecord> mafRecordList=new ArrayList<>(maFrecordsMap.keySet());
-        String[] taxons=mafRecordList.get(0).getTaxon();
-        int indexOfTaxon=Arrays.binarySearch(taxons, this.getTaxonForOrder());
         int chrID;
         String chr;
         int startPos;
         for(MAFrecord e: mafRecordList){
-            chr=e.getChr(indexOfTaxon);
-            startPos=e.getStartPos(indexOfTaxon);
+            chr=e.getChr(this.getTaxonIndexForOrder());
+            startPos=e.getStartPos(this.getTaxonIndexForOrder());
             chrID=this.getChrConvertionRule().getChrIDFromOriChrName(chr, startPos);
             mafrecord[chrID].add(e);
         }
-        Comparator<MAFrecord> comparator=Comparator.comparing(m->m.getStartPos(indexOfTaxon));
+        Comparator<MAFrecord> comparator=Comparator.comparing(m->m.getStartPos(this.getTaxonIndexForOrder()));
         Arrays.stream(mafrecord).forEach(e-> Collections.sort(e, comparator));
         this.mafRecords=mafrecord;
     }
@@ -141,8 +139,8 @@ public class MAF {
         return numThreads;
     }
 
-    public String getTaxonForOrder(){
-        return taxonForOrder;
+    public int getTaxonIndexForOrder(){
+        return taxonIndexForOrder;
     }
 
     public ChrConvertionRule getChrConvertionRule(){
@@ -153,9 +151,9 @@ public class MAF {
         this.numThreads=numThreads;
     }
 
-    public Map<ChrPos, String> getAllele(int indexOfTaxon1, int indexOfTaxon2, AllelesInfor allelesInfor){
-        ConcurrentHashMap<ChrPos, String> chrPosOutgroupAlleleMap=new ConcurrentHashMap<>();
-        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(this.getMafRecords().length, this.getNumThreads());
+    public Map<ChrPos, String[]> getAllele(AllelesInfor allelesInfor){
+        ConcurrentHashMap<ChrPos, String[]> chrPosOutgroupAlleleMap=new ConcurrentHashMap<>();
+        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(this.getMafRecords().length, 1);
         for (int i = 0; i < indices.length; i++) {
             int[] subLibIndices = new int[indices[i][1]-indices[i][0]];
             for (int j = 0; j < subLibIndices.length; j++) {
@@ -164,21 +162,26 @@ public class MAF {
             Arrays.stream(subLibIndices).parallel().forEach(e->{
                 List<MAFrecord> maFrecordList=this.getMafRecords()[e];
                 List<ChrPos> chrPosList=allelesInfor.getChrPoss((short) e);
-                List<String> refAlleleList=allelesInfor.getRefAllele((short)e);
-                List<List<String>> altAlleleList=allelesInfor.getAltAllele((short)e);
+                List<String> refAlleleList=allelesInfor.getRefAllele(((short)e));
+                MAFrecord maFrecord;
+                int[] startEnd;
                 ChrPos chrPos;
                 String refAllele;
-                List<String> altAllele;
                 String outGroupAllele;
+                String[] refOutgroupAllele;
                 int index;
                 for (int j = 0; j < chrPosList.size(); j++) {
                     chrPos=chrPosList.get(j);
+                    refAllele=refAlleleList.get(j);
                     index=this.binarySearch(chrPos);
                     if (index<0) continue;
-                    refAllele=refAlleleList.get(j);
-                    altAllele=altAlleleList.get(j);
-                    outGroupAllele=maFrecordList.get(index).getAllele(1, 0, chrPos, refAllele, altAllele, this.chrConvertionRule);
-                    chrPosOutgroupAlleleMap.put(chrPos, outGroupAllele);
+                    maFrecord=maFrecordList.get(index);
+                    startEnd=maFrecord.startEnd(this.getTaxonIndexForOrder());
+                    outGroupAllele=maFrecordList.get(index).getAllele(this.getTaxonIndexForOrder(), chrPos, this.chrConvertionRule);
+                    refOutgroupAllele=new String[2];
+                    refOutgroupAllele[0]=refAllele;
+                    refOutgroupAllele[1]=outGroupAllele;
+                    chrPosOutgroupAlleleMap.put(chrPos, refOutgroupAllele);
                 }
             });
         }
@@ -187,12 +190,10 @@ public class MAF {
 
     public List<int[]> getStartEnd(short chr){
         List<int[]> list=new ArrayList<>();
-        String[] taxons=this.getMafRecords()[1].get(1).getTaxon();
-        int index=Arrays.binarySearch(taxons, this.getTaxonForOrder());
         List<MAFrecord> maFrecordList=this.getMafRecords()[chr];
         int[] startEnd;
         for (int i = 0; i < maFrecordList.size(); i++) {
-            startEnd=maFrecordList.get(i).startEnd(index);
+            startEnd=maFrecordList.get(i).startEnd(this.getTaxonIndexForOrder());
             Arrays.sort(startEnd);
             list.add(startEnd);
         }
@@ -216,7 +217,7 @@ public class MAF {
         }
         int res=start.binarySearch(refPos);
         int index;
-        if (res<0){
+        if (res<-1){
             index=-res-2;
             if (end.get(index)>=refPos){
                 return index;
