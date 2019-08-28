@@ -1,0 +1,27 @@
+Author: Daxing Xu
+Email: dxxu@genetics.ac.cn; xiaoxiaoms218@gmail.com
+Homepage: http://plantgeneticslab.weebly.com/
+
+#This ancestralAllele pipeline is used to get ancestral alleles from two MAF files produced by lastz
+
+!Parameter1:	Working directory
+/Users/xudaxing/Desktop/work
+
+!Parameter2:	chrConvertionRule file
+/Users/xudaxing/Data/wheatReference/v1.0/chrConvertionRule.txt
+
+!Parameter3:	VCF file
+/Users/xudaxing/Desktop/abd/chr001.ABDgenome.filterMiss_subset.vcf
+
+!Parameter4:	MAF directory Of outgroup1
+/Users/xudaxing/Desktop/test/hv
+
+!Parameter5:	wheat index in outgroup1 MAF file
+1
+
+!Parameter6:	MAF directory Of outgroup2
+/Users/xudaxing/Desktop/test/tu
+
+!Parameter7:	wheat index in outgroup2 MAF file
+0
+

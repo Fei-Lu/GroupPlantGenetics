@@ -7,8 +7,11 @@ import utils.IOUtils;
 import utils.PArrayUtils;
 import utils.PStringUtils;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
@@ -23,6 +26,7 @@ public class MAF {
     private int numThreads=12;
     private int taxonIndexForOrder;   //triticum_aestivum在MAFrecord记录中的位置，上为0，下为1
     private ChrConvertionRule chrConvertionRule;
+    private static int count=0;
 
     /**
      *
@@ -34,6 +38,7 @@ public class MAF {
         this.taxonIndexForOrder = taxonIndexForOrder;
         this.chrConvertionRule=chrConvertionRule;
         this.initialize(mafInputFileDir);
+        count++;
     }
 
     private void initialize(Path mafInputFileDir){
@@ -52,7 +57,7 @@ public class MAF {
                 subLibIndices[j] = indices[i][0]+j;
             }
             List<Integer> integerList=Arrays.asList(subLibIndices);
-            integerList.stream()
+            integerList.parallelStream()
                     .forEach(index-> {
                         try(BufferedReader br= IOUtils.getNIOTextReader(fileArray[index].toString())){
                             br.readLine();
@@ -163,8 +168,6 @@ public class MAF {
                 List<MAFrecord> maFrecordList=this.getMafRecords()[e];
                 List<ChrPos> chrPosList=allelesInfor.getChrPoss((short) e);
                 List<String> refAlleleList=allelesInfor.getRefAllele(((short)e));
-                MAFrecord maFrecord;
-                int[] startEnd;
                 ChrPos chrPos;
                 String refAllele;
                 String outGroupAllele;
@@ -175,8 +178,6 @@ public class MAF {
                     refAllele=refAlleleList.get(j);
                     index=this.binarySearch(chrPos);
                     if (index<0) continue;
-                    maFrecord=maFrecordList.get(index);
-                    startEnd=maFrecord.startEnd(this.getTaxonIndexForOrder());
                     outGroupAllele=maFrecordList.get(index).getAllele(this.getTaxonIndexForOrder(), chrPos, this.chrConvertionRule);
                     refOutgroupAllele=new String[2];
                     refOutgroupAllele[0]=refAllele;
@@ -186,6 +187,63 @@ public class MAF {
             });
         }
         return chrPosOutgroupAlleleMap;
+    }
+
+    public void getAllele(AllelesInfor allelesInfor, File outDir){
+        ConcurrentHashMap<ChrPos, String[]> chrPosOutgroupAlleleMap=new ConcurrentHashMap<>();
+        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(this.getMafRecords().length, 1);
+        for (int i = 0; i < indices.length; i++) {
+            int[] subLibIndices = new int[indices[i][1]-indices[i][0]];
+            for (int j = 0; j < subLibIndices.length; j++) {
+                subLibIndices[j] = indices[i][0]+j;
+            }
+            Arrays.stream(subLibIndices).parallel().forEach(e->{
+                List<MAFrecord> maFrecordList=this.getMafRecords()[e];
+                List<ChrPos> chrPosList=allelesInfor.getChrPoss((short) e);
+                List<String> refAlleleList=allelesInfor.getRefAllele(((short)e));
+                ChrPos chrPos;
+                String refAllele;
+                String outGroupAllele;
+                String[] refOutgroupAllele;
+                int index;
+                for (int j = 0; j < chrPosList.size(); j++) {
+                    chrPos=chrPosList.get(j);
+                    refAllele=refAlleleList.get(j);
+                    index=this.binarySearch(chrPos);
+                    if (index<0) continue;
+                    outGroupAllele=maFrecordList.get(index).getAllele(this.getTaxonIndexForOrder(), chrPos, this.chrConvertionRule);
+                    refOutgroupAllele=new String[2];
+                    refOutgroupAllele[0]=refAllele;
+                    refOutgroupAllele[1]=outGroupAllele;
+                    chrPosOutgroupAlleleMap.put(chrPos, refOutgroupAllele);
+                }
+            });
+        }
+        List<Integer> l=new ArrayList<>();
+        l.add(0);
+        l.add(1);
+        l.remove(this.getTaxonIndexForOrder());
+        String[] taxons=this.getMafRecords()[1].get(1).getTaxon();
+        String taxon=taxons[l.get(0)];
+        try(BufferedWriter bw=IOUtils.getNIOTextWriter(new File(outDir, taxon+".txt").toString())){
+            StringBuilder sb=new StringBuilder();
+            sb.append("CHR").append("\t").append("POS").append("\t")
+                    .append("refAllele").append("\t").append(taxon).append("\n");
+            bw.write(sb.toString());
+            ChrPos key;
+            String[] value;
+            for (Map.Entry<ChrPos, String[]> entry: chrPosOutgroupAlleleMap.entrySet()){
+                key=entry.getKey();
+                value=entry.getValue();
+                sb=new StringBuilder();
+                sb.append(key.getChromosome()).append("\t").append(key.getPosition()).append("\t")
+                        .append(value[0]).append("\t").append(value[1]).append("\n");
+                bw.write(sb.toString());
+            }
+            bw.flush();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public List<int[]> getStartEnd(short chr){
@@ -226,6 +284,92 @@ public class MAF {
             }
         }else {
             return res;
+        }
+    }
+
+    public static void merge(String inputOutgroup1File, String inputOutgroup2File, String outFile){
+        try {
+            List<List<String>> l1= Files.newBufferedReader(Paths.get(inputOutgroup1File)).lines().skip(1)
+                    .parallel().map(PStringUtils::fastSplit).collect(Collectors.toList());
+            List<List<String>> l2=Files.newBufferedReader(Paths.get(inputOutgroup2File)).lines().skip(1)
+                    .parallel().map(PStringUtils::fastSplit).collect(Collectors.toList());
+            Map<ChrPos, String[]> map1=new HashMap<>();
+            Map<ChrPos, String[]> map2=new HashMap<>();
+            Map<ChrPos, String[]> map=new HashMap<>();
+            short chr;
+            int pos;
+            String[] refAle;
+            for (int i = 0; i < l1.size(); i++) {
+                chr=Short.parseShort(l1.get(i).get(0));
+                pos=Integer.parseInt(l1.get(i).get(1));
+                refAle=new String[2];
+                refAle[0]=l1.get(i).get(2);
+                refAle[1]=l1.get(i).get(3);
+                map1.put(new ChrPos(chr, pos), refAle);
+            }
+            for (int i = 0; i < l2.size(); i++) {
+                chr=Short.parseShort(l2.get(i).get(0));
+                pos=Integer.parseInt(l2.get(i).get(1));
+                refAle=new String[2];
+                refAle[0]=l2.get(i).get(2);
+                refAle[1]=l2.get(i).get(3);
+                map2.put(new ChrPos(chr, pos), refAle);
+            }
+            ChrPos key1, key2;
+            String[] value1, value2;
+            String[] refOut1_2;
+            for (Map.Entry<ChrPos, String[]> entry: map1.entrySet()){
+                refOut1_2=new String[3];
+                key1=entry.getKey();
+                chr=key1.getChromosome();
+                pos=key1.getPosition();
+                value1=entry.getValue();
+                if (map2.containsKey(key1)){
+                    refOut1_2[0]=value1[0];
+                    refOut1_2[1]=value1[1];
+                    refOut1_2[2]=map2.get(key1)[1];
+                    map.put(new ChrPos(chr, pos), refOut1_2);
+                }
+                else {
+                    refOut1_2[0]=value1[0];
+                    refOut1_2[1]=value1[1];
+                    refOut1_2[2]="-";  //"-"表示对应的outgroup没有allele
+                    map.put(new ChrPos(chr, pos), refOut1_2);
+                }
+            }
+            Set<ChrPos> set2=map2.keySet();
+            set2.removeAll(map1.keySet());
+            for (Map.Entry<ChrPos, String[]> entry: map2.entrySet()){
+                key2=entry.getKey();
+                value2=entry.getValue();
+                chr=key2.getChromosome();
+                pos=key2.getPosition();
+                refOut1_2=new String[3];
+                refOut1_2[0]=value2[0];
+                refOut1_2[1]="-";    //"-"表示对应的outgroup没有allele
+                refOut1_2[2]=value2[1];
+                map.put(new ChrPos(chr, pos), refOut1_2);
+            }
+            List<ChrPos> list=new ArrayList<>(map.keySet());
+            Collections.sort(list);
+            BufferedWriter bw=IOUtils.getNIOTextWriter(outFile);
+            StringBuilder sb;
+            sb=new StringBuilder();
+            sb.append("CHR").append("\t").append("POS").append("\t").append("refAllele").append("\t")
+                    .append("Hordeum_vulgare").append("\t").append("Aegilops_tauschii").append("\n");
+            bw.write(sb.toString());
+            for (int i = 0; i < list.size(); i++) {
+                chr=list.get(i).getChromosome();
+                pos=list.get(i).getPosition();
+                refOut1_2=map.get(list.get(i));
+                sb=new StringBuilder();
+                sb.append(chr).append("\t").append(pos).append("\t").append(refOut1_2[0])
+                        .append("\t").append(refOut1_2[1]).append("\t").append(refOut1_2[2]).append("\n");
+                bw.write(sb.toString());
+            }
+            bw.flush();
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 
