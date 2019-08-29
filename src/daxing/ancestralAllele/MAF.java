@@ -352,11 +352,14 @@ public class MAF {
             }
             List<ChrPos> list=new ArrayList<>(map.keySet());
             Collections.sort(list);
+            String[] tasons=new String[2];
+            tasons[0]=PStringUtils.fastSplit(new File(inputOutgroup1File).getName(), ".").get(0);
+            tasons[1]=PStringUtils.fastSplit(new File(inputOutgroup2File).getName(), ".").get(0);
             BufferedWriter bw=IOUtils.getNIOTextWriter(outFile);
             StringBuilder sb;
             sb=new StringBuilder();
             sb.append("CHR").append("\t").append("POS").append("\t").append("refAllele").append("\t")
-                    .append("Hordeum_vulgare").append("\t").append("Aegilops_tauschii").append("\n");
+                    .append(tasons[0]).append("\t").append(tasons[1]).append("\n");
             bw.write(sb.toString());
             for (int i = 0; i < list.size(); i++) {
                 chr=list.get(i).getChromosome();

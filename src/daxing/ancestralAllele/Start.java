@@ -75,6 +75,6 @@ public class Start {
 
 
     public static void main(String[] args) {
-        new Start("/Users/xudaxing/IdeaProjects/PlantGenetics/GroupPlantGenetics/src/daxing/ancestralAllele/parameterFile.txt");
+        new Start(args[0]);
     }
 }
