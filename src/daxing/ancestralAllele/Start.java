@@ -103,7 +103,7 @@ public class Start {
     }
 
     public static void main(String[] args) {
-        new Start("/Users/xudaxing/IdeaProjects/PlantGenetics/GroupPlantGenetics/src/daxing/ancestralAllele/parameterFile.txt");
+        new Start(args[0]);
 //        MD5.getMD5FromDir("/Users/xudaxing/Desktop/work");
 //        Start.getSH(args[0], args[1], args[2], args[3]);
 //        SeqByte seqByte=new SeqByte("TCTTCCCCTA");
