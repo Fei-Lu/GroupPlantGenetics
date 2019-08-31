@@ -6,12 +6,11 @@ import gnu.trove.list.array.TIntArrayList;
 import utils.IOUtils;
 import utils.PArrayUtils;
 import utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
@@ -43,7 +42,7 @@ public class MAF {
 
     private void initialize(Path mafInputFileDir){
         File[] files=IOUtils.listRecursiveFiles(new File(mafInputFileDir.toString()));
-        Predicate<File> p=e->e.getName().contains(".DS_Store");
+        Predicate<File> p=e->e.getName().endsWith("MAF");
         File[] fileArray= Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
         List<MAFrecord>[] mafrecord=new ArrayList[45];
         for (int i = 0; i < mafrecord.length; i++) {
@@ -178,7 +177,7 @@ public class MAF {
                     refAllele=refAlleleList.get(j);
                     index=this.binarySearch(chrPos);
                     if (index<0) continue;
-                    outGroupAllele=maFrecordList.get(index).getAllele(this.getTaxonIndexForOrder(), chrPos, this.chrConvertionRule);
+                    outGroupAllele=maFrecordList.get(index).getOutgroupAllele(this.getTaxonIndexForOrder(), chrPos, this.chrConvertionRule);
                     refOutgroupAllele=new String[2];
                     refOutgroupAllele[0]=refAllele;
                     refOutgroupAllele[1]=outGroupAllele;
@@ -200,7 +199,6 @@ public class MAF {
             Arrays.stream(subLibIndices).parallel().forEach(e->{
                 List<MAFrecord> maFrecordList=this.getMafRecords()[e];
                 List<ChrPos> chrPosList=allelesInfor.getChrPoss((short) e);
-                List<String> refAlleleList=allelesInfor.getRefAllele(((short)e));
                 ChrPos chrPos;
                 String refAllele;
                 String outGroupAllele;
@@ -208,10 +206,10 @@ public class MAF {
                 int index;
                 for (int j = 0; j < chrPosList.size(); j++) {
                     chrPos=chrPosList.get(j);
-                    refAllele=refAlleleList.get(j);
                     index=this.binarySearch(chrPos);
                     if (index<0) continue;
-                    outGroupAllele=maFrecordList.get(index).getAllele(this.getTaxonIndexForOrder(), chrPos, this.chrConvertionRule);
+                    refAllele=maFrecordList.get(index).getRefAllele(this.getTaxonIndexForOrder(), chrPos, this.chrConvertionRule);
+                    outGroupAllele=maFrecordList.get(index).getOutgroupAllele(this.getTaxonIndexForOrder(), chrPos, this.chrConvertionRule);
                     refOutgroupAllele=new String[2];
                     refOutgroupAllele[0]=refAllele;
                     refOutgroupAllele[1]=outGroupAllele;
@@ -225,7 +223,7 @@ public class MAF {
         l.remove(this.getTaxonIndexForOrder());
         String[] taxons=this.getMafRecords()[1].get(1).getTaxon();
         String taxon=taxons[l.get(0)];
-        try(BufferedWriter bw=IOUtils.getNIOTextWriter(new File(outDir, taxon+".txt").toString())){
+        try(BufferedWriter bw=IOUtils.getTextWriter(new File(outDir, taxon+".txt").toString())){
             StringBuilder sb=new StringBuilder();
             sb.append("CHR").append("\t").append("POS").append("\t")
                     .append("refAllele").append("\t").append(taxon).append("\n");
@@ -289,10 +287,19 @@ public class MAF {
 
     public static void merge(String inputOutgroup1File, String inputOutgroup2File, String outFile){
         try {
-            List<List<String>> l1= Files.newBufferedReader(Paths.get(inputOutgroup1File)).lines().skip(1)
-                    .parallel().map(PStringUtils::fastSplit).collect(Collectors.toList());
-            List<List<String>> l2=Files.newBufferedReader(Paths.get(inputOutgroup2File)).lines().skip(1)
-                    .parallel().map(PStringUtils::fastSplit).collect(Collectors.toList());
+            List<List<String>> l1= new ArrayList<>();
+            List<List<String>> l2=new ArrayList<>();
+            String line;
+            BufferedReader br1=IOUtils.getTextReader(inputOutgroup1File);
+            BufferedReader br2=IOUtils.getTextReader(inputOutgroup2File);
+            while ((line=br1.readLine())!=null){
+                l1.add(PStringUtils.fastSplit(line));
+            }
+            br1.close();
+            while ((line=br2.readLine())!=null){
+                l2.add(PStringUtils.fastSplit(line));
+            }
+            br2.close();
             Map<ChrPos, String[]> map1=new HashMap<>();
             Map<ChrPos, String[]> map2=new HashMap<>();
             Map<ChrPos, String[]> map=new HashMap<>();

@@ -2,11 +2,14 @@ package daxing.ancestralAllele;
 
 import com.koloboke.collect.map.hash.HashByteByteMap;
 import com.koloboke.collect.map.hash.HashByteByteMaps;
+import daxing.common.StringTool;
 import format.dna.DNAUtils;
 import format.dna.SequenceInterface;
 import gnu.trove.list.array.TCharArrayList;
+import gnu.trove.list.array.TIntArrayList;
 
 import java.util.Arrays;
+import java.util.stream.IntStream;
 
 /**
  * this class use to store a DNA sequence of an alignment in MAF file format
@@ -169,4 +172,29 @@ public class SeqByte implements SequenceInterface {
         }
         return new String(seqByte.toArray());
     }
+
+    public int getDashCount(int startIndex, int endIndex){
+        byte[] seqbyte=this.getSequence(startIndex, endIndex).getBytes();
+        int countOfDash=0;
+        for (int i = 0; i < seqbyte.length; i++) {
+            if (seqbyte[i]==45){
+                countOfDash++;
+            }
+        }
+        return countOfDash;
+    }
+
+    /**
+     *
+     * @param position 0-based index of str without dash
+     * @return index in str with dash
+     */
+    public int getIndexInDashStr(int position){
+        String seqWithDash=this.getSequence();
+        int[] indexOfDash= StringTool.getIndexOfSubStr(seqWithDash, "-");
+        TIntArrayList allIndex=new TIntArrayList(IntStream.range(0, seqWithDash.length()).toArray());
+        allIndex.removeAll(indexOfDash);
+        return allIndex.get(position);
+    }
+
 }
