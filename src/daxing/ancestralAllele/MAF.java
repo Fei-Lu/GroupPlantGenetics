@@ -10,7 +10,9 @@ import utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
@@ -287,19 +289,10 @@ public class MAF {
 
     public static void merge(String inputOutgroup1File, String inputOutgroup2File, String outFile){
         try {
-            List<List<String>> l1= new ArrayList<>();
-            List<List<String>> l2=new ArrayList<>();
-            String line;
-            BufferedReader br1=IOUtils.getTextReader(inputOutgroup1File);
-            BufferedReader br2=IOUtils.getTextReader(inputOutgroup2File);
-            while ((line=br1.readLine())!=null){
-                l1.add(PStringUtils.fastSplit(line));
-            }
-            br1.close();
-            while ((line=br2.readLine())!=null){
-                l2.add(PStringUtils.fastSplit(line));
-            }
-            br2.close();
+            List<List<String>> l1= Files.newBufferedReader(Paths.get(inputOutgroup1File)).lines().skip(1).parallel()
+                    .map(PStringUtils::fastSplit).collect(Collectors.toList());
+            List<List<String>> l2=Files.newBufferedReader(Paths.get(inputOutgroup2File)).lines().skip(1).parallel()
+                    .map(PStringUtils::fastSplit).collect(Collectors.toList());
             Map<ChrPos, String[]> map1=new HashMap<>();
             Map<ChrPos, String[]> map2=new HashMap<>();
             Map<ChrPos, String[]> map=new HashMap<>();
@@ -373,8 +366,8 @@ public class MAF {
                 pos=list.get(i).getPosition();
                 refOut1_2=map.get(list.get(i));
                 sb=new StringBuilder();
-                sb.append(chr).append("\t").append(pos).append("\t").append(refOut1_2[0])
-                        .append("\t").append(refOut1_2[1]).append("\t").append(refOut1_2[2]).append("\n");
+                sb.append(chr).append("\t").append(pos).append("\t").append(refOut1_2[0].toUpperCase())
+                        .append("\t").append(refOut1_2[1].toUpperCase()).append("\t").append(refOut1_2[2].toUpperCase()).append("\n");
                 bw.write(sb.toString());
             }
             bw.flush();
