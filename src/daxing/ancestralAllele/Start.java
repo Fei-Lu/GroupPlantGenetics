@@ -2,7 +2,6 @@ package daxing.ancestralAllele;
 
 import daxing.common.ChrConvertionRule;
 import utils.IOUtils;
-import utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -10,7 +9,6 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.function.Predicate;
 
 public class Start {
@@ -21,11 +19,12 @@ public class Start {
     private int indexOfWheatInOutGroup1;
     private String outgroup2InputDir;
     private int indexOfWheatInOutGroup2;
+    private String[] subDir={"refOutgroupAllele", "ancestralAllele"};
 
     Start(String parameterFileS){
         this.initializeParameter(parameterFileS);
-        this.getOutgroupAllele();
-//        this.merge();
+//        this.getOutgroupAllele();
+        this.merge();
     }
 
     private void initializeParameter(String parameterFileS){
@@ -60,6 +59,11 @@ public class Start {
 
         File workingDir = new File(this.workingDir);
         workingDir.mkdir();
+        File f;
+        for (int i = 0; i < subDir.length; i++) {
+            f=new File(this.workingDir, subDir[i]);
+            f.mkdir();
+        }
         System.out.println("Pipeline parameters initialized");
     }
 
@@ -68,14 +72,15 @@ public class Start {
         MAF maf1=new MAF(this.indexOfWheatInOutGroup1, chrConvertionRule, Paths.get(this.outgroup1InputDir));
         MAF maf2=new MAF(this.indexOfWheatInOutGroup2, chrConvertionRule, Paths.get(this.outgroup2InputDir));
 //        AllelesInfor allelesInfor=new AllelesInfor(Paths.get(this.chrallvcfFile));
-        maf1.getAllele(new File(this.workingDir).getAbsolutePath());
-        maf2.getAllele(new File(this.workingDir).getAbsolutePath());
+        maf1.getAllele(new File(this.workingDir, this.subDir[0]).getAbsolutePath());
+        maf2.getAllele(new File(this.workingDir, this.subDir[0]).getAbsolutePath());
     }
 
     private void merge(){
-        File[] files= new File(this.workingDir).listFiles();
-        String outfile=new File(this.workingDir, "ancestralAllele.txt").getAbsolutePath();
-        MAF.mergeTwoFiles(files[0].getAbsolutePath(), files[1].getAbsolutePath(), outfile);
+        File[] files= new File(this.workingDir, this.subDir[0]).listFiles();
+//        String outfile=new File(this.workingDir, "ancestralAllele.txt").getAbsolutePath();
+//        MAF.mergeTwoFiles(files[0].getAbsolutePath(), files[1].getAbsolutePath(), outfile);
+        MAF.merge(this.workingDir, new File(this.workingDir, this.subDir[1]).getAbsolutePath());
     }
 
     public static void getSH(String wheatInputDir, String outgroupInputDir, String outMAFDir, String outSH){
@@ -105,14 +110,10 @@ public class Start {
     }
 
     public static void main(String[] args) {
-//        new Start("/Users/xudaxing/IdeaProjects/PlantGenetics/GroupPlantGenetics/src/daxing/ancestralAllele/parameterFile.txt");
+        new Start(args[0]);
 //        MD5.getMD5FromDir("/Users/xudaxing/Desktop/work");
 //        Start.getSH(args[0], args[1], args[2], args[3]);
 //        SeqByte seqByte=new SeqByte("TCTTCCCCTA");
 //        System.out.println(seqByte.getSequence(0,3));
-        String a="aaaa_v_bbb";
-        List<String> l=PStringUtils.fastSplit(a, "_v_");
-        System.out.println(l.get(0));
-        System.out.println(l.get(1));
     }
 }

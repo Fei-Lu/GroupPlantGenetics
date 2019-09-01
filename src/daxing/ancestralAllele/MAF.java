@@ -331,7 +331,7 @@ public class MAF {
         }
     }
 
-    public static void mergeTwoFiles(String inputOutgroup1File, String inputOutgroup2File, String outFile){
+    public static void mergeTwoFiles(String inputOutgroup1File, String inputOutgroup2File, String outFileDir){
         try {
             List<List<String>> l1= Files.newBufferedReader(Paths.get(inputOutgroup1File)).lines().skip(1).parallel()
                     .map(PStringUtils::fastSplit).collect(Collectors.toList());
@@ -397,9 +397,11 @@ public class MAF {
             List<ChrPos> list=new ArrayList<>(map.keySet());
             Collections.sort(list);
             String[] tasons=new String[2];
-            tasons[0]=PStringUtils.fastSplit(new File(inputOutgroup1File).getName(), "_v_").get(1).replaceAll("$.txt", "");
-            tasons[1]=PStringUtils.fastSplit(new File(inputOutgroup2File).getName(), ".").get(1).replaceAll("$.txt", "");
-            BufferedWriter bw=IOUtils.getNIOTextWriter(outFile);
+            List<String> taxonName1List=PStringUtils.fastSplit(new File(inputOutgroup1File).getName(), "_v_");
+            List<String> taxonName2List=PStringUtils.fastSplit(new File(inputOutgroup2File).getName(), "_v_");
+            tasons[0]=taxonName1List.get(1).replaceAll(".txt$", "");
+            tasons[1]=taxonName2List.get(1).replaceAll(".txt$", "");
+            BufferedWriter bw=IOUtils.getTextWriter(new File(outFileDir,taxonName1List.get(0)+"_ancestralAllele_"+tasons[0]+"_v_"+tasons[1]+".txt").getAbsolutePath());
             StringBuilder sb;
             sb=new StringBuilder();
             sb.append("CHR").append("\t").append("POS").append("\t").append("refAllele").append("\t")
@@ -420,8 +422,13 @@ public class MAF {
         }
     }
 
-    public void merge(String inputDir, String outDir){
-
+    public static void merge(String inputDir, String ancestrallAlleleOutFileDir){
+        File[] files=IOUtils.listRecursiveFiles(new File(inputDir));
+        Predicate<File> p=File::isHidden;
+        File[] f=Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
+        for (int i = 0; i < f.length; i=i+2) {
+            MAF.mergeTwoFiles(f[i].getAbsolutePath(), f[i+1].getAbsolutePath(), ancestrallAlleleOutFileDir);
+        }
     }
 
 
