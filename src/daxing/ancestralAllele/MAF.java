@@ -159,7 +159,7 @@ public class MAF {
 
     public Map<ChrPos, String[]> getAllele(AllelesInfor allelesInfor){
         ConcurrentHashMap<ChrPos, String[]> chrPosOutgroupAlleleMap=new ConcurrentHashMap<>();
-        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(this.getMafRecords().length, 1);
+        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(this.getMafRecords().length, numThreads);
         for (int i = 0; i < indices.length; i++) {
             int[] subLibIndices = new int[indices[i][1]-indices[i][0]];
             for (int j = 0; j < subLibIndices.length; j++) {
@@ -192,7 +192,7 @@ public class MAF {
 
     public void getAllele(AllelesInfor allelesInfor, File outDir){
         ConcurrentHashMap<ChrPos, String[]> chrPosOutgroupAlleleMap=new ConcurrentHashMap<>();
-        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(this.getMafRecords().length, 1);
+        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(this.getMafRecords().length, numThreads);
         for (int i = 0; i < indices.length; i++) {
             int[] subLibIndices = new int[indices[i][1]-indices[i][0]];
             for (int j = 0; j < subLibIndices.length; j++) {
@@ -246,6 +246,50 @@ public class MAF {
         }
     }
 
+    public void getAllele(String outDir){
+        Map<Integer, BufferedWriter> integerBufferedWriterMap=new HashMap<>();
+        BufferedWriter bw;
+        List<Integer> l=new ArrayList<>();
+        l.add(0);
+        l.add(1);
+        l.remove(this.getTaxonIndexForOrder());
+        String[] taxons=this.getMafRecords()[1].get(1).getTaxon();
+        String outgroupTaxon=taxons[l.get(0)];
+        for (int i = 0; i < this.getMafRecords().length; i++) {
+            bw=IOUtils.getTextWriter(new File(outDir, "triticum_aestivumChr"+PStringUtils.getNDigitNumber(3, i)+"_v_"+outgroupTaxon+".txt").getAbsolutePath());
+            integerBufferedWriterMap.put(i, bw);
+        }
+        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(this.getMafRecords().length, numThreads);
+        for (int i = 0; i < indices.length; i++) {
+            int[] subLibIndices = new int[indices[i][1]-indices[i][0]];
+            for (int j = 0; j < subLibIndices.length; j++) {
+                subLibIndices[j] = indices[i][0]+j;
+            }
+            Arrays.stream(subLibIndices).forEach(e->{
+                List<MAFrecord> maFrecordList=this.getMafRecords()[e];
+                try(BufferedWriter bufferedWriter=integerBufferedWriterMap.get(e)) {
+                    bufferedWriter.write("CHR"+"\t"+"POS"+"\t"+"ref"+"\t"+outgroupTaxon+"\n");
+                    Map<ChrPos, String[]> refOutAlleleMap;
+                    List<ChrPos> list;
+                    for (int j = 0; j < maFrecordList.size(); j++) {
+                        refOutAlleleMap=maFrecordList.get(j).getRefCoordinateOfOutGroup(this.getTaxonIndexForOrder(), this.getChrConvertionRule());
+                        list=new ArrayList<>(refOutAlleleMap.keySet());
+                        Collections.sort(list);
+                        for (int k = 0; k < list.size(); k++) {
+                            bufferedWriter.write(list.get(k).getChromosome()+"\t"+list.get(k).getPosition()+"\t"
+                            +refOutAlleleMap.get(list.get(k))[0]+"\t"+refOutAlleleMap.get(list.get(k))[1]);
+                            bufferedWriter.newLine();
+                        }
+                    }
+                    bufferedWriter.flush();
+                }catch (Exception exception){
+                    exception.printStackTrace();
+                }
+
+            });
+        }
+    }
+
     public List<int[]> getStartEnd(short chr){
         List<int[]> list=new ArrayList<>();
         List<MAFrecord> maFrecordList=this.getMafRecords()[chr];
@@ -287,7 +331,7 @@ public class MAF {
         }
     }
 
-    public static void merge(String inputOutgroup1File, String inputOutgroup2File, String outFile){
+    public static void mergeTwoFiles(String inputOutgroup1File, String inputOutgroup2File, String outFile){
         try {
             List<List<String>> l1= Files.newBufferedReader(Paths.get(inputOutgroup1File)).lines().skip(1).parallel()
                     .map(PStringUtils::fastSplit).collect(Collectors.toList());
@@ -353,8 +397,8 @@ public class MAF {
             List<ChrPos> list=new ArrayList<>(map.keySet());
             Collections.sort(list);
             String[] tasons=new String[2];
-            tasons[0]=PStringUtils.fastSplit(new File(inputOutgroup1File).getName(), ".").get(0);
-            tasons[1]=PStringUtils.fastSplit(new File(inputOutgroup2File).getName(), ".").get(0);
+            tasons[0]=PStringUtils.fastSplit(new File(inputOutgroup1File).getName(), "_v_").get(1).replaceAll("$.txt", "");
+            tasons[1]=PStringUtils.fastSplit(new File(inputOutgroup2File).getName(), ".").get(1).replaceAll("$.txt", "");
             BufferedWriter bw=IOUtils.getNIOTextWriter(outFile);
             StringBuilder sb;
             sb=new StringBuilder();
@@ -374,6 +418,10 @@ public class MAF {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    public void merge(String inputDir, String outDir){
+
     }
 
 

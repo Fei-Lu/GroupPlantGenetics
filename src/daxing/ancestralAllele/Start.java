@@ -2,6 +2,7 @@ package daxing.ancestralAllele;
 
 import daxing.common.ChrConvertionRule;
 import utils.IOUtils;
+import utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -9,6 +10,7 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Predicate;
 
 public class Start {
@@ -23,7 +25,7 @@ public class Start {
     Start(String parameterFileS){
         this.initializeParameter(parameterFileS);
         this.getOutgroupAllele();
-        this.merge();
+//        this.merge();
     }
 
     private void initializeParameter(String parameterFileS){
@@ -65,15 +67,15 @@ public class Start {
         ChrConvertionRule chrConvertionRule=new ChrConvertionRule(Paths.get(this.chrConvertionRule));
         MAF maf1=new MAF(this.indexOfWheatInOutGroup1, chrConvertionRule, Paths.get(this.outgroup1InputDir));
         MAF maf2=new MAF(this.indexOfWheatInOutGroup2, chrConvertionRule, Paths.get(this.outgroup2InputDir));
-        AllelesInfor allelesInfor=new AllelesInfor(Paths.get(this.chrallvcfFile));
-        maf1.getAllele(allelesInfor, new File(this.workingDir));
-        maf2.getAllele(allelesInfor, new File(this.workingDir));
+//        AllelesInfor allelesInfor=new AllelesInfor(Paths.get(this.chrallvcfFile));
+        maf1.getAllele(new File(this.workingDir).getAbsolutePath());
+        maf2.getAllele(new File(this.workingDir).getAbsolutePath());
     }
 
     private void merge(){
         File[] files= new File(this.workingDir).listFiles();
         String outfile=new File(this.workingDir, "ancestralAllele.txt").getAbsolutePath();
-        MAF.merge(files[0].getAbsolutePath(), files[1].getAbsolutePath(), outfile);
+        MAF.mergeTwoFiles(files[0].getAbsolutePath(), files[1].getAbsolutePath(), outfile);
     }
 
     public static void getSH(String wheatInputDir, String outgroupInputDir, String outMAFDir, String outSH){
@@ -103,11 +105,14 @@ public class Start {
     }
 
     public static void main(String[] args) {
-        new Start(args[0]);
+//        new Start("/Users/xudaxing/IdeaProjects/PlantGenetics/GroupPlantGenetics/src/daxing/ancestralAllele/parameterFile.txt");
 //        MD5.getMD5FromDir("/Users/xudaxing/Desktop/work");
 //        Start.getSH(args[0], args[1], args[2], args[3]);
 //        SeqByte seqByte=new SeqByte("TCTTCCCCTA");
 //        System.out.println(seqByte.getSequence(0,3));
-
+        String a="aaaa_v_bbb";
+        List<String> l=PStringUtils.fastSplit(a, "_v_");
+        System.out.println(l.get(0));
+        System.out.println(l.get(1));
     }
 }

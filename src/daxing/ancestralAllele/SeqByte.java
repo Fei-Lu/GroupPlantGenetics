@@ -197,4 +197,17 @@ public class SeqByte implements SequenceInterface {
         return allIndex.get(position);
     }
 
+    /**
+     *
+     * @param indexInDashSeq
+     * @return index in Seq Without Dash
+     */
+    public int getIndexInSeqWithoutDash(int indexInDashSeq){
+        String seqWithDash=this.getSequence();
+        int[] indexOfDash= StringTool.getIndexOfSubStr(seqWithDash, "-");
+        TIntArrayList allIndex=new TIntArrayList(IntStream.range(0, seqWithDash.length()).toArray());
+        allIndex.removeAll(indexOfDash);
+        return allIndex.binarySearch(indexInDashSeq);
+    }
+
 }

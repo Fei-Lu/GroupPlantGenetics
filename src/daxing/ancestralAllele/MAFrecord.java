@@ -1,8 +1,14 @@
 package daxing.ancestralAllele;
 
 import daxing.common.ChrConvertionRule;
+import daxing.common.StringTool;
 import format.position.ChrPos;
 import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.set.hash.TIntHashSet;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.IntStream;
 
 public class MAFrecord  {
     private long id;
@@ -135,9 +141,9 @@ public class MAFrecord  {
 
     /**
      * 三个参数指同一个taxon的index, ChrPos, ChrConvertionRule
-     * @param indexOfTaxon
-     * @param chrPosOfTaxon
-     * @param chrConvertionRuleOfTaxon
+     * @param indexOfTaxon wheat
+     * @param chrPosOfTaxon wheat
+     * @param chrConvertionRuleOfTaxon wheat
      * @return allele of this taxon
      */
     public String getRefAllele(int indexOfTaxon, ChrPos chrPosOfTaxon, ChrConvertionRule chrConvertionRuleOfTaxon){
@@ -148,6 +154,53 @@ public class MAFrecord  {
         int indexInDashStr=seqByte.getIndexInDashStr(index);
         char base=seqByte.getBase(indexInDashStr);
         return String.valueOf(base);
+    }
+
+    /**
+     *
+     * @param indexOfTaxon wheat
+     * @return
+     */
+    public Map<ChrPos, String[]> getRefCoordinateOfOutGroup(int indexOfTaxon, ChrConvertionRule chrConvertionRule){
+        TIntArrayList indexForTaxons=new TIntArrayList();
+        indexForTaxons.add(0);
+        indexForTaxons.add(1);
+        indexForTaxons.remove(indexOfTaxon);
+        SeqByte seqByte1=this.getSeq(indexOfTaxon);
+        SeqByte seqByte2=this.getSeq(indexForTaxons.get(0));
+        String seqWithDash1=seqByte1.getSequence();
+        String seqWithDash2=seqByte2.getSequence();
+        int[] indexOfDash1= StringTool.getIndexOfSubStr(seqWithDash1, "-");
+        int[] indexOfDash2= StringTool.getIndexOfSubStr(seqWithDash2, "-");
+        TIntHashSet allIndex1=new TIntHashSet(IntStream.range(0, seqWithDash1.length()).toArray());
+        TIntHashSet allIndex2=new TIntHashSet(IntStream.range(0, seqWithDash2.length()).toArray());
+        allIndex1.removeAll(indexOfDash1);
+        allIndex2.removeAll(indexOfDash2);
+        allIndex1.retainAll(allIndex2);
+        TIntArrayList alleleIndex=new TIntArrayList(allIndex1);
+        alleleIndex.sort();
+        Map<ChrPos, String[]> outgroupAllele=new HashMap<>();
+        ChrPos chrPos;
+        short chr;
+        int pos;
+        String[] refOutgroupAllele;
+        int[] startEnd=this.startEnd(indexOfTaxon);
+        int[] seqCoordinate1_based;
+        if (this.getIfMinus()[indexOfTaxon]){
+            seqCoordinate1_based=IntStream.iterate(startEnd[0], n->n-1).limit(startEnd[0]-startEnd[startEnd.length-1]+1).toArray();
+        }else {
+            seqCoordinate1_based=IntStream.iterate(startEnd[0], n->n+1).limit(startEnd[startEnd.length-1]-startEnd[0]+1).toArray();
+        }
+        for (int i = 0; i < alleleIndex.size(); i++) {
+            pos=seqCoordinate1_based[seqByte1.getIndexInSeqWithoutDash(alleleIndex.get(i))];
+            chr=(short) chrConvertionRule.getChrIDFromOriChrName(this.getChr(indexOfTaxon), pos);
+            chrPos=new ChrPos(chr, chrConvertionRule.getVCFPositionFromOriChrName(this.getChr(indexOfTaxon), pos));
+            refOutgroupAllele=new String[2];
+            refOutgroupAllele[0]=String.valueOf(seqByte1.getBase(alleleIndex.get(i)));
+            refOutgroupAllele[1]=String.valueOf(seqByte2.getBase(alleleIndex.get(i)));
+            outgroupAllele.put(chrPos, refOutgroupAllele);
+        }
+        return outgroupAllele;
     }
 
 }
