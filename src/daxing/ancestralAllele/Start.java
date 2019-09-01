@@ -23,8 +23,8 @@ public class Start {
 
     Start(String parameterFileS){
         this.initializeParameter(parameterFileS);
-//        this.getOutgroupAllele();
-        this.merge();
+        this.getOutgroupAllele();
+//        this.merge();
     }
 
     private void initializeParameter(String parameterFileS){

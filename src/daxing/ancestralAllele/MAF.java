@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class MAF {
 
     private List<MAFrecord>[] mafRecords;
-    private int numThreads=12;
+    private int numThreads=45;
     private int taxonIndexForOrder;   //triticum_aestivum在MAFrecord记录中的位置，上为0，下为1
     private ChrConvertionRule chrConvertionRule;
     private static int count=0;
@@ -265,7 +265,7 @@ public class MAF {
             for (int j = 0; j < subLibIndices.length; j++) {
                 subLibIndices[j] = indices[i][0]+j;
             }
-            Arrays.stream(subLibIndices).forEach(e->{
+            Arrays.stream(subLibIndices).parallel().forEach(e->{
                 List<MAFrecord> maFrecordList=this.getMafRecords()[e];
                 try(BufferedWriter bufferedWriter=integerBufferedWriterMap.get(e)) {
                     bufferedWriter.write("CHR"+"\t"+"POS"+"\t"+"ref"+"\t"+outgroupTaxon+"\n");
