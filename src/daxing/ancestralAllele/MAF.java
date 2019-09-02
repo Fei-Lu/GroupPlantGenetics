@@ -2,7 +2,6 @@ package daxing.ancestralAllele;
 
 import daxing.common.ChrConvertionRule;
 import format.position.ChrPos;
-import format.table.RowTable;
 import gnu.trove.list.array.TIntArrayList;
 import utils.IOUtils;
 import utils.PArrayUtils;
@@ -18,6 +17,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * MAF类按0-44划分，但mafRecord下的position是0-based coordinates
@@ -423,31 +423,65 @@ public class MAF {
         }
     }
 
-    public static void merge(String inputDir, String ancestrallAlleleOutFileDir){
+    public static void merge(String inputDir, String mergeOutDir){
         File[] files=IOUtils.listRecursiveFiles(new File(inputDir));
         Predicate<File> p=File::isHidden;
         File[] f=Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
         for (int i = 0; i < f.length; i=i+2) {
-            MAF.mergeTwoFiles(f[i].getAbsolutePath(), f[i+1].getAbsolutePath(), ancestrallAlleleOutFileDir);
+            MAF.mergeTwoFiles(f[i].getAbsolutePath(), f[i+1].getAbsolutePath(), mergeOutDir);
         }
     }
 
     /**
      *
      * @param inputDir
+     * @param outDir
      */
-    public static void getAncestralAllele(String inputDir){
+    public static void getAncestralAllele(String inputDir, String outDir){
         File[] input=new File(inputDir).listFiles();
         Predicate<File> p=File::isHidden;
         File[] files=Arrays.stream(input).filter(p.negate()).sorted().toArray(File[]::new);
+        Map<Integer, BufferedReader> chrBufferReaderMap=new HashMap<>();
+        Map<Integer, BufferedWriter> chrBufferWriterMap=new HashMap<>();
+        IntStream.range(0,45).forEach(e->{
+            chrBufferReaderMap.put(e, IOUtils.getNIOTextReader(files[e].getAbsolutePath()));
+            chrBufferWriterMap.put(e, IOUtils.getNIOTextWriter(new File(outDir, files[e].getName()).getAbsolutePath()));
+        });
+        BufferedReader br;
+        BufferedWriter bw;
+        List<String> lines;
+        String line;
+        String header;
+        List<String> lineList;
         try{
-            RowTable<String> rowTable;
             for (int i = 0; i < files.length; i++) {
-
+                br=chrBufferReaderMap.get(i);
+                header=br.readLine();
+                lines=new ArrayList<>();
+                while ((line=br.readLine())!=null){
+                    lineList=PStringUtils.fastSplit(line);
+                    if (lineList.get(3).equals("N")) continue;
+                    if (lineList.get(3).equals("-")) continue;
+                    if (lineList.get(4).equals("N")) continue;
+                    if (lineList.get(4).equals("-")) continue;
+                    if (!lineList.get(3).equals(lineList.get(4))) continue;
+                    lines.add(line);
+                }
+                br.close();
+                bw=chrBufferWriterMap.get(i);
+                bw.write(header);
+                bw.newLine();
+                for (int j = 0; j < lines.size(); j++) {
+                    bw.write(lines.get(j));
+                    bw.newLine();
+                }
+                bw.flush();
+                bw.close();
             }
         }catch (Exception e){
             e.printStackTrace();
         }
+
 
     }
 
