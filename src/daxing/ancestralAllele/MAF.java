@@ -2,6 +2,7 @@ package daxing.ancestralAllele;
 
 import daxing.common.ChrConvertionRule;
 import format.position.ChrPos;
+import format.table.RowTable;
 import gnu.trove.list.array.TIntArrayList;
 import utils.IOUtils;
 import utils.PArrayUtils;
@@ -44,8 +45,8 @@ public class MAF {
 
     private void initialize(Path mafInputFileDir){
         File[] files=IOUtils.listRecursiveFiles(new File(mafInputFileDir.toString()));
-        Predicate<File> p=e->e.getName().endsWith("MAF");
-        File[] fileArray= Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
+        Predicate<File> p=File::isHidden;
+        File[] fileArray= Arrays.stream(files).filter(p.negate()).filter(e->e.getName().endsWith("maf")).toArray(File[]::new);
         List<MAFrecord>[] mafrecord=new ArrayList[45];
         for (int i = 0; i < mafrecord.length; i++) {
             mafrecord[i]=new ArrayList<>((fileArray.length)*200/42);
@@ -64,7 +65,7 @@ public class MAF {
                             br.readLine();
                             br.readLine();
                             long id=Long.MIN_VALUE;
-                            int score=Integer.MIN_VALUE;
+                            long score=Long.MIN_VALUE;
                             String[] taxons;
                             String[] chr;
                             int[] startPos;
@@ -85,7 +86,7 @@ public class MAF {
                                 lineList1= PStringUtils.fastSplit(line, " ");
                                 id=Long.parseLong(lineList1.get(2));
                                 lineList2=PStringUtils.fastSplit(br.readLine(), "=");
-                                score=Integer.parseInt(lineList2.get(1));
+                                score=Long.parseLong(lineList2.get(1));
                                 lineList3=PStringUtils.fastSplit(br.readLine(), " ");
                                 Predicate<String> predicate=s->s.equals("");
                                 lineList3=lineList3.stream().filter(predicate.negate()).collect(Collectors.toList());
@@ -429,6 +430,25 @@ public class MAF {
         for (int i = 0; i < f.length; i=i+2) {
             MAF.mergeTwoFiles(f[i].getAbsolutePath(), f[i+1].getAbsolutePath(), ancestrallAlleleOutFileDir);
         }
+    }
+
+    /**
+     *
+     * @param inputDir
+     */
+    public static void getAncestralAllele(String inputDir){
+        File[] input=new File(inputDir).listFiles();
+        Predicate<File> p=File::isHidden;
+        File[] files=Arrays.stream(input).filter(p.negate()).sorted().toArray(File[]::new);
+        try{
+            RowTable<String> rowTable;
+            for (int i = 0; i < files.length; i++) {
+
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 
 

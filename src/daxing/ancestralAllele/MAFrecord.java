@@ -12,7 +12,7 @@ import java.util.stream.IntStream;
 
 public class MAFrecord  {
     private long id;
-    private int score;
+    private long score;
     private String[] taxons;
     private String[] chr;
     private int startPos[];
@@ -21,8 +21,8 @@ public class MAFrecord  {
     private int[] chrLen;
     private SeqByte[] seq;
 
-    public MAFrecord(long id, int score, String[] taxons, String[] chr, int[] startPos, int[] seqLen, boolean[] ifMinus,
-              int[] chrLen, SeqByte[] seq){
+    public MAFrecord(long id, long score, String[] taxons, String[] chr, int[] startPos, int[] seqLen, boolean[] ifMinus,
+                     int[] chrLen, SeqByte[] seq){
         this.id=id;
         this.score=score;
         this.taxons=taxons;
@@ -38,7 +38,7 @@ public class MAFrecord  {
         return this.id;
     }
 
-    public int getScore() {
+    public long getScore() {
         return this.score;
     }
 

@@ -25,6 +25,8 @@ public class Start {
         this.initializeParameter(parameterFileS);
         this.getOutgroupAllele();
 //        this.merge();
+//        getAncestralAllele();
+
     }
 
     private void initializeParameter(String parameterFileS){
@@ -83,6 +85,10 @@ public class Start {
         MAF.merge(this.workingDir, new File(this.workingDir, this.subDir[1]).getAbsolutePath());
     }
 
+    public void getAncestralAllele(){
+        File input=new File(this.workingDir, this.subDir[1]);
+        MAF.getAncestralAllele(input.getAbsolutePath());
+    }
     public static void getSH(String wheatInputDir, String outgroupInputDir, String outMAFDir, String outSH){
         File[] files1= IOUtils.listRecursiveFiles(new File(wheatInputDir));
         File[] files2=IOUtils.listRecursiveFiles(new File(outgroupInputDir));
@@ -115,5 +121,6 @@ public class Start {
 //        Start.getSH(args[0], args[1], args[2], args[3]);
 //        SeqByte seqByte=new SeqByte("TCTTCCCCTA");
 //        System.out.println(seqByte.getSequence(0,3));
+
     }
 }
