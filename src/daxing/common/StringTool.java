@@ -1,5 +1,6 @@
 package daxing.common;
 
+import org.apache.commons.lang.StringUtils;
 import utils.PStringUtils;
 
 import java.util.ArrayList;
@@ -45,7 +46,7 @@ public class StringTool {
      * @param subStr 子字符串
      * @return index数组
      */
-    public static int[] getFrequencyOfSubStr(String str, String subStr){
+    public static int[] getIndexOfSubStr(String str, String subStr){
         List<Integer> indexes =new ArrayList<>();
         int index=0, wordlen=0;
         while (index!=-1){
@@ -56,6 +57,15 @@ public class StringTool {
             wordlen=subStr.length();
         }
         return indexes.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    /**
+     * case-sensitive 大小写敏感
+     * @param str
+     * @return 子字符串在指定字符串中出现的次数
+     */
+    public static int getCountOfSubStr(String str, String subStr){
+        return StringUtils.countMatches(str, subStr);
     }
 
     /**

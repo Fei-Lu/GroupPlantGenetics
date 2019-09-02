@@ -185,6 +185,18 @@ public class ChrConvertionRule {
         return this.getOriChrPositin(chr, pos_O_based);
     }
 
+    /**
+     *
+     * @param chr 1A, Un, et al.
+     * @param pos coordinates are 1-based
+     * @return coordinates in vcf
+     */
+    public int getVCFPositionFromOriChrName(String chr, int pos){
+        int chrID=this.getChrIDFromOriChrName(chr, pos);
+        return pos-this.getStartIndexOnOriChr()[chrID];
+    }
+
+
     public static Map<Integer, String> getChrID_OriChrMap(){
         Map<Integer,String> ChrID_OriChrMap=new HashMap<>();
         List<Integer> numOfChr= IntStream.range(1,43).boxed().collect(Collectors.toList());
