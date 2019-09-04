@@ -283,6 +283,7 @@ public class MAF {
                         }
                     }
                     bufferedWriter.flush();
+                    System.out.println("triticum_aestivumChr"+PStringUtils.getNDigitNumber(3, e)+"_v_"+outgroupTaxon+".txt is completed");
                 }catch (Exception exception){
                     exception.printStackTrace();
                 }
@@ -481,8 +482,57 @@ public class MAF {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
 
-
+    /**
+     *
+     * @param inputDir
+     * @param outDir
+     */
+    public static void getAncestralAlleleParallel(String inputDir, String outDir){
+        File[] input=new File(inputDir).listFiles();
+        Predicate<File> p=File::isHidden;
+        File[] files=Arrays.stream(input).filter(p.negate()).sorted().toArray(File[]::new);
+        Map<Integer, BufferedReader> chrBufferReaderMap=new HashMap<>();
+        Map<Integer, BufferedWriter> chrBufferWriterMap=new HashMap<>();
+        IntStream.range(0,45).forEach(e->{
+            chrBufferReaderMap.put(e, IOUtils.getNIOTextReader(files[e].getAbsolutePath()));
+            chrBufferWriterMap.put(e, IOUtils.getNIOTextWriter(new File(outDir, files[e].getName()).getAbsolutePath()));
+        });
+        IntStream.range(0, 45).parallel().forEach(index->{
+            BufferedReader br;
+            BufferedWriter bw;
+            List<String> lines;
+            String line;
+            String header;
+            List<String> lineList;
+            try{
+                br=chrBufferReaderMap.get(index);
+                header=br.readLine();
+                lines=new ArrayList<>();
+                while ((line=br.readLine())!=null){
+                    lineList=PStringUtils.fastSplit(line);
+                    if (lineList.get(3).equals("N")) continue;
+                    if (lineList.get(3).equals("-")) continue;
+                    if (lineList.get(4).equals("N")) continue;
+                    if (lineList.get(4).equals("-")) continue;
+                    if (!lineList.get(3).equals(lineList.get(4))) continue;
+                    lines.add(line);
+                }
+                br.close();
+                bw=chrBufferWriterMap.get(index);
+                bw.write(header);
+                bw.newLine();
+                for (int j = 0; j < lines.size(); j++) {
+                    bw.write(lines.get(j));
+                    bw.newLine();
+                }
+                bw.flush();
+                bw.close();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        });
     }
 
 

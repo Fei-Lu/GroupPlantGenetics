@@ -16,13 +16,13 @@ public class Start {
     private int indexOfWheatInOutGroup1;
     private String outgroup2InputDir;
     private int indexOfWheatInOutGroup2;
-    private String[] subDir={"refOutgroupAllele", "merge", "ancestralAllele"};
+    private String[] subDir={"refOutgroupAllele0904", "merge0904", "ancestralAllele0904"};
 
     Start(String parameterFileS){
         this.initializeParameter(parameterFileS);
         this.getOutgroupAllele();
 //        this.merge();
-        this.getAncestralAllele();
+//        this.getAncestralAllele();
 
     }
 
@@ -85,12 +85,12 @@ public class Start {
     public void getAncestralAllele(){
         File input=new File(this.workingDir, this.subDir[1]);
         File output=new File(this.workingDir, this.subDir[2]);
-        MAF.getAncestralAllele(input.getAbsolutePath(), output.getAbsolutePath());
+        MAF.getAncestralAlleleParallel(input.getAbsolutePath(), output.getAbsolutePath());
     }
 
 
     public static void main(String[] args) {
-        new Start("/Users/xudaxing/IdeaProjects/PlantGenetics/GroupPlantGenetics/src/daxing/ancestralAllele/parameterFile.txt");
+        new Start(args[0]);
 //        MD5.getMD5FromDir("/Users/xudaxing/Desktop/work");
 //        SeqByte seqByte=new SeqByte("TCTTCCCCTA");
 //        System.out.println(seqByte.getSequence(0,3));
