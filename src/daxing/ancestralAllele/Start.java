@@ -1,12 +1,16 @@
 package daxing.ancestralAllele;
 
 import daxing.common.ChrConvertionRule;
+import daxing.filterSNP.Cells;
+import daxing.filterSNP.DepthInfo;
+import daxing.filterSNP.Dot;
 import utils.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Start {
     private String workingDir;
@@ -90,10 +94,23 @@ public class Start {
 
 
     public static void main(String[] args) {
-        new Start(args[0]);
+//        new Start(args[0]);
 //        MD5.getMD5FromDir("/Users/xudaxing/Desktop/work");
 //        SeqByte seqByte=new SeqByte("TCTTCCCCTA");
 //        System.out.println(seqByte.getSequence(0,3));
 //        Script.getLastz(args[0], args[1], args[2], args[3]);
+//        ScriptMethods.getTopRows(args[0], Integer.parseInt(args[1]), args[2]);
+        DepthInfo depthInfo=new DepthInfo("/Users/xudaxing/Desktop/chr001_subset.depth.txt");
+        List<Dot> dotList=depthInfo.getDotList();
+        Cells cells=new Cells(30F, 20F, 10);
+        int[] indexOfDepthSD;
+        for (int i = 0; i < dotList.size(); i++) {
+            indexOfDepthSD= cells.binarySearch(dotList.get(i));
+            cells.getCell(indexOfDepthSD).add(dotList.get(i));
+        }
+        cells.write("/Users/xudaxing/Desktop/chr1A");
+
     }
+
+
 }
