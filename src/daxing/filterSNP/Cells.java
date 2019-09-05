@@ -106,38 +106,52 @@ public class Cells {
         return size;
     }
 
-    public void write(String outPutDir){
-        File cellSizeFile=new File(outPutDir, "cellSize.txt");
-        File positionSubDir=new File(outPutDir, "position");
+    private List<Cell> getAllCell(){
+        List<Cell> cells=new ArrayList<>();
+        for (int i = 0; i < this.getCellList().size(); i++) {
+            for (int j = 0; j < this.getCellList().get(0).size(); j++) {
+                cells.add(this.getCell(i,j));
+            }
+        }
+        return cells;
+    }
+
+    public void write(String ouputDir){
+        File cellSizeFile=new File(ouputDir, "cellSize.txt");
+        File positionSubDir=new File(ouputDir, "position");
         positionSubDir.mkdir();
         BufferedWriter bwCellSizeFile= IOUtils.getTextWriter(cellSizeFile.getAbsolutePath());
         BufferedWriter[] bwForDotPosition=new BufferedWriter[this.countOfCell];
         for (int i = 0; i < bwForDotPosition.length; i++) {
-            bwForDotPosition[i]=IOUtils.getTextWriter(new File(positionSubDir, "cell"+ PStringUtils.getNDigitNumber(3, i) +"Position.txt").getAbsolutePath());
+            bwForDotPosition[i]=IOUtils.getTextWriter(new File(positionSubDir, "cell"+ PStringUtils.getNDigitNumber(5, i) +"Position.txt").getAbsolutePath());
         }
         try{
-            bwCellSizeFile.write("Cell"+"\t"+"Size"+"\n");
+            bwCellSizeFile.write("Cell"+"\t"+"Size"+"\t"+"cumulativePercentage"+"\n");
             for (int i = 0; i < bwForDotPosition.length; i++) {
-                bwForDotPosition[i].write("POS");
+                bwForDotPosition[i].write("Chr"+"\t"+"POS");
                 bwForDotPosition[i].newLine();
             }
         }catch (Exception e){
             e.printStackTrace();
         }
         try{
+            List<Cell> cells=this.getAllCell();
+            Comparator<Cell> cellComparator=Comparator.comparing(c->c.size());
+            cellComparator=cellComparator.reversed();
+            Collections.sort(cells, cellComparator);
             Cell cell;
             int count=0;
-            for (int i = 0; i < this.cellList.size(); i++) {
-                for (int j = 0; j < cellList.get(0).size(); j++) {
-                    cell=this.getCell(i,j);
-                    bwCellSizeFile.write(count+"\t"+cell.size());
-                    bwCellSizeFile.newLine();
-                    for (int k = 0; k < cell.size(); k++) {
-                        bwForDotPosition[count].write(String.valueOf(cell.getDotList().get(k).getPosition()));
-                        bwForDotPosition[count].newLine();
-                    }
-                    count++;
+            double rate=0;
+            for (int i = 0; i < cells.size(); i++) {
+                cell=cells.get(i);
+                rate=rate+cell.size()/this.getDotNumOfAllCell();
+                bwCellSizeFile.write(count+"\t"+cell.size()+"\t"+rate);
+                bwCellSizeFile.newLine();
+                for (int k = 0; k < cell.size(); k++) {
+                    bwForDotPosition[count].write(cell.getDotList().get(k).getChromosome()+"\t"+ cell.getDotList().get(k).getPosition());
+                    bwForDotPosition[count].newLine();
                 }
+                count++;
             }
             bwCellSizeFile.flush();
             bwCellSizeFile.close();
@@ -145,11 +159,11 @@ public class Cells {
                 bwForDotPosition[i].flush();
                 bwForDotPosition[i].close();
             }
+            System.out.println("Total sites in this file is "+String.valueOf(this.getDotNumOfAllCell()));
         }catch (Exception e){
             e.printStackTrace();
         }
-        this.writeForGraph(new File(outPutDir, "cellGraph.txt").getAbsolutePath());
-
+        this.writeForGraph(new File(ouputDir, "cellGraph.txt").getAbsolutePath());
     }
 
     public void writeForGraph(String outputfile){
