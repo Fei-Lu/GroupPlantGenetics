@@ -268,8 +268,10 @@ public class MAF {
             }
             Arrays.stream(subLibIndices).parallel().forEach(e->{
                 List<MAFrecord> maFrecordList=this.getMafRecords()[e];
+                StringBuilder sb=new StringBuilder();
                 try(BufferedWriter bufferedWriter=integerBufferedWriterMap.get(e)) {
-                    bufferedWriter.write("CHR"+"\t"+"POS"+"\t"+"ref"+"\t"+outgroupTaxon+"\n");
+                    sb.append("CHR").append("\t").append("POS").append("\t").append("ref").append("\t").append(outgroupTaxon).append("\n");
+                    bufferedWriter.write(sb.toString());
                     Map<ChrPos, String[]> refOutAlleleMap;
                     List<ChrPos> list;
                     for (int j = 0; j < maFrecordList.size(); j++) {
@@ -277,8 +279,10 @@ public class MAF {
                         list=new ArrayList<>(refOutAlleleMap.keySet());
                         Collections.sort(list);
                         for (int k = 0; k < list.size(); k++) {
-                            bufferedWriter.write(list.get(k).getChromosome()+"\t"+list.get(k).getPosition()+"\t"
-                            +refOutAlleleMap.get(list.get(k))[0]+"\t"+refOutAlleleMap.get(list.get(k))[1]);
+                            sb=new StringBuilder();
+                            sb.append(list.get(k).getChromosome()).append("\t").append(list.get(k).getPosition()).append("\t")
+                                    .append(refOutAlleleMap.get(list.get(k))[0]).append("\t").append(refOutAlleleMap.get(list.get(k))[1]);
+                            bufferedWriter.write(sb.toString());
                             bufferedWriter.newLine();
                         }
                     }
