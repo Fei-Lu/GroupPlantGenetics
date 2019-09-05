@@ -31,7 +31,13 @@ public class VCF {
     }
 
     private void initilize(String inputFile){
-        try(BufferedReader br=IOUtils.getTextReader(inputFile)){
+        BufferedReader br;
+        try{
+            if (inputFile.endsWith(".vcf")){
+                br=IOUtils.getTextReader(inputFile);
+            }else {
+                br= IOUtils.getTextGzipReader(inputFile);
+            }
             StringBuilder sb=new StringBuilder();
             String temp;
             while ((temp=br.readLine())!=null){
@@ -45,6 +51,7 @@ public class VCF {
             }
             this.meta =sb.toString();
             this.data=br.lines().map(PStringUtils::fastSplit).collect(Collectors.toList());
+            br.close();
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -239,14 +246,14 @@ public class VCF {
     }
 
     /**
-     * 将一个目录下的所有VCF文件按照染色体进行融合（默认不包含"chr000.vcf"、"chr043.vcf"和"chr044.vcf"）形成"Chr1A.vcf"、"Chr1B.vcf"等
+     * 将一个目录下的所有VCF文件按照染色体进行融合（默认不包含"chr000.vcf.gz"、"chr043.vcf.gz"和"chr044.vcf.gz"）形成"Chr1A.vcf.gz"、"Chr1B.vcf.gz"等
      *
-     * @param inputVcfDir "chr001.vcf", "chr002.vcf"等
-     * @param outputVcfDir "Chr1A.vcf", "Chr1B.vcf"等
+     * @param inputVcfDir "chr001.vcf.gz", "chr002.vcf.gz"等
+     * @param outputVcfDir "Chr1A.vcf.gz", "Chr1B.vcf.gz"等
      */
     public static void mergeVCFtoChr(String inputVcfDir, String outputVcfDir){
         File[] files=IOUtils.listRecursiveFiles(new File(inputVcfDir));
-        File[] vcfFile=IOUtils.listFilesEndsWith(files, "vcf");
+        File[] vcfFile=IOUtils.listFilesEndsWith(files, "vcf.gz");
         Predicate<File> p= file -> {
             int chrNum=StringTool.getNumFromString(file.getName());
             if(chrNum==0 || chrNum==43 || chrNum==44) return true;
@@ -267,7 +274,7 @@ public class VCF {
             if(i<chr.length-2 && (chr[i+1]-chr[i])==1){
                 VCF vcf=new VCF(vcfFile1_44[i]);
                 vcf.addVCF(new VCF(vcfFile1_44[i+1]));
-                vcf.write(outputVcfDir, VCF.chrToChrMap.get(chr[i])+".vcf");
+                vcf.write(outputVcfDir, VCF.chrToChrMap.get(chr[i])+"_ABDgenome_subset"+".vcf.gz");
             }
             if(i<chr.length-2 && (chr[i+1]-chr[i])>=1){
                 i=i+1;
@@ -279,10 +286,11 @@ public class VCF {
                 if((chr[i+1]-chr[i])==1){
                     VCF vcf=new VCF(vcfFile1_44[i]);
                     vcf.addVCF(new VCF(vcfFile1_44[i+1]));
-                    vcf.write(outputVcfDir, VCF.chrToChrMap.get(chr[i])+".vcf");
+                    vcf.write(outputVcfDir, VCF.chrToChrMap.get(chr[i])+"_ABDgenome_subset"+".vcf.gz");
                 }
             }
         }
+        System.out.println("ok");
 
     }
 
@@ -356,7 +364,13 @@ public class VCF {
 
     public void write(String outFile){
         this.sort();
-        try(BufferedWriter bw=IOUtils.getTextWriter(outFile)){
+        BufferedWriter bw;
+        if (outFile.endsWith(".vcf")){
+            bw=IOUtils.getTextWriter(outFile);
+        }else {
+            bw=IOUtils.getTextGzipWriter(outFile);
+        }
+        try{
             bw.write(this.meta);
             StringBuilder sb=new StringBuilder();
             for(int i=0;i<header.size();i++){
@@ -376,6 +390,7 @@ public class VCF {
                 sb=new StringBuilder();
             }
             bw.flush();
+            bw.close();
         }catch (Exception e){
             e.printStackTrace();
         }
