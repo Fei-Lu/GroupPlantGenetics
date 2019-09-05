@@ -128,7 +128,7 @@ public class Cells {
         try{
             bwCellSizeFile.write("Cell"+"\t"+"Size"+"\t"+"cumulativePercentage"+"\n");
             for (int i = 0; i < bwForDotPosition.length; i++) {
-                bwForDotPosition[i].write("Chr"+"\t"+"POS");
+                bwForDotPosition[i].write("Chr"+"\t"+"POS"+"\t"+"Depth"+"\t"+"SD");
                 bwForDotPosition[i].newLine();
             }
         }catch (Exception e){
@@ -142,13 +142,25 @@ public class Cells {
             Cell cell;
             int count=0;
             double rate=0;
+            short chr;
+            int pos;
+            double depth;
+            double sd;
+            StringBuilder sb=new StringBuilder();
             for (int i = 0; i < cells.size(); i++) {
                 cell=cells.get(i);
                 rate=rate+cell.size()/this.getDotNumOfAllCell();
                 bwCellSizeFile.write(count+"\t"+cell.size()+"\t"+rate);
                 bwCellSizeFile.newLine();
                 for (int k = 0; k < cell.size(); k++) {
-                    bwForDotPosition[count].write(cell.getDotList().get(k).getChromosome()+"\t"+ cell.getDotList().get(k).getPosition());
+                    sb=new StringBuilder();
+                    chr=cell.getDotList().get(k).getChromosome();
+                    pos=cell.getDotList().get(k).getPosition();
+                    depth=cell.getDotList().get(k).getDepth();
+                    sd=cell.getDotList().get(k).getSd();
+                    sb.append(chr).append("\t").append(pos).append("\t").append(depth)
+                            .append("\t").append(sd);
+                    bwForDotPosition[count].write(sb.toString());
                     bwForDotPosition[count].newLine();
                 }
                 count++;
@@ -159,7 +171,7 @@ public class Cells {
                 bwForDotPosition[i].flush();
                 bwForDotPosition[i].close();
             }
-            System.out.println("Total sites in this file is "+String.valueOf(this.getDotNumOfAllCell()));
+            System.out.println("Total sites in this file is "+ (int)this.getDotNumOfAllCell());
         }catch (Exception e){
             e.printStackTrace();
         }
