@@ -46,4 +46,13 @@ public class Cell {
     public int size(){
         return this.getDotList().size();
     }
+
+    public double getMeanOfDepth(){
+        return (this.getDepthBoundary()+this.getDepthWindow()*0.5);
+    }
+
+    public double getMeanOfSD(){
+        return (this.getSdBoundary()+this.getSdWindow()*0.5);
+    }
+
 }

@@ -18,7 +18,7 @@ public class Cells {
     private int countOfCell;
 
     public Cells(double maxOfdepth, double maxOfSD, int numberOfCell){
-        this.countOfCell=numberOfCell;
+        this.countOfCell=numberOfCell*numberOfCell;
         this.initializeCells(maxOfdepth, maxOfSD, numberOfCell);
     }
 
@@ -36,6 +36,7 @@ public class Cells {
             }
             cellss.add(cells);
         }
+        this.cellList=cellss;
         this.boundaryOfDepth=boundaryOfDepth;
         this.depthWindow=depthWindow;
         this.boundaryOfSD=boundaryOfSD;
@@ -63,16 +64,6 @@ public class Cells {
     }
 
     public Cell getCell(int indexOfDepth, int indexOfSD){
-        List<List<Cell>> cellss=new ArrayList<>();
-        this.cellList=new ArrayList<>();
-        List<Cell> cells;
-        for (int i = 0; i < boundaryOfDepth.length; i++) {
-            cells=new ArrayList<>();
-            for (int j = 0; j < boundaryOfSD.length; j++) {
-                cells.add(new Cell(boundaryOfDepth[i], depthWindow, boundaryOfSD[j], sdWindow));
-            }
-            cellss.add(cells);
-        }
         return this.getCellList().get(indexOfDepth).get(indexOfSD);
     }
 
@@ -103,11 +94,17 @@ public class Cells {
         return indexInDepthSD;
     }
 
-//    public void sort(){
-//        Comparator<List<Cell>> cellComparator=Comparator.comparing(l->l.get(0).getDepthBoundary());
-//        cellComparator=cellComparator.thenComparing(l->l.get(0).getSdBoundary());
-//        Collections.sort(cellList, cellComparator);
-//    }
+    public double getDotNumOfAllCell(){
+        Cell cell;
+        double size=0D;
+        for (int i = 0; i < this.getCellList().size(); i++) {
+            for (int j = 0; j < this.getCellList().get(0).size(); j++) {
+                cell=this.getCell(i, j);
+                size=size+cell.size();
+            }
+        }
+        return size;
+    }
 
     public void write(String outPutDir){
         File cellSizeFile=new File(outPutDir, "cellSize.txt");
@@ -134,9 +131,12 @@ public class Cells {
                 for (int j = 0; j < cellList.get(0).size(); j++) {
                     cell=this.getCell(i,j);
                     bwCellSizeFile.write(count+"\t"+cell.size());
+                    bwCellSizeFile.newLine();
                     for (int k = 0; k < cell.size(); k++) {
-                        bwForDotPosition[count].write(cell.getDotList().get(k).getPosition());
+                        bwForDotPosition[count].write(String.valueOf(cell.getDotList().get(k).getPosition()));
+                        bwForDotPosition[count].newLine();
                     }
+                    count++;
                 }
             }
             bwCellSizeFile.flush();
@@ -148,6 +148,33 @@ public class Cells {
         }catch (Exception e){
             e.printStackTrace();
         }
+        this.writeForGraph(new File(outPutDir, "cellGraph.txt").getAbsolutePath());
 
+    }
+
+    public void writeForGraph(String outputfile){
+        try(BufferedWriter bw=IOUtils.getTextWriter(outputfile)){
+            bw.write("Depth"+"\t"+"SD"+"\t"+"Density"+"\n");
+            Cell cell;
+            double cellDepth;
+            double cellSD;
+            double cellSizeDensity;
+            StringBuilder sb;
+            for (int i = 0; i < this.getCellList().size(); i++) {
+                for (int j = 0; j < this.getCellList().get(0).size(); j++) {
+                    cell=this.getCellList().get(i).get(j);
+                    cellDepth=cell.getMeanOfDepth();
+                    cellSD=cell.getMeanOfSD();
+                    cellSizeDensity=(cell.size())/(this.getDotNumOfAllCell());
+                    sb=new StringBuilder();
+                    sb.append(cellDepth).append("\t").append(cellSD).append("\t").append(cellSizeDensity);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+            }
+            bw.flush();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }

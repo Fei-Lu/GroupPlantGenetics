@@ -102,14 +102,13 @@ public class Start {
 //        ScriptMethods.getTopRows(args[0], Integer.parseInt(args[1]), args[2]);
         DepthInfo depthInfo=new DepthInfo("/Users/xudaxing/Desktop/chr001_subset.depth.txt");
         List<Dot> dotList=depthInfo.getDotList();
-        Cells cells=new Cells(30F, 20F, 10);
+        Cells cells=new Cells(30F, 20F, 100);
         int[] indexOfDepthSD;
         for (int i = 0; i < dotList.size(); i++) {
             indexOfDepthSD= cells.binarySearch(dotList.get(i));
             cells.getCell(indexOfDepthSD).add(dotList.get(i));
         }
         cells.write("/Users/xudaxing/Desktop/chr1A");
-
     }
 
 
