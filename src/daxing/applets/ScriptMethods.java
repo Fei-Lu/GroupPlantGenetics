@@ -3,9 +3,7 @@ package daxing.applets;
 import daxing.filterSNP.Cells;
 import daxing.filterSNP.DepthInfo;
 import daxing.filterSNP.Dot;
-import format.position.ChrPos;
 import utils.IOUtils;
-import utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -79,25 +77,19 @@ public class ScriptMethods {
     // 根据输出的postition目录，筛选累计密度达到指定百分比的格子所对应的ChrPos信息
     public static void filterSNP2(String inputDirOfPosition, String outputFile, int num){
         File[] files=IOUtils.listRecursiveFiles(new File(inputDirOfPosition));
-        List<ChrPos> chrPosList=new ArrayList<>();
+        List<String> chrPosList=new ArrayList<>();
         BufferedReader[] brs=new BufferedReader[num+1];
         try{
             for (int i = 0; i < brs.length; i++) {
                 brs[i]=IOUtils.getTextReader(files[i].getAbsolutePath());
                 String line;
                 brs[i].readLine();
-                List<String> lineList;
-                List<ChrPos> chrPos=new ArrayList<>();
-                short chr;
-                int pos;
+                List<String> lines=new ArrayList<>();
                 while ((line=brs[i].readLine())!=null){
-                    lineList= PStringUtils.fastSplit(line);
-                    chr=Short.parseShort(lineList.get(0));
-                    pos=Integer.parseInt(lineList.get(1));
-                    chrPos.add(new ChrPos(chr, pos));
+                    lines.add(line);
                 }
-                System.out.println(i+"\t"+chrPos.size());
-                chrPosList.addAll(chrPos);
+                System.out.println(i+"\t"+lines.size());
+                chrPosList.addAll(lines);
                 brs[i].close();
             }
         }catch (Exception e){
@@ -105,17 +97,15 @@ public class ScriptMethods {
         }
 
         BufferedWriter bw=IOUtils.getTextWriter(outputFile);
+//        int[] randoms= ArrayTool.getRandomNonrepetitionArray(5000, 0, chrPosList.size());
+//        Arrays.sort(randoms);
         try {
-            short chr;
-            int pos;
-            bw.write("CHR"+"\t"+"POS"+"\n");
-            StringBuilder sb;
+            bw.write("CHR"+"\t"+"POS"+"\t"+"AverageDepth"+"\t"+"SD"+"\n");
+//            int index;
             for (int i = 0; i < chrPosList.size(); i++) {
-                sb=new StringBuilder();
-                chr=chrPosList.get(i).getChromosome();
-                pos=chrPosList.get(i).getPosition();
-                sb.append(chr).append("\t").append(pos);
-                bw.write(sb.toString());
+//                index=Arrays.binarySearch(randoms, i);
+//                if (index<0) continue;
+                bw.write(chrPosList.get(i));
                 bw.newLine();
             }
             bw.flush();
