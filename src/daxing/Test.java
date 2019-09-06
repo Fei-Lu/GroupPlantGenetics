@@ -1,9 +1,6 @@
 package daxing;
 
-import daxing.common.ArrayTool;
-import daxing.common.CollectionTool;
-import daxing.common.RowTableTool;
-import daxing.common.VCF;
+import daxing.common.*;
 import utils.IOUtils;
 import utils.PStringUtils;
 import utils.Tuple;

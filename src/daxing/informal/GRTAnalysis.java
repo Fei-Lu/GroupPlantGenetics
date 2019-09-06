@@ -39,8 +39,8 @@ public class GRTAnalysis {
                 sb.append(temp);
             }
             str=sb.toString();
-            int[] frequency1= StringTool.getFrequencyOfSubStr(str,"GGATCC");
-            int[] frequency2=StringTool.getFrequencyOfSubStr(str,"CCGG");
+            int[] frequency1= StringTool.getIndexOfSubStr(str,"GGATCC");
+            int[] frequency2=StringTool.getIndexOfSubStr(str,"CCGG");
             sb=new StringBuilder();
             for(int i=0;i<frequency1.length;i++){
                 sb.append(frequency1[i]);

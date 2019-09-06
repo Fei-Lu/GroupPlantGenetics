@@ -1,16 +1,13 @@
 package daxing.ancestralAllele;
 
+import daxing.applets.ScriptMethods;
 import daxing.common.ChrConvertionRule;
-import daxing.filterSNP.Cells;
-import daxing.filterSNP.DepthInfo;
-import daxing.filterSNP.Dot;
 import utils.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.List;
 
 public class Start {
     private String workingDir;
@@ -100,15 +97,11 @@ public class Start {
 //        System.out.println(seqByte.getSequence(0,3));
 //        Script.getLastz(args[0], args[1], args[2], args[3]);
 //        ScriptMethods.getTopRows(args[0], Integer.parseInt(args[1]), args[2]);
-        DepthInfo depthInfo=new DepthInfo("/Users/xudaxing/Desktop/chr001_subset.depth.txt");
-        List<Dot> dotList=depthInfo.getDotList();
-        Cells cells=new Cells(30F, 20F, 100);
-        int[] indexOfDepthSD;
-        for (int i = 0; i < dotList.size(); i++) {
-            indexOfDepthSD= cells.binarySearch(dotList.get(i));
-            cells.getCell(indexOfDepthSD).add(dotList.get(i));
-        }
-        cells.write("/Users/xudaxing/Desktop/chr1A");
+        ScriptMethods.getCellDensity("/Users/xudaxing/Desktop/chr1A-7A.ABDgenome.txt","/Users/xudaxing/Desktop/chr1A-7A_ABD_bin100");
+        ScriptMethods.getHighCumulativePos("/Users/xudaxing/Desktop/chr1A-7A_ABD_bin100/position", "/Users/xudaxing/Desktop/chr1A-7A_ABD_bin100_0.85.txt", 348);
+//        ScriptMethods.getSubsetForGraph("/Users/xudaxing/Desktop/chr1A-7A.ABDgenome.txt",
+//               "/Users/xudaxing/Desktop/chr1A-7A.ABDgenome_5000pos.txt", 5000);
+        ScriptMethods.addDepthGroup("/Users/xudaxing/Desktop/0.55-0.95/chr1A-7A_ABD_bin100_0.95.txt","/Users/xudaxing/Desktop/chr1A-7A.ABDgenome_5000pos.txt", 9, "/Users/xudaxing/Desktop/chrAsub.ABDgenome.depthVSsd.addGroup.bin100_0.95.txt");
     }
 
 
