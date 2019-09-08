@@ -18,7 +18,7 @@ public class DepthInfo {
 
     private void initialize(String inputFile){
         List<Dot> dotList=new ArrayList<>();
-        try(BufferedReader br= IOUtils.getTextReader(inputFile)){
+        try(BufferedReader br= IOUtils.getTextGzipReader(inputFile)){
             String line;
             List<String> lineList;
             short chr;
