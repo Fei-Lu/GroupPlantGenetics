@@ -280,6 +280,12 @@ public class Cells {
         getCellDensity(inputFile, outputDir, 30F, 20F, 100);
     }
 
+    /**
+     *
+     * @param inputFile chr pos depth sd输入文件
+     * @param outputFile chr pos 文件
+     * @param topDensity 0.75
+     */
     public static void getTopCellDensity(String inputFile, String outputFile, double topDensity){
         DepthInfo depthInfo=new DepthInfo(inputFile);
         List<Dot> dotList=depthInfo.getDotList();
