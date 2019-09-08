@@ -1,6 +1,5 @@
 package daxing.ancestralAllele;
 
-import daxing.applets.ScriptMethods;
 import daxing.common.ChrConvertionRule;
 import utils.IOUtils;
 
@@ -17,12 +16,12 @@ public class Start {
     private int indexOfWheatInOutGroup1;
     private String outgroup2InputDir;
     private int indexOfWheatInOutGroup2;
-    private String[] subDir={"refOutgroupAllele0904", "merge0904", "ancestralAllele0904"};
+    private String[] subDir={"refOutgroupAllele", "merge", "ancestralAllele"};
 
     Start(String parameterFileS){
         this.initializeParameter(parameterFileS);
-        this.getOutgroupAllele();
-//        this.merge();
+//        this.getOutgroupAllele();
+        this.merge();
 //        this.getAncestralAllele();
 
     }
@@ -70,17 +69,15 @@ public class Start {
     private void getOutgroupAllele(){
         ChrConvertionRule chrConvertionRule=new ChrConvertionRule(Paths.get(this.chrConvertionRule));
         MAF maf1=new MAF(this.indexOfWheatInOutGroup1, chrConvertionRule, Paths.get(this.outgroup1InputDir));
-        MAF maf2=new MAF(this.indexOfWheatInOutGroup2, chrConvertionRule, Paths.get(this.outgroup2InputDir));
+//        MAF maf2=new MAF(this.indexOfWheatInOutGroup2, chrConvertionRule, Paths.get(this.outgroup2InputDir));
 //        AllelesInfor allelesInfor=new AllelesInfor(Paths.get(this.chrallvcfFile));
         maf1.getAllele(new File(this.workingDir, this.subDir[0]).getAbsolutePath());
-        maf2.getAllele(new File(this.workingDir, this.subDir[0]).getAbsolutePath());
+//        maf2.getAllele(new File(this.workingDir, this.subDir[0]).getAbsolutePath());
     }
 
     private void merge(){
-        File[] files= new File(this.workingDir, this.subDir[0]).listFiles();
-//        String outfile=new File(this.workingDir, "ancestralAllele.txt").getAbsolutePath();
-//        MAF.mergeTwoFiles(files[0].getAbsolutePath(), files[1].getAbsolutePath(), outfile);
-        MAF.merge(this.workingDir, new File(this.workingDir, this.subDir[1]).getAbsolutePath());
+        File files= new File(this.workingDir, this.subDir[0]);
+        MAF.merge(files.getAbsolutePath(), new File(this.workingDir, this.subDir[1]).getAbsolutePath());
     }
 
     public void getAncestralAllele(){
@@ -91,17 +88,18 @@ public class Start {
 
 
     public static void main(String[] args) {
-//        new Start(args[0]);
+        new Start(args[0]);
 //        MD5.getMD5FromDir("/Users/xudaxing/Desktop/work");
 //        SeqByte seqByte=new SeqByte("TCTTCCCCTA");
 //        System.out.println(seqByte.getSequence(0,3));
 //        Script.getLastz(args[0], args[1], args[2], args[3]);
 //        ScriptMethods.getTopRows(args[0], Integer.parseInt(args[1]), args[2]);
-        ScriptMethods.getCellDensity("/Users/xudaxing/Desktop/chr1A-7A.ABDgenome.txt","/Users/xudaxing/Desktop/chr1A-7A_ABD_bin100");
-        ScriptMethods.getHighCumulativePos("/Users/xudaxing/Desktop/chr1A-7A_ABD_bin100/position", "/Users/xudaxing/Desktop/chr1A-7A_ABD_bin100_0.85.txt", 348);
-//        ScriptMethods.getSubsetForGraph("/Users/xudaxing/Desktop/chr1A-7A.ABDgenome.txt",
-//               "/Users/xudaxing/Desktop/chr1A-7A.ABDgenome_5000pos.txt", 5000);
-        ScriptMethods.addDepthGroup("/Users/xudaxing/Desktop/0.55-0.95/chr1A-7A_ABD_bin100_0.95.txt","/Users/xudaxing/Desktop/chr1A-7A.ABDgenome_5000pos.txt", 9, "/Users/xudaxing/Desktop/chrAsub.ABDgenome.depthVSsd.addGroup.bin100_0.95.txt");
+//        ScriptMethods.getCellDensity("/Users/xudaxing/Desktop/chr1A-7A.ABDgenome.txt","/Users/xudaxing/Desktop/chr1A-7A_ABD_bin100");
+//        ScriptMethods.getHighCumulativePos("/Users/xudaxing/Desktop/chr1A-7A_ABD_bin100/position", "/Users/xudaxing/Desktop/chr1A-7A_ABD_bin100_0.85.txt", 348);
+////        ScriptMethods.getSubsetForGraph("/Users/xudaxing/Desktop/chr1A-7A.ABDgenome.txt",
+////               "/Users/xudaxing/Desktop/chr1A-7A.ABDgenome_5000pos.txt", 5000);
+//        ScriptMethods.addDepthGroup("/Users/xudaxing/Desktop/0.55-0.95/chr1A-7A_ABD_bin100_0.95.txt","/Users/xudaxing/Desktop/chr1A-7A.ABDgenome_5000pos.txt", 9, "/Users/xudaxing/Desktop/chrAsub.ABDgenome.depthVSsd.addGroup.bin100_0.95.txt");
+
     }
 
 

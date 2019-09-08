@@ -3,6 +3,7 @@ package daxing.ancestralAllele;
 import daxing.common.ChrConvertionRule;
 import format.position.ChrPos;
 import gnu.trove.list.array.TIntArrayList;
+import utils.Benchmark;
 import utils.IOUtils;
 import utils.PArrayUtils;
 import utils.PStringUtils;
@@ -339,6 +340,7 @@ public class MAF {
 
     public static void mergeTwoFiles(String inputOutgroup1File, String inputOutgroup2File, String outFileDir){
         try {
+            long start=System.nanoTime();
             List<List<String>> l1= Files.newBufferedReader(Paths.get(inputOutgroup1File)).lines().skip(1).parallel()
                     .map(PStringUtils::fastSplit).collect(Collectors.toList());
             List<List<String>> l2=Files.newBufferedReader(Paths.get(inputOutgroup2File)).lines().skip(1).parallel()
@@ -423,6 +425,7 @@ public class MAF {
                 bw.write(sb.toString());
             }
             bw.flush();
+            System.out.println(new File(outFileDir,taxonName1List.get(0)+"_ancestralAllele_"+tasons[0]+"_v_"+tasons[1]+".txt").getAbsolutePath()+" is completed in" + Benchmark.getTimeSpanMinutes(start)+" minutes");
         }catch (Exception e){
             e.printStackTrace();
         }
