@@ -286,8 +286,8 @@ public class Cells {
      * @param outputFile chr pos 文件
      * @param topDensity 0.75
      */
-    public static void getTopCellDensity(String inputFile, String outputFile, double topDensity){
-        DepthInfo depthInfo=new DepthInfo(inputFile);
+    public static void getTopCellDensity(File inputFile, File outputFile, double topDensity){
+        DepthInfo depthInfo=new DepthInfo(inputFile.getAbsolutePath());
         List<Dot> dotList=depthInfo.getDotList();
         Cells cells=new Cells();
         int[] indexOfDepthSD;
@@ -295,7 +295,7 @@ public class Cells {
             indexOfDepthSD= cells.binarySearch(dotList.get(i));
             cells.getCell(indexOfDepthSD).add(dotList.get(i));
         }
-        cells.write(outputFile, topDensity);
+        cells.write(outputFile.getAbsolutePath(), topDensity);
     }
 
     // 根据输出的postition目录，筛选累计密度达到指定百分比的格子所对应的ChrPos信息
