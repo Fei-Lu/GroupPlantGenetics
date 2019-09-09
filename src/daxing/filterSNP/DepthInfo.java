@@ -18,8 +18,8 @@ public class DepthInfo {
 
     private void initialize(String inputFile){
         List<Dot> dotList=new ArrayList<>();
+        String line=null;
         try(BufferedReader br= IOUtils.getTextGzipReader(inputFile)){
-            String line;
             List<String> lineList;
             short chr;
             int pos;
@@ -38,6 +38,7 @@ public class DepthInfo {
             this.dotList=dotList;
         }catch (Exception e){
             e.printStackTrace();
+            System.out.println(inputFile+"\t"+line);
         }
     }
 
