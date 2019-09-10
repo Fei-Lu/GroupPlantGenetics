@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class ScriptMethods {
 
@@ -48,10 +49,10 @@ public class ScriptMethods {
         }
     }
 
-    public static void getTopRows(String inputFile, int n, String outputFile){
+    public static void getTopRows(File inputFile, int n, File outputFile){
         try{
-            List<String> lineList= Files.newBufferedReader(Paths.get(inputFile)).lines().limit(n).collect(Collectors.toList());
-            BufferedWriter bw=Files.newBufferedWriter(Paths.get(outputFile));
+            List<String> lineList= Files.newBufferedReader(Paths.get(inputFile.getAbsolutePath())).lines().limit(n).collect(Collectors.toList());
+            BufferedWriter bw=Files.newBufferedWriter(Paths.get(outputFile.getAbsolutePath()));
             for (int i = 0; i < lineList.size(); i++) {
                 bw.write(lineList.get(i));
                 bw.newLine();
@@ -62,6 +63,14 @@ public class ScriptMethods {
         catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    public static void getTopRowsFromDir(String inputDir, int n, String outputDir){
+        File[] files=IOUtils.listRecursiveFiles(new File(inputDir));
+        String[] names= Arrays.stream(files).map(File::getName).toArray(String[]::new);
+        IntStream.range(0, files.length).parallel().forEach(e->{
+            ScriptMethods.getTopRows(files[e], n, new File(outputDir, names[e]));
+        });
     }
 
     // chr pos depth sd输入文件，输出目录
@@ -186,11 +195,11 @@ public class ScriptMethods {
                 bw.newLine();
             }
             bw.flush();
-            bw.close();
         }catch (Exception e){
             e.printStackTrace();
         }
     }
+
 
 
 
