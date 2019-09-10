@@ -106,7 +106,7 @@ public class FilterSNPGo {
         File[] abFiles=Arrays.stream(inputAB).filter(p.negate()).toArray(File[]::new);
         File[] dFiles=Arrays.stream(inputD).filter(p.negate()).toArray(File[]::new);
         List<File> files=new ArrayList<>();
-        String[] filesName=Arrays.stream(abdFiles).map(File::getName).map(str->str.replaceAll(".ABDgenome.filtered0.75.vcf.gz$","_PosAllele.txt.gz")).toArray(String[]::new);
+        String[] filesName=Arrays.stream(abdFiles).map(File::getName).map(str->str.replaceAll(".ABDgenome.filtered0.75.vcf$","_PosAllele.txt.gz")).toArray(String[]::new);
         files.addAll(CollectionTool.changeToList(abdFiles));
         files.addAll(CollectionTool.changeToList(abFiles));
         files.addAll(CollectionTool.changeToList(dFiles));
