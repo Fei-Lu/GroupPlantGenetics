@@ -112,20 +112,19 @@ public class FilterSNPGo {
         files.addAll(CollectionTool.changeToList(dFiles));
         Collections.sort(files);
         int[] aa=IntStream.iterate(0, n->n+2).limit(42).toArray();
-        Arrays.stream(aa).parallel().forEach(e->{
-            FilterSNPGo.mergePosList(files.get(e), files.get(e+1), new File(outFile, filesName[e]));
-        });
+        Arrays.stream(aa).parallel().forEach(e-> FilterSNPGo.mergePosList(files.get(e), files.get(e+1), new File(outFile, filesName[e/2])));
 
     }
 
     /**
      * 最多只保留2个Alt allele
-     * @param vcfInutFile1
+     * @param vcfInputFile1
      * @param vcfInputFile2
      * @param outFile chr pos  ref alt
      */
-    public static void mergePosList (File vcfInutFile1, File vcfInputFile2, File outFile) {
-        String inFileS1 = vcfInutFile1.getAbsolutePath();
+    public static void mergePosList (File vcfInputFile1, File vcfInputFile2, File outFile) {
+        long start=System.nanoTime();
+        String inFileS1 = vcfInputFile1.getAbsolutePath();
         String inFileS2 = vcfInputFile2.getAbsolutePath();
         String outfileS = outFile.getAbsolutePath();
         String[] alleles = {"A", "C", "G", "T", "D", "I"};
@@ -260,6 +259,7 @@ public class FilterSNPGo {
             }
             bw.flush();
             bw.close();
+            System.out.println(outFile.getName()+" is completed in "+Benchmark.getTimeSpanMinutes(start)+" minutes");
         }
         catch (Exception e) {
             e.printStackTrace();
