@@ -111,8 +111,12 @@ public class FilterSNPGo {
         files.addAll(CollectionTool.changeToList(abFiles));
         files.addAll(CollectionTool.changeToList(dFiles));
         Collections.sort(files);
-        int[] aa=IntStream.iterate(0, n->n+2).limit(42).toArray();
-        Arrays.stream(aa).parallel().forEach(e-> FilterSNPGo.mergePosList(files.get(e), files.get(e+1), new File(outFile, filesName[e/2])));
+        int[] aa;
+        for (int i = 0; i < 82; i=i+14) {
+            aa= IntStream.iterate(i, n->n+2).limit(7).toArray();
+            Arrays.stream(aa).parallel().forEach(e-> FilterSNPGo.mergePosList(files.get(e), files.get(e+1), new File(outFile, filesName[e/2])));
+        }
+
 
     }
 
