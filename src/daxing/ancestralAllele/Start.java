@@ -16,13 +16,12 @@ public class Start {
     private int indexOfWheatInOutGroup1;
     private String outgroup2InputDir;
     private int indexOfWheatInOutGroup2;
-    private String[] subDir={"refOutgroupAllele", "merge", "ancestralAllele"};
+    private String[] subDir={"refOutgroupAllele", "merge"};
 
     Start(String parameterFileS){
         this.initializeParameter(parameterFileS);
 //        this.getOutgroupAllele();
         this.merge();
-//        this.getAncestralAllele();
 
     }
 
@@ -69,10 +68,10 @@ public class Start {
     private void getOutgroupAllele(){
         ChrConvertionRule chrConvertionRule=new ChrConvertionRule(Paths.get(this.chrConvertionRule));
         MAF maf1=new MAF(this.indexOfWheatInOutGroup1, chrConvertionRule, Paths.get(this.outgroup1InputDir));
-//        MAF maf2=new MAF(this.indexOfWheatInOutGroup2, chrConvertionRule, Paths.get(this.outgroup2InputDir));
+        MAF maf2=new MAF(this.indexOfWheatInOutGroup2, chrConvertionRule, Paths.get(this.outgroup2InputDir));
 //        AllelesInfor allelesInfor=new AllelesInfor(Paths.get(this.chrallvcfFile));
         maf1.getAllele(new File(this.workingDir, this.subDir[0]).getAbsolutePath());
-//        maf2.getAllele(new File(this.workingDir, this.subDir[0]).getAbsolutePath());
+        maf2.getAllele(new File(this.workingDir, this.subDir[0]).getAbsolutePath());
     }
 
     private void merge(){
@@ -80,15 +79,9 @@ public class Start {
         MAF.merge(files.getAbsolutePath(), new File(this.workingDir, this.subDir[1]).getAbsolutePath());
     }
 
-    public void getAncestralAllele(){
-        File input=new File(this.workingDir, this.subDir[1]);
-        File output=new File(this.workingDir, this.subDir[2]);
-        MAF.getAncestralAlleleParallel(input.getAbsolutePath(), output.getAbsolutePath());
-    }
-
-
     public static void main(String[] args) {
         new Start(args[0]);
+//        FilterSNPGo.mergePosList(args[0], args[1], args[2], args[3]);
 //        MD5.getMD5FromDir("/Users/xudaxing/Desktop/work");
 //        SeqByte seqByte=new SeqByte("TCTTCCCCTA");
 //        System.out.println(seqByte.getSequence(0,3));
