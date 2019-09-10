@@ -12,10 +12,7 @@ import utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
@@ -110,7 +107,8 @@ public class FilterSNPGo {
         files.addAll(CollectionTool.changeToList(abdFiles));
         files.addAll(CollectionTool.changeToList(abFiles));
         files.addAll(CollectionTool.changeToList(dFiles));
-        Collections.sort(files);
+        Comparator<File> comparator=Comparator.comparing(f->f.getName());
+        Collections.sort(files, comparator);
         int[] aa = IntStream.iterate(0, n -> n + 2).limit(42).toArray();
         Arrays.stream(aa).forEach(e -> FilterSNPGo.mergePosList(files.get(e), files.get(e + 1), new File(outFile, filesName[e / 2])));
     }
