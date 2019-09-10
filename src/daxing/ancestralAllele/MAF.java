@@ -3,6 +3,7 @@ package daxing.ancestralAllele;
 import daxing.common.ChrConvertionRule;
 import format.position.ChrPos;
 import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.set.hash.TIntHashSet;
 import utils.Benchmark;
 import utils.IOUtils;
 import utils.PArrayUtils;
@@ -11,9 +12,7 @@ import utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
@@ -221,12 +220,7 @@ public class MAF {
                 }
             });
         }
-        List<Integer> l=new ArrayList<>();
-        l.add(0);
-        l.add(1);
-        l.remove(this.getTaxonIndexForOrder());
-        String[] taxons=this.getMafRecords()[1].get(1).getTaxon();
-        String taxon=taxons[l.get(0)];
+        String taxon=this.getAnotherTaxonName();
         try(BufferedWriter bw=IOUtils.getTextWriter(new File(outDir, taxon+".txt").toString())){
             StringBuilder sb=new StringBuilder();
             sb.append("CHR").append("\t").append("POS").append("\t")
@@ -251,12 +245,7 @@ public class MAF {
     public void getAllele(String outDir){
         Map<Integer, BufferedWriter> integerBufferedWriterMap=new HashMap<>();
         BufferedWriter bw;
-        List<Integer> l=new ArrayList<>();
-        l.add(0);
-        l.add(1);
-        l.remove(this.getTaxonIndexForOrder());
-        String[] taxons=this.getMafRecords()[1].get(1).getTaxon();
-        String outgroupTaxon=taxons[l.get(0)];
+        String outgroupTaxon=this.getAnotherTaxonName();
         for (int i = 0; i < this.getMafRecords().length; i++) {
             bw=IOUtils.getTextWriter(new File(outDir, "triticum_aestivumChr"+PStringUtils.getNDigitNumber(3, i)+"_v_"+outgroupTaxon+".txt").getAbsolutePath());
             integerBufferedWriterMap.put(i, bw);
@@ -338,94 +327,78 @@ public class MAF {
         }
     }
 
-    public static void mergeTwoFiles(String inputOutgroup1File, String inputOutgroup2File, String outFileDir){
+    public String getAnotherTaxonName(){
+        List<Integer> l=new ArrayList<>();
+        l.add(0);
+        l.add(1);
+        l.remove(this.getTaxonIndexForOrder());
+        String[] taxons=this.getMafRecords()[1].get(1).getTaxon();
+        String outgroupTaxon=taxons[l.get(0)];
+        return outgroupTaxon;
+    }
+
+    public static void mergeTwoFiles(File inputOutgroup1File, File inputOutgroup2File, File outFile){
         try {
             long start=System.nanoTime();
-            List<List<String>> l1= Files.newBufferedReader(Paths.get(inputOutgroup1File)).lines().skip(1).parallel()
-                    .map(PStringUtils::fastSplit).collect(Collectors.toList());
-            List<List<String>> l2=Files.newBufferedReader(Paths.get(inputOutgroup2File)).lines().skip(1).parallel()
-                    .map(PStringUtils::fastSplit).collect(Collectors.toList());
-            Map<ChrPos, String[]> map1=new HashMap<>();
-            Map<ChrPos, String[]> map2=new HashMap<>();
-            Map<ChrPos, String[]> map=new HashMap<>();
-            short chr;
-            int pos;
-            String[] refAle;
-            for (int i = 0; i < l1.size(); i++) {
-                chr=Short.parseShort(l1.get(i).get(0));
-                pos=Integer.parseInt(l1.get(i).get(1));
-                refAle=new String[2];
-                refAle[0]=l1.get(i).get(2);
-                refAle[1]=l1.get(i).get(3);
-                map1.put(new ChrPos(chr, pos), refAle);
+            BufferedReader br1=IOUtils.getTextReader(inputOutgroup1File.getAbsolutePath());
+            BufferedReader br2=IOUtils.getTextReader(inputOutgroup2File.getAbsolutePath());
+            BufferedWriter bw=IOUtils.getTextWriter(outFile.getAbsolutePath());
+            br1.readLine();
+            br2.readLine();
+            short chr1=Short.MIN_VALUE;
+            short chr2=Short.MIN_VALUE;
+            String line;
+            List<String> lineList;
+            TIntArrayList posList1=new TIntArrayList();
+            TIntArrayList posList2=new TIntArrayList();
+            List<String> refList1=new ArrayList<>();
+            List<String> altList1=new ArrayList<>();
+            List<String> altList2=new ArrayList<>();
+            while ((line=br1.readLine())!=null){
+                lineList = PStringUtils.fastSplit(line);
+                if (lineList.get(2).equals("N")) continue;
+                if (lineList.get(3).equals("N")) continue;
+                chr1=Short.parseShort(lineList.get(0));
+                posList1.add(Integer.parseInt(lineList.get(1)));
+                refList1.add(lineList.get(2));
+                altList1.add(lineList.get(3));
             }
-            for (int i = 0; i < l2.size(); i++) {
-                chr=Short.parseShort(l2.get(i).get(0));
-                pos=Integer.parseInt(l2.get(i).get(1));
-                refAle=new String[2];
-                refAle[0]=l2.get(i).get(2);
-                refAle[1]=l2.get(i).get(3);
-                map2.put(new ChrPos(chr, pos), refAle);
+            br1.close();
+            while ((line=br2.readLine())!=null){
+                lineList = PStringUtils.fastSplit(line);
+                if (lineList.get(2).equals("N")) continue;
+                if (lineList.get(3).equals("N")) continue;
+                chr2=Short.parseShort(lineList.get(0));
+                posList2.add(Integer.parseInt(lineList.get(1)));
+                altList2.add(lineList.get(3));
             }
-            ChrPos key1, key2;
-            String[] value1, value2;
-            String[] refOut1_2;
-            for (Map.Entry<ChrPos, String[]> entry: map1.entrySet()){
-                refOut1_2=new String[3];
-                key1=entry.getKey();
-                chr=key1.getChromosome();
-                pos=key1.getPosition();
-                value1=entry.getValue();
-                if (map2.containsKey(key1)){
-                    refOut1_2[0]=value1[0];
-                    refOut1_2[1]=value1[1];
-                    refOut1_2[2]=map2.get(key1)[1];
-                    map.put(new ChrPos(chr, pos), refOut1_2);
-                }
-                else {
-                    refOut1_2[0]=value1[0];
-                    refOut1_2[1]=value1[1];
-                    refOut1_2[2]="-";  //"-"表示对应的outgroup没有allele
-                    map.put(new ChrPos(chr, pos), refOut1_2);
-                }
+            br2.close();
+            if (chr1!=chr2){
+                System.out.println("Wrong input files! Program quits.");
+                System.exit(0);
             }
-            Set<ChrPos> set2=map2.keySet();
-            set2.removeAll(map1.keySet());
-            for (Map.Entry<ChrPos, String[]> entry: map2.entrySet()){
-                key2=entry.getKey();
-                value2=entry.getValue();
-                chr=key2.getChromosome();
-                pos=key2.getPosition();
-                refOut1_2=new String[3];
-                refOut1_2[0]=value2[0];
-                refOut1_2[1]="-";    //"-"表示对应的outgroup没有allele
-                refOut1_2[2]=value2[1];
-                map.put(new ChrPos(chr, pos), refOut1_2);
-            }
-            List<ChrPos> list=new ArrayList<>(map.keySet());
-            Collections.sort(list);
-            String[] tasons=new String[2];
-            List<String> taxonName1List=PStringUtils.fastSplit(new File(inputOutgroup1File).getName(), "_v_");
-            List<String> taxonName2List=PStringUtils.fastSplit(new File(inputOutgroup2File).getName(), "_v_");
-            tasons[0]=taxonName1List.get(1).replaceAll(".txt$", "");
-            tasons[1]=taxonName2List.get(1).replaceAll(".txt$", "");
-            BufferedWriter bw=IOUtils.getTextWriter(new File(outFileDir,taxonName1List.get(0)+"_ancestralAllele_"+tasons[0]+"_v_"+tasons[1]+".txt").getAbsolutePath());
-            StringBuilder sb;
-            sb=new StringBuilder();
+            TIntHashSet mergedPosSet=new TIntHashSet(posList1);
+            mergedPosSet.addAll(posList2);
+            int[] mergedPos=mergedPosSet.toArray();
+            Arrays.sort(mergedPos);
+            int index1=Integer.MIN_VALUE;
+            int index2=Integer.MIN_VALUE;
+            StringBuilder sb=new StringBuilder();
             sb.append("CHR").append("\t").append("POS").append("\t").append("refAllele").append("\t")
-                    .append(tasons[0]).append("\t").append(tasons[1]).append("\n");
+                    .append("outgroup1").append("\t").append("outgroup2").append("\n");
             bw.write(sb.toString());
-            for (int i = 0; i < list.size(); i++) {
-                chr=list.get(i).getChromosome();
-                pos=list.get(i).getPosition();
-                refOut1_2=map.get(list.get(i));
-                sb=new StringBuilder();
-                sb.append(chr).append("\t").append(pos).append("\t").append(refOut1_2[0].toUpperCase())
-                        .append("\t").append(refOut1_2[1].toUpperCase()).append("\t").append(refOut1_2[2].toUpperCase()).append("\n");
+            for (int i = 0; i < mergedPos.length; i++) {
+                index1=posList1.binarySearch(mergedPos[i]);
+                index2=posList2.binarySearch(mergedPos[i]);
+                if (index1 < 0 || index2 < 0) continue;
+                sb.append(chr1).append("\t").append(mergedPos[i]).append("\t").append(refList1.get(index1))
+                        .append("\t").append(altList1.get(index1)).append("\t").append(altList2.get(index2));
                 bw.write(sb.toString());
+                bw.newLine();
             }
             bw.flush();
-            System.out.println(new File(outFileDir,taxonName1List.get(0)+"_ancestralAllele_"+tasons[0]+"_v_"+tasons[1]+".txt").getAbsolutePath()+" is completed in" + Benchmark.getTimeSpanMinutes(start)+" minutes");
+            bw.close();
+            System.out.println(outFile+" is completed in "+ Benchmark.getTimeSpanMinutes(start)+" minutes");
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -435,9 +408,14 @@ public class MAF {
         File[] files=IOUtils.listRecursiveFiles(new File(inputDir));
         Predicate<File> p=File::isHidden;
         File[] f=Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
-        for (int i = 0; i < f.length; i=i+2) {
-            MAF.mergeTwoFiles(f[i].getAbsolutePath(), f[i+1].getAbsolutePath(), mergeOutDir);
-        }
+        Comparator<File> fileComparator=Comparator.comparing(File::getName);
+        Arrays.sort(f, fileComparator);
+        String[] outNames=Arrays.stream(f).map(File::getName).map(str->str.substring(0, 26))
+                .map(str->str.replaceAll("_v_$",".txt")).toArray(String[]::new);
+        int[] aa=IntStream.iterate(0, n->n+2).limit(45).toArray();
+        Arrays.stream(aa).parallel().forEach(e->{
+            MAF.mergeTwoFiles(f[e], f[e+1], new File(mergeOutDir, outNames[e/2]));
+        });
     }
 
     /**
