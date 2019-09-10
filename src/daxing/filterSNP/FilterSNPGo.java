@@ -1,5 +1,6 @@
 package daxing.filterSNP;
 
+import daxing.common.CollectionTool;
 import format.position.ChrPos;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
@@ -13,6 +14,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
@@ -93,14 +95,27 @@ public class FilterSNPGo {
      * @param abdVCFDir1
      * @param abVCFDir
      * @param dVCFDir
-     * @param outFile1 Chr Pos	Ref	Alt 有header
-     * @param outFile2 Chr Pos 无header
+     * @param outFile Chr Pos	Ref	Alt 有header
      */
-    public static void mergePosList (String abdVCFDir1, String abVCFDir, String dVCFDir, String outFile1, String outFile2){
+    public static void mergePosList (String abdVCFDir1, String abVCFDir, String dVCFDir, String outFile){
         File[] inputABD=IOUtils.listRecursiveFiles(new File(abdVCFDir1));
         File[] inputAB=IOUtils.listRecursiveFiles(new File(abVCFDir));
         File[] inputD=IOUtils.listRecursiveFiles(new File(dVCFDir));
-//        int[] aa=IntStream.generate(0, n->2n).limit(7).toArray();
+        Predicate<File> p=File::isHidden;
+        File[] abdFiles=Arrays.stream(inputABD).filter(p.negate()).toArray(File[]::new);
+        File[] abFiles=Arrays.stream(inputAB).filter(p.negate()).toArray(File[]::new);
+        File[] dFiles=Arrays.stream(inputD).filter(p.negate()).toArray(File[]::new);
+        List<File> files=new ArrayList<>();
+        String[] filesName=Arrays.stream(abdFiles).map(File::getName).map(str->str.replaceAll(".ABDgenome.filtered0.75.vcf.gz$","_PosAllele.txt.gz")).toArray(String[]::new);
+        files.addAll(CollectionTool.changeToList(abdFiles));
+        files.addAll(CollectionTool.changeToList(abFiles));
+        files.addAll(CollectionTool.changeToList(dFiles));
+        Collections.sort(files);
+        int[] aa=IntStream.iterate(0, n->n+2).limit(42).toArray();
+        Arrays.stream(aa).parallel().forEach(e->{
+            FilterSNPGo.mergePosList(files.get(e), files.get(e+1), new File(outFile, filesName[e]));
+        });
+
     }
 
     /**
@@ -109,7 +124,7 @@ public class FilterSNPGo {
      * @param vcfInputFile2
      * @param outFile chr pos  ref alt
      */
-    private static void mergePosList (File vcfInutFile1, File vcfInputFile2, File outFile) {
+    public static void mergePosList (File vcfInutFile1, File vcfInputFile2, File outFile) {
         String inFileS1 = vcfInutFile1.getAbsolutePath();
         String inFileS2 = vcfInputFile2.getAbsolutePath();
         String outfileS = outFile.getAbsolutePath();
@@ -129,13 +144,13 @@ public class FilterSNPGo {
             List<String> referList2 = new ArrayList<>();
             List<String> altList2 = new ArrayList<>();
             List<String> altDepthList2 = new ArrayList<>();
-            BufferedReader br = IOUtils.getTextGzipReader(inFileS1);
+            BufferedReader br = IOUtils.getTextReader(inFileS1);
             String temp = null;
             while ((temp = br.readLine()).startsWith("##")) {};
             taxaNum1 = temp.split("\t").length-9;
             String[] tem = null;
             while ((temp = br.readLine()) != null) {
-                temp = temp.substring(0, 50);
+                temp = temp.substring(0, 100);
                 tem = temp.split("\t");
                 chr1 = Integer.parseInt(tem[0]);
                 posList1.add(Integer.parseInt(tem[1]));
@@ -144,7 +159,7 @@ public class FilterSNPGo {
                 altDepthList1.add(tem[7].split(";")[1].replace("AD=", ""));
             }
             br.close();
-            br = IOUtils.getTextGzipReader(inFileS2);
+            br = IOUtils.getTextReader(inFileS2);
             temp = null;
             while ((temp = br.readLine()).startsWith("##")) {};
             taxaNum2 = temp.split("\t").length-9;
@@ -152,7 +167,7 @@ public class FilterSNPGo {
             double weight2 = (double)taxaNum2/(taxaNum1+taxaNum2);
             tem = null;
             while ((temp = br.readLine()) != null) {
-                temp = temp.substring(0, 50);
+                temp = temp.substring(0, 100);
                 tem = temp.split("\t");
                 chr2 = Integer.parseInt(tem[0]);
                 posList2.add(Integer.parseInt(tem[1]));
@@ -160,11 +175,12 @@ public class FilterSNPGo {
                 altList2.add(tem[4]);
                 altDepthList2.add(tem[7].split(";")[1].replace("AD=", ""));
             }
+            br.close();
             if (chr1 != chr2) {
                 System.out.println("Wrong input files! Program quits.");
                 System.exit(0);
             }
-            BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            BufferedWriter bw = IOUtils.getTextGzipWriter(outfileS);
             bw.write("Chr\tPos\tRef\tAlt");
             bw.newLine();
             TIntHashSet mergedPosSet = new TIntHashSet(posList1);
