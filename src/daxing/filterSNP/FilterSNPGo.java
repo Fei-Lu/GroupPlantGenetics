@@ -97,27 +97,22 @@ public class FilterSNPGo {
      * @param dVCFDir
      * @param outFile Chr Pos	Ref	Alt 有header
      */
-    public static void mergePosList (String abdVCFDir1, String abVCFDir, String dVCFDir, String outFile){
-        File[] inputABD=IOUtils.listRecursiveFiles(new File(abdVCFDir1));
-        File[] inputAB=IOUtils.listRecursiveFiles(new File(abVCFDir));
-        File[] inputD=IOUtils.listRecursiveFiles(new File(dVCFDir));
-        Predicate<File> p=File::isHidden;
-        File[] abdFiles=Arrays.stream(inputABD).filter(p.negate()).toArray(File[]::new);
-        File[] abFiles=Arrays.stream(inputAB).filter(p.negate()).toArray(File[]::new);
-        File[] dFiles=Arrays.stream(inputD).filter(p.negate()).toArray(File[]::new);
-        List<File> files=new ArrayList<>();
-        String[] filesName=Arrays.stream(abdFiles).map(File::getName).map(str->str.replaceAll(".ABDgenome.filtered0.75.vcf$","_PosAllele.txt.gz")).toArray(String[]::new);
+    public static void mergePosList (String abdVCFDir1, String abVCFDir, String dVCFDir, String outFile) {
+        File[] inputABD = IOUtils.listRecursiveFiles(new File(abdVCFDir1));
+        File[] inputAB = IOUtils.listRecursiveFiles(new File(abVCFDir));
+        File[] inputD = IOUtils.listRecursiveFiles(new File(dVCFDir));
+        Predicate<File> p = File::isHidden;
+        File[] abdFiles = Arrays.stream(inputABD).filter(p.negate()).toArray(File[]::new);
+        File[] abFiles = Arrays.stream(inputAB).filter(p.negate()).toArray(File[]::new);
+        File[] dFiles = Arrays.stream(inputD).filter(p.negate()).toArray(File[]::new);
+        List<File> files = new ArrayList<>();
+        String[] filesName = Arrays.stream(abdFiles).map(File::getName).map(str -> str.replaceAll(".ABDgenome.filtered0.75.vcf$", "_PosAllele.txt.gz")).toArray(String[]::new);
         files.addAll(CollectionTool.changeToList(abdFiles));
         files.addAll(CollectionTool.changeToList(abFiles));
         files.addAll(CollectionTool.changeToList(dFiles));
         Collections.sort(files);
-        int[] aa;
-        for (int i = 0; i < 82; i=i+14) {
-            aa= IntStream.iterate(i, n->n+2).limit(7).toArray();
-            Arrays.stream(aa).parallel().forEach(e-> FilterSNPGo.mergePosList(files.get(e), files.get(e+1), new File(outFile, filesName[e/2])));
-        }
-
-
+        int[] aa = IntStream.iterate(0, n -> n + 2).limit(42).toArray();
+        Arrays.stream(aa).forEach(e -> FilterSNPGo.mergePosList(files.get(e), files.get(e + 1), new File(outFile, filesName[e / 2])));
     }
 
     /**
