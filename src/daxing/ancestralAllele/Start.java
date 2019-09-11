@@ -20,7 +20,7 @@ public class Start {
 
     Start(String parameterFileS){
         this.initializeParameter(parameterFileS);
-//        this.getOutgroupAllele();
+        this.getOutgroupAllele();
         this.merge();
 
     }
@@ -67,10 +67,10 @@ public class Start {
 
     private void getOutgroupAllele(){
         ChrConvertionRule chrConvertionRule=new ChrConvertionRule(Paths.get(this.chrConvertionRule));
-        MAF maf1=new MAF(this.indexOfWheatInOutGroup1, chrConvertionRule, Paths.get(this.outgroup1InputDir));
+//        MAF maf1=new MAF(this.indexOfWheatInOutGroup1, chrConvertionRule, Paths.get(this.outgroup1InputDir));
         MAF maf2=new MAF(this.indexOfWheatInOutGroup2, chrConvertionRule, Paths.get(this.outgroup2InputDir));
 //        AllelesInfor allelesInfor=new AllelesInfor(Paths.get(this.chrallvcfFile));
-        maf1.getAllele(new File(this.workingDir, this.subDir[0]).getAbsolutePath());
+//        maf1.getAllele(new File(this.workingDir, this.subDir[0]).getAbsolutePath());
         maf2.getAllele(new File(this.workingDir, this.subDir[0]).getAbsolutePath());
     }
 
@@ -80,7 +80,10 @@ public class Start {
     }
 
     public static void main(String[] args) {
-        new Start(args[0]);
+        new Start("/Users/xudaxing/Desktop/parameterFile");
+//        MAF.merge("/Users/xudaxing/Desktop/temp","/Users/xudaxing/Desktop/res");
+//        ScriptMethods.getTopRowsFromDir(args[0], Integer.parseInt(args[1]), args[2]);
+
 //        FilterSNPGo.mergePosList(args[0], args[1], args[2], args[3]);
 //        MD5.getMD5FromDir("/Users/xudaxing/Desktop/work");
 //        SeqByte seqByte=new SeqByte("TCTTCCCCTA");

@@ -59,7 +59,7 @@ public class MAF {
                 subLibIndices[j] = indices[i][0]+j;
             }
             List<Integer> integerList=Arrays.asList(subLibIndices);
-            integerList.parallelStream()
+            integerList.stream().parallel()
                     .forEach(index-> {
                         try(BufferedReader br= IOUtils.getNIOTextReader(fileArray[index].toString())){
                             br.readLine();
@@ -126,14 +126,14 @@ public class MAF {
         List<MAFrecord> mafRecordList=new ArrayList<>(maFrecordsMap.keySet());
         int chrID;
         String chr;
-        int startPos;
+        int startPos1_based;
         for(MAFrecord e: mafRecordList){
             chr=e.getChr(this.getTaxonIndexForOrder());
-            startPos=e.getStartPos(this.getTaxonIndexForOrder());
-            chrID=this.getChrConvertionRule().getChrIDFromOriChrName(chr, startPos);
+            startPos1_based=e.getStartPos1_based(this.getTaxonIndexForOrder());
+            chrID=this.getChrConvertionRule().getChrIDFromOriChrName(chr, startPos1_based);
             mafrecord[chrID].add(e);
         }
-        Comparator<MAFrecord> comparator=Comparator.comparing(m->m.getStartPos(this.getTaxonIndexForOrder()));
+        Comparator<MAFrecord> comparator=Comparator.comparing(m->m.getStartPos1_based(this.getTaxonIndexForOrder()));
         Arrays.stream(mafrecord).forEach(e-> Collections.sort(e, comparator));
         this.mafRecords=mafrecord;
     }
@@ -243,7 +243,8 @@ public class MAF {
     }
 
     public void getAllele(String outDir){
-        Map<Integer, BufferedWriter> integerBufferedWriterMap=new HashMap<>();
+        long start=System.nanoTime();
+        ConcurrentHashMap<Integer, BufferedWriter> integerBufferedWriterMap=new ConcurrentHashMap<>();
         BufferedWriter bw;
         String outgroupTaxon=this.getAnotherTaxonName();
         for (int i = 0; i < this.getMafRecords().length; i++) {
@@ -277,7 +278,7 @@ public class MAF {
                         }
                     }
                     bufferedWriter.flush();
-                    System.out.println("triticum_aestivumChr"+PStringUtils.getNDigitNumber(3, e)+"_v_"+outgroupTaxon+".txt is completed");
+                    System.out.println("triticum_aestivumChr"+PStringUtils.getNDigitNumber(3, e)+"_v_"+outgroupTaxon+".txt is completed in "+Benchmark.getTimeSpanMinutes(start)+" minutes");
                 }catch (Exception exception){
                     exception.printStackTrace();
                 }
@@ -356,24 +357,20 @@ public class MAF {
             List<String> altList2=new ArrayList<>();
             while ((line=br1.readLine())!=null){
                 lineList = PStringUtils.fastSplit(line);
-                if (lineList.get(2).equals("N")) continue;
-                if (lineList.get(3).equals("N")) continue;
                 chr1=Short.parseShort(lineList.get(0));
                 posList1.add(Integer.parseInt(lineList.get(1)));
-                refList1.add(lineList.get(2));
-                altList1.add(lineList.get(3));
+                refList1.add(lineList.get(2).toUpperCase());
+                altList1.add(lineList.get(3).toUpperCase());
             }
             br1.close();
             while ((line=br2.readLine())!=null){
                 lineList = PStringUtils.fastSplit(line);
-                if (lineList.get(2).equals("N")) continue;
-                if (lineList.get(3).equals("N")) continue;
                 chr2=Short.parseShort(lineList.get(0));
                 posList2.add(Integer.parseInt(lineList.get(1)));
-                altList2.add(lineList.get(3));
+                altList2.add(lineList.get(3).toUpperCase());
             }
             br2.close();
-            if (chr1!=chr2){
+            if (chr1!=chr2 && chr1>0 && chr2>0){
                 System.out.println("Wrong input files! Program quits.");
                 System.exit(0);
             }
@@ -391,6 +388,7 @@ public class MAF {
                 index1=posList1.binarySearch(mergedPos[i]);
                 index2=posList2.binarySearch(mergedPos[i]);
                 if (index1 < 0 || index2 < 0) continue;
+                sb=new StringBuilder();
                 sb.append(chr1).append("\t").append(mergedPos[i]).append("\t").append(refList1.get(index1))
                         .append("\t").append(altList1.get(index1)).append("\t").append(altList2.get(index2));
                 bw.write(sb.toString());
@@ -398,7 +396,7 @@ public class MAF {
             }
             bw.flush();
             bw.close();
-            System.out.println(outFile+" is completed in "+ Benchmark.getTimeSpanMinutes(start)+" minutes");
+            System.out.println(outFile.getName()+" is completed in "+ Benchmark.getTimeSpanMinutes(start)+" minutes");
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -411,9 +409,9 @@ public class MAF {
         Comparator<File> fileComparator=Comparator.comparing(File::getName);
         Arrays.sort(f, fileComparator);
         String[] outNames=Arrays.stream(f).map(File::getName).map(str->str.substring(0, 26))
-                .map(str->str.replaceAll("_v_$",".txt")).toArray(String[]::new);
+                .map(str->str.replaceAll("_v_$",".txt")).distinct().toArray(String[]::new);
         int[] aa=IntStream.iterate(0, n->n+2).limit(45).toArray();
-        Arrays.stream(aa).parallel().forEach(e->{
+        Arrays.stream(aa).forEach(e->{
             MAF.mergeTwoFiles(f[e], f[e+1], new File(mergeOutDir, outNames[e/2]));
         });
     }

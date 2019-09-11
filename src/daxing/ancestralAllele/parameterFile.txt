@@ -20,7 +20,7 @@ Homepage: http://plantgeneticslab.weebly.com/
 1
 
 !Parameter6:	MAF directory Of outgroup2
-/Users/xudaxing/Desktop/test/tu
+/Users/xudaxing/Desktop/test/at
 
 !Parameter7:	wheat index in outgroup2 MAF file
 0

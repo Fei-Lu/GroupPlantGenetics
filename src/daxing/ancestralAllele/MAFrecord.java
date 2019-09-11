@@ -6,6 +6,7 @@ import format.position.ChrPos;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.IntStream;
@@ -117,6 +118,11 @@ public class MAFrecord  {
         return startEnd;
     }
 
+    public int getStartPos1_based(int indexOfTaxon){
+        int[] startEnd=this.startEnd(indexOfTaxon);
+        return Arrays.stream(startEnd).min().getAsInt();
+    }
+
     /**
      * 根据给定Taxon的index和ChrPos，返回对应MAFrecord比对中另一个Taxon的allele
      * @param indexOfTaxon 0 or 1
@@ -198,6 +204,10 @@ public class MAFrecord  {
             refOutgroupAllele=new String[2];
             refOutgroupAllele[0]=String.valueOf(seqByte1.getBase(alleleIndex.get(i)));
             refOutgroupAllele[1]=String.valueOf(seqByte2.getBase(alleleIndex.get(i)));
+            if (refOutgroupAllele[0].equals("N")) continue;
+            if (refOutgroupAllele[0].equals("n")) continue;
+            if (refOutgroupAllele[1].equals("N")) continue;
+            if (refOutgroupAllele[1].equals("n")) continue;
             outgroupAllele.put(chrPos, refOutgroupAllele);
         }
         return outgroupAllele;
