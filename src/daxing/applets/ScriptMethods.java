@@ -200,6 +200,34 @@ public class ScriptMethods {
         }
     }
 
+    public static void getHapPos(File posAlleleDir, File hapPosDir){
+        File[] files=IOUtils.listRecursiveFiles(posAlleleDir);
+        BufferedReader[] brs=new BufferedReader[files.length];
+        BufferedWriter[] bws=new BufferedWriter[files.length];
+        for (int i = 0; i < files.length; i++) {
+            brs[i]=IOUtils.getTextGzipReader(files[i].getAbsolutePath());
+            bws[i]=IOUtils.getTextGzipWriter(files[i].getAbsolutePath());
+        }
+        List<ChrPos> chrPosList;
+        StringBuilder sb=new StringBuilder();
+        try{
+            for (int i = 0; i < brs.length; i++) {
+                chrPosList=brs[i].lines().skip(1).map(PStringUtils::fastSplit)
+                        .map(e->new ChrPos(Short.parseShort(e.get(0)),Integer.parseInt(e.get(1)))).collect(Collectors.toList());
+                sb=new StringBuilder();
+                for (int j = 0; j < chrPosList.size(); j++) {
+                    sb.append(chrPosList.get(j).getChromosome()).append("\t").append(chrPosList.get(j).getPosition());
+                    bws[i].write(sb.toString());
+                    bws[i].newLine();
+                }
+                bws[i].flush();
+                bws[i].close();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
 
 
 

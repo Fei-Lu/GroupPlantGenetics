@@ -20,8 +20,8 @@ public class Start {
 
     Start(String parameterFileS){
         this.initializeParameter(parameterFileS);
-        this.getOutgroupAllele();
-        this.merge();
+//        this.getOutgroupAllele();
+//        this.merge();
 
     }
 
@@ -67,10 +67,9 @@ public class Start {
 
     private void getOutgroupAllele(){
         ChrConvertionRule chrConvertionRule=new ChrConvertionRule(Paths.get(this.chrConvertionRule));
-//        MAF maf1=new MAF(this.indexOfWheatInOutGroup1, chrConvertionRule, Paths.get(this.outgroup1InputDir));
+        MAF maf1=new MAF(this.indexOfWheatInOutGroup1, chrConvertionRule, Paths.get(this.outgroup1InputDir));
         MAF maf2=new MAF(this.indexOfWheatInOutGroup2, chrConvertionRule, Paths.get(this.outgroup2InputDir));
-//        AllelesInfor allelesInfor=new AllelesInfor(Paths.get(this.chrallvcfFile));
-//        maf1.getAllele(new File(this.workingDir, this.subDir[0]).getAbsolutePath());
+        maf1.getAllele(new File(this.workingDir, this.subDir[0]).getAbsolutePath());
         maf2.getAllele(new File(this.workingDir, this.subDir[0]).getAbsolutePath());
     }
 
@@ -79,24 +78,9 @@ public class Start {
         MAF.merge(files.getAbsolutePath(), new File(this.workingDir, this.subDir[1]).getAbsolutePath());
     }
 
-    public static void main(String[] args) {
-        new Start("/Users/xudaxing/Desktop/parameterFile");
-//        MAF.merge("/Users/xudaxing/Desktop/temp","/Users/xudaxing/Desktop/res");
-//        ScriptMethods.getTopRowsFromDir(args[0], Integer.parseInt(args[1]), args[2]);
-
-//        FilterSNPGo.mergePosList(args[0], args[1], args[2], args[3]);
-//        MD5.getMD5FromDir("/Users/xudaxing/Desktop/work");
-//        SeqByte seqByte=new SeqByte("TCTTCCCCTA");
-//        System.out.println(seqByte.getSequence(0,3));
-//        Script.getLastz(args[0], args[1], args[2], args[3]);
-//        ScriptMethods.getTopRows(args[0], Integer.parseInt(args[1]), args[2]);
-//        ScriptMethods.getCellDensity("/Users/xudaxing/Desktop/chr1A-7A.ABDgenome.txt","/Users/xudaxing/Desktop/chr1A-7A_ABD_bin100");
-//        ScriptMethods.getHighCumulativePos("/Users/xudaxing/Desktop/chr1A-7A_ABD_bin100/position", "/Users/xudaxing/Desktop/chr1A-7A_ABD_bin100_0.85.txt", 348);
-////        ScriptMethods.getSubsetForGraph("/Users/xudaxing/Desktop/chr1A-7A.ABDgenome.txt",
-////               "/Users/xudaxing/Desktop/chr1A-7A.ABDgenome_5000pos.txt", 5000);
-//        ScriptMethods.addDepthGroup("/Users/xudaxing/Desktop/0.55-0.95/chr1A-7A_ABD_bin100_0.95.txt","/Users/xudaxing/Desktop/chr1A-7A.ABDgenome_5000pos.txt", 9, "/Users/xudaxing/Desktop/chrAsub.ABDgenome.depthVSsd.addGroup.bin100_0.95.txt");
-
-    }
+//    public static void main(String[] args) {
+//        new Start(args[0]);
+//    }
 
 
 }

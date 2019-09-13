@@ -192,4 +192,13 @@ public class ChrConvertionRule {
         }
         return this.getStartIndexOnOriChr()[chrID]+position+1;
     }
+
+    /**
+     *
+     * @param chrPos in vcf
+     * @return
+     */
+    public int getRefPosFromVCFChrPos(ChrPos chrPos){
+        return this.getRefPosFromVCFChrPos(chrPos.getChromosome(), chrPos.getPosition());
+    }
 }

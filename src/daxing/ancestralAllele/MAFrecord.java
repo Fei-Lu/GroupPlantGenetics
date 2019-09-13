@@ -131,7 +131,7 @@ public class MAFrecord  {
      * @return allele of another taxon
      */
     public String getOutgroupAllele(int indexOfTaxon, ChrPos chrPosOfTaxon, ChrConvertionRule chrConvertionRule){
-        int allelePosition1_Based=chrConvertionRule.getRefPositionFromVCF(chrPosOfTaxon);
+        int allelePosition1_Based=chrConvertionRule.getRefPosFromVCFChrPos(chrPosOfTaxon);
         int[] startEnd=this.startEnd(indexOfTaxon);
         TIntArrayList indexForTaxons=new TIntArrayList();
         indexForTaxons.add(0);
@@ -153,7 +153,7 @@ public class MAFrecord  {
      * @return allele of this taxon
      */
     public String getRefAllele(int indexOfTaxon, ChrPos chrPosOfTaxon, ChrConvertionRule chrConvertionRuleOfTaxon){
-        int allelePosition1_Based=chrConvertionRuleOfTaxon.getRefPositionFromVCF(chrPosOfTaxon);
+        int allelePosition1_Based=chrConvertionRuleOfTaxon.getRefPosFromVCFChrPos(chrPosOfTaxon);
         int[] startEnd=this.startEnd(indexOfTaxon);
         SeqByte seqByte=this.getSeq(indexOfTaxon);
         int index=Math.abs(allelePosition1_Based-startEnd[0]);
@@ -199,8 +199,8 @@ public class MAFrecord  {
         }
         for (int i = 0; i < alleleIndex.size(); i++) {
             pos=seqCoordinate1_based[seqByte1.getIndexInSeqWithoutDash(alleleIndex.get(i))];
-            chr=(short) chrConvertionRule.getChrIDFromOriChrName(this.getChr(indexOfTaxon), pos);
-            chrPos=new ChrPos(chr, chrConvertionRule.getVCFPositionFromOriChrName(this.getChr(indexOfTaxon), pos));
+            chr=(short) chrConvertionRule.getVCFChrFromRefChrPos(this.getChr(indexOfTaxon), pos);
+            chrPos=new ChrPos(chr, chrConvertionRule.getVCFPosFromRefChrPos(this.getChr(indexOfTaxon), pos));
             refOutgroupAllele=new String[2];
             refOutgroupAllele[0]=String.valueOf(seqByte1.getBase(alleleIndex.get(i)));
             refOutgroupAllele[1]=String.valueOf(seqByte2.getBase(alleleIndex.get(i)));

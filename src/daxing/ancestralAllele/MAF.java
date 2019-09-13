@@ -130,7 +130,7 @@ public class MAF {
         for(MAFrecord e: mafRecordList){
             chr=e.getChr(this.getTaxonIndexForOrder());
             startPos1_based=e.getStartPos1_based(this.getTaxonIndexForOrder());
-            chrID=this.getChrConvertionRule().getChrIDFromOriChrName(chr, startPos1_based);
+            chrID=this.getChrConvertionRule().getVCFChrFromRefChrPos(chr, startPos1_based);
             mafrecord[chrID].add(e);
         }
         Comparator<MAFrecord> comparator=Comparator.comparing(m->m.getStartPos1_based(this.getTaxonIndexForOrder()));
@@ -306,7 +306,7 @@ public class MAF {
      */
     public int binarySearch(ChrPos chrPos){
         short chr=chrPos.getChromosome();
-        int refPos=this.getChrConvertionRule().getRefPositionFromVCF(chrPos);
+        int refPos=this.getChrConvertionRule().getRefPosFromVCFChrPos(chrPos);
         List<int[]> startEnd=this.getStartEnd(chr);
         TIntArrayList start=new TIntArrayList();
         TIntArrayList end=new TIntArrayList();
@@ -411,7 +411,7 @@ public class MAF {
         String[] outNames=Arrays.stream(f).map(File::getName).map(str->str.substring(0, 26))
                 .map(str->str.replaceAll("_v_$",".txt")).distinct().toArray(String[]::new);
         int[] aa=IntStream.iterate(0, n->n+2).limit(45).toArray();
-        Arrays.stream(aa).forEach(e->{
+        Arrays.stream(aa).parallel().forEach(e->{
             MAF.mergeTwoFiles(f[e], f[e+1], new File(mergeOutDir, outNames[e/2]));
         });
     }
