@@ -120,18 +120,22 @@ public class ChrConvertionRule {
     }
 
     /**
-     * 0-based coordinates in ChrNameMap class
-     * @param chr
-     * @param positionInOriChrName coordinates are 1-based
-     * @return ChrID
+     *
+     * @param chr 1A, 1B, 1D, Un, Mit, Chl  et al.
+     * @param positionInOriChrName coordinates are ref_1_based
+     * @return chrID in vcf
      */
-    public int getChrIDFromOriChrName(String chr, int positionInOriChrName){
-        int coordinateBased_0=positionInOriChrName-1;
+    public int getChrIDFromOriChrNamePos(String chr, int positionInOriChrName){
         int[] indexArray=this.getChrIDFromOriChrName(chr);
-        if (coordinateBased_0<this.getEndIndexOnOriChr()[indexArray[0]]){
+        int coordinateBased_0=positionInOriChrName-1;
+        int endIndexOnOriChr=this.getEndIndexOnOriChr()[indexArray[0]];
+        if (coordinateBased_0 < endIndexOnOriChr){
             return indexArray[0];
-        }if (indexArray[0]!=-1 && coordinateBased_0>=this.getEndIndexOnOriChr()[indexArray[1]]){
-            System.out.println(positionInOriChrName +" is larger than "+chr+" size");
+        }else if (indexArray[0]==0 || indexArray[0]==43 || indexArray[0]==44){
+            System.out.println(positionInOriChrName +" is larger than "+chr+" size: "+endIndexOnOriChr);
+            System.exit(1);
+        }else if (coordinateBased_0>=this.getEndIndexOnOriChr()[indexArray[1]]){
+            System.out.println(positionInOriChrName +" is larger than "+chr+" size: "+this.getEndIndexOnOriChr()[indexArray[1]]);
             System.exit(1);
         }
         return indexArray[1];
@@ -139,20 +143,36 @@ public class ChrConvertionRule {
 
     /**
      *
-     * @param chr
-     * @param positionInOriChrName coordinates are 1-based
-     * @return position which is 0-based coordinates in ChrNameMap class
+     * @param chr 1A, 1B, 1D, Un, Mit, Chl  et al.
+     * @param positionInOriChrName coordinates are ref_1_based
+     * @return position in vcf
      */
     public int getPositionFromOriChrName(String chr, int positionInOriChrName){
         int coordinateBased_0=positionInOriChrName-1;
         int[] indexArray=this.getChrIDFromOriChrName(chr);
-        if (coordinateBased_0<this.getEndIndexOnOriChr()[indexArray[0]]){
-            return coordinateBased_0;
-        }else if (indexArray[1]!=-1 && coordinateBased_0>=this.getEndIndexOnOriChr()[indexArray[1]]){
-            System.out.println(positionInOriChrName +" is larger than "+chr+" size");
+        int endIndexOnOriChr=this.getEndIndexOnOriChr()[indexArray[0]];
+        if (coordinateBased_0 < endIndexOnOriChr){
+            return positionInOriChrName;
+        }else if (indexArray[0]==0 || indexArray[0]==43 || indexArray[0]==44){
+            System.out.println(positionInOriChrName +" is larger than "+chr+" size: "+endIndexOnOriChr);
+            System.exit(1);
+        }else if (coordinateBased_0>=this.getEndIndexOnOriChr()[indexArray[1]]){
+            System.out.println(positionInOriChrName +" is larger than "+chr+" size: "+this.getEndIndexOnOriChr()[indexArray[1]]);
             System.exit(1);
         }
-        return coordinateBased_0-this.getEndIndexOnOriChr()[indexArray[0]];
+        return positionInOriChrName-endIndexOnOriChr;
+    }
+
+    /**
+     *
+     * @param chr 1A, 1B, 1D, Un, Mit, Chl  et al.
+     * @param positionInOriChrName coordinates are ref_1_based
+     * @return chrPos in vcf
+     */
+    public ChrPos getChrPosFromOriChrNamePos(String chr, int positionInOriChrName){
+        short chrID=(short) this.getChrIDFromOriChrNamePos(chr, positionInOriChrName);
+        int pos=this.getPositionFromOriChrName(chr, positionInOriChrName);
+        return new ChrPos(chrID, pos);
     }
 
     /**
@@ -184,18 +204,6 @@ public class ChrConvertionRule {
         int pos_O_based=vcfChrPos.getPosition()-1;
         return this.getOriChrPositin(chr, pos_O_based);
     }
-
-    /**
-     *
-     * @param chr 1A, Un, et al.
-     * @param pos coordinates are 1-based
-     * @return coordinates in vcf
-     */
-    public int getVCFPositionFromOriChrName(String chr, int pos){
-        int chrID=this.getChrIDFromOriChrName(chr, pos);
-        return pos-this.getStartIndexOnOriChr()[chrID];
-    }
-
 
     public static Map<Integer, String> getChrID_OriChrMap(){
         Map<Integer,String> ChrID_OriChrMap=new HashMap<>();
