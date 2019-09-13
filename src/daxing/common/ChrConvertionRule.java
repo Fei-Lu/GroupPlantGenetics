@@ -147,7 +147,7 @@ public class ChrConvertionRule {
      * @param positionInOriChrName coordinates are ref_1_based
      * @return position in vcf
      */
-    public int getPositionFromOriChrName(String chr, int positionInOriChrName){
+    public int getPositionFromOriChrNamePos(String chr, int positionInOriChrName){
         int coordinateBased_0=positionInOriChrName-1;
         int[] indexArray=this.getChrIDFromOriChrName(chr);
         int endIndexOnOriChr=this.getEndIndexOnOriChr()[indexArray[0]];
@@ -171,7 +171,7 @@ public class ChrConvertionRule {
      */
     public ChrPos getChrPosFromOriChrNamePos(String chr, int positionInOriChrName){
         short chrID=(short) this.getChrIDFromOriChrNamePos(chr, positionInOriChrName);
-        int pos=this.getPositionFromOriChrName(chr, positionInOriChrName);
+        int pos=this.getPositionFromOriChrNamePos(chr, positionInOriChrName);
         return new ChrPos(chrID, pos);
     }
 
