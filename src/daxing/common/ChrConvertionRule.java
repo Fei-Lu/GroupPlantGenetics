@@ -8,7 +8,6 @@ import java.io.BufferedReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -79,7 +78,7 @@ public class ChrConvertionRule {
      * @param chrID 1,  3,  5,  0,  43,  44   et al.
      * @return      1A, 1B, 1D, Un, Mit, Chl  et al.
      */
-    public String getOriChrNameFromChrID(int chrID){
+    public String getRefChrFromVCFChr(int chrID){
         int index=Arrays.binarySearch(this.getChrID(), chrID);
         if(index < 0){
             System.out.println("chrID must between 0~44");
@@ -93,7 +92,7 @@ public class ChrConvertionRule {
      * @param chr 1A, 1B, 1D, Un, Mit, Chl  et al.
      * @return    [1,2]  [3,4]  [5,6]  [0,-1]  [43,-1]  [44,-1]   et al.
      */
-    public int[] getChrIDFromOriChrName(String chr){
+    public int[] getVCFChrFromRefChr(String chr){
         int[] res={-1, -1};
         Set<String> s=new HashSet<>(CollectionTool.changeToList(this.oriChrName));
         String[] oriChrNameArray=s.toArray(new String[s.size()]);
@@ -125,8 +124,8 @@ public class ChrConvertionRule {
      * @param positionInOriChrName coordinates are ref_1_based
      * @return chrID in vcf
      */
-    public int getChrIDFromOriChrNamePos(String chr, int positionInOriChrName){
-        int[] indexArray=this.getChrIDFromOriChrName(chr);
+    public int getVCFChrFromRefChrPos(String chr, int positionInOriChrName){
+        int[] indexArray=this.getVCFChrFromRefChr(chr);
         int coordinateBased_0=positionInOriChrName-1;
         int endIndexOnOriChr=this.getEndIndexOnOriChr()[indexArray[0]];
         if (coordinateBased_0 < endIndexOnOriChr){
@@ -147,9 +146,9 @@ public class ChrConvertionRule {
      * @param positionInOriChrName coordinates are ref_1_based
      * @return position in vcf
      */
-    public int getPositionFromOriChrNamePos(String chr, int positionInOriChrName){
+    public int getVCFPosFromRefChrPos(String chr, int positionInOriChrName){
         int coordinateBased_0=positionInOriChrName-1;
-        int[] indexArray=this.getChrIDFromOriChrName(chr);
+        int[] indexArray=this.getVCFChrFromRefChr(chr);
         int endIndexOnOriChr=this.getEndIndexOnOriChr()[indexArray[0]];
         if (coordinateBased_0 < endIndexOnOriChr){
             return positionInOriChrName;
@@ -169,21 +168,21 @@ public class ChrConvertionRule {
      * @param positionInOriChrName coordinates are ref_1_based
      * @return chrPos in vcf
      */
-    public ChrPos getChrPosFromOriChrNamePos(String chr, int positionInOriChrName){
-        short chrID=(short) this.getChrIDFromOriChrNamePos(chr, positionInOriChrName);
-        int pos=this.getPositionFromOriChrNamePos(chr, positionInOriChrName);
+    public ChrPos getVCFChrPosFromRefChrPos(String chr, int positionInOriChrName){
+        short chrID=(short) this.getVCFChrFromRefChrPos(chr, positionInOriChrName);
+        int pos=this.getVCFPosFromRefChrPos(chr, positionInOriChrName);
         return new ChrPos(chrID, pos);
     }
 
     /**
      *
-     * @param chrID    1,  3,  5,  0,  43,  44   et al.
-     * @param position coordinates are 0-based in ChrNameMap class
-     * @return position which is 1-based coordinates in OriChr
+     * @param chrID   0,  1,  3,  5,  43,  44   et al.
+     * @param position position in vcf
+     * @return coordinates are ref_1_based
      */
-    public int getOriChrPositin(int chrID, int position){
+    public int getRefPosFromVCFChrPos(int chrID, int position){
         if (position>=this.getEndIndex()[chrID]){
-            System.out.println(position+" is larger than "+chrID+" chromosome which has a size "+((this.getEndIndex()[chrID])-1));
+            System.out.println(position+" is larger than "+chrID+" chromosome which has a size "+((this.getEndIndex()[chrID])));
             System.exit(1);
         }
         int[] even2_42= IntStream.iterate(2, n->n+2).limit(21).toArray();
@@ -192,35 +191,5 @@ public class ChrConvertionRule {
             return position+1;
         }
         return this.getStartIndexOnOriChr()[chrID]+position+1;
-    }
-
-    /**
-     * 将vcf的ChrPos(1-based)转换为ref坐标（1-based）
-     * @param vcfChrPos
-     * @return reference position of VCF ChrPos
-     */
-    public int getRefPositionFromVCF(ChrPos vcfChrPos){
-        int chr=vcfChrPos.getChromosome();
-        int pos_O_based=vcfChrPos.getPosition()-1;
-        return this.getOriChrPositin(chr, pos_O_based);
-    }
-
-    public static Map<Integer, String> getChrID_OriChrMap(){
-        Map<Integer,String> ChrID_OriChrMap=new HashMap<>();
-        List<Integer> numOfChr= IntStream.range(1,43).boxed().collect(Collectors.toList());
-        List<Integer> int1_7= IntStream.range(1,8).boxed().collect(Collectors.toList());
-        List<Integer> chrList=new ArrayList<>();
-        for(int i=0;i<6;i++){
-            chrList.addAll(int1_7);
-        }
-        Collections.sort(chrList);
-        String abd=String.join("", Collections.nCopies(7,"AABBDD"));
-        ChrID_OriChrMap.put(0, "Un");
-        for(int i=0;i<numOfChr.size();i++){
-            ChrID_OriChrMap.put(numOfChr.get(i),String.valueOf(chrList.get(i))+abd.charAt(i));
-        }
-        ChrID_OriChrMap.put(43, "Mit");
-        ChrID_OriChrMap.put(44, "Chl");
-        return ChrID_OriChrMap;
     }
 }
