@@ -1,11 +1,9 @@
 package daxing.common;
 
 import org.apache.commons.lang.StringUtils;
-import utils.PStringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,18 +64,6 @@ public class StringTool {
      */
     public static int getCountOfSubStr(String str, String subStr){
         return StringUtils.countMatches(str, subStr);
-    }
-
-    /**
-     * 将字符串中首次出现的ChrID（如：021）替换为OriChrName（如：4B）
-     * @param str
-     * @return
-     */
-    public static String changeNumToChr(String str){
-        int num=StringTool.getNumFromString(str);
-        String numStr= PStringUtils.getNDigitNumber(3, num);
-        Map<Integer, String> map= ChrConvertionRule.getChrID_OriChrMap();
-        return str.replace(numStr, map.get(num));
     }
 
 }
