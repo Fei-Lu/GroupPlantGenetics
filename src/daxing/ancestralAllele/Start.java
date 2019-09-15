@@ -21,7 +21,7 @@ public class Start {
     Start(String parameterFileS){
         this.initializeParameter(parameterFileS);
 //        this.getOutgroupAllele();
-//        this.merge();
+        this.merge();
 
     }
 
@@ -68,9 +68,9 @@ public class Start {
     private void getOutgroupAllele(){
         ChrConvertionRule chrConvertionRule=new ChrConvertionRule(Paths.get(this.chrConvertionRule));
         MAF maf1=new MAF(this.indexOfWheatInOutGroup1, chrConvertionRule, Paths.get(this.outgroup1InputDir));
-        MAF maf2=new MAF(this.indexOfWheatInOutGroup2, chrConvertionRule, Paths.get(this.outgroup2InputDir));
+//        MAF maf2=new MAF(this.indexOfWheatInOutGroup2, chrConvertionRule, Paths.get(this.outgroup2InputDir));
         maf1.getAllele(new File(this.workingDir, this.subDir[0]).getAbsolutePath());
-        maf2.getAllele(new File(this.workingDir, this.subDir[0]).getAbsolutePath());
+//        maf2.getAllele(new File(this.workingDir, this.subDir[0]).getAbsolutePath());
     }
 
     private void merge(){
@@ -78,9 +78,25 @@ public class Start {
         MAF.merge(files.getAbsolutePath(), new File(this.workingDir, this.subDir[1]).getAbsolutePath());
     }
 
-//    public static void main(String[] args) {
-//        new Start(args[0]);
-//    }
+    public static void main(String[] args) {
+        new Start(args[0]);
+//        ChrConvertionRule chrConvertionRule=new ChrConvertionRule(Paths.get("/Users/xudaxing/Desktop/chrConvertionRule.txt"));
+//        String[] chr={"1H","2B"};
+//        int[] startPos={41674, 799952899};
+//        int[] seqLen={93, 80};
+//        boolean[] ifMinus={false, true};
+//        int[] chrLen={558535432, 801256715};
+//        SeqByte[] seqBytes=new SeqByte[2];
+//        seqBytes[0]=new SeqByte("GCGTGGTGCATCGCCCTGT---TAGCCAGCAAGTAGGCAACCTTCTCTGGCAGCAATCGACGAGGTTATTGTCGTTGTCCATGGCTGCTAGGTTGT");
+//        seqBytes[1]=new SeqByte("GCGGGGC-CCTTGCCCTTTCCCTTGCCGGAGAAGAGGC--CCATTTCTGGTGGC-------------ATTGCGGTAGCTAGGGTTTGCTAGGCTTT");
+//        MAFrecord maFrecord=new MAFrecord(chr, startPos, seqLen, ifMinus, chrLen, seqBytes);
+//        char a=seqBytes[0].getReverseComplementaryBase(0);
+//        int[] startEnd=maFrecord.startEnd(1);
+//        System.out.println(startEnd[0]+"\t"+startEnd[1]);
+//        int index0=chrConvertionRule.getVCFPosFromRefChrPos("1B", startEnd[0]);
+//        int index1=chrConvertionRule.getVCFPosFromRefChrPos("1B", startEnd[1]);
+//        System.out.println(index0+"\t"+index1);
+    }
 
 
 }

@@ -359,7 +359,11 @@ public class MAF {
                 lineList = PStringUtils.fastSplit(line);
                 chr1=Short.parseShort(lineList.get(0));
                 posList1.add(Integer.parseInt(lineList.get(1)));
+                if (lineList.get(2).equals("N")) continue;
+                if (lineList.get(2).equals("n")) continue;
                 refList1.add(lineList.get(2).toUpperCase());
+                if (lineList.get(3).equals("N")) continue;
+                if (lineList.get(3).equals("n")) continue;
                 altList1.add(lineList.get(3).toUpperCase());
             }
             br1.close();
@@ -367,6 +371,8 @@ public class MAF {
                 lineList = PStringUtils.fastSplit(line);
                 chr2=Short.parseShort(lineList.get(0));
                 posList2.add(Integer.parseInt(lineList.get(1)));
+                if (lineList.get(3).equals("N")) continue;
+                if (lineList.get(3).equals("n")) continue;
                 altList2.add(lineList.get(3).toUpperCase());
             }
             br2.close();

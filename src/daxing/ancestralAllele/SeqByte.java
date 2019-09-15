@@ -2,6 +2,8 @@ package daxing.ancestralAllele;
 
 import com.koloboke.collect.map.hash.HashByteByteMap;
 import com.koloboke.collect.map.hash.HashByteByteMaps;
+import com.koloboke.collect.map.hash.HashCharCharMap;
+import com.koloboke.collect.map.hash.HashCharCharMaps;
 import daxing.common.StringTool;
 import format.dna.DNAUtils;
 import format.dna.SequenceInterface;
@@ -152,6 +154,13 @@ public class SeqByte implements SequenceInterface {
             reverseByte[i] = baseCompleByteMap.get(seqByte[endIndex-i-1]);
         }
         return new String(reverseByte);
+    }
+
+    public char getReverseComplementaryBase(int index){
+        char[] baseWithN_Dash={'A','T', 'C', 'G','-', 'N', 'a', 't', 'c', 'g', 'n'};
+        char[] compleBaseWithN_Dash={'T', 'A', 'G', 'C', '-', 'N', 't', 'a', 'g', 'c', 'n'};
+        HashCharCharMap baseCompleByteMap = HashCharCharMaps.getDefaultFactory().newImmutableMap(baseWithN_Dash, compleBaseWithN_Dash);
+        return baseCompleByteMap.get(this.getBase(index));
     }
 
     public String getReverseComplementarySeqWithoutDash() {

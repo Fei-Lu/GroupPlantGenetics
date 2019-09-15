@@ -35,6 +35,16 @@ public class MAFrecord  {
         this.seq=seq;
     }
 
+    public MAFrecord(String[] chr, int[] startPos, int[] seqLen, boolean[] ifMinus,
+                     int[] chrLen, SeqByte[] seq){
+        this.chr=chr;
+        this.startPos=startPos;
+        this.seqLen=seqLen;
+        this.ifMinus=ifMinus;
+        this.chrLen=chrLen;
+        this.seq=seq;
+    }
+
     public long getId(){
         return this.id;
     }
@@ -202,7 +212,11 @@ public class MAFrecord  {
             chr=(short) chrConvertionRule.getVCFChrFromRefChrPos(this.getChr(indexOfTaxon), pos);
             chrPos=new ChrPos(chr, chrConvertionRule.getVCFPosFromRefChrPos(this.getChr(indexOfTaxon), pos));
             refOutgroupAllele=new String[2];
-            refOutgroupAllele[0]=String.valueOf(seqByte1.getBase(alleleIndex.get(i)));
+            if (this.getIfMinus(indexOfTaxon)) {
+                refOutgroupAllele[0]=String.valueOf(seqByte1.getReverseComplementaryBase(alleleIndex.get(i)));
+            }else {
+                refOutgroupAllele[0]=String.valueOf(seqByte1.getBase(alleleIndex.get(i)));
+            }
             refOutgroupAllele[1]=String.valueOf(seqByte2.getBase(alleleIndex.get(i)));
             if (refOutgroupAllele[0].equals("N")) continue;
             if (refOutgroupAllele[0].equals("n")) continue;
