@@ -4,6 +4,7 @@ import daxing.common.ChrConvertionRule;
 import format.position.ChrPos;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
+import gnu.trove.set.hash.TShortHashSet;
 import utils.Benchmark;
 import utils.IOUtils;
 import utils.PArrayUtils;
@@ -346,8 +347,7 @@ public class MAF {
             BufferedWriter bw=IOUtils.getTextWriter(outFile.getAbsolutePath());
             br1.readLine();
             br2.readLine();
-            short chr1=Short.MIN_VALUE;
-            short chr2=Short.MIN_VALUE;
+            TShortHashSet chr=new TShortHashSet();
             String line;
             List<String> lineList;
             TIntArrayList posList1=new TIntArrayList();
@@ -361,7 +361,7 @@ public class MAF {
                 if (lineList.get(2).equals("n")) continue;
                 if (lineList.get(3).equals("N")) continue;
                 if (lineList.get(3).equals("n")) continue;
-                chr1=Short.parseShort(lineList.get(0));
+                chr.add(Short.parseShort(lineList.get(0)));
                 posList1.add(Integer.parseInt(lineList.get(1)));
                 refList1.add(lineList.get(2).toUpperCase());
                 altList1.add(lineList.get(3).toUpperCase());
@@ -371,15 +371,18 @@ public class MAF {
                 lineList = PStringUtils.fastSplit(line);
                 if (lineList.get(3).equals("N")) continue;
                 if (lineList.get(3).equals("n")) continue;
-                chr2=Short.parseShort(lineList.get(0));
+                chr.add(Short.parseShort(lineList.get(0)));
                 posList2.add(Integer.parseInt(lineList.get(1)));
                 altList2.add(lineList.get(3).toUpperCase());
             }
             br2.close();
-            if (chr1!=chr2 && chr1>0 && chr2>0){
-                System.out.println("Wrong input files! Program quits.");
-                System.exit(0);
+            if (chr.size()>1){
+                System.out.println("Wrong input files!"+"\t"+inputOutgroup1File.getName()+"\t"+inputOutgroup2File.getName()+" Program quits.");
+//                System.exit(0);
+                return;
             }
+            posList1.sort();
+            posList2.sort();
             TIntHashSet mergedPosSet=new TIntHashSet(posList1);
             mergedPosSet.addAll(posList2);
             int[] mergedPos=mergedPosSet.toArray();
@@ -395,7 +398,7 @@ public class MAF {
                 index2=posList2.binarySearch(mergedPos[i]);
                 if (index1 < 0 || index2 < 0) continue;
                 sb=new StringBuilder();
-                sb.append(chr1).append("\t").append(mergedPos[i]).append("\t").append(refList1.get(index1))
+                sb.append(chr).append("\t").append(mergedPos[i]).append("\t").append(refList1.get(index1))
                         .append("\t").append(altList1.get(index1)).append("\t").append(altList2.get(index2));
                 bw.write(sb.toString());
                 bw.newLine();
@@ -417,7 +420,7 @@ public class MAF {
         String[] outNames=Arrays.stream(f).map(File::getName).map(str->str.substring(0, 26))
                 .map(str->str.replaceAll("_v_$",".txt")).distinct().toArray(String[]::new);
         int[] aa=IntStream.iterate(0, n->n+2).limit(45).toArray();
-        Arrays.stream(aa).parallel().forEach(e->{
+        Arrays.stream(aa).forEach(e->{
             MAF.mergeTwoFiles(f[e], f[e+1], new File(mergeOutDir, outNames[e/2]));
         });
     }

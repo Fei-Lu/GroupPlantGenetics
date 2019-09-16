@@ -79,7 +79,8 @@ public class Start {
     }
 
     public static void main(String[] args) {
-        new Start("/Users/xudaxing/Desktop/parameterFile");
+//        ScriptMethods.caculateChr("/Users/xudaxing/Desktop/t.txt","/Users/xudaxing/Desktop/tt.txt");
+        new Start(args[0]);
 //        ChrConvertionRule chrConvertionRule=new ChrConvertionRule(Paths.get("/Users/xudaxing/Desktop/chrConvertionRule.txt"));
 //        int a=chrConvertionRule.getRefPosFromVCFChrPos(12, 169686112);
 //        System.out.println(a);
