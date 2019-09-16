@@ -1,10 +1,13 @@
 package daxing.applets;
 
 import daxing.common.ArrayTool;
+import daxing.common.VCF;
 import daxing.filterSNP.Cells;
 import daxing.filterSNP.DepthInfo;
 import daxing.filterSNP.Dot;
 import format.position.ChrPos;
+import format.table.RowTable;
+import utils.Benchmark;
 import utils.IOUtils;
 import utils.PStringUtils;
 
@@ -14,9 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -228,7 +229,83 @@ public class ScriptMethods {
         }
     }
 
+    public static void caculateChr(String inputFile, String outFile){
+        try(BufferedReader br=IOUtils.getTextReader(inputFile);
+            BufferedWriter bw=IOUtils.getTextWriter(outFile)){
+            String header, line;
+            List<String> lineList;
+            header=br.readLine();
+            bw.write(header);
+            bw.newLine();
+            int[] chrID;
+            int[] snpNum;
+            int[] biallelicNum;
+            int[] indelNum;
+            int[] insertionNum;
+            int[] delectionNum;
+            while ((line=br.readLine())!=null){
+                chrID=new int[2];
+                snpNum=new int[2];
+                biallelicNum=new int[2];
+                indelNum=new int[2];
+                insertionNum=new int[2];
+                delectionNum=new int[2];
+                StringBuilder sb=new StringBuilder();
+                lineList=PStringUtils.fastSplit(line);
+                chrID[0]=Integer.parseInt(lineList.get(0));
+                snpNum[0]=Integer.parseInt(lineList.get(1));
+                biallelicNum[0]=Integer.parseInt(lineList.get(2));
+                indelNum[0]=Integer.parseInt(lineList.get(3));
+                insertionNum[0]=Integer.parseInt(lineList.get(4));
+                delectionNum[0]=Integer.parseInt(lineList.get(5));
+                line=br.readLine();
+                lineList=PStringUtils.fastSplit(line);
+                chrID[1]=Integer.parseInt(lineList.get(0));
+                snpNum[1]=Integer.parseInt(lineList.get(1));
+                biallelicNum[1]=Integer.parseInt(lineList.get(2));
+                indelNum[1]=Integer.parseInt(lineList.get(3));
+                insertionNum[1]=Integer.parseInt(lineList.get(4));
+                delectionNum[1]=Integer.parseInt(lineList.get(5));
+                sb.append(VCF.chrToChrMap.get(chrID[0])).append("\t").append(snpNum[0]+snpNum[1]).append("\t").append(biallelicNum[0]+biallelicNum[1]).append("\t").append(indelNum[0]+indelNum[1]).append("\t").append(insertionNum[0]+insertionNum[1]).append("\t").append(delectionNum[0]+delectionNum[1]);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
-
+    public static void checkOutgroupAllele(String inputFile, String outDir){
+        long start=System.nanoTime();
+        RowTable<String> rowTable=new RowTable<>(inputFile);
+        Set<String> chrColumn=new HashSet<>(rowTable.getColumn(0));
+        int[] chrNum=chrColumn.stream().mapToInt(Integer::parseInt).sorted().toArray();
+        BufferedWriter[] bws=new BufferedWriter[chrNum.length];
+        try{
+            for (int i = 0; i < chrNum.length; i++) {
+                bws[i]=IOUtils.getTextWriter(new File(outDir, chrNum[i]+".txt").getAbsolutePath());
+                bws[i].write(rowTable.getHeader().stream().collect(Collectors.joining("\t")));
+                bws[i].newLine();
+            }
+            List<String> lineList;
+            for (int i = 0; i < rowTable.getRowNumber(); i++) {
+                lineList=rowTable.getRow(i);
+                for (int j = 0; j < chrNum.length; j++) {
+                    if (Integer.parseInt(lineList.get(0))==chrNum[j]){
+                        bws[j].write(lineList.stream().collect(Collectors.joining("\t")));
+                        bws[j].newLine();
+                    }
+                }
+            }
+            for (int i = 0; i < bws.length; i++) {
+                bws[i].flush();
+                bws[i].close();
+            }
+            System.out.println(inputFile+" completed in "+ Benchmark.getTimeSpanMinutes(start)+" minutes");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
 }
