@@ -121,20 +121,20 @@ public class ChrConvertionRule {
     /**
      *
      * @param chr 1A, 1B, 1D, Un, Mit, Chl  et al.
-     * @param positionInOriChrName coordinates are ref_1_based
+     * @param positionInRef_1_based coordinates are ref_1_based
      * @return chrID in vcf
      */
-    public int getVCFChrFromRefChrPos(String chr, int positionInOriChrName){
+    public int getVCFChrFromRefChrPos(String chr, int positionInRef_1_based){
         int[] indexArray=this.getVCFChrFromRefChr(chr);
-        int coordinateBased_0=positionInOriChrName-1;
+        int coordinateBased_0=positionInRef_1_based-1;
         int endIndexOnOriChr=this.getEndIndexOnOriChr()[indexArray[0]];
         if (coordinateBased_0 < endIndexOnOriChr){
             return indexArray[0];
         }else if (indexArray[0]==0 || indexArray[0]==43 || indexArray[0]==44){
-            System.out.println(positionInOriChrName +" is larger than "+chr+" size: "+endIndexOnOriChr);
+            System.out.println(positionInRef_1_based +" is larger than "+chr+" size: "+endIndexOnOriChr);
             System.exit(1);
         }else if (coordinateBased_0>=this.getEndIndexOnOriChr()[indexArray[1]]){
-            System.out.println(positionInOriChrName +" is larger than "+chr+" size: "+this.getEndIndexOnOriChr()[indexArray[1]]);
+            System.out.println(positionInRef_1_based +" is larger than "+chr+" size: "+this.getEndIndexOnOriChr()[indexArray[1]]);
             System.exit(1);
         }
         return indexArray[1];
@@ -181,16 +181,16 @@ public class ChrConvertionRule {
      * @return coordinates are ref_1_based
      */
     public int getRefPosFromVCFChrPos(int chrID, int position){
-        if (position>=this.getEndIndex()[chrID]){
+        if (position>this.getEndIndex()[chrID]){
             System.out.println(position+" is larger than "+chrID+" chromosome which has a size "+((this.getEndIndex()[chrID])));
             System.exit(1);
         }
         int[] even2_42= IntStream.iterate(2, n->n+2).limit(21).toArray();
         int res=Arrays.binarySearch(even2_42, chrID);
         if (res<0){
-            return position+1;
+            return position;
         }
-        return this.getStartIndexOnOriChr()[chrID]+position+1;
+        return this.getStartIndexOnOriChr()[chrID]+position;
     }
 
     /**
