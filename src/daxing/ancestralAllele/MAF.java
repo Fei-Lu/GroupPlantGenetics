@@ -357,22 +357,22 @@ public class MAF {
             List<String> altList2=new ArrayList<>();
             while ((line=br1.readLine())!=null){
                 lineList = PStringUtils.fastSplit(line);
-                chr1=Short.parseShort(lineList.get(0));
-                posList1.add(Integer.parseInt(lineList.get(1)));
                 if (lineList.get(2).equals("N")) continue;
                 if (lineList.get(2).equals("n")) continue;
-                refList1.add(lineList.get(2).toUpperCase());
                 if (lineList.get(3).equals("N")) continue;
                 if (lineList.get(3).equals("n")) continue;
+                chr1=Short.parseShort(lineList.get(0));
+                posList1.add(Integer.parseInt(lineList.get(1)));
+                refList1.add(lineList.get(2).toUpperCase());
                 altList1.add(lineList.get(3).toUpperCase());
             }
             br1.close();
             while ((line=br2.readLine())!=null){
                 lineList = PStringUtils.fastSplit(line);
-                chr2=Short.parseShort(lineList.get(0));
-                posList2.add(Integer.parseInt(lineList.get(1)));
                 if (lineList.get(3).equals("N")) continue;
                 if (lineList.get(3).equals("n")) continue;
+                chr2=Short.parseShort(lineList.get(0));
+                posList2.add(Integer.parseInt(lineList.get(1)));
                 altList2.add(lineList.get(3).toUpperCase());
             }
             br2.close();
