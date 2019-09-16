@@ -6,7 +6,8 @@ import daxing.filterSNP.Cells;
 import daxing.filterSNP.DepthInfo;
 import daxing.filterSNP.Dot;
 import format.position.ChrPos;
-import format.table.RowTable;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.set.hash.TIntHashSet;
 import utils.Benchmark;
 import utils.IOUtils;
 import utils.PStringUtils;
@@ -17,7 +18,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -278,25 +281,47 @@ public class ScriptMethods {
 
     public static void checkOutgroupAllele(String inputFile, String outDir){
         long start=System.nanoTime();
-        RowTable<String> rowTable=new RowTable<>(inputFile);
-        Set<String> chrColumn=new HashSet<>(rowTable.getColumn(0));
-        int[] chrNum=chrColumn.stream().mapToInt(Integer::parseInt).sorted().toArray();
-        BufferedWriter[] bws=new BufferedWriter[chrNum.length];
+        String line;
+        List<String> lineList;
+        BufferedReader br;
+        String header;
+        TIntHashSet chrSet=new TIntHashSet();
+        TIntArrayList chrList=new TIntArrayList();
+        TIntArrayList posList=new TIntArrayList();
+        List<String> refList=new ArrayList<>();
+        List<String> outgroupList=new ArrayList<>();
         try{
+            br=IOUtils.getTextReader(inputFile);
+            header=br.readLine();
+            while ((line=br.readLine())!=null){
+                lineList=PStringUtils.fastSplit(line);
+                chrSet.add(Integer.parseInt(lineList.get(0)));
+                chrList.add(Integer.parseInt(lineList.get(0)));
+                posList.add(Integer.parseInt(lineList.get(1)));
+                refList.add(lineList.get(2));
+                outgroupList.add(lineList.get(3));
+            }
+            br.close();
+            TIntArrayList chrs=new TIntArrayList(chrSet);
+            int[] chrNum=chrs.toArray();
+            Arrays.sort(chrNum);
+            BufferedWriter[] bws=new BufferedWriter[chrNum.length];
             for (int i = 0; i < chrNum.length; i++) {
                 bws[i]=IOUtils.getTextWriter(new File(outDir, chrNum[i]+".txt").getAbsolutePath());
-                bws[i].write(rowTable.getHeader().stream().collect(Collectors.joining("\t")));
+            }
+            for (int i = 0; i < chrNum.length; i++) {
+                bws[i].write(header);
                 bws[i].newLine();
             }
-            List<String> lineList;
-            for (int i = 0; i < rowTable.getRowNumber(); i++) {
-                lineList=rowTable.getRow(i);
-                for (int j = 0; j < chrNum.length; j++) {
-                    if (Integer.parseInt(lineList.get(0))==chrNum[j]){
-                        bws[j].write(lineList.stream().collect(Collectors.joining("\t")));
-                        bws[j].newLine();
-                    }
-                }
+            int index=Integer.MIN_VALUE;
+            StringBuilder sb=new StringBuilder();
+            for (int i = 0; i < chrList.size(); i++) {
+                index=Arrays.binarySearch(chrNum, chrList.get(i));
+                sb.append(chrList.get(i)).append("\t").append(posList.get(i)).append("\t")
+                        .append(refList.get(i)).append("\t").append(outgroupList.get(i));
+                bws[index].write(sb.toString());
+                bws[index].newLine();
+                sb=new StringBuilder();
             }
             for (int i = 0; i < bws.length; i++) {
                 bws[i].flush();
