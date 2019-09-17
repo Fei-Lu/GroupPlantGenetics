@@ -16,13 +16,14 @@ public class Start {
     private int indexOfWheatInOutGroup1;
     private String outgroup2InputDir;
     private int indexOfWheatInOutGroup2;
-    private String[] subDir={"refOutgroupAllele", "merge"};
+    private String[] subDir={"refOutgroupAllele", "merge", "sorted", "ancestralAllele"};
 
     Start(String parameterFileS){
         this.initializeParameter(parameterFileS);
 //        this.getOutgroupAllele();
-        this.merge();
-
+        this.sort();
+//        this.merge();
+//        this.getAncestrallAllele();
     }
 
     private void initializeParameter(String parameterFileS){
@@ -74,15 +75,26 @@ public class Start {
     }
 
     private void merge(){
-        File files= new File(this.workingDir, this.subDir[0]);
+        File files= new File(this.workingDir, this.subDir[2]);
         MAF.merge(files.getAbsolutePath(), new File(this.workingDir, this.subDir[1]).getAbsolutePath());
     }
 
+    private void sort(){
+        String inDir=new File(this.workingDir, this.subDir[0]).getAbsolutePath();
+        String outDir=new File(this.workingDir, this.subDir[2]).getAbsolutePath();
+        MAF.sort(inDir, outDir);
+    }
+
+    private void getAncestrallAllele(){
+        String input=new File(this.workingDir, this.subDir[1]).getAbsolutePath();
+        String out=new File(this.workingDir, this.subDir[3]).getAbsolutePath();
+        MAF.getAncestralAlleleParallel(input, out);
+    }
+
     public static void main(String[] args) {
-//        ScriptMethods.caculateChr("/Users/xudaxing/Desktop/t.txt","/Users/xudaxing/Desktop/tt.txt");
         new Start(args[0]);
 //        ChrConvertionRule chrConvertionRule=new ChrConvertionRule(Paths.get("/Users/xudaxing/Desktop/chrConvertionRule.txt"));
-//        int a=chrConvertionRule.getRefPosFromVCFChrPos(12, 169686112);
+//        int a=chrConvertionRule.getRefPosFromVCFChrPos(40, 296746659);
 //        System.out.println(a);
 //        String[] chr={"1H","2B"};
 //        int[] startPos={41674, 799952899};

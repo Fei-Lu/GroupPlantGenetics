@@ -381,8 +381,6 @@ public class MAF {
 //                System.exit(0);
                 return;
             }
-            posList1.sort();
-            posList2.sort();
             TIntHashSet mergedPosSet=new TIntHashSet(posList1);
             mergedPosSet.addAll(posList2);
             int[] mergedPos=mergedPosSet.toArray();
@@ -398,7 +396,7 @@ public class MAF {
                 index2=posList2.binarySearch(mergedPos[i]);
                 if (index1 < 0 || index2 < 0) continue;
                 sb=new StringBuilder();
-                sb.append(chr).append("\t").append(mergedPos[i]).append("\t").append(refList1.get(index1))
+                sb.append(chr.iterator().next()).append("\t").append(mergedPos[i]).append("\t").append(refList1.get(index1))
                         .append("\t").append(altList1.get(index1)).append("\t").append(altList2.get(index2));
                 bw.write(sb.toString());
                 bw.newLine();
@@ -423,6 +421,39 @@ public class MAF {
         Arrays.stream(aa).forEach(e->{
             MAF.mergeTwoFiles(f[e], f[e+1], new File(mergeOutDir, outNames[e/2]));
         });
+    }
+
+    public static void sort(String inputDir, String outDir){
+        File[] input=IOUtils.listRecursiveFiles(new File(inputDir));
+        Predicate<File> p=File::isHidden;
+        File[] files=Arrays.stream(input).filter(p.negate()).toArray(File[]::new);
+        String[] outName=Arrays.stream(files).map(File::getName).toArray(String[]::new);
+        IntStream.range(0, files.length).parallel().forEach(index->MAF.sort(files[index], new File(outDir, outName[index])));
+    }
+
+    public static void sort(File inputFile, File outFile){
+        long start=System.nanoTime();
+        try(BufferedReader br=IOUtils.getTextReader(inputFile.getAbsolutePath());
+            BufferedWriter bw=IOUtils.getTextWriter(outFile.getAbsolutePath())){
+            String line, header;
+            header=br.readLine();
+            List<String> lines=new ArrayList<>();
+            while ((line=br.readLine())!=null){
+                lines.add(line);
+            }
+            Comparator<String> posComparator=Comparator.comparing(str->Integer.parseInt(PStringUtils.fastSplit(str).get(1)));
+            Collections.sort(lines, posComparator);
+            bw.write(header);
+            bw.newLine();
+            for (int i = 0; i < lines.size(); i++) {
+                bw.write(lines.get(i));
+                bw.newLine();
+            }
+            bw.flush();
+            System.out.println(outFile.getName()+" is completed in "+Benchmark.getTimeSpanMinutes(start)+" minutes");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -487,11 +518,11 @@ public class MAF {
         File[] files=Arrays.stream(input).filter(p.negate()).sorted().toArray(File[]::new);
         Map<Integer, BufferedReader> chrBufferReaderMap=new HashMap<>();
         Map<Integer, BufferedWriter> chrBufferWriterMap=new HashMap<>();
-        IntStream.range(0,45).forEach(e->{
+        IntStream.range(0, files.length).forEach(e->{
             chrBufferReaderMap.put(e, IOUtils.getNIOTextReader(files[e].getAbsolutePath()));
             chrBufferWriterMap.put(e, IOUtils.getNIOTextWriter(new File(outDir, files[e].getName()).getAbsolutePath()));
         });
-        IntStream.range(0, 45).parallel().forEach(index->{
+        IntStream.range(0, files.length).parallel().forEach(index->{
             BufferedReader br;
             BufferedWriter bw;
             List<String> lines;
@@ -505,8 +536,10 @@ public class MAF {
                 while ((line=br.readLine())!=null){
                     lineList=PStringUtils.fastSplit(line);
                     if (lineList.get(3).equals("N")) continue;
+                    if (lineList.get(3).equals("n")) continue;
                     if (lineList.get(3).equals("-")) continue;
                     if (lineList.get(4).equals("N")) continue;
+                    if (lineList.get(4).equals("n")) continue;
                     if (lineList.get(4).equals("-")) continue;
                     if (!lineList.get(3).equals(lineList.get(4))) continue;
                     lines.add(line);
