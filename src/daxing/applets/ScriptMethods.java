@@ -302,6 +302,7 @@ public class ScriptMethods {
                 outgroupList.add(lineList.get(3));
             }
             br.close();
+            System.out.println(inputFile+" reading is completed");
             TIntArrayList chrs=new TIntArrayList(chrSet);
             int[] chrNum=chrs.toArray();
             Arrays.sort(chrNum);
