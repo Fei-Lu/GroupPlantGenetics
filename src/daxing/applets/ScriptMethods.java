@@ -334,4 +334,71 @@ public class ScriptMethods {
         }
     }
 
+    public static void mergeOutgroupAllele(String inputDir1, String inputDir2, String outDir){
+        File[] inputFile1=IOUtils.listRecursiveFiles(new File(inputDir1).getAbsoluteFile());
+        File[] inputFile2=IOUtils.listRecursiveFiles(new File(inputDir2).getAbsoluteFile());
+        Predicate<File> p=File::isHidden;
+        List<String> fileName1=Arrays.stream(inputFile1).filter(p.negate()).map(File::getName).collect(Collectors.toList());
+        List<String> fileName2=Arrays.stream(inputFile2).filter(p.negate()).map(File::getName).collect(Collectors.toList());
+        fileName1.retainAll(fileName2);
+        BufferedReader[]  brs1=new BufferedReader[fileName1.size()];
+        BufferedReader[]  brs2=new BufferedReader[fileName1.size()];
+        BufferedWriter[]  bws =new BufferedWriter[fileName1.size()];
+        for (int i = 0; i < fileName1.size(); i++) {
+            brs1[i]=IOUtils.getTextReader(new  File(inputDir1, fileName1.get(i)).getAbsolutePath());
+            brs2[i]=IOUtils.getTextReader(new File(inputDir2, fileName1.get(i)).getAbsolutePath());
+            bws[i]= IOUtils.getTextWriter(new File(outDir, fileName1.get(i)).getAbsolutePath());
+        }
+        try {
+            String line, header;
+            List<String> lineList;
+            TIntHashSet chrs;
+            TIntArrayList posList;
+            List<String> refList;
+            List<String> outgroupList;
+            StringBuilder sb=new StringBuilder();
+            for (int i = 0; i < fileName1.size(); i++) {
+                chrs=new TIntHashSet();
+                posList=new TIntArrayList();
+                refList=new ArrayList<>();
+                outgroupList=new ArrayList<>();
+                header=brs1[i].readLine();
+                while ((line=brs1[i].readLine())!=null){
+                    lineList=PStringUtils.fastSplit(line);
+                    chrs.add(Integer.parseInt(lineList.get(0)));
+                    posList.add(Integer.parseInt(lineList.get(1)));
+                    refList.add(lineList.get(2));
+                    outgroupList.add(lineList.get(3));
+                }
+                brs1[i].close();
+                brs2[i].readLine();
+                while ((line=brs2[i].readLine())!=null){
+                    lineList=PStringUtils.fastSplit(line);
+                    chrs.add(Integer.parseInt(lineList.get(0)));
+                    posList.add(Integer.parseInt(lineList.get(1)));
+                    refList.add(lineList.get(2));
+                    outgroupList.add(lineList.get(3));
+                }
+                brs2[i].close();
+                if (chrs.size()>1){
+                    System.out.println(new File(inputDir1, fileName1.get(i)).getAbsolutePath()+"\t"+new File(inputDir2, fileName1.get(i)).getAbsolutePath()+" file error");
+                    System.exit(1);
+                }
+                bws[i].write(header);
+                bws[i].newLine();
+                for (int j = 0; j < posList.size(); j++) {
+                    sb.append(chrs.iterator().next()).append("\t").append(posList.get(j)).append("\t").append(refList.get(j)).append("\t").append(outgroupList.get(j));
+                    bws[i].write(sb.toString());
+                    bws[i].newLine();
+                    sb=new StringBuilder();
+                }
+                bws[i].flush();
+                bws[i].close();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
 }
