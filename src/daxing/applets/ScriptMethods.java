@@ -1,6 +1,7 @@
 package daxing.applets;
 
 import daxing.common.ArrayTool;
+import daxing.common.ChrConvertionRule;
 import daxing.common.VCF;
 import daxing.filterSNP.Cells;
 import daxing.filterSNP.DepthInfo;
@@ -20,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -55,8 +57,20 @@ public class ScriptMethods {
 
     public static void getTopRows(File inputFile, int n, File outputFile){
         try{
-            List<String> lineList= Files.newBufferedReader(Paths.get(inputFile.getAbsolutePath())).lines().limit(n).collect(Collectors.toList());
-            BufferedWriter bw=Files.newBufferedWriter(Paths.get(outputFile.getAbsolutePath()));
+            List<String> lineList;
+            if (inputFile.getName().endsWith("gz")){
+                lineList=IOUtils.getTextGzipReader(inputFile.getAbsolutePath()).lines().limit(n).collect(Collectors.toList());
+            }else {
+                lineList= Files.newBufferedReader(Paths.get(inputFile.getAbsolutePath())).lines().limit(n).collect(Collectors.toList());
+            }
+
+            BufferedWriter bw;
+            if (inputFile.getName().endsWith(".gz")){
+                bw=IOUtils.getTextGzipWriter(outputFile.getAbsolutePath());
+            }
+            else {
+                bw=IOUtils.getTextWriter(outputFile.getAbsolutePath());
+            }
             for (int i = 0; i < lineList.size(); i++) {
                 bw.write(lineList.get(i));
                 bw.newLine();
@@ -399,6 +413,48 @@ public class ScriptMethods {
             e.printStackTrace();
         }
 
+    }
+
+    public static void mergeVCFPosIntoRefPos(String inDir, String outDir, String chrConvertionRuleFile){
+        ChrConvertionRule chrConvertionRule=new ChrConvertionRule(Paths.get(chrConvertionRuleFile));
+        File[] input=IOUtils.listRecursiveFiles(new File(inDir));
+        Predicate<File> p=File::isHidden;
+        File[] files=Arrays.stream(input).filter(p.negate()).toArray(File[]::new);
+        int[] chrID=IntStream.range(1, 43).toArray();
+        String[] subnames=Arrays.stream(files).map(File::getName).map(str->str.substring(6)).toArray(String[]::new);
+        IntStream.iterate(0, n->n+2).limit(21).forEach(e->{
+            ScriptMethods.mergeVCFPosIntoRefPos(files[e], files[e+1], new File(outDir, VCF.chrToChrMap.get(chrID[e])+subnames[e]), chrConvertionRule);
+        });
+    }
+
+    public static void mergeVCFPosIntoRefPos(File infile1, File infile2, File outfile, ChrConvertionRule chrConvertionRule){
+        try{
+            List<ChrPos> chrPosList1=IOUtils.getTextGzipReader(infile1.getAbsolutePath()).lines().skip(1).map(PStringUtils::fastSplit)
+                    .map(l->new ChrPos(Short.parseShort(l.get(0)), Integer.parseInt(l.get(1)))).collect(Collectors.toList());
+            List<ChrPos> chrPosList2=IOUtils.getTextGzipReader(infile2.getAbsolutePath()).lines().skip(1).map(PStringUtils::fastSplit)
+                    .map(l->new ChrPos(Short.parseShort(l.get(0)), Integer.parseInt(l.get(1)))).collect(Collectors.toList());
+            chrPosList1.addAll(chrPosList2);
+            Collections.sort(chrPosList1);
+            BufferedWriter bw=IOUtils.getTextGzipWriter(outfile.getAbsolutePath());
+            bw.write("Chr\tPos\n");
+            StringBuilder sb;
+            ChrPos chrPos;
+            String chr;
+            int refPos;
+            for (int i = 0; i < chrPosList1.size(); i++) {
+                chrPos=chrPosList1.get(i);
+                chr=chrConvertionRule.getRefChrFromVCFChr(chrPos.getChromosome());
+                refPos=chrConvertionRule.getRefPosFromVCFChrPos(chrPos);
+                sb=new StringBuilder();
+                sb.append(chr).append("\t").append(refPos);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 }
