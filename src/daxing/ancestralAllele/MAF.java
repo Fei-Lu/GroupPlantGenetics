@@ -428,7 +428,7 @@ public class MAF {
         Predicate<File> p=File::isHidden;
         File[] files=Arrays.stream(input).filter(p.negate()).toArray(File[]::new);
         String[] outName=Arrays.stream(files).map(File::getName).toArray(String[]::new);
-        IntStream.range(0, files.length).parallel().forEach(index->MAF.sort(files[index], new File(outDir, outName[index])));
+        IntStream.range(0, files.length).forEach(index->MAF.sort(files[index], new File(outDir, outName[index])));
     }
 
     public static void sort(File inputFile, File outFile){
@@ -513,6 +513,7 @@ public class MAF {
      * @param outDir
      */
     public static void getAncestralAlleleParallel(String inputDir, String outDir){
+        long start=System.nanoTime();
         File[] input=new File(inputDir).listFiles();
         Predicate<File> p=File::isHidden;
         File[] files=Arrays.stream(input).filter(p.negate()).sorted().toArray(File[]::new);
@@ -522,7 +523,7 @@ public class MAF {
             chrBufferReaderMap.put(e, IOUtils.getNIOTextReader(files[e].getAbsolutePath()));
             chrBufferWriterMap.put(e, IOUtils.getNIOTextWriter(new File(outDir, files[e].getName()).getAbsolutePath()));
         });
-        IntStream.range(0, files.length).parallel().forEach(index->{
+        IntStream.range(0, files.length).forEach(index->{
             BufferedReader br;
             BufferedWriter bw;
             List<String> lines;
@@ -554,9 +555,11 @@ public class MAF {
                 }
                 bw.flush();
                 bw.close();
+
             }catch (Exception e){
                 e.printStackTrace();
             }
+            System.out.println(files[index].getName()+" is completed in "+Benchmark.getTimeSpanMinutes(start)+" minutes");
         });
     }
 
