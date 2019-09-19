@@ -20,10 +20,10 @@ public class SnpEffSummaryHTML {
     private int numberOfVariants;
     private int numberOfEffects;
     private int chrLen;
-    private int[] numberOfEffectsByImpact;
-    private int[] numberOfEffectsByFunctionalClass;
-    private int[] numberOfEffectsByType;
-    private int[] numberOfEffectsByRegion;
+    private int[] numberOfEffectsByImpact;   //HIGH, LOW, MODERATE, MODIFIER
+    private int[] numberOfEffectsByFunctionalClass; //MISSENSE, NONSENSE, SILENT
+    private int[] numberOfEffectsByType;  //3_prime_UTR_variant, 5_prime_UTR_premature_start_codon_gain_variant, ...
+    private int[] numberOfEffectsByRegion;  //DOWNSTREAM, EXON, INTERGENIC, INTRON, ...
 
     public SnpEffSummaryHTML(File inputFileOfSummaryHTML){
         this.parseSummaryHTML(inputFileOfSummaryHTML);
