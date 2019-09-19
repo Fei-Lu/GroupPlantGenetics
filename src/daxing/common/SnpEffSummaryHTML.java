@@ -157,6 +157,34 @@ public class SnpEffSummaryHTML {
         return num;
     }
 
+    public int getNumberOfVariants() {
+        return numberOfVariants;
+    }
+
+    public int getNumberOfEffects() {
+        return numberOfEffects;
+    }
+
+    public int getChrLen() {
+        return chrLen;
+    }
+
+    public int[] getNumberOfEffectsByImpact() {
+        return numberOfEffectsByImpact;
+    }
+
+    public int[] getNumberOfEffectsByFunctionalClass() {
+        return numberOfEffectsByFunctionalClass;
+    }
+
+    public int[] getNumberOfEffectsByType() {
+        return numberOfEffectsByType;
+    }
+
+    public int[] getNumberOfEffectsByRegion() {
+        return numberOfEffectsByRegion;
+    }
+
     public double getVariantsRate(){
         return (double) chrLen/numberOfVariants;
     }
