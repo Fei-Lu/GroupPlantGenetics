@@ -43,4 +43,40 @@ public class ArrayTool {
         List<Integer> l= Arrays.stream(a).boxed().collect(Collectors.toList());
         return l.parallelStream().collect(Collectors.groupingByConcurrent(Function.identity(), Collectors.counting()));
     }
+
+    /**
+     *  将两个数组对应的index相加
+     * @param a
+     * @param b
+     * @return
+     */
+    public static int[] add(int[] a, int[] b){
+        if (a.length!=b.length){
+            System.out.println(a+" and "+b+" length is not same");
+            System.exit(1);
+        }
+        int[] c=new int[a.length];
+        for (int i = 0; i < a.length; i++) {
+            c[i]=a[i]+b[i];
+        }
+        return c;
+    }
+
+    /**
+     * 将两个数组对应的index相加
+     * @param a
+     * @param b
+     * @return
+     */
+    public static double[] add(double[] a, double[] b){
+        if (a.length!=b.length){
+            System.out.println(a+" and "+b+" length is not same");
+            System.exit(1);
+        }
+        double[] c=new double[a.length];
+        for (int i = 0; i < a.length; i++) {
+            c[i]=a[i]+b[i];
+        }
+        return c;
+    }
 }
