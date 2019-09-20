@@ -45,7 +45,7 @@ public class ArrayTool {
     }
 
     /**
-     *  将两个数组对应的index相加
+     *  将两个数组对应的index元素相加
      * @param a
      * @param b
      * @return
@@ -63,7 +63,7 @@ public class ArrayTool {
     }
 
     /**
-     * 将两个数组对应的index相加
+     * 将两个数组对应的index元素相加
      * @param a
      * @param b
      * @return
@@ -78,5 +78,15 @@ public class ArrayTool {
             c[i]=a[i]+b[i];
         }
         return c;
+    }
+
+    /**
+     * 返回数组每个元素的比例
+     * @param a
+     * @return
+     */
+    public static double[] getElementPercent(int[] a){
+        double sum=Arrays.stream(a).sum();
+        return Arrays.stream(a).mapToDouble(e->e/sum).toArray();
     }
 }
