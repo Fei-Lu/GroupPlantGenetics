@@ -202,6 +202,11 @@ public class SnpEffSummaryHTML {
         return Arrays.stream(this.numberOfEffectsByRegion).mapToDouble(e->e/sum).toArray();
     }
 
+    /**
+     * 解析snpEff软件产生的summary.html文件，统计Effects by type and region
+     * @param summaryHtmlFileDir 包含HTML文件的目录
+     * @param outFileDir
+     */
     public static void getA_B_D_lineageTypeAndRegion(String summaryHtmlFileDir, String outFileDir){
         File[] input=IOUtils.listRecursiveFiles(new File(summaryHtmlFileDir));
         Predicate<File> p=File::isHidden;
