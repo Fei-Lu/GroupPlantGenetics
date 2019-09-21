@@ -57,24 +57,28 @@ public class ScriptMethods {
 
     public static void getTopRows(File inputFile, int n, File outputFile){
         try{
-            List<String> lineList;
-            if (inputFile.getName().endsWith("gz")){
-                lineList=IOUtils.getTextGzipReader(inputFile.getAbsolutePath()).lines().limit(n).collect(Collectors.toList());
-            }else {
-                lineList=IOUtils.getTextReader(inputFile.getAbsolutePath()).lines().limit(n).collect(Collectors.toList());
-            }
-
+            BufferedReader br;
             BufferedWriter bw;
+            if (inputFile.getName().endsWith("gz")){
+                br=IOUtils.getTextGzipReader(inputFile.getAbsolutePath());
+            }else {
+                br=IOUtils.getTextReader(inputFile.getAbsolutePath());
+            }
             if (inputFile.getName().endsWith(".gz")){
                 bw=IOUtils.getTextGzipWriter(outputFile.getAbsolutePath());
             }
             else {
                 bw=IOUtils.getTextWriter(outputFile.getAbsolutePath());
             }
-            for (int i = 0; i < lineList.size(); i++) {
-                bw.write(lineList.get(i));
+            String line;
+            int count=1;
+            while ((line=br.readLine())!=null){
+                if (count > n) break;
+                bw.write(line);
                 bw.newLine();
+                count++;
             }
+            br.close();
             bw.flush();
             bw.close();
         }
@@ -84,7 +88,8 @@ public class ScriptMethods {
     }
 
     public static void getTopRowsFromDir(String inputDir, int n, String outputDir){
-        File[] files=IOUtils.listRecursiveFiles(new File(inputDir));
+        File[] f=IOUtils.listRecursiveFiles(new File(inputDir));
+        File[] files=IOUtils.listFilesEndsWith(f, "gerp++");
         String[] names= Arrays.stream(files).map(File::getName).toArray(String[]::new);
         IntStream.range(0, files.length).parallel().forEach(e->{
             ScriptMethods.getTopRows(files[e], n, new File(outputDir, names[e]));
