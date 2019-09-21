@@ -57,6 +57,7 @@ public class ScriptMethods {
 
     public static void getTopRows(File inputFile, int n, File outputFile){
         try{
+            long start=System.nanoTime();
             BufferedReader br;
             BufferedWriter bw;
             if (inputFile.getName().endsWith("gz")){
@@ -81,6 +82,7 @@ public class ScriptMethods {
             br.close();
             bw.flush();
             bw.close();
+            System.out.println(outputFile.getName()+" is completed in "+Benchmark.getTimeSpanMinutes(start)+" minutes");
         }
         catch (Exception e){
             e.printStackTrace();
@@ -514,21 +516,21 @@ public class ScriptMethods {
         }
     }
 
-    public static void addChrPosToGerpRes(String gerpResFileInDir, ChrConvertionRule chrConvertionRule, File outDir){
+    public static void addChrPosToGerpRes(String gerpResFileInDir, ChrConvertionRule chrConvertionRule, String outDir){
         File[] input=IOUtils.listRecursiveFiles(new File(gerpResFileInDir));
         File[] f=IOUtils.listFilesEndsWith(input, "gerp++");
         Predicate<File> p=File::isHidden;
-        File[] files=Arrays.stream(f).filter(p.negate()).toArray(File[]::new);
+        File[] files=Arrays.stream(f).filter(p.negate()).limit(7).toArray(File[]::new);
         int[] num= Arrays.stream(files).map(File::getName).map(e->PStringUtils.fastSplit(e, ".")).map(e->e.get(1))
                 .map(s->s.substring(3)).mapToInt(Integer::parseInt).toArray();
         String[] str=Arrays.stream(files).map(File::getName).map(e->PStringUtils.fastSplit(e, ".")).map(e->e.get(0))
                 .map(s->s.substring(5)).toArray(String[]::new);
         String[] chrs=new String[num.length];
         for (int i = 0; i < num.length; i++) {
-            chrs[i]=str[i]+num[i];
+            chrs[i]=num[i]+str[i];
         }
         IntStream.range(0, files.length).parallel().forEach(e->{
-            ScriptMethods.addChrPosToGerpRes(files[e], chrConvertionRule, chrs[e], outDir);
+            ScriptMethods.addChrPosToGerpRes(files[e], chrConvertionRule, chrs[e], new File(outDir));
         });
 
     }
