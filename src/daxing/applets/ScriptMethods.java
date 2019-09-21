@@ -61,7 +61,7 @@ public class ScriptMethods {
             if (inputFile.getName().endsWith("gz")){
                 lineList=IOUtils.getTextGzipReader(inputFile.getAbsolutePath()).lines().limit(n).collect(Collectors.toList());
             }else {
-                lineList= Files.newBufferedReader(Paths.get(inputFile.getAbsolutePath())).lines().limit(n).collect(Collectors.toList());
+                lineList=IOUtils.getTextReader(inputFile.getAbsolutePath()).lines().limit(n).collect(Collectors.toList());
             }
 
             BufferedWriter bw;
@@ -456,6 +456,76 @@ public class ScriptMethods {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    public static void addChrPosToGerpRes(File gerpResFile, ChrConvertionRule chrConvertionRule, String chrStr, File outFileDir){
+        int[] chrID=chrConvertionRule.getVCFChrFromRefChr(chrStr);
+        String[] outFileNames=new String[2];
+        outFileNames[0]="chr"+PStringUtils.getNDigitNumber(3, chrID[0])+".wheat.gerp++";
+        outFileNames[1]="chr"+PStringUtils.getNDigitNumber(3, chrID[1])+".wheat.gerp++";
+        BufferedWriter[] bws=new BufferedWriter[2];
+        bws[0]=IOUtils.getTextWriter(new File(outFileDir, outFileNames[0]).getAbsolutePath());
+        bws[1]=IOUtils.getTextWriter(new File(outFileDir, outFileNames[1]).getAbsolutePath());
+        try (BufferedReader br = IOUtils.getTextReader(gerpResFile.getAbsolutePath())) {
+            long numOfLine=Files.lines(Paths.get(gerpResFile.getAbsolutePath())).count();
+            int chrSize=chrConvertionRule.getChrSize(chrStr);
+            if (numOfLine!=chrSize){
+                System.out.println("The number of rows in "+gerpResFile.getName()+" is "+numOfLine+"\t"+"The "+chrStr+" size is "+chrSize);
+                return;
+            }
+            String header="Chr\tPos\tGerpNeutralRate\tGerpScore\n";
+            bws[0].write(header);
+            bws[1].write(header);
+            String line;
+            List<String> lineList;
+            int index=1;
+            StringBuilder sb;
+            short chr;
+            int pos;
+            ChrPos chrPos;
+            int chrInitialValue=chrConvertionRule.getVCFChrFromRefChrPos(chrStr, 1);
+            for (int i = 0; i < 2; i++) {
+                while ((line=br.readLine())!=null){
+                    lineList=PStringUtils.fastSplit(line);
+                    chrPos=chrConvertionRule.getVCFChrPosFromRefChrPos(chrStr, index);
+                    chr=chrPos.getChromosome();
+                    if (chrInitialValue!=chr){
+                        bws[i].flush();
+                        bws[i].close();
+                        i=1;
+                    }
+                    pos=chrPos.getPosition();
+                    sb=new StringBuilder();
+                    sb.append(chr).append("\t").append(pos).append("\t").append(lineList.get(0)).append("\t").append(lineList.get(1));
+                    bws[i].write(sb.toString());
+                    bws[i].newLine();
+                    index++;
+                }
+                bws[i].flush();
+                bws[i].close();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public static void addChrPosToGerpRes(String gerpResFileInDir, ChrConvertionRule chrConvertionRule, File outDir){
+        File[] input=IOUtils.listRecursiveFiles(new File(gerpResFileInDir));
+        File[] f=IOUtils.listFilesEndsWith(input, "gerp++");
+        Predicate<File> p=File::isHidden;
+        File[] files=Arrays.stream(f).filter(p.negate()).toArray(File[]::new);
+        int[] num= Arrays.stream(files).map(File::getName).map(e->PStringUtils.fastSplit(e, ".")).map(e->e.get(1))
+                .map(s->s.substring(3)).mapToInt(Integer::parseInt).toArray();
+        String[] str=Arrays.stream(files).map(File::getName).map(e->PStringUtils.fastSplit(e, ".")).map(e->e.get(0))
+                .map(s->s.substring(5)).toArray(String[]::new);
+        String[] chrs=new String[num.length];
+        for (int i = 0; i < num.length; i++) {
+            chrs[i]=str[i]+num[i];
+        }
+        IntStream.range(0, files.length).parallel().forEach(e->{
+            ScriptMethods.addChrPosToGerpRes(files[e], chrConvertionRule, chrs[e], outDir);
+        });
+
     }
 
 }
