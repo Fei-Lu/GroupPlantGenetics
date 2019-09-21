@@ -90,8 +90,7 @@ public class ScriptMethods {
     }
 
     public static void getTopRowsFromDir(String inputDir, int n, String outputDir){
-        File[] f=IOUtils.listRecursiveFiles(new File(inputDir));
-        File[] files=IOUtils.listFilesEndsWith(f, "gerp++");
+        File[] files=IOUtils.listRecursiveFiles(new File(inputDir));
         String[] names= Arrays.stream(files).map(File::getName).toArray(String[]::new);
         IntStream.range(0, files.length).parallel().forEach(e->{
             ScriptMethods.getTopRows(files[e], n, new File(outputDir, names[e]));
