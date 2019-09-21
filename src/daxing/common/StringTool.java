@@ -83,6 +83,10 @@ public class StringTool {
         return elements.eachText();
     }
 
+    public static List<String> parseLineInHtmlFormat(String strOfHtml){
+        return StringTool.parseLineInHtmlFormat(strOfHtml, "body");
+    }
+
     /**
      *
      * @param num  以千位分隔符分隔的字符串数字，如"123,256";
