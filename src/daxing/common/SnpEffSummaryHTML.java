@@ -12,8 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -42,21 +40,25 @@ public class SnpEffSummaryHTML {
             TIntArrayList numberOfEffectsByFunctionalClassList=new TIntArrayList();
             TIntArrayList numberOfEffectsByTypeList=new TIntArrayList();
             TIntArrayList numberOfEffectsByRegionList=new TIntArrayList();
+            List<String> texts;
             while ((line = br.readLine()) != null) {
                 if (line.contains("Number of variants (before filter)")){
                     line=br.readLine();
-                    numberOfVariants=Integer.parseInt(line.replaceAll("\\D+", ""));
+                    texts=StringTool.parseLineInHtmlFormat(line, "body");
+                    numberOfVariants=StringTool.parseInt(texts.get(0));
                     first=true;
                 }
                 if (line.contains("Number of effects") && first){
                     line=br.readLine();
-                    numberOfEffects=Integer.parseInt(line.replaceAll("\\D+", ""));
+                    texts=StringTool.parseLineInHtmlFormat(line, "body");
+                    numberOfEffects=StringTool.parseInt(texts.get(0));
                     first=false;
                     br.readLine();br.readLine();br.readLine();
                     br.readLine();br.readLine();br.readLine();
                     br.readLine();
                     line=br.readLine();
-                    chrLen=Integer.parseInt(line.replaceAll("\\D+", ""));
+                    texts=StringTool.parseLineInHtmlFormat(line, "body");
+                    chrLen=StringTool.parseInt(texts.get(0));
                 }
                 if (line.contains("HIGH")){
                     numberOfEffectsByImpactList.add(this.extractKeyWord_1(br));
@@ -117,15 +119,8 @@ public class SnpEffSummaryHTML {
             List<String> temp=new ArrayList<>();
             br.readLine();
             line=br.readLine();
-            Pattern pattern=Pattern.compile("[1-9][\\d]{0,2}(,\\d{1,3})*");
-            Matcher matcher=pattern.matcher(line);
-            while (matcher.find()){
-                for (int i = 0; i < matcher.groupCount(); i++) {
-                    temp.add(matcher.group(i));
-                }
-            }
-            int max=temp.stream().map(str->str.replaceAll(",", "")).mapToInt(Integer::parseInt).max().getAsInt();
-            return max;
+            List<String> texts=StringTool.parseLineInHtmlFormat(line, "body");
+            return StringTool.parseInt(texts.get(0));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -143,15 +138,8 @@ public class SnpEffSummaryHTML {
             br.readLine();
             br.readLine();
             line=br.readLine();
-            Pattern pattern=Pattern.compile("[1-9][\\d]{0,2}(,\\d{1,3})*");
-            Matcher matcher=pattern.matcher(line);
-            while (matcher.find()){
-                for (int i = 0; i < matcher.groupCount(); i++) {
-                    temp.add(matcher.group(i));
-                }
-            }
-            int max=temp.stream().map(str->str.replaceAll(",", "")).mapToInt(Integer::parseInt).max().getAsInt();
-            return max;
+            List<String> texts=StringTool.parseLineInHtmlFormat(line, "body");
+            return StringTool.parseInt(texts.get(0));
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -415,6 +415,7 @@ public class ScriptMethods {
 
     }
 
+    //Chr Pos 将vcf chr pos 转换为 ref chr pos
     public static void mergeVCFPosIntoRefPos(String inDir, String outDir, String chrConvertionRuleFile){
         ChrConvertionRule chrConvertionRule=new ChrConvertionRule(Paths.get(chrConvertionRuleFile));
         File[] input=IOUtils.listRecursiveFiles(new File(inDir));

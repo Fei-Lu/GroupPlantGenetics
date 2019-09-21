@@ -1,7 +1,12 @@
 package daxing.common;
 
 import org.apache.commons.lang.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -64,6 +69,35 @@ public class StringTool {
      */
     public static int getCountOfSubStr(String str, String subStr){
         return StringUtils.countMatches(str, subStr);
+    }
+
+    /**
+     * 解析HTNL格式的行 如"<td class="numeric" bgcolor="#00fe00"> 2,354 </td>"
+     * @param strOfHtml
+     * @param tag "body", "td", et al.
+     * @return
+     */
+    public static List<String> parseLineInHtmlFormat(String strOfHtml, String tag){
+        Document document= Jsoup.parse(strOfHtml);
+        Elements elements=document.getElementsByTag(tag);
+        return elements.eachText();
+    }
+
+    /**
+     *
+     * @param num  以千位分隔符分隔的字符串数字，如"123,256";
+     * @return
+     */
+    public static int parseInt(String num){
+        int res=Integer.MIN_VALUE;
+        try {
+            NumberFormat format=NumberFormat.getInstance();
+            Number number=format.parse(num);
+            res=number.intValue();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return res;
     }
 
 }
