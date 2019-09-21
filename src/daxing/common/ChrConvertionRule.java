@@ -201,4 +201,20 @@ public class ChrConvertionRule {
     public int getRefPosFromVCFChrPos(ChrPos chrPos){
         return this.getRefPosFromVCFChrPos(chrPos.getChromosome(), chrPos.getPosition());
     }
+
+    /**
+     *
+     * @param chr 1A, 1B, 1D, Un, Mit, Chl  et al.
+     * @return size of chr
+     */
+    public int getChrSize(String chr){
+        int chrSize=Integer.MIN_VALUE;
+        int[] chrID=this.getVCFChrFromRefChr(chr);
+        if (chrID[1]>chrID[0]){
+            chrSize=this.getEndIndexOnOriChr()[chrID[1]];
+        }else {
+            chrSize=this.getEndIndexOnOriChr()[chrID[0]];
+        }
+        return chrSize;
+    }
 }
