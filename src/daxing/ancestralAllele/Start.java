@@ -21,9 +21,9 @@ public class Start {
     Start(String parameterFileS){
         this.initializeParameter(parameterFileS);
 //        this.getOutgroupAllele();
-        this.sort();
+//        this.sort();
 //        this.merge();
-//        this.getAncestrallAllele();
+        this.getAncestrallAllele();
     }
 
     private void initializeParameter(String parameterFileS){

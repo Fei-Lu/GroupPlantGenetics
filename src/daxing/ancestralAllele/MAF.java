@@ -361,10 +361,6 @@ public class MAF {
             List<String> altList2=new ArrayList<>();
             while ((line=br1.readLine())!=null){
                 lineList = PStringUtils.fastSplit(line);
-                if (lineList.get(2).equals("N")) continue;
-                if (lineList.get(2).equals("n")) continue;
-                if (lineList.get(3).equals("N")) continue;
-                if (lineList.get(3).equals("n")) continue;
                 chr.add(Short.parseShort(lineList.get(0)));
                 posList1.add(Integer.parseInt(lineList.get(1)));
                 refList1.add(lineList.get(2).toUpperCase());
@@ -373,8 +369,6 @@ public class MAF {
             br1.close();
             while ((line=br2.readLine())!=null){
                 lineList = PStringUtils.fastSplit(line);
-                if (lineList.get(3).equals("N")) continue;
-                if (lineList.get(3).equals("n")) continue;
                 chr.add(Short.parseShort(lineList.get(0)));
                 posList2.add(Integer.parseInt(lineList.get(1)));
                 altList2.add(lineList.get(3).toUpperCase());
@@ -422,9 +416,17 @@ public class MAF {
         String[] outNames=Arrays.stream(f).map(File::getName).map(str->str.substring(0, 26))
                 .map(str->str.replaceAll("_v_$",".txt")).distinct().toArray(String[]::new);
         int[] aa=IntStream.iterate(0, n->n+2).limit(45).toArray();
-        Arrays.stream(aa).forEach(e->{
-            MAF.mergeTwoFiles(f[e], f[e+1], new File(mergeOutDir, outNames[e/2]));
-        });
+        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(aa.length, 7);
+        for (int i = 0; i < indices.length; i++) {
+            Integer[] subLibIndices = new Integer[indices[i][1]-indices[i][0]];
+            for (int j = 0; j < subLibIndices.length; j++) {
+                subLibIndices[j] = indices[i][0]+j;
+            }
+            List<Integer> integerList=Arrays.asList(subLibIndices);
+            integerList.parallelStream().forEach(index->{
+                MAF.mergeTwoFiles(f[index], f[index+1], new File(mergeOutDir, outNames[index/2]));
+            });
+        }
     }
 
     public static void sort(String inputDir, String outDir){
@@ -432,7 +434,7 @@ public class MAF {
         Predicate<File> p=File::isHidden;
         File[] files=Arrays.stream(input).filter(p.negate()).toArray(File[]::new);
         String[] outName=Arrays.stream(files).map(File::getName).toArray(String[]::new);
-        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(files.length, 4);
+        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(files.length, 7);
         for (int i = 0; i < indices.length; i++) {
             Integer[] subLibIndices = new Integer[indices[i][1]-indices[i][0]];
             for (int j = 0; j < subLibIndices.length; j++) {
@@ -537,7 +539,7 @@ public class MAF {
             chrBufferReaderMap.put(e, IOUtils.getNIOTextReader(files[e].getAbsolutePath()));
             chrBufferWriterMap.put(e, IOUtils.getNIOTextWriter(new File(outDir, files[e].getName()).getAbsolutePath()));
         });
-        IntStream.range(0, files.length).forEach(index->{
+        IntStream.range(0, files.length).parallel().forEach(index->{
             BufferedReader br;
             BufferedWriter bw;
             List<String> lines;
@@ -551,12 +553,6 @@ public class MAF {
                 StringBuilder sb=new StringBuilder();
                 while ((line=br.readLine())!=null){
                     lineList=PStringUtils.fastSplit(line);
-                    if (lineList.get(3).equals("N")) continue;
-                    if (lineList.get(3).equals("n")) continue;
-                    if (lineList.get(3).equals("-")) continue;
-                    if (lineList.get(4).equals("N")) continue;
-                    if (lineList.get(4).equals("n")) continue;
-                    if (lineList.get(4).equals("-")) continue;
                     if (!lineList.get(3).equals(lineList.get(4))) continue;
                     sb.append(lineList.get(0)).append("\t").append(lineList.get(1)).append("\t")
                             .append(lineList.get(2)).append("\t").append(lineList.get(3));
