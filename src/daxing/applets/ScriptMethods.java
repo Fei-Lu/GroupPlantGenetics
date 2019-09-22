@@ -473,12 +473,12 @@ public class ScriptMethods {
         bws[0]=IOUtils.getTextWriter(new File(outFileDir, outFileNames[0]).getAbsolutePath());
         bws[1]=IOUtils.getTextWriter(new File(outFileDir, outFileNames[1]).getAbsolutePath());
         try (BufferedReader br = IOUtils.getTextReader(gerpResFile.getAbsolutePath())) {
-            long numOfLine=Files.lines(Paths.get(gerpResFile.getAbsolutePath())).count();
+            long numOfLine=IOUtils.getTextReader(gerpResFile.getAbsolutePath()).lines().count();
             int chrSize=chrConvertionRule.getChrSize(chrStr);
-            if (numOfLine!=chrSize){
-                System.out.println("The number of rows in "+gerpResFile.getName()+" is "+numOfLine+"\t"+"The "+chrStr+" size is "+chrSize);
-                return;
-            }
+//            if (numOfLine!=chrSize){
+//                System.out.println("The number of rows in "+gerpResFile.getName()+" is "+numOfLine+"\t"+"The "+chrStr+" size is "+chrSize);
+//                return;
+//            }
             String header="Chr\tPos\tGerpNeutralRate\tGerpScore\n";
             bws[0].write(header);
             bws[1].write(header);
@@ -499,6 +499,7 @@ public class ScriptMethods {
                         bws[i].flush();
                         bws[i].close();
                         i=1;
+                        chrInitialValue=chr;
                     }
                     pos=chrPos.getPosition();
                     sb=new StringBuilder();
@@ -532,6 +533,26 @@ public class ScriptMethods {
             ScriptMethods.addChrPosToGerpRes(files[e], chrConvertionRule, chrs[e], new File(outDir));
         });
 
+    }
+
+    public static void addAncestralAlleleToDB(String dbInputDir, String outDir){
+
+    }
+
+    public static void addAncestralAlleleToDB(File dbInputFile, File ancestralAlleleFile, File chrStr, File outFile){
+        try(BufferedReader brDB=IOUtils.getTextGzipReader(dbInputFile.getAbsolutePath());
+            BufferedWriter bw=IOUtils.getTextGzipWriter(outFile.getAbsolutePath())){
+
+            String header=brDB.readLine();
+            bw.write(header);
+            String line;
+            String lineList;
+            while ((line=brDB.readLine())!=null){
+
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 }
