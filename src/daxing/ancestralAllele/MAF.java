@@ -1,6 +1,8 @@
 package daxing.ancestralAllele;
 
 import daxing.common.ChrConvertionRule;
+import daxing.common.CollectionTool;
+import daxing.common.WheatLineage;
 import format.position.ChrPos;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
@@ -33,7 +35,7 @@ public class MAF {
 
     /**
      *
-     * @param taxonIndexForOrder must be in format like "hordeum_vulgare" or "triticum_aestivum"
+     * @param taxonIndexForOrder triticum_aestivum在MAFrecord记录中的位置，上为0，下为1
      * @param chrConvertionRule
      * @param mafInputFileDir
      */
@@ -45,6 +47,7 @@ public class MAF {
     }
 
     private void initialize(Path mafInputFileDir){
+        List<String> d_lineage= CollectionTool.wheatLineageOf(WheatLineage.D);
         File[] files=IOUtils.listRecursiveFiles(new File(mafInputFileDir.toString()));
         Predicate<File> p=File::isHidden;
         File[] fileArray= Arrays.stream(files).filter(p.negate()).filter(e->e.getName().endsWith("maf")).toArray(File[]::new);
@@ -115,9 +118,10 @@ public class MAF {
                                 }
                                 chrLen[1]=Integer.parseInt(lineList4.get(5));
                                 seq[1]=new SeqByte(lineList4.get(6));
+                                br.readLine();
+                                if (d_lineage.contains(chr[taxonIndexForOrder])) continue;
                                 maFrecordsMap.put(new MAFrecord(id, score, taxons, chr, startPos, seqLen, ifMinus,
                                         chrLen, seq), fileArray[index]);
-                                br.readLine();
                             }
                         }catch (Exception e){
                             e.printStackTrace();
@@ -428,7 +432,17 @@ public class MAF {
         Predicate<File> p=File::isHidden;
         File[] files=Arrays.stream(input).filter(p.negate()).toArray(File[]::new);
         String[] outName=Arrays.stream(files).map(File::getName).toArray(String[]::new);
-        IntStream.range(0, files.length).forEach(index->MAF.sort(files[index], new File(outDir, outName[index])));
+        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(files.length, 4);
+        for (int i = 0; i < indices.length; i++) {
+            Integer[] subLibIndices = new Integer[indices[i][1]-indices[i][0]];
+            for (int j = 0; j < subLibIndices.length; j++) {
+                subLibIndices[j] = indices[i][0]+j;
+            }
+            List<Integer> integerList=Arrays.asList(subLibIndices);
+            integerList.parallelStream().forEach(index->{
+                MAF.sort(files[index], new File(outDir, outName[index]));
+            });
+        }
     }
 
     public static void sort(File inputFile, File outFile){
