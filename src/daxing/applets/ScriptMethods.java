@@ -475,10 +475,10 @@ public class ScriptMethods {
         try (BufferedReader br = IOUtils.getTextReader(gerpResFile.getAbsolutePath())) {
             long numOfLine=IOUtils.getTextReader(gerpResFile.getAbsolutePath()).lines().count();
             int chrSize=chrConvertionRule.getChrSize(chrStr);
-//            if (numOfLine!=chrSize){
-//                System.out.println("The number of rows in "+gerpResFile.getName()+" is "+numOfLine+"\t"+"The "+chrStr+" size is "+chrSize);
-//                return;
-//            }
+            if (numOfLine!=chrSize){
+                System.out.println("The number of rows in "+gerpResFile.getName()+" is "+numOfLine+"\t"+"The "+chrStr+" size is "+chrSize);
+                return;
+            }
             String header="Chr\tPos\tGerpNeutralRate\tGerpScore\n";
             bws[0].write(header);
             bws[1].write(header);

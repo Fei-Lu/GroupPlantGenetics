@@ -21,9 +21,9 @@ public class Start {
     Start(String parameterFileS){
         this.initializeParameter(parameterFileS);
 //        this.getOutgroupAllele();
-//        this.sort();
+        this.sort();
 //        this.merge();
-        this.getAncestrallAllele();
+//        this.getAncestrallAllele();
     }
 
     private void initializeParameter(String parameterFileS){
@@ -92,13 +92,13 @@ public class Start {
     }
 
     public static void main(String[] args) {
-//        new Start(args[0]);
+        new Start(args[0]);
 //        System.out.println(m.matches());
 //        MD5.checkMD5(args[0]);
-//        SnpEffSummaryHTML.getA_B_D_lineageTypeAndRegion("/Users/xudaxing/Desktop/html", "/Users/xudaxing/Desktop/res");
-//        int a=2;
 //        ScriptMethods.mergeVCFPosIntoRefPos(args[0], args[1], args[2]);
-//        ChrConvertionRule chrConvertionRule=new ChrConvertionRule(Paths.get("/Users/xudaxing/Desktop/chrConvertionRule.txt"));
+//        ScriptMethods.getTopRowsFromDir(args[0], Integer.parseInt(args[1]), args[2]);
+//        ChrConvertionRule chrConvertionRule=new ChrConvertionRule(Paths.get(args[1]));
+//        ScriptMethods.addChrPosToGerpRes(args[0], chrConvertionRule, args[2]);
 //        int a=chrConvertionRule.getRefPosFromVCFChrPos(40, 296746659);
 //        System.out.println(a);
 //        String[] chr={"1H","2B"};

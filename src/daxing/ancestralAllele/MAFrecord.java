@@ -214,10 +214,11 @@ public class MAFrecord  {
             refOutgroupAllele=new String[2];
             if (this.getIfMinus(indexOfTaxon)) {
                 refOutgroupAllele[0]=String.valueOf(seqByte1.getReverseComplementaryBase(alleleIndex.get(i)));
+                refOutgroupAllele[1]=String.valueOf(seqByte2.getReverseComplementaryBase(alleleIndex.get(i)));
             }else {
                 refOutgroupAllele[0]=String.valueOf(seqByte1.getBase(alleleIndex.get(i)));
+                refOutgroupAllele[1]=String.valueOf(seqByte2.getBase(alleleIndex.get(i)));
             }
-            refOutgroupAllele[1]=String.valueOf(seqByte2.getBase(alleleIndex.get(i)));
             if (refOutgroupAllele[0].equals("N")) continue;
             if (refOutgroupAllele[0].equals("n")) continue;
             if (refOutgroupAllele[1].equals("N")) continue;
