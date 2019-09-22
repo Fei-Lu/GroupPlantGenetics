@@ -544,7 +544,7 @@ public class MAF {
             BufferedWriter bw;
             List<String> lines;
             String line;
-            String header="CHR\tPOS\tRefAllele\tAncestralAllele";
+            String header="CHR\tPOS\tAncestralAllele";
             List<String> lineList;
             try{
                 br=chrBufferReaderMap.get(index);
@@ -555,7 +555,7 @@ public class MAF {
                     lineList=PStringUtils.fastSplit(line);
                     if (!lineList.get(3).equals(lineList.get(4))) continue;
                     sb.append(lineList.get(0)).append("\t").append(lineList.get(1)).append("\t")
-                            .append(lineList.get(2)).append("\t").append(lineList.get(3));
+                            .append("\t").append(lineList.get(3));
                     lines.add(sb.toString());
                     sb=new StringBuilder();
                 }

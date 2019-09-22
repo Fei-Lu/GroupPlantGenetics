@@ -20,7 +20,7 @@ public class Start {
 
     Start(String parameterFileS){
         this.initializeParameter(parameterFileS);
-//        this.getOutgroupAllele();
+        this.getOutgroupAllele();
 //        this.sort();
 //        this.merge();
         this.getAncestrallAllele();
