@@ -29,21 +29,29 @@ import java.util.stream.IntStream;
 
 public class ScriptMethods {
 
+    /**
+     * lastz /data1/home/daxing/reference/triticum_aestivum/bychr/chr042.fa /data1/home/daxing/reference/triticum_urartu/bychr/chr7A.fa --hspthresh=5000 --gappedthresh=2200 --inner=2200 --gfextend --chain --gapped --ambiguous=iupac --format=maf > /data1/home/daxing/ancestralAllele/MAF/ta_tu/wheatTauschii/Ta_chr042_vs_At_chr7A.maf &
+     *
+     * @param wheatInputDir
+     * @param outgroupInputDir
+     * @param outMAFDir
+     * @param outSH
+     */
     public static void getLastz(String wheatInputDir, String outgroupInputDir, String outMAFDir, String outSH){
         File[] files1= IOUtils.listRecursiveFiles(new File(wheatInputDir));
         File[] files2=IOUtils.listRecursiveFiles(new File(outgroupInputDir));
         Predicate<File> p= e->e.getName().endsWith("fa");
         File[] f1= Arrays.stream(files1).filter(p).toArray(File[]::new);
         File[] f2=Arrays.stream(files2).filter(p).toArray(File[]::new);
-        try(BufferedWriter bw=IOUtils.getNIOTextWriter(outSH)){
+        try(BufferedWriter bw=IOUtils.getTextWriter(outSH)){
             StringBuilder sb;
             sb=new StringBuilder();
             for (int i = 0; i < f1.length; i++) {
                 for (int j = 0; j < f2.length; j++) {
                     sb.append("lastz ").append(f1[i].getAbsolutePath()).append(" ").append(f2[j].getAbsolutePath())
-                            .append(" --notransition --ambiguous=iupac --step=20 --nogapped --format=maf > ").append(outMAFDir)
-                            .append("/Ta_").append(f1[i].getName().substring(0, 6)).append("_vs_At_")
-                            .append(f2[j].getName().substring(0,5)).append(".maf"+" &");
+                            .append(" --hspthresh=5000 --gappedthresh=2200 --inner=2200 --gfextend --chain --gapped --ambiguous=iupac --format=maf > ").append(outMAFDir)
+                            .append("/Ta_").append(f1[i].getName(), 0, 6).append("_vs_At_")
+                            .append(f2[j].getName(), 0, 5).append(".maf"+" &");
                     bw.write(sb.toString());
                     bw.newLine();
                     sb=new StringBuilder();
