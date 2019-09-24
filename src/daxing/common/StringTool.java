@@ -83,6 +83,11 @@ public class StringTool {
         return elements.eachText();
     }
 
+    /**
+     * 解析HTNL格式的行 如"<td class="numeric" bgcolor="#00fe00"> 2,354 </td>", 默认的tag为"body"
+     * @param strOfHtml
+     * @return
+     */
     public static List<String> parseLineInHtmlFormat(String strOfHtml){
         return StringTool.parseLineInHtmlFormat(strOfHtml, "body");
     }
