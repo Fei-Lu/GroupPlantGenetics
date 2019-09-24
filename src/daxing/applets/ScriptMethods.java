@@ -19,10 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -561,6 +558,56 @@ public class ScriptMethods {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    /**
+     *
+     * @param inputFile 有header
+     * @param rate
+     * @param subsetFile 有header
+     */
+    public static void getSubsetFromFile(String inputFile, double rate, String subsetFile){
+        long start=System.nanoTime();
+        int linesNumber= (int) IOUtils.getTextReader(inputFile).lines().count();
+        int subsetLineNum = (int) Math.round(linesNumber*rate);
+        int[] randomLinesIndex=ArrayTool.getRandomNonrepetitionArray(subsetLineNum, 0, linesNumber);
+        Arrays.sort(randomLinesIndex);
+        try {
+            BufferedReader br=IOUtils.getTextReader(inputFile);
+            BufferedWriter bw=IOUtils.getTextWriter(subsetFile);
+            String header=br.readLine();
+            bw.write(header);
+            bw.newLine();
+            String line;
+            List<String> lines=new ArrayList<>(linesNumber);
+            while ((line=br.readLine())!=null){
+                lines.add(line);
+            }
+            for (int i = 0; i < randomLinesIndex.length; i++) {
+                bw.write(lines.get(randomLinesIndex[i]));
+                bw.newLine();
+            }
+            br.close();
+            bw.flush();
+            bw.close();
+            System.out.println(subsetFile+" is completed in "+Benchmark.getTimeSpanSeconds(start)+"s");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void getSubsetFromDir(String inputDir, double rate, String outDir){
+        long start=System.nanoTime();
+        File[] input=IOUtils.listRecursiveFiles(new File(inputDir));
+        Predicate<File> p=File::isHidden;
+        String[] files= Arrays.stream(input).filter(p.negate()).map(File::getAbsolutePath).toArray(String[]::new);
+        String[] filesName=Arrays.stream(input).filter(p.negate()).map(File::getName).toArray(String[]::new);
+        IntStream.range(0, files.length).forEach(e->ScriptMethods.getSubsetFromFile(files[e], rate, new File(outDir, filesName[e]).getAbsolutePath()));
+        System.out.println(outDir+" subset is completed in "+Benchmark.getTimeSpanMinutes(start)+" minutes");
+    }
+
+    public static void getSubsetFromDir(String inputDir, String outDir){
+        ScriptMethods.getSubsetFromDir(inputDir, 0.01, outDir);
     }
 
 }
