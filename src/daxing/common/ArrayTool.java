@@ -1,12 +1,10 @@
 package daxing.common;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class ArrayTool {
 
@@ -29,9 +27,7 @@ public class ArrayTool {
      * @return 依据给定的数组范围返回一个随机数组（不含重复值), 如果给定的数值范围小于指定的数组大小, 则返回的数组大小为数值范围
      */
     public static int[] getRandomNonrepetitionArray(int arraySize, int randomNumberOrigin, int randomNumberBound){
-        List<Integer> list= IntStream.range(randomNumberOrigin,randomNumberBound).boxed().collect(Collectors.toList());
-        Collections.shuffle(list);
-        return list.stream().mapToInt(Integer::intValue).limit(arraySize).toArray();
+        return new java.util.Random().ints(randomNumberOrigin, randomNumberBound).distinct().limit(arraySize).toArray();
     }
 
     /**
@@ -88,5 +84,26 @@ public class ArrayTool {
     public static double[] getElementPercent(int[] a){
         double sum=Arrays.stream(a).sum();
         return Arrays.stream(a).mapToDouble(e->e/sum).toArray();
+    }
+
+    /**
+     * 返回A B D对应的ChrID
+     * @param aOrbOrd
+     * @return
+     */
+    public static int[] getWheatLineageOf(WheatLineage aOrbOrd){
+        int[] a= Stream.concat(IntStream.iterate(1, n->n+6).limit(7).boxed(),
+                IntStream.iterate(2, n->n+6).limit(7).boxed()).sorted().mapToInt(Integer::intValue).toArray();
+        int[] b=Stream.concat(IntStream.iterate(3, n->n+6).limit(7).boxed(),
+                IntStream.iterate(4, n->n+6).limit(7).boxed()).sorted().mapToInt(Integer::intValue).toArray();
+        int[] d=Stream.concat(IntStream.iterate(5, n->n+6).limit(7).boxed(),
+                IntStream.iterate(6, n->n+6).limit(7).boxed()).sorted().mapToInt(Integer::intValue).toArray();
+        if (aOrbOrd.toString().equals("A")){
+            return a;
+        }else if (aOrbOrd.toString().equals("B")){
+            return b;
+        }else {
+            return d;
+        }
     }
 }
