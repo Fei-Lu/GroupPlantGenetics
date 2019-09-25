@@ -1,8 +1,6 @@
 package daxing.applets;
 
-import daxing.common.ArrayTool;
-import daxing.common.ChrConvertionRule;
-import daxing.common.VCF;
+import daxing.common.*;
 import daxing.filterSNP.Cells;
 import daxing.filterSNP.DepthInfo;
 import daxing.filterSNP.Dot;
@@ -27,18 +25,21 @@ import java.util.stream.IntStream;
 public class ScriptMethods {
 
     /**
-     * lastz /data1/home/daxing/reference/triticum_aestivum/bychr/chr042.fa /data1/home/daxing/reference/triticum_urartu/bychr/chr7A.fa --hspthresh=5000 --gappedthresh=2200 --inner=2200 --gfextend --chain --gapped --ambiguous=iupac --format=maf > /data1/home/daxing/ancestralAllele/MAF/ta_tu/wheatTauschii/Ta_chr042_vs_At_chr7A.maf &
+     * lastz /data1/home/daxing/reference/triticum_aestivum/bychr/chr042.fa /data1/home/daxing/reference/triticum_urartu/bychr/chr7A.fa --hspthresh=6000 --gappedthresh=2200 --inner=2200 --gfextend --chain --gapped --ambiguous=iupac --format=maf > /data1/home/daxing/ancestralAllele/MAF/ta_tu/wheatTauschii/Ta_chr042_vs_Au_chr7A.maf &
      *
      * @param wheatInputDir
      * @param outgroupInputDir
      * @param outMAFDir
      * @param outSH
      */
-    public static void getLastz(String wheatInputDir, String outgroupInputDir, String outMAFDir, String outSH){
+    public static void getLastz(String wheatInputDir, String outgroupInputDir, String outMAFDir, String logFileDir, String outSH){
         File[] files1= IOUtils.listRecursiveFiles(new File(wheatInputDir));
+        int[] d=ArrayTool.getWheatLineageOf(WheatLineage.D);
+        List<Integer> l= Arrays.stream(d).boxed().collect(Collectors.toList());
+        Predicate<File> dPredicate= e-> l.contains(StringTool.getNumFromString(e.getName()));
         File[] files2=IOUtils.listRecursiveFiles(new File(outgroupInputDir));
         Predicate<File> p= e->e.getName().endsWith("fa");
-        File[] f1= Arrays.stream(files1).filter(p).toArray(File[]::new);
+        File[] f1= Arrays.stream(files1).filter(p).filter(dPredicate).toArray(File[]::new);
         File[] f2=Arrays.stream(files2).filter(p).toArray(File[]::new);
         try(BufferedWriter bw=IOUtils.getTextWriter(outSH)){
             StringBuilder sb;
@@ -46,9 +47,11 @@ public class ScriptMethods {
             for (int i = 0; i < f1.length; i++) {
                 for (int j = 0; j < f2.length; j++) {
                     sb.append("lastz ").append(f1[i].getAbsolutePath()).append(" ").append(f2[j].getAbsolutePath())
-                            .append(" --hspthresh=5000 --gappedthresh=2200 --inner=2200 --gfextend --chain --gapped --ambiguous=iupac --format=maf > ").append(outMAFDir)
-                            .append("/Ta_").append(f1[i].getName(), 0, 6).append("_vs_At_")
-                            .append(f2[j].getName(), 0, 5).append(".maf"+" &");
+                            .append(" --hspthresh=6000 --gappedthresh=2200 --inner=2200 --gfextend --chain --gapped --ambiguous=iupac --format=maf > ")
+                            .append(outMAFDir).append("/Ta_").append(f1[i].getName(), 0, 6).append("_vs_Au_")
+                            .append(f2[j].getName(), 0, 5).append(".maf 2>").append(logFileDir+"/Ta_")
+                            .append(f1[i].getName(), 0, 6).append("_vs_Au_").append(f2[j].getName(), 0, 5)
+                            .append("Log.txt &");
                     bw.write(sb.toString());
                     bw.newLine();
                     sb=new StringBuilder();
