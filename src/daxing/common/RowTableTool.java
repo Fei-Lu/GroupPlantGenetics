@@ -2,6 +2,7 @@ package daxing.common;
 
 import format.table.RowTable;
 import utils.Tuple;
+
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -39,7 +40,7 @@ public class RowTableTool<T> extends RowTable<T> {
      *
      * @param comparator 针对表格进行排序的比较器对象
      */
-    public void sorsBy(Comparator<List<T>> comparator){
+    public void sortBy(Comparator<List<T>> comparator){
         this.cells.sort(comparator);
     }
 }
