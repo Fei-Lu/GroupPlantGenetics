@@ -34,4 +34,12 @@ public class RowTableTool<T> extends RowTable<T> {
         T[] v= (T[]) value.toArray();
         return new Tuple(k, v);
     }
+
+    /**
+     *
+     * @param comparator 针对表格进行排序的比较器对象
+     */
+    public void sorsBy(Comparator<List<T>> comparator){
+        this.cells.sort(comparator);
+    }
 }
