@@ -146,6 +146,36 @@ public class Matrix {
         return new Matrix(subid, data);
     }
 
+    public void sortBy(String[] sortedID){
+        int size= (int) Arrays.stream(sortedID).distinct().count();
+        if (sortedID.length!=size || sortedID.length!= this.getId().size()){
+            System.out.println("sortedID array is not right, program will quit");
+            System.exit(1);
+        }
+        List<Integer> indexList=new ArrayList<>();
+        for (int i = 0; i < sortedID.length; i++) {
+            indexList.add(this.id.indexOf(sortedID[i]));
+        }
+        double[][] data=this.getData();
+        List<String> id=this.getId();
+        List<String> sortedIDList= new ArrayList<>();
+        List<double[]> dataList=new ArrayList<>();
+        List<Double> doubleList;
+        for (int i = 0; i < indexList.size(); i++) {
+            doubleList=new ArrayList<>();
+            sortedIDList.add(id.get(indexList.get(i)));
+            for (int j = 0; j < indexList.size(); j++) {
+                doubleList.add(data[indexList.get(i)][indexList.get(j)]);
+            }
+            dataList.add(doubleList.stream().mapToDouble(Double::doubleValue).toArray());
+        }
+        data=new double[dataList.size()][];
+        for (int i = 0; i < dataList.size(); i++) {
+            data[i]=dataList.get(i);
+        }
+        this.data=data;
+        this.id=sortedIDList;
+    }
 
     /**
      * 按照sortedID的顺序输出
