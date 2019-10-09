@@ -646,7 +646,7 @@ public class ScriptMethods {
                 tempList = PStringUtils.fastSplit(temp);
                 chrSet.add(Integer.parseInt(tempList.get(0)));
                 posList.add(Integer.parseInt(tempList.get(1)));
-                ancestralAlleleList.add(tempList.get(2));
+                ancestralAlleleList.add(tempList.get(3));
             }
             if (chrSet.size()>1){
                 System.out.println("ancestralAlleFile error, program exit");
@@ -659,7 +659,7 @@ public class ScriptMethods {
             double maf=-1d;
             String majorAllele=null;
             String minorAllele=null;
-            int count=0;
+            double count=0;
             while ((temp = br2.readLine())!=null){
                 tempList = PStringUtils.fastSplit(temp);
                 chrDB=Integer.parseInt(tempList.get(0));
@@ -677,20 +677,22 @@ public class ScriptMethods {
                    bw.write(sb.toString());
                    bw.newLine();
                 }else {
-                    if (ancestralAlleleList.get(index)==majorAllele){
+                    if (ancestralAlleleList.get(index).equals(majorAllele)){
                         daf=maf;
-                    }else if (ancestralAlleleList.get(index)==minorAllele){
+                        sb=sb.append(temp).append("\t").append(ancestralAlleleList.get(index)).append("\t").append(daf);
+                    }else if (ancestralAlleleList.get(index).equals(minorAllele)){
                         daf=1-maf;
+                        sb=sb.append(temp).append("\t").append(ancestralAlleleList.get(index)).append("\t").append(daf);
                     }else {
                         count++;
+                        sb=sb.append(temp).append("\t").append(ancestralAlleleList.get(index)).append("\t").append("NA");
                     }
-                    sb.append(temp).append("\t").append(ancestralAlleleList.get(index)).append("\t").append(daf);
                     bw.write(sb.toString());
                     bw.newLine();
                 }
             }
-            System.out.println(count+"("+count/i+")"+" ancestral allele neither belong to major allele nor minor allele");
-            System.out.println(ancestralAlleFile.getName()+" completed in "+Benchmark.getTimeSpanMinutes(start)+" minutes");
+            System.out.print(ancestralAlleFile.getName()+" "+(int) count+"/"+ i +" ("+String.format("%.4f", (count/i)*100)+"%)"+" ancestral allele neither belong to major allele nor minor allele");
+            System.out.println(", completed in "+Benchmark.getTimeSpanMinutes(start)+" minutes");
         }
         catch (Exception e){
             e.printStackTrace();
@@ -703,7 +705,7 @@ public class ScriptMethods {
         Predicate<File> p=File::isHidden;
         File[] f1=Arrays.stream(files1).filter(p.negate()).toArray(File[]::new);
         File[] f2=Arrays.stream(files2).filter(p.negate()).toArray(File[]::new);
-        String[] outName= Arrays.stream(files2).map(File::getName).map(str->str.replaceAll("SIFT", "Anc")).toArray(String[]::new);
+        String[] outName= Arrays.stream(f2).map(File::getName).map(str->str.replaceAll("SIFT", "Anc")).toArray(String[]::new);
         int[] dIndex=WheatLineage.getWheatLineageOf(WheatLineage.D);
         Arrays.stream(dIndex).forEach(e->{
             ScriptMethods.caculateAncestralAllele(f1[e-1], f2[e-1], new File(outFileDir, outName[e-1]));
