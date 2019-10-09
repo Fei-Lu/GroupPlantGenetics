@@ -17,7 +17,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -25,7 +28,7 @@ import java.util.stream.IntStream;
 public class ScriptMethods {
 
     /**
-     * lastz /data1/home/daxing/reference/triticum_aestivum/bychr/chr042.fa /data1/home/daxing/reference/triticum_urartu/bychr/chr7A.fa --hspthresh=6000 --gappedthresh=2200 --inner=2200 --gfextend --chain --gapped --ambiguous=iupac --format=maf > /data1/home/daxing/ancestralAllele/MAF/ta_tu/wheatTauschii/Ta_chr042_vs_Au_chr7A.maf &
+     * lastz /data1/home/daxing/reference/triticum_aestivum/bychr/chr024.fa /data1/home/daxing/reference/triticum_urartu/bychr/chr1A.fa --hspthresh=6000 --gappedthresh=2200 --inner=2200 --chain --ambiguous=iupac --format=maf > /data1/home/daxing/ancestralAllele/MAF/ta_tu/wheatTauschii/Ta_chr024_vs_Au_chr1A.maf 2>/data1/home/daxing/ancestralAllele/MAF/ta_tu/wheatTauschiiLog/Ta_chr024_vs_Au_chr1ALog.txt &
      *
      * @param wheatInputDir
      * @param outgroupInputDir
@@ -47,7 +50,7 @@ public class ScriptMethods {
             for (int i = 0; i < f1.length; i++) {
                 for (int j = 0; j < f2.length; j++) {
                     sb.append("lastz ").append(f1[i].getAbsolutePath()).append(" ").append(f2[j].getAbsolutePath())
-                            .append(" --hspthresh=6000 --gappedthresh=2200 --inner=2200 --gfextend --chain --gapped --ambiguous=iupac --format=maf > ")
+                            .append(" --notransition --step=20  --nogapped --ambiguous=iupac --format=maf > ")
                             .append(outMAFDir).append("/Ta_").append(f1[i].getName(), 0, 6).append("_vs_Au_")
                             .append(f2[j].getName(), 0, 5).append(".maf 2>").append(logFileDir+"/Ta_")
                             .append(f1[i].getName(), 0, 6).append("_vs_Au_").append(f2[j].getName(), 0, 5)
@@ -571,26 +574,32 @@ public class ScriptMethods {
      */
     public static void getSubsetFromFile(String inputFile, double rate, String subsetFile){
         long start=System.nanoTime();
-        int linesNumber= (int) IOUtils.getTextReader(inputFile).lines().count();
-        int subsetLineNum = (int) Math.round(linesNumber*rate);
-        int[] randomLinesIndex=ArrayTool.getRandomNonrepetitionArray(subsetLineNum, 0, linesNumber);
-        Arrays.sort(randomLinesIndex);
+        BufferedReader br=null;
+        BufferedWriter bw = null;
         try {
-            BufferedReader br=IOUtils.getTextReader(inputFile);
-            BufferedWriter bw=IOUtils.getTextWriter(subsetFile);
+            if (inputFile.endsWith("gz")){
+                br=IOUtils.getTextGzipReader(inputFile);
+                bw=IOUtils.getTextGzipWriter(subsetFile);
+            }else {
+                br=IOUtils.getTextReader(inputFile);
+                bw=IOUtils.getTextWriter(subsetFile);
+            }
             String header=br.readLine();
             bw.write(header);
             bw.newLine();
             String line;
-            List<String> lines=new ArrayList<>(linesNumber);
+            List<String> lines=new ArrayList<>();
             while ((line=br.readLine())!=null){
                 lines.add(line);
             }
+            br.close();
+            int subsetLineNum = (int) Math.round(lines.size()*rate);
+            int[] randomLinesIndex=ArrayTool.getRandomNonrepetitionArray(subsetLineNum, 0, lines.size());
+            Arrays.sort(randomLinesIndex);
             for (int i = 0; i < randomLinesIndex.length; i++) {
                 bw.write(lines.get(randomLinesIndex[i]));
                 bw.newLine();
             }
-            br.close();
             bw.flush();
             bw.close();
             System.out.println(subsetFile+" is completed in "+Benchmark.getTimeSpanSeconds(start)+"s");
@@ -611,6 +620,94 @@ public class ScriptMethods {
 
     public static void getSubsetFromDir(String inputDir, String outDir){
         ScriptMethods.getSubsetFromDir(inputDir, 0.01, outDir);
+    }
+
+    public static void caculateAncestralAllele(File ancestralAlleFile, File dbFile, File outFile){
+        long start = System.nanoTime();
+        try (BufferedReader br1 = IOUtils.getTextReader(ancestralAlleFile.getAbsolutePath());
+             BufferedReader br2=IOUtils.getTextGzipReader(dbFile.getAbsolutePath());
+             BufferedWriter bw =IOUtils.getTextGzipWriter(outFile.getAbsolutePath())) {
+            TIntHashSet chrSet=new TIntHashSet();
+            int chr = -1;
+            int chrDB=-1;
+            TIntArrayList posList=new TIntArrayList();
+            List<String> ancestralAlleleList=new ArrayList<>();
+            String temp;
+            List<String> tempList;
+            int i=0;
+            br1.readLine();
+            String header=br2.readLine();
+            StringBuilder sb=new StringBuilder();
+            sb.append(header).append("\t").append("AncestralAllele").append("\t").append("Daf");
+            bw.write(sb.toString());
+            bw.newLine();
+            while ((temp=br1.readLine())!=null){
+                i++;
+                tempList = PStringUtils.fastSplit(temp);
+                chrSet.add(Integer.parseInt(tempList.get(0)));
+                posList.add(Integer.parseInt(tempList.get(1)));
+                ancestralAlleleList.add(tempList.get(2));
+            }
+            if (chrSet.size()>1){
+                System.out.println("ancestralAlleFile error, program exit");
+                System.exit(1);
+            }else {
+                chr=chrSet.iterator().next();
+            }
+            int index=Integer.MIN_VALUE;
+            double daf=-1d;
+            double maf=-1d;
+            String majorAllele=null;
+            String minorAllele=null;
+            int count=0;
+            while ((temp = br2.readLine())!=null){
+                tempList = PStringUtils.fastSplit(temp);
+                chrDB=Integer.parseInt(tempList.get(0));
+                majorAllele=tempList.get(4);
+                minorAllele=tempList.get(5);
+                maf=Double.parseDouble(tempList.get(6));
+                if (chr!=chrDB){
+                    System.out.println("chr of dbFile and ancestralAlleFile is different ");
+                    System.exit(1);
+                }
+                index=posList.binarySearch(Integer.parseInt(tempList.get(1)));
+                sb=new StringBuilder();
+                if (index < 0){
+                   sb.append(temp).append("\t").append("NA").append("\t").append("NA");
+                   bw.write(sb.toString());
+                   bw.newLine();
+                }else {
+                    if (ancestralAlleleList.get(index)==majorAllele){
+                        daf=maf;
+                    }else if (ancestralAlleleList.get(index)==minorAllele){
+                        daf=1-maf;
+                    }else {
+                        count++;
+                    }
+                    sb.append(temp).append("\t").append(ancestralAlleleList.get(index)).append("\t").append(daf);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+            }
+            System.out.println(count+"("+count/i+")"+" ancestral allele neither belong to major allele nor minor allele");
+            System.out.println(ancestralAlleFile.getName()+" completed in "+Benchmark.getTimeSpanMinutes(start)+" minutes");
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public static void caculateAncestralAllele(String ancestralAlleFileDir, String dbFileDir, String outFileDir){
+        File[] files1=IOUtils.listRecursiveFiles(new File(ancestralAlleFileDir));
+        File[] files2=IOUtils.listRecursiveFiles(new File(dbFileDir));
+        Predicate<File> p=File::isHidden;
+        File[] f1=Arrays.stream(files1).filter(p.negate()).toArray(File[]::new);
+        File[] f2=Arrays.stream(files2).filter(p.negate()).toArray(File[]::new);
+        String[] outName= Arrays.stream(files2).map(File::getName).map(str->str.replaceAll("SIFT", "Anc")).toArray(String[]::new);
+        int[] dIndex=WheatLineage.getWheatLineageOf(WheatLineage.D);
+        Arrays.stream(dIndex).forEach(e->{
+            ScriptMethods.caculateAncestralAllele(f1[e-1], f2[e-1], new File(outFileDir, outName[e-1]));
+        });
     }
 
 }
