@@ -5,6 +5,7 @@ import daxing.filterSNP.Cells;
 import daxing.filterSNP.DepthInfo;
 import daxing.filterSNP.Dot;
 import format.position.ChrPos;
+import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
 import utils.Benchmark;
@@ -23,12 +24,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 public class ScriptMethods {
 
     /**
-     * lastz /data1/home/daxing/reference/triticum_aestivum/bychr/chr024.fa /data1/home/daxing/reference/triticum_urartu/bychr/chr1A.fa --hspthresh=6000 --gappedthresh=2200 --inner=2200 --chain --ambiguous=iupac --format=maf > /data1/home/daxing/ancestralAllele/MAF/ta_tu/wheatTauschii/Ta_chr024_vs_Au_chr1A.maf 2>/data1/home/daxing/ancestralAllele/MAF/ta_tu/wheatTauschiiLog/Ta_chr024_vs_Au_chr1ALog.txt &
+     * lastz /data1/home/daxing/reference/triticum_aestivum/bychr/chr005.fa /data1/home/daxing/reference/triticum_urartu/bychr/chr1A.fa --notransition --step=20  --nogapped --ambiguous=iupac --format=maf > /data1/home/daxing/ancestralAllele/MAF/ta_tu/wheatTauschii/Ta_chr005_vs_Au_chr1A.maf 2>/data1/home/daxing/ancestralAllele/MAF/ta_tu/wheatTauschiiLog/Ta_chr005_vs_Au_chr1ALog.txt &
      *
      * @param wheatInputDir
      * @param outgroupInputDir
@@ -710,6 +712,47 @@ public class ScriptMethods {
         Arrays.stream(dIndex).forEach(e->{
             ScriptMethods.caculateAncestralAllele(f1[e-1], f2[e-1], new File(outFileDir, outName[e-1]));
         });
+    }
+
+    public static void groups(String inputFile, String outputFile){
+        try {
+            BufferedReader br=IOUtils.getTextReader(inputFile);
+            BufferedWriter bw =IOUtils.getTextWriter(outputFile);
+            String line;
+            List<String> lineList;
+            TDoubleArrayList daf=new TDoubleArrayList();
+            br.readLine();
+            while ((line=br.readLine())!=null){
+                lineList=PStringUtils.fastSplit(line);
+                daf.add(Double.parseDouble(lineList.get(1)));
+            }
+            br.close();
+            double binsize=1d/100;
+            double[] groups= DoubleStream.iterate(binsize, n->n+binsize).limit(100).toArray();
+            int[] count=new int[groups.length];
+            int index=-1;
+            for (int i = 0; i < daf.size(); i++) {
+                index=Arrays.binarySearch(groups, daf.get(i));
+                if (index>-1){
+                    count[index+1]++;
+                }else {
+                    index=-index-1;
+                    count[index]++;
+                }
+            }
+            double[] rate=ArrayTool.getElementPercent(count);
+            bw.write("group");
+            bw.newLine();
+            for (int i = 0; i < count.length; i++) {
+                bw.write(String.valueOf(count[i])+"\t"+String.valueOf(rate[i]));
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
 }
