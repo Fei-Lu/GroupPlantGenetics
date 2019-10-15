@@ -604,7 +604,7 @@ public class ScriptMethods {
             }
             bw.flush();
             bw.close();
-            System.out.println(subsetFile+" is completed in "+Benchmark.getTimeSpanSeconds(start)+"s");
+            System.out.println(subsetFile+" is completed in "+Benchmark.getTimeSpanMinutes(start)+" minutes");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -617,7 +617,7 @@ public class ScriptMethods {
         String[] files= Arrays.stream(input).filter(p.negate()).map(File::getAbsolutePath).toArray(String[]::new);
         String[] filesName=Arrays.stream(input).filter(p.negate()).map(File::getName).toArray(String[]::new);
         IntStream.range(0, files.length).forEach(e->ScriptMethods.getSubsetFromFile(files[e], rate, new File(outDir, filesName[e]).getAbsolutePath()));
-        System.out.println(outDir+" subset is completed in "+Benchmark.getTimeSpanMinutes(start)+" minutes");
+        System.out.println(outDir+" subset is completed in "+Benchmark.getTimeSpanHours(start)+" hours");
     }
 
     public static void getSubsetFromDir(String inputDir, String outDir){
