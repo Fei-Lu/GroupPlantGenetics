@@ -41,6 +41,16 @@ public class ArrayTool {
     }
 
     /**
+     * the number of occurrences of each element in the array
+     * @param a
+     * @param <T>
+     * @return
+     */
+    public static<T> Map<T, Long> caculateElementCount(T[] a){
+        return Arrays.stream(a).collect(Collectors.groupingBy(t->t, Collectors.counting()));
+    }
+
+    /**
      *  将两个数组对应的index元素相加
      * @param a
      * @param b
