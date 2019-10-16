@@ -295,6 +295,43 @@ public class VCF {
     }
 
     /**
+     * Genotype likelihoods for 0/0, 0/1, 1/1, or 0/0, 0/1, 0/2, 1/1, 1/2, 2/2 if 2 alt alleles
+     * @param vcfLine
+     * @return maf
+     */
+    public static double calculateMAF(String vcfLine){
+        double[] alleleFrequency=new double[3]; // 0 1 2
+        String[] genotypeArray={"0/0", "0/1", "0/2", "1/1", "1/2", "2/2"};
+        long[] genotypeCount=new long[genotypeArray.length];
+        for (int i = 0; i < genotypeCount.length; i++) {
+            genotypeCount[i]=0;
+        }
+        List<String> vcfLineList=PStringUtils.fastSplit(vcfLine);
+        Predicate<String> p=str->str.startsWith("./.");
+        List<String> vcfl=vcfLineList.stream().skip(9).filter(p.negate()).map(str->str.substring(0, 3)).collect(Collectors.toList());
+        Map<String, Long> map=vcfl.stream().collect(Collectors.groupingBy(s-> s, Collectors.counting()));
+        List<String> keyList=new ArrayList<>(map.keySet());
+        Collections.sort(keyList);
+        int index=Integer.MIN_VALUE;
+        for (int i = 0; i < keyList.size(); i++) {
+            index=Arrays.binarySearch(genotypeArray, keyList.get(i));
+            if (index < 0){
+                System.out.println("Only supports two or three alleles, program quit");
+                System.out.println("i="+i);
+                System.out.println(keyList.get(i));
+                System.exit(1);
+            }
+            genotypeCount[index]=map.get(keyList.get(i));
+        }
+        double sum=Arrays.stream(genotypeCount).sum();
+        alleleFrequency[0]=(genotypeCount[0]*2+genotypeCount[1]+genotypeCount[2])/(sum*2);
+        alleleFrequency[1]=(genotypeCount[1]+genotypeCount[3]*2+genotypeCount[4])/(sum*2);
+        alleleFrequency[2]=(genotypeCount[2]+genotypeCount[4]+genotypeCount[5]*2)/(sum*2);
+        Arrays.sort(alleleFrequency);
+        return alleleFrequency[1];
+    }
+
+    /**
      *
      * @return 返回VCF文件所有taxa的总数
      */
