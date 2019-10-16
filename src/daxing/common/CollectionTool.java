@@ -1,26 +1,34 @@
 package daxing.common;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class CollectionTool {
+public class CollectionTool<T> {
 
+    /**
+     *
+     * @param a
+     * @param <T>
+     * @return
+     */
     public static <T> List<T> changeToList(T[] a){
         List<T> list=new ArrayList<>(a.length);
         Collections.addAll(list, a);
         return list;
     }
 
-    public static Map<Integer, Integer> changeToIntMap(Map<String, String> map){
-        Map<Integer, Integer> m=new HashMap<>();
-        for (Map.Entry<String, String> entry: map.entrySet()){
-            String key=entry.getKey();
-            String value=entry.getValue();
-            if (StringTool.isNumeric(key) && StringTool.isNumeric(value)){
-                m.put(Integer.valueOf(key), Integer.valueOf(value));
-            }
-        }
-        return m;
+    /**
+     *
+     * @param list
+     * @param <T>
+     * @return the number of occurrences of each element in the list
+     */
+    public static<T> Map<T, Long> caculateElementCount(List<T> list){
+        return list.stream().collect(Collectors.groupingBy(t->t, Collectors.counting()));
     }
 
     /**
