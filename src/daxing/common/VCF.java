@@ -297,7 +297,7 @@ public class VCF {
     /**
      * Genotype likelihoods for 0/0, 0/1, 1/1, or 0/0, 0/1, 0/2, 1/1, 1/2, 2/2 if 2 alt alleles
      * @param vcfLine
-     * @return maf
+     * @return maf or -1, if 3 or more alt alleles exist
      */
     public static double calculateMAF(String vcfLine){
         double[] alleleFrequency=new double[3]; // 0 1 2
@@ -316,10 +316,10 @@ public class VCF {
         for (int i = 0; i < keyList.size(); i++) {
             index=Arrays.binarySearch(genotypeArray, keyList.get(i));
             if (index < 0){
-                System.out.println("Only supports two or three alleles, program quit");
-                System.out.println("i="+i);
-                System.out.println(keyList.get(i));
-                System.exit(1);
+                System.out.println(keyList.get(i)+" genotype found");
+                return -1d;
+//                System.out.println("Only supports two or three alleles, program quit");
+//                System.exit(1);
             }
             genotypeCount[index]=map.get(keyList.get(i));
         }
@@ -328,7 +328,7 @@ public class VCF {
         alleleFrequency[1]=(genotypeCount[1]+genotypeCount[3]*2+genotypeCount[4])/(sum*2);
         alleleFrequency[2]=(genotypeCount[2]+genotypeCount[4]+genotypeCount[5]*2)/(sum*2);
         Arrays.sort(alleleFrequency);
-        return alleleFrequency[1];
+        return NumberTool.format(alleleFrequency[1], 5);
     }
 
     /**
