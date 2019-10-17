@@ -295,7 +295,7 @@ public class VCF {
     }
 
     /**
-     * Genotype likelihoods for 0/0, 0/1, 1/1, or 0/0, 0/1, 0/2, 1/1, 1/2, 2/2 if 2 alt alleles
+     * Genotype for 0/0, 0/1, 1/1, or 0/0, 0/1, 0/2, 1/1, 1/2, 2/2 if 2 alt alleles
      * @param vcfLine
      * @return maf or -1, if 3 or more alt alleles exist
      */
