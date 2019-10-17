@@ -299,7 +299,7 @@ public class VCF {
      * @param vcfLine
      * @return maf or -1, if 3 or more alt alleles exist
      */
-    public static double calculateMAF(String vcfLine){
+    public static double calculateMaf(String vcfLine){
         double[] alleleFrequency=new double[3]; // 0 1 2
         String[] genotypeArray={"0/0", "0/1", "0/2", "1/1", "1/2", "2/2"};
         long[] genotypeCount=new long[genotypeArray.length];
@@ -329,6 +329,26 @@ public class VCF {
         alleleFrequency[2]=(genotypeCount[2]+genotypeCount[4]+genotypeCount[5]*2)/(sum*2);
         Arrays.sort(alleleFrequency);
         return NumberTool.format(alleleFrequency[1], 5);
+    }
+
+    /**
+     * 位点为二等位时，计算Daf, 不包括三等位、四等位等
+     * @param maf
+     * @param majorAllele
+     * @param minorAllele
+     * @param ancestralAllele
+     * @return daf or -1 if two or more alt alleles exist
+     */
+    public static double calculateDaf(double maf, String majorAllele, String minorAllele, String ancestralAllele){
+        double daf=-1;
+        if (majorAllele.equals(ancestralAllele)){
+            daf=maf;
+        }else if (minorAllele.equals(ancestralAllele)){
+            daf=1-maf;
+        }else {
+            daf=-1;
+        }
+        return daf;
     }
 
     /**
