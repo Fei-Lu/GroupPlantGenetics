@@ -714,37 +714,64 @@ public class ScriptMethods {
         });
     }
 
-    public static void groups(String inputFile, String outputFile){
+    public static void groups(String inputFile, String outputFile, int groupsNumber){
         try {
             BufferedReader br=IOUtils.getTextReader(inputFile);
             BufferedWriter bw =IOUtils.getTextWriter(outputFile);
             String line;
             List<String> lineList;
-            TDoubleArrayList daf=new TDoubleArrayList();
+            TDoubleArrayList dafSyn=new TDoubleArrayList();
+            TDoubleArrayList dafNon=new TDoubleArrayList();
+            String type;
+            double siftScore=-1;
+            double daf=-1;
             br.readLine();
             while ((line=br.readLine())!=null){
                 lineList=PStringUtils.fastSplit(line);
-                daf.add(Double.parseDouble(lineList.get(1)));
-            }
-            br.close();
-            double binsize=1d/100;
-            double[] groups= DoubleStream.iterate(binsize, n->n+binsize).limit(100).toArray();
-            int[] count=new int[groups.length];
-            int index=-1;
-            for (int i = 0; i < daf.size(); i++) {
-                index=Arrays.binarySearch(groups, daf.get(i));
-                if (index>-1){
-                    count[index+1]++;
-                }else {
-                    index=-index-1;
-                    count[index]++;
+                if (lineList.get(0).equals("NA")) continue;
+                if (lineList.get(1).equals("NA")) continue;
+                if (lineList.get(0).equals("Variant_type")) continue;
+                type=lineList.get(0);
+                siftScore=Double.parseDouble(lineList.get(1));
+                daf=Double.parseDouble(lineList.get(2));
+                if (lineList.get(0).equals("NONSYNONYMOUS") && siftScore<0.05){
+                    dafNon.add(daf);
+                }else if (lineList.get(0).equals("SYNONYMOUS")){
+                    dafSyn.add(daf);
                 }
             }
-            double[] rate=ArrayTool.getElementPercent(count);
-            bw.write("group");
+            br.close();
+            double binsize=1d/groupsNumber;
+            double[] groups= DoubleStream.iterate(binsize, n->n+binsize).limit(groupsNumber).toArray();
+            int[] countSyn=new int[groups.length];
+            int[] countNon=new int[groups.length];
+            int index=-1;
+            for (int i = 0; i < dafSyn.size(); i++) {
+                index=Arrays.binarySearch(groups, dafSyn.get(i));
+                if (index>-1){
+                    countSyn[index+1]++;
+                }else {
+                    index=-index-1;
+                    countSyn[index]++;
+                }
+            }
+            for (int i = 0; i < dafNon.size(); i++) {
+                index=Arrays.binarySearch(groups, dafNon.get(i));
+                if (index>-1){
+                    countNon[index+1]++;
+                }else {
+                    index=-index-1;
+                    countNon[index]++;
+                }
+            }
+            double[] rateSyn=ArrayTool.getElementPercent(countSyn);
+            double[] rateNon=ArrayTool.getElementPercent(countNon);
+            bw.write("type"+"\t"+"group"+"\t"+"Count"+"\t"+"rate");
             bw.newLine();
-            for (int i = 0; i < count.length; i++) {
-                bw.write(String.valueOf(count[i])+"\t"+String.valueOf(rate[i]));
+            for (int i = 0; i < groups.length; i++) {
+                bw.write("SYNONYMOUS"+"\t"+groups[i] +"\t"+countSyn[i]+"\t"+ rateSyn[i]);
+                bw.newLine();
+                bw.write("NONSYNONYMOUS"+"\t"+groups[i] +"\t"+countNon[i]+"\t"+ rateNon[i]);
                 bw.newLine();
             }
             bw.flush();
@@ -755,4 +782,303 @@ public class ScriptMethods {
 
     }
 
+    public static void getSubPoplationFromAnnotationDB(File subPopulationChrPosFile, File annotationFile, File outFile){
+        try (BufferedReader br1=IOUtils.getTextReader(subPopulationChrPosFile.getAbsolutePath());
+             BufferedReader br2 = IOUtils.getTextGzipReader(annotationFile.getAbsolutePath());
+             BufferedWriter bw=IOUtils.getTextGzipWriter(outFile.getAbsolutePath())) {
+            String line;
+            List<String> linesList;
+            TIntHashSet chrSet=new TIntHashSet();
+            TIntArrayList posList=new TIntArrayList();
+            while ((line=br1.readLine()).startsWith("##")){}
+            while ((line = br1.readLine())!=null){
+                linesList=PStringUtils.fastSplit(line);
+                chrSet.add(Integer.parseInt(linesList.get(0)));
+                posList.add(Integer.parseInt(linesList.get(1)));
+            }
+            if (chrSet.size()>1){
+                System.out.println("please check your subPopulationChrPosFile: "+subPopulationChrPosFile.getName()+" , it has more than one chromosome, program exist");
+                System.exit(1);
+            }
+            String header=br2.readLine();
+            bw.write(header);
+            bw.newLine();
+            int chr=-1;
+            int pos=-1;
+            int index=Integer.MIN_VALUE;
+            while ((line=br2.readLine())!= null){
+                linesList=PStringUtils.fastSplit(line);
+                chr=Integer.parseInt(linesList.get(0));
+                pos=Integer.parseInt(linesList.get(1));
+                if (chr!= chrSet.iterator().next()){
+                    System.out.println("please check your "+subPopulationChrPosFile.getName()
+                            +" and "+annotationFile.getName()+", their chromosomes are not equal, program exist");
+                    System.exit(1);
+                }
+                index=posList.binarySearch(pos);
+                if (index<0) continue;
+                bw.write(line);
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void getSubPoplationFromAnnotationDB(String subPopulationChrPosFileDir, String annotationFileDir, String outFileDir){
+        File[] file1=IOUtils.listRecursiveFiles(new File(subPopulationChrPosFileDir));
+        File[] file2=IOUtils.listRecursiveFiles(new File(annotationFileDir));
+        Predicate<File> p=File::isHidden;
+        File[] f1= Arrays.stream(file1).filter(p.negate()).toArray(File[]::new);
+        File[] f2=Arrays.stream(file2).filter(p.negate()).toArray(File[]::new);
+        String[] outFileName=Arrays.stream(f2).map(File::getName).map(str->str.replaceAll(".txt.gz$", "abd.subpop.txt.gz")).toArray(String[]::new);
+        IntStream.range(0, f1.length).forEach(e-> ScriptMethods.getSubPoplationFromAnnotationDB(f1[e], f2[e], new File(outFileDir, outFileName[e])));
+    }
+
+    public static void getSubPopVcfFromMergedVCF(File mergedVcf, File subPopVcf1, File subPopVcf2){
+        try (BufferedReader br = IOUtils.getTextReader(mergedVcf.getAbsolutePath());
+            BufferedWriter bw1=IOUtils.getTextWriter(subPopVcf1.getAbsolutePath());
+            BufferedWriter bw2=IOUtils.getTextWriter(subPopVcf2.getAbsolutePath())) {
+            String line;
+            List<String> lineList;
+            List<String> infoList;
+            List<String> subPopList1;
+            List<String> subPopList2;
+            List<String> l1;
+            List<String> l2;
+            StringBuilder sb = new StringBuilder();
+            while ((line=br.readLine()).startsWith("##")){
+                sb.append(line);
+                sb.append("\n");
+            }
+            bw1.write(sb.toString());
+            bw2.write(sb.toString());
+            bw1.newLine();
+            bw2.newLine();
+            lineList=PStringUtils.fastSplit(line);
+            infoList=lineList.stream().limit(9).collect(Collectors.toList());
+            subPopList1=lineList.stream().skip(9).limit(419).collect(Collectors.toList());
+            subPopList2=lineList.stream().skip(9+419).collect(Collectors.toList());
+            l1=new ArrayList<>();
+            l2=new ArrayList<>();
+            l1.addAll(infoList);
+            l1.addAll(subPopList1);
+            l2.addAll(infoList);
+            l2.addAll(subPopList2);
+            bw1.write(l1.stream().collect(Collectors.joining("\t")));
+            bw1.newLine();
+            bw2.write(l2.stream().collect(Collectors.joining("\t")));
+            bw2.newLine();
+            double maf=Double.MIN_VALUE;
+            List<String> temp;
+            String tem;
+            while ((line=br.readLine())!=null){
+                lineList=PStringUtils.fastSplit(line);
+                infoList=lineList.stream().limit(9).collect(Collectors.toList());
+                subPopList1=lineList.stream().skip(9).limit(419).collect(Collectors.toList());
+                subPopList2=lineList.stream().skip(9+419).collect(Collectors.toList());
+                l1=new ArrayList<>();
+                l2=new ArrayList<>();
+                l1.addAll(infoList);
+                l1.addAll(subPopList1);
+                l2.addAll(infoList);
+                l2.addAll(subPopList2);
+                maf=VCF.calculateMaf(l1.stream().collect(Collectors.joining("\t")));
+                temp=PStringUtils.fastSplit(l1.get(7), ";");
+                tem="MAF="+maf;
+                temp.set(4, tem);
+                l1.set(7, temp.stream().collect(Collectors.joining(";")));
+                bw1.write(l1.stream().collect(Collectors.joining("\t")));
+                bw1.newLine();
+                l2.set(7, temp.stream().collect(Collectors.joining(";")));
+                bw2.write(l2.stream().collect(Collectors.joining("\t")));
+                bw2.newLine();
+            }
+            bw1.flush();
+            bw2.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void selectChrPosWithDaf(File annotationDB, File chrposOutFile){
+        try (BufferedReader br = IOUtils.getTextGzipReader(annotationDB.getAbsolutePath());
+            BufferedWriter bw=IOUtils.getTextWriter(chrposOutFile.getAbsolutePath())) {
+            String line;
+            List<String> lineList;
+            lineList=PStringUtils.fastSplit(br.readLine());
+            StringBuilder sb=new StringBuilder();
+            sb.append(lineList.get(0)).append("\t").append(lineList.get(1));
+            bw.write(sb.toString());
+            bw.newLine();
+            while ((line=br.readLine())!=null){
+                sb=new StringBuilder();
+                lineList=PStringUtils.fastSplit(line);
+                if (lineList.get(13).equals("NA")) continue;
+                sb.append(lineList.get(0)).append("\t").append(lineList.get(1));
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public static void selectChrPosWithDaf(String annotationDBDir, String chrposOutFileDir){
+        File[] files1=IOUtils.listRecursiveFiles(new File(annotationDBDir));
+        Predicate<File> p=File::isHidden;
+        File[] f1= Arrays.stream(files1).filter(p.negate()).toArray(File[]::new);
+        String[] outNames=Arrays.stream(f1).map(File::getName).map(str->str.replaceAll("txt.gz$", "chrpos")).toArray(String[]::new);
+        IntStream.range(0, f1.length).forEach(e->ScriptMethods.selectChrPosWithDaf(f1[e], new File(chrposOutFileDir, outNames[e])));
+    }
+
+    public static void caculateMaf(File inputChrposFile, File vcfFile, File outChrPosMaf){
+        try (BufferedReader br1 = IOUtils.getTextReader(inputChrposFile.getAbsolutePath());
+             BufferedReader br2=IOUtils.getTextGzipReader(vcfFile.getAbsolutePath())) {
+             BufferedWriter bw=IOUtils.getTextWriter(outChrPosMaf.getAbsolutePath());
+            bw.write("Chr"+"\t"+"Pos"+"\t"+"Maf"+"\n");
+            String line;
+             List<String> lineList;
+             TIntHashSet chrSet=new TIntHashSet();
+             TIntArrayList posList=new TIntArrayList();
+             br1.readLine();
+             while ((line=br1.readLine())!=null){
+                 lineList=PStringUtils.fastSplit(line);
+                 chrSet.add(Integer.parseInt(lineList.get(0)));
+                 posList.add(Integer.parseInt(lineList.get(1)));
+             }
+             if(chrSet.size()>1) {
+                 System.out.println("file error, check your "+inputChrposFile.getName()+" program exit");
+                 System.exit(1);
+             }
+             int chr=-1;
+             int pos=-1;
+             double daf=-1d;
+             int index=Integer.MIN_VALUE;
+             StringBuilder sb;
+             while ((line=br2.readLine()).startsWith("##")){}
+             while ((line=br2.readLine())!=null){
+                 lineList=PStringUtils.fastSplit(line);
+                 chr=Integer.parseInt(lineList.get(0));
+                 pos=Integer.parseInt(lineList.get(1));
+                 if (chr!=chrSet.iterator().next()) {
+                     System.out.println("please check your "+inputChrposFile.getName()+" and "+vcfFile.getName()+" , they " +
+                             "have different chromosomes, program exit");
+                     System.exit(1);
+                 }
+                 index=posList.binarySearch(pos);
+                 if (index<0) continue;
+                 daf=VCF.calculateMaf(line);
+                 sb=new StringBuilder();
+                 sb.append(chr).append("\t").append(pos).append("\t").append(daf);
+                 bw.write(sb.toString());
+                 bw.newLine();
+             }
+             bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void caculateMaf(String inputChrposFileDir, String vcfFileDir, String outChrPosDafDir){
+        File[] files1=IOUtils.listRecursiveFiles(new File(inputChrposFileDir));
+        int[] d_lineage=WheatLineage.getWheatLineageOf(WheatLineage.D);
+        List<String> f2=VCF.getAllVcfInputPath(vcfFileDir, d_lineage);
+        Predicate<File> p=File::isHidden;
+        File[] f1=Arrays.stream(files1).filter(p.negate()).toArray(File[]::new);
+        String[] outName=f2.stream().map(File::new).map(File::getName).map(str->str.substring(0, 6)+".chrpos.daf.txt").toArray(String[]::new);
+        IntStream.range(0,f1.length).parallel().forEach(e->ScriptMethods.caculateMaf(f1[e], new File(f2.get(e)), new File(outChrPosDafDir, outName[e])));
+    }
+
+    public static  void reaplaceDafInAnnotationDB(File subPopChrposMafFile, File subPopAnnotationDBFile, File replacedSubPopAnnotationDBFile){
+        try (BufferedReader br1 = IOUtils.getTextReader(subPopChrposMafFile.getAbsolutePath());
+             BufferedReader br2=IOUtils.getTextGzipReader(subPopAnnotationDBFile.getAbsolutePath());
+             BufferedWriter bw=IOUtils.getTextWriter(replacedSubPopAnnotationDBFile.getAbsolutePath())) {
+            String line;
+            List<String> lineList;
+            TIntHashSet chrSet=new TIntHashSet();
+            TIntArrayList posList=new TIntArrayList();
+            TDoubleArrayList mafList=new TDoubleArrayList();
+            br1.readLine();
+            while ((line=br1.readLine())!=null){
+                lineList=PStringUtils.fastSplit(line);
+                chrSet.add(Integer.parseInt(lineList.get(0)));
+                posList.add(Integer.parseInt(lineList.get(1)));
+                mafList.add(Double.parseDouble(lineList.get(2)));
+            }
+            if (chrSet.size()>1){
+                System.out.println("please check your "+subPopChrposMafFile.getName()+" program exit");
+                System.exit(1);
+            }
+            String header=br2.readLine();
+            bw.write(header);
+            bw.newLine();
+            int chr=-1;
+            int pos=-1;
+            int index=Integer.MIN_VALUE;
+            String majorAllele;
+            String minorAllele;
+            String ancestralAllele;
+            double daf=-1;
+            StringBuilder sb;
+            while ((line=br2.readLine())!=null){
+                lineList=PStringUtils.fastSplit(line);
+                chr=Integer.parseInt(lineList.get(0));
+                pos=Integer.parseInt(lineList.get(1));
+                majorAllele=lineList.get(4);
+                minorAllele=lineList.get(5);
+                ancestralAllele=lineList.get(12);
+                if (chr!=chrSet.iterator().next()) {
+                    System.out.println("please check your input file "+subPopChrposMafFile.getName()+" and "
+                            +subPopAnnotationDBFile.getName()+" program exit");
+                    System.exit(1);
+                }
+                index=posList.binarySearch(pos);
+                sb=new StringBuilder();
+                if (index<0) continue;
+                if (ancestralAllele=="NA") continue;
+                if (majorAllele.equals(ancestralAllele)){
+                    daf=NumberTool.format(mafList.get(index), 5);
+                    sb.append(lineList.stream().limit(6).collect(Collectors.joining("\t"))).append("\t")
+                            .append(NumberTool.format(mafList.get(index),5)).append("\t");
+                    sb.append(lineList.stream().skip(7).limit(6).collect(Collectors.joining("\t"))).append("\t");
+                    sb.append(daf);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }else if (minorAllele.equals(ancestralAllele)){
+                    daf=NumberTool.format(1-mafList.get(index), 5);
+                    sb.append(lineList.stream().limit(6).collect(Collectors.joining("\t"))).append("\t")
+                            .append(NumberTool.format(mafList.get(index),5)).append("\t");
+                    sb.append(lineList.stream().skip(7).limit(6).collect(Collectors.joining("\t"))).append("\t");
+                    sb.append(daf);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }else {
+                    sb.append(lineList.stream().limit(6).collect(Collectors.joining("\t"))).append("\t")
+                            .append(mafList.get(index)).append("\t");
+                    sb.append(lineList.stream().skip(7).limit(6).collect(Collectors.joining("\t"))).append("\t");
+                    sb.append("NA");
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static  void reaplaceDafInAnnotationDB(String subPopChrposMafFileDir, String subPopAnnotationDBFileDir, String replacedSubPopAnnotationDBFileDir){
+        File[] files1=IOUtils.listRecursiveFiles(new File(subPopChrposMafFileDir));
+        File[] files2=IOUtils.listRecursiveFiles(new File(subPopAnnotationDBFileDir));
+        Predicate<File> p=File::isHidden;
+        File[] f1=Arrays.stream(files1).filter(p.negate()).toArray(File[]::new);
+        File[] f2=Arrays.stream(files2).filter(p.negate()).toArray(File[]::new);
+        String[] outNames=Arrays.stream(f2).map(File::getName).toArray(String[]::new);
+        IntStream.range(0,f2.length).parallel().forEach(e->
+                ScriptMethods.reaplaceDafInAnnotationDB(f1[e], f2[e], new File(replacedSubPopAnnotationDBFileDir, outNames[e])));
+    }
 }
