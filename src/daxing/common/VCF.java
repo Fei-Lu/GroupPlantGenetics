@@ -1,5 +1,6 @@
 package daxing.common;
 
+import gnu.trove.list.array.TIntArrayList;
 import utils.Benchmark;
 import utils.IOUtils;
 import utils.PStringUtils;
@@ -67,9 +68,9 @@ public class VCF {
         }
         Collections.sort(chrList);
         String abd=String.join("", Collections.nCopies(7,"AABBDD"));
-        chrToChrMap.put(0, "ChrUn");
+        chrToChrMap.put(0, "Un");
         for(int i=0;i<numOfChr.size();i++){
-            chrToChrMap.put(numOfChr.get(i),"Chr"+chrList.get(i)+abd.charAt(i));
+            chrToChrMap.put(numOfChr.get(i), String.valueOf(chrList.get(i))+abd.charAt(i));
         }
         chrToChrMap.put(43, "Mit");
         chrToChrMap.put(44, "Chl");
@@ -246,52 +247,83 @@ public class VCF {
     }
 
     /**
-     * 将一个目录下的所有VCF文件按照染色体进行融合（默认不包含"chr000.vcf.gz"、"chr043.vcf.gz"和"chr044.vcf.gz"）形成"Chr1A.vcf.gz"、"Chr1B.vcf.gz"等
-     *
-     * @param inputVcfDir "chr001.vcf.gz", "chr002.vcf.gz"等
-     * @param outputVcfDir "Chr1A.vcf.gz", "Chr1B.vcf.gz"等
+     * merge chr001, chr002, chr003, ... to chr.lineageA.vcf, chr.lineageB.vcf, chr.lineageD.vcf
+     * @param inputVcfDir
+     * @param outDir
+     * @param chrConvertionRule
      */
-    public static void mergeVCFtoChr(String inputVcfDir, String outputVcfDir){
-        File[] files=IOUtils.listRecursiveFiles(new File(inputVcfDir));
-        File[] vcfFile=IOUtils.listFilesEndsWith(files, "vcf.gz");
-        Predicate<File> p= file -> {
-            int chrNum=StringTool.getNumFromString(file.getName());
-            if(chrNum==0 || chrNum==43 || chrNum==44) return true;
-            return false;
-        };
-        File[] vcfFile1_44=Arrays.stream(vcfFile).filter(p.negate()).toArray(File[]::new);
-        int[] chr=Arrays.stream(vcfFile1_44).map(File::getName).map(StringTool::getNumFromString).mapToInt(Integer::intValue).toArray();
-        int odd;
-        for(int i=0;i<chr.length;i++){
-            odd=chr[i];
-            if((odd&1)==0){
-                continue;
-            }
-            if(i<chr.length-2 && (chr[i+1]&1)==1){
-                odd=chr[i+1];
-                i=i+1;
-            }
-            if(i<chr.length-2 && (chr[i+1]-chr[i])==1){
-                VCF vcf=new VCF(vcfFile1_44[i]);
-                vcf.addVCF(new VCF(vcfFile1_44[i+1]));
-                vcf.write(outputVcfDir, VCF.chrToChrMap.get(chr[i])+"_ABDgenome_subset"+".vcf.gz");
-            }
-            if(i<chr.length-2 && (chr[i+1]-chr[i])>=1){
-                i=i+1;
-            }
-            if (i==chr.length-1){
-                continue;
-            }
-            if(i==chr.length-2){
-                if((chr[i+1]-chr[i])==1){
-                    VCF vcf=new VCF(vcfFile1_44[i]);
-                    vcf.addVCF(new VCF(vcfFile1_44[i+1]));
-                    vcf.write(outputVcfDir, VCF.chrToChrMap.get(chr[i])+"_ABDgenome_subset"+".vcf.gz");
-                }
+    public static void mergeVCFtoLineage(String inputVcfDir, String outDir, ChrConvertionRule chrConvertionRule){
+        File[] files=new File(inputVcfDir).listFiles();
+        Predicate<File> hidden=File::isHidden;
+        Predicate<File> p= hidden.negate().and(f->f.getName().toLowerCase().startsWith("chr"));
+        File[] f=Arrays.stream(files).filter(p).sorted().toArray(File[]::new);
+        int[] chrIDArray=Arrays.stream(f).filter(p).map(File::getName).map(str->str.substring(3,6))
+                .mapToInt(Integer::parseInt).toArray();
+        int[][] lineage=new int[3][];
+        lineage[0]=WheatLineage.getWheatLineageOf(WheatLineage.A);
+        lineage[1]=WheatLineage.getWheatLineageOf(WheatLineage.B);
+        lineage[2]=WheatLineage.getWheatLineageOf(WheatLineage.D);
+        TIntArrayList[] indexArray=new TIntArrayList[3];
+        for (int i = 0; i < 3; i++) {
+            indexArray[i]=new TIntArrayList();
+        }
+        int index=Integer.MIN_VALUE;
+        for (int i = 0; i < lineage.length; i++) {
+            for (int j = 0; j < lineage[i].length; j++) {
+                index=Arrays.binarySearch(chrIDArray, lineage[i][j]);
+                if (index<0) continue;
+                indexArray[i].add(index);
             }
         }
-        System.out.println("ok");
+        VCF[] vcfArray=new VCF[3];
+        for (int i = 0; i < indexArray.length; i++) {
+            if (indexArray[i].size()==0) continue;
+            vcfArray[i]=new VCF(f[indexArray[i].get(0)]);
+            for (int j = 1; j < indexArray[i].size(); j++) {
+                if (indexArray[i].size()==1) continue;
+                vcfArray[i].addVCF(new VCF(f[indexArray[i].get(j)]));
+            }
+        }
+        String[] outNames={"chr.lineageA.vcf", "chr.lineageB.vcf", "chr.lineageD.vcf"};
+        for (int i = 0; i < vcfArray.length; i++) {
+            if (vcfArray[i]==null) continue;
+            vcfArray[i].changeToRefChr(chrConvertionRule);
+            vcfArray[i].write(outDir, outNames[i]);
+        }
+    }
 
+    /**
+     * merge chr001 chr002 chr003 chr004, ... to chr1A chr1B chr1D, ...
+     * @param inputVcfDir
+     * @param outDir
+     * @param chrConvertionRule
+     */
+    public static void mergeVCFtoChr(String inputVcfDir, String outDir, ChrConvertionRule chrConvertionRule){
+        File[] files=new File(inputVcfDir).listFiles();
+        Predicate<File> hidden=File::isHidden;
+        Predicate<File> p= hidden.negate().and(f->f.getName().toLowerCase().startsWith("chr"));
+        File[] f=Arrays.stream(files).filter(p).sorted().toArray(File[]::new);
+        int[] chrIDArray=Arrays.stream(f).filter(p).map(File::getName).map(str->str.substring(3,6))
+                .mapToInt(Integer::parseInt).sorted().toArray();
+        TIntArrayList indexList=new TIntArrayList();
+        for (int i = 0; i < chrIDArray.length-1; i++) {
+            if (NumberTool.isOdd(chrIDArray[i])){
+                if (chrIDArray[i]+1!=chrIDArray[i+1]) continue;
+                indexList.add(i);
+                indexList.add(i+1);
+                i=i+1;
+            }
+        }
+        VCF vcf=null;
+        String[] outNameArray= Arrays.stream(f).map(File::getName).map(str->str.substring(6)).toArray(String[]::new);
+        String outName=null;
+        for (int i = 0; i < indexList.size(); i=i+2) {
+            vcf=new VCF(f[indexList.get(i)]);
+            vcf.addVCF(new VCF(f[indexList.get(i+1)]));
+            vcf.changeToRefChr(chrConvertionRule);
+            outName=VCF.getchrToChrMap().get(chrIDArray[indexList.get(i)]);
+            vcf.write(outDir, "chr"+outName+outNameArray[indexList.get(i)]);
+        }
     }
 
     /**
@@ -365,8 +397,13 @@ public class VCF {
      * 根据VCF文件的CHR和POS对该对象排序
      */
     public void sort(){
-        Comparator<List<String>> c=Comparator.comparing(e->Integer.valueOf(e.get(0)));
-        data.sort(c.thenComparing(e->Integer.valueOf(e.get(1))));
+        if (StringTool.isNumeric(data.get(0).get(0))){
+            Comparator<List<String>> c=Comparator.comparing(e->Integer.valueOf(e.get(0)));
+            data.sort(c.thenComparing(e->Integer.valueOf(e.get(1))));
+        }else {
+            Comparator<List<String>> c=Comparator.comparing(e->e.get(0));
+            data.sort(c.thenComparing(e->Integer.valueOf(e.get(1))));
+        }
     }
 
     public void removeVarianceWithHighGenotypeMissingRate(double genotypeMissingRate){
@@ -417,6 +454,34 @@ public class VCF {
      */
     public boolean addVCF(VCF vcf){
         return this.data.addAll(vcf.data);
+    }
+
+    /**
+     * change vcfChr and vcfPos to refChr and refPos
+     * @param chrConvertionRule
+     */
+    public void changeToRefChr(ChrConvertionRule chrConvertionRule){
+        List<List<String>> data=this.data;
+        List<List<String>> res=new ArrayList<>();
+        for (int i = 0; i < data.size(); i++) {
+            res.add(new ArrayList<>());
+        }
+        List<String> line;
+        short vcfChr;
+        int vcfPos;
+        String refChr;
+        int refPos;
+        for (int i = 0; i < data.size(); i++) {
+            line=data.get(i);
+            vcfChr=Short.parseShort(line.get(0));
+            vcfPos=Integer.parseInt(line.get(1));
+            refChr= chrConvertionRule.getRefChrFromVCFChr(vcfChr);
+            refPos= chrConvertionRule.getRefPosFromVCFChrPos(vcfChr, vcfPos);
+            line.set(0, refChr);
+            line.set(1, String.valueOf(refPos));
+            res.get(i).addAll(line);
+        }
+        this.data=res;
     }
 
     public void write(String outFile){
