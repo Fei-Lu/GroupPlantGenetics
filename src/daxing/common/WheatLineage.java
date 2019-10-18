@@ -11,7 +11,7 @@ public enum WheatLineage {
     /**
      * 返回A B D对应的ChrID
      * @param aOrBOrD A B D
-     * @return
+     * @return 1,2, ...
      */
     public static int[] getWheatLineageOf(WheatLineage aOrBOrD){
         int[] a= Stream.concat(IntStream.iterate(1, n->n+6).limit(7).boxed(),
