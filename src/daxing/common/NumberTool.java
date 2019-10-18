@@ -72,5 +72,24 @@ public class NumberTool {
         return df.format(a);
     }
 
+    /**
+     *
+     * @param a
+     * @return
+     */
+    public static boolean isOdd(int a){
+        return (a & 1) != 0;
+    }
+
+    /**
+     *
+     * @param a
+     * @return
+     */
+    public static boolean isEven(int a){
+        return (a & 1) == 0;
+    }
+
+
 
 }
