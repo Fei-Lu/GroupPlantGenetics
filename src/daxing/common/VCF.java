@@ -389,6 +389,7 @@ public class VCF {
      * @param numThreads 36
      */
     public static void getSubSetVcfFromFile(String vcfDir, String subsetFileDir, double rate, int numThreads){
+        long totalStart=System.nanoTime();
         File[] files=IOUtils.listRecursiveFiles(new File(vcfDir));
         Predicate<File> p=File::isHidden;
         File[] f1=Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
@@ -404,6 +405,7 @@ public class VCF {
             integerList.parallelStream().forEach(e->{
                 BufferedReader br;
                 BufferedWriter bw;
+                long start=System.nanoTime();
                 try {
                     if (f1[e].getName().endsWith("vcf")){
                         br=IOUtils.getTextReader(f1[e].getAbsolutePath());
@@ -434,12 +436,14 @@ public class VCF {
                     bw.flush();
                     bw.close();
                     System.out.println("samping "+count+"("+total+") row from "
-                            +f1[e].getName()+" into "+new File(subsetFileDir, f2[e]).getName());
+                            +f1[e].getName()+" into "+new File(subsetFileDir, f2[e]).getName()+" in "
+                            +Benchmark.getTimeSpanMinutes(start)+" minutes");
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
             });
         }
+        System.out.println("samping "+vcfDir+" into "+subsetFileDir+" is completed in "+Benchmark.getTimeSpanHours(totalStart)+" hours");
     }
 
     /**
