@@ -1,14 +1,12 @@
 package daxing.common;
 
 import gnu.trove.list.array.TIntArrayList;
-import utils.Benchmark;
-import utils.IOUtils;
-import utils.PStringUtils;
-import utils.Tuple;
+import utils.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -381,6 +379,67 @@ public class VCF {
             daf=-1;
         }
         return daf;
+    }
+
+    /**
+     *
+     * @param vcfDir
+     * @param subsetFileDir
+     * @param rate 0.001
+     * @param numThreads 36
+     */
+    public static void getSubSetVcfFromFile(String vcfDir, String subsetFileDir, double rate, int numThreads){
+        File[] files=IOUtils.listRecursiveFiles(new File(vcfDir));
+        Predicate<File> p=File::isHidden;
+        File[] f1=Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
+        String[] f2=Arrays.stream(f1).map(File::getName).map(str->str.replaceAll(".vcf", ".subset.vcf"))
+                .toArray(String[]::new);
+        int[][] indices= PArrayUtils.getSubsetsIndicesBySubsetSize(f1.length, numThreads);
+        for (int i = 0; i < indices.length; i++) {
+            Integer[] subLibIndices = new Integer[indices[i][1]-indices[i][0]];
+            for (int j = 0; j < subLibIndices.length; j++) {
+                subLibIndices[j] = indices[i][0]+j;
+            }
+            List<Integer> integerList=Arrays.asList(subLibIndices);
+            integerList.parallelStream().forEach(e->{
+                BufferedReader br;
+                BufferedWriter bw;
+                try {
+                    if (f1[e].getName().endsWith("vcf")){
+                        br=IOUtils.getTextReader(f1[e].getAbsolutePath());
+                        bw=IOUtils.getTextGzipWriter(new File(subsetFileDir, f2[e]).getAbsolutePath());
+                    }else {
+                        br=IOUtils.getTextGzipReader(f1[e].getAbsolutePath());
+                        bw=IOUtils.getTextGzipWriter(new File(subsetFileDir, f2[e]).getAbsolutePath());
+                    }
+                    String line;
+                    double r=-1d;
+                    int count=0;
+                    int total=0;
+                    while ((line=br.readLine()).startsWith("##")){
+                        bw.write(line);
+                        bw.newLine();
+                    }
+                    bw.write(line);
+                    bw.newLine();
+                    while ((line=br.readLine())!=null){
+                        total++;
+                        r=Math.random();
+                        if (r > rate) continue;
+                        count++;
+                        bw.write(line);
+                        bw.newLine();
+                    }
+                    br.close();
+                    bw.flush();
+                    bw.close();
+                    System.out.println("samping "+count+"("+total+") row from "
+                            +f1[e].getName()+" into "+new File(subsetFileDir, f2[e]).getName());
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            });
+        }
     }
 
     /**
