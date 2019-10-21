@@ -12,13 +12,13 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
-public class DeleteriousMutation {
+public class Vmap2QC {
 
     String vcfDir;
-    public DeleteriousMutation(String vcfDir){
+    public Vmap2QC(String vcfDir, String outFileDir){
         this.vcfDir=vcfDir;
-        this.assessFalesPositiveRate();
-//        this.getMaf(vcfDir);
+//        this.assessFalesPositiveRate();
+        this.getMaf(vcfDir, outFileDir);
     }
 
     public void assessFalesPositiveRate(){
@@ -35,7 +35,7 @@ public class DeleteriousMutation {
             }
             List<Integer> integerList=Arrays.asList(subLibIndices);
             integerList.parallelStream().forEach(index->{
-                int count=DeleteriousMutation.assessFalesPositiveRate(f1[index]);
+                int count= Vmap2QC.assessFalesPositiveRate(f1[index]);
                 total.addAndGet(count);
             });
         }
@@ -94,7 +94,7 @@ public class DeleteriousMutation {
                     while ((line=br.readLine()).startsWith("##")){}
                     while ((line=br.readLine())!=null){
                         lineList=PStringUtils.fastSplit(line);
-                        infor=PStringUtils.fastSplit(lineList.get(7));
+                        infor=PStringUtils.fastSplit(lineList.get(7), ";");
                         maf=Double.parseDouble(PStringUtils.fastSplit(infor.get(6), "=").get(1));
                         maf_ABD=Double.parseDouble(PStringUtils.fastSplit(infor.get(7), "=").get(1));
                         maf_ABorD=Double.parseDouble(PStringUtils.fastSplit(infor.get(8), "=").get(1));
