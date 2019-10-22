@@ -7,8 +7,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -75,90 +73,6 @@ public class VCF {
     }
 
     /**
-     * 从VCF文件中随机抽取行，组成新文件
-     * @param inputFile VCF输入文件
-     * @param outFile 输出文件
-     * @param numberOfRow 提取的行数
-     */
-    public static void extractRandomRowFromVCF(String inputFile, String outFile, Integer numberOfRow) {
-        long start = System.nanoTime();
-        try (BufferedWriter bw = IOUtils.getTextWriter(outFile)) {
-            List<String> metaAndHeader= Files.newBufferedReader(Paths.get(inputFile))
-                    .lines().limit(30)
-                    .filter(index->index.startsWith("#"))
-                    .collect(Collectors.toList());
-            List<String> data=Files.newBufferedReader(Paths.get(inputFile))
-                    .lines()
-                    .filter(index -> (!index.startsWith("#")))
-                    .collect(Collectors.toList());
-            int[] randomIndex= ArrayTool.getRandomNonrepetitionArray(numberOfRow,0,data.size());
-            Arrays.sort(randomIndex);
-            for(String str:metaAndHeader){
-                bw.write(str);
-                bw.newLine();
-            }
-            for(int i=0;i<randomIndex.length;i++){
-                bw.write(data.get(randomIndex[i]));
-                bw.newLine();
-            }
-            bw.flush();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        System.out.println(outFile+" completed in " + String.format("%.4f", Benchmark.getTimeSpanSeconds(start)) + " seconds");
-    }
-
-    /**
-     * 从VCF文件中随机抽取行，在输入文件的目录下生成新的VCF文件（后缀是sample.vcf）
-     * @param inputFile VCF输入文件
-     * @param numberOfRow 提取的行数
-     */
-    public static void extractRandomRowFromVCF(String inputFile, Integer numberOfRow) {
-        long start = System.nanoTime();
-        String outFile=inputFile.replaceAll(".vcf$", "sample.vcf");
-        try (BufferedWriter bw=IOUtils.getTextWriter(outFile)) {
-            List<String> metaAndHeader=Files.newBufferedReader(Paths.get(inputFile))
-                                            .lines().limit(30)
-                                            .filter(e->e.startsWith("#"))
-                                            .collect(Collectors.toList());
-            List<String> data=Files.newBufferedReader(Paths.get(inputFile))
-                                   .lines()
-                                   .filter(index -> (!index.startsWith("#")))
-                                   .collect(Collectors.toList());
-            int[] randomIndex= ArrayTool.getRandomNonrepetitionArray(numberOfRow,0,data.size());
-            Arrays.sort(randomIndex);
-            for(String str:metaAndHeader){
-                bw.write(str);
-                bw.newLine();
-            }
-            for(int i=0;i<randomIndex.length;i++){
-                bw.write(data.get(randomIndex[i]));
-                bw.newLine();
-            }
-            bw.flush();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        System.out.println(outFile+" completed in " + String.format("%.4f", Benchmark.getTimeSpanSeconds(start)) + " seconds");
-    }
-
-    /**
-     * 对输入目录下所有VCF文件按照一定的比率随机抽取行组成新的VCF样品文件
-     * @param inputVcfDir  指定的VCF输入目录
-     * @param outputVCFDir 指定的VCF输出目录
-     * @param chrSnpNum 每个染色体SNP的数量
-     * @param rate 随机抽取行的比率，需为小数，如0.01， 0.5等
-     */
-    public static void extractRandomRowFromVcfDir(String inputVcfDir, String outputVCFDir, Tuple<int[], int[]> chrSnpNum, double rate){
-        int[] chrArray=chrSnpNum.getFirstElement();
-        int[] snpNumArray=chrSnpNum.getSecondElement();
-        int[] rateOfSnpNum=Arrays.stream(snpNumArray).map(e->(int)Math.round(e*rate)).toArray();
-        List<String> pathInputList=VCF.getAllVcfInputPath(inputVcfDir, chrArray);
-        List<String> pathOutputList=VCF.getAllVcfOutputPath(outputVCFDir, chrArray);
-        IntStream.range(0, chrArray.length).forEach(e-> VCF.extractRandomRowFromVCF(pathInputList.get(e), pathOutputList.get(e), rateOfSnpNum[e]));
-    }
-
-    /**
      * 根据VCF目录和染色体编号，返回对应染色体编号的各个VCF文件输入路径
      * @param vcfInputDir VCF目录
      * @param chrArray 染色体编号
@@ -173,54 +87,6 @@ public class VCF {
         File[] files=IOUtils.listRecursiveFiles(new File(vcfInputDir));
         List<Integer> chrList=Arrays.stream(chrArray).boxed().collect(Collectors.toList());
         return Arrays.stream(files).filter(e->chrList.contains(StringTool.getNumFromString(e.getName()))).map(File::getAbsolutePath).collect(Collectors.toList());
-    }
-
-    /**
-     * 根据VCF目录和染色体编号，返回对应染色体编号的各个VCF文件输出路径(默认输出的VCF文件后缀为"chr001sample.vcf")
-     * @param vcfOutputDir vcf目录
-     * @param chrArray 染色体编号
-     * @return 染色体编号对应的所有VCF文件输出路径
-     */
-    public static List<String> getAllVcfOutputPath(String vcfOutputDir, int[] chrArray){
-        int temp=(int)Arrays.stream(chrArray).distinct().count();
-        if(chrArray.length>temp){
-            System.out.println("please check your input array, it contains duplicate value");
-            System.exit(1);
-        }
-        List<String> chrNumPathList=new ArrayList<>();
-        String outputPath;
-        for(int e:chrArray){
-            outputPath=vcfOutputDir+"/chr"+PStringUtils.getNDigitNumber(3, e)+"sample.vcf";
-            chrNumPathList.add(outputPath);
-        }
-        Collections.sort(chrNumPathList);
-        return chrNumPathList;
-    }
-
-    /**
-     * 将输入目录下的所有VCF文件（如"chr001.vcf", "chr002.vcf"等）融合为一个"ChrAll.vcf"文件(不包含"chr000.vcf"、"chr043.vcf"和"chr044.vcf")
-     * @param inputVcfDir VCF目录
-     */
-    public static void mergeVCF(String inputVcfDir){
-        File[] files=IOUtils.listRecursiveFiles(new File(inputVcfDir));
-        File[] vcfFiles=IOUtils.listFilesEndsWith(files,"vcf");
-        Arrays.sort(vcfFiles);
-        VCF vcf1=null;
-        int flag=0;
-        for(int i=0;i<vcfFiles.length;i++){
-            int a=StringTool.getNumFromString(vcfFiles[i].getName());
-            if((a==0)||(a>=43)) continue;
-            vcf1=new VCF(vcfFiles[i]);
-            flag=i;
-            break;
-        }
-        for(int i=0;i<vcfFiles.length;i++){
-            int a=StringTool.getNumFromString(vcfFiles[i].getName());
-            if((a==0)||(a>=43)) continue;
-            if(i==flag) continue;
-            vcf1.addVCF(new VCF(vcfFiles[i]));
-        }
-        vcf1.write(inputVcfDir,"ChrAll.vcf");
     }
 
     /**
