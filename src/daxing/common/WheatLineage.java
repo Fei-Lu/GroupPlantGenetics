@@ -1,7 +1,9 @@
 package daxing.common;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -41,5 +43,26 @@ public enum WheatLineage {
             abd.add(chrA_Lineage[i]+aOrBOrD.toString());
         }
         return abd;
+    }
+
+    /**
+     *
+     * @return 1,2,3,4,7,8, ...
+     */
+    public static int[] ablineage(){
+        int[] a=WheatLineage.getWheatLineageOf(WheatLineage.A);
+        int[] b=WheatLineage.getWheatLineageOf(WheatLineage.B);
+        return Stream.concat(Arrays.stream(a).boxed(), Arrays.stream(b).boxed()).mapToInt(Integer::intValue).sorted().toArray();
+    }
+
+    /**
+     *
+     * @return 1A, 1B, 2A, 2B, 3A, 3B, ...
+     */
+    public static List<String> abLineage(){
+        List<String> a=WheatLineage.wheatLineageOf(WheatLineage.A);
+        List<String> b=WheatLineage.wheatLineageOf(WheatLineage.B);
+        a.addAll(b);
+        return a.stream().sorted().collect(Collectors.toList());
     }
 }
