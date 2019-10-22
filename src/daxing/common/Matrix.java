@@ -32,7 +32,7 @@ public class Matrix {
             List<double[]> dataList=new ArrayList<>();
             String line;
             List<String> lineList;
-            if (header=true){
+            if (header){
                 List<String> names=PStringUtils.fastSplit(br.readLine());
                 names.remove(0);
                 this.id=names;
@@ -70,6 +70,26 @@ public class Matrix {
         return id;
     }
 
+    /**
+     *
+     * @param taxon
+     * @return
+     */
+    public double[] getRow(String taxon){
+        int index=this.indexOf(taxon);
+        return this.getData()[index];
+    }
+
+    public int indexOf(String taxon){
+        return this.getId().indexOf(taxon);
+    }
+
+    /**
+     *
+     * @param id1
+     * @param id2
+     * @return
+     */
     public double getValue(String id1, String id2){
         int index1=this.getId().indexOf(id1);
         int index2=this.getId().indexOf(id2);
@@ -277,6 +297,28 @@ public class Matrix {
                 .toArray(String[]::new);
         Matrix m=new Matrix(matirxFile, false);
         m.WriteBySortedID(ids, outFile);
+    }
+
+    /**
+     * 将某矩阵的某一行写出
+     * @param dxyMatrix
+     * @param taxon
+     * @param outFile
+     */
+    public static void writeFordxyGraph(String dxyMatrix, String taxon, String outFile){
+        Matrix matrix=new Matrix(dxyMatrix, false);
+        double[] cs=matrix.getRow(taxon);
+        try (BufferedWriter bw = IOUtils.getTextWriter(outFile)) {
+            bw.write("dxy");
+            bw.newLine();
+            for (int i = 0; i < cs.length; i++) {
+                bw.write(String.valueOf(cs[i]));
+                bw.newLine();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 
 }
