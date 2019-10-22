@@ -39,17 +39,16 @@ public class VCF {
             }
             StringBuilder sb=new StringBuilder();
             String temp;
-            while ((temp=br.readLine())!=null){
-                if(temp.startsWith("##")){
-                    sb.append(temp);
-                    sb.append("\n");
-                } else if(temp.startsWith("#")){
-                    this.header=PStringUtils.fastSplit(temp);
-                    break;
-                }
+            List<List<String>> lists=new ArrayList<>();
+            while ((temp=br.readLine()).startsWith("##")){
+                sb.append(temp).append("\n");
             }
             this.meta =sb.toString();
-            this.data=br.lines().map(PStringUtils::fastSplit).collect(Collectors.toList());
+            this.header=PStringUtils.fastSplit(temp);
+            while ((temp=br.readLine())!=null){
+                lists.add(PStringUtils.fastSplit(temp));
+            }
+            this.data=lists;
             br.close();
         }catch (Exception e){
             e.printStackTrace();
@@ -222,26 +221,6 @@ public class VCF {
             vcf1.addVCF(new VCF(vcfFiles[i]));
         }
         vcf1.write(inputVcfDir,"ChrAll.vcf");
-    }
-
-    /**
-     * 将输入目录下的所有VCF文件（如"chr001.vcf", "chr002.vcf"等）融合为一个"ChrAll.vcf"文件
-     * @param inputVcfDir VCF目录
-     * @param contains 是否包含("chr000.vcf"、"chr043.vcf"和"chr044.vcf")
-     */
-    public static void mergeVCF(String inputVcfDir, boolean contains){
-        if(contains){
-            File[] files=IOUtils.listRecursiveFiles(new File(inputVcfDir));
-            File[] vcfFiles=IOUtils.listFilesEndsWith(files,"vcf");
-            Arrays.sort(vcfFiles);
-            VCF vcf1=new VCF(vcfFiles[0]);
-            for(int i=1;i<vcfFiles.length;i++){
-                vcf1.addVCF(new VCF(vcfFiles[i]));
-            }
-            vcf1.write(inputVcfDir,"ChrAll.vcf");
-        }else {
-            VCF.mergeVCF(inputVcfDir);
-        }
     }
 
     /**
