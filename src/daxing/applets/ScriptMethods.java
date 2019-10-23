@@ -594,10 +594,10 @@ public class ScriptMethods {
             int count=0;
             int total=0;
             while ((line=br.readLine())!=null){
-                count++;
+                total++;
                 r=Math.random();
                 if (r>rate) continue;
-                total++;
+                count++;
                 bw.write(line);
                 bw.newLine();
             }
