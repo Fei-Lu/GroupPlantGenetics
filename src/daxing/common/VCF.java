@@ -254,7 +254,7 @@ public class VCF {
                 try {
                     if (f1[e].getName().endsWith("vcf")){
                         br=IOUtils.getTextReader(f1[e].getAbsolutePath());
-                        bw=IOUtils.getTextGzipWriter(new File(subsetFileDir, f2[e]).getAbsolutePath());
+                        bw=IOUtils.getTextWriter(new File(subsetFileDir, f2[e]).getAbsolutePath());
                     }else {
                         br=IOUtils.getTextGzipReader(f1[e].getAbsolutePath());
                         bw=IOUtils.getTextGzipWriter(new File(subsetFileDir, f2[e]).getAbsolutePath());
