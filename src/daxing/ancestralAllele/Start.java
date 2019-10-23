@@ -23,7 +23,7 @@ public class Start {
         this.getOutgroupAllele();
 //        this.sort();
 //        this.merge();
-        this.getAncestrallAllele();
+//        this.getAncestrallAllele();
     }
 
     private void initializeParameter(String parameterFileS){
@@ -92,30 +92,7 @@ public class Start {
     }
 
     public static void main(String[] args) {
-        new Start(args[0]);
-//        System.out.println(m.matches());
-//        MD5.checkMD5(args[0]);
-//        ScriptMethods.mergeVCFPosIntoRefPos(args[0], args[1], args[2]);
-//        ScriptMethods.getTopRowsFromDir(args[0], Integer.parseInt(args[1]), args[2]);
-//        ChrConvertionRule chrConvertionRule=new ChrConvertionRule(Paths.get(args[1]));
-//        ScriptMethods.addChrPosToGerpRes(args[0], chrConvertionRule, args[2]);
-//        int a=chrConvertionRule.getRefPosFromVCFChrPos(40, 296746659);
-//        System.out.println(a);
-//        String[] chr={"1H","2B"};
-//        int[] startPos={41674, 799952899};
-//        int[] seqLen={93, 80};
-//        boolean[] ifMinus={false, true};
-//        int[] chrLen={558535432, 801256715};
-//        SeqByte[] seqBytes=new SeqByte[2];
-//        seqBytes[0]=new SeqByte("GCGTGGTGCATCGCCCTGT---TAGCCAGCAAGTAGGCAACCTTCTCTGGCAGCAATCGACGAGGTTATTGTCGTTGTCCATGGCTGCTAGGTTGT");
-//        seqBytes[1]=new SeqByte("GCGGGGC-CCTTGCCCTTTCCCTTGCCGGAGAAGAGGC--CCATTTCTGGTGGC-------------ATTGCGGTAGCTAGGGTTTGCTAGGCTTT");
-//        MAFrecord maFrecord=new MAFrecord(chr, startPos, seqLen, ifMinus, chrLen, seqBytes);
-//        char a=seqBytes[0].getReverseComplementaryBase(0);
-//        int[] startEnd=maFrecord.startEnd(1);
-//        System.out.println(startEnd[0]+"\t"+startEnd[1]);
-//        int index0=chrConvertionRule.getVCFPosFromRefChrPos("2B", startEnd[0]);
-//        int index1=chrConvertionRule.getVCFPosFromRefChrPos("2B", startEnd[1]);
-//        System.out.println(index0+"\t"+index1);
+//        new Start(args[0]);
     }
 
 
