@@ -604,7 +604,7 @@ public class ScriptMethods {
             br.close();
             bw.flush();
             bw.close();
-            System.out.println("samping "+count+"("+total+") row from "
+            System.out.println("samping "+NumberTool.parse(count)+"("+NumberTool.parse(total)+") row from "
                     +new File(inputFile).getName()+" into "+new File(subsetFile).getName()+" in "
                     +Benchmark.getTimeSpanMinutes(start)+" minutes");
         } catch (Exception e) {
