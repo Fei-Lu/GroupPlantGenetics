@@ -590,21 +590,23 @@ public class ScriptMethods {
             bw.write(header);
             bw.newLine();
             String line;
-            List<String> lines=new ArrayList<>();
+            double r=-1d;
+            int count=0;
+            int total=0;
             while ((line=br.readLine())!=null){
-                lines.add(line);
-            }
-            br.close();
-            int subsetLineNum = (int) Math.round(lines.size()*rate);
-            int[] randomLinesIndex=ArrayTool.getRandomNonrepetitionArray(subsetLineNum, 0, lines.size());
-            Arrays.sort(randomLinesIndex);
-            for (int i = 0; i < randomLinesIndex.length; i++) {
-                bw.write(lines.get(randomLinesIndex[i]));
+                count++;
+                r=Math.random();
+                if (r>rate) continue;
+                total++;
+                bw.write(line);
                 bw.newLine();
             }
+            br.close();
             bw.flush();
             bw.close();
-            System.out.println(subsetFile+" is completed in "+Benchmark.getTimeSpanMinutes(start)+" minutes");
+            System.out.println("samping "+count+"("+total+") row from "
+                    +new File(inputFile).getName()+" into "+new File(subsetFile).getName()+" in "
+                    +Benchmark.getTimeSpanMinutes(start)+" minutes");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -615,7 +617,8 @@ public class ScriptMethods {
         File[] input=IOUtils.listRecursiveFiles(new File(inputDir));
         Predicate<File> p=File::isHidden;
         String[] files= Arrays.stream(input).filter(p.negate()).map(File::getAbsolutePath).toArray(String[]::new);
-        String[] filesName=Arrays.stream(input).filter(p.negate()).map(File::getName).toArray(String[]::new);
+        String[] filesName=Arrays.stream(input).filter(p.negate()).map(File::getName)
+                .map(str->str.replaceAll("vcf", "subset.vcf")).toArray(String[]::new);
         IntStream.range(0, files.length).forEach(e->ScriptMethods.getSubsetFromFile(files[e], rate, new File(outDir, filesName[e]).getAbsolutePath()));
         System.out.println(outDir+" subset is completed in "+Benchmark.getTimeSpanHours(start)+" hours");
     }
@@ -769,6 +772,76 @@ public class ScriptMethods {
             bw.write("type"+"\t"+"group"+"\t"+"Count"+"\t"+"rate");
             bw.newLine();
             for (int i = 0; i < groups.length; i++) {
+                bw.write("SYNONYMOUS"+"\t"+groups[i] +"\t"+countSyn[i]+"\t"+ rateSyn[i]);
+                bw.newLine();
+                bw.write("NONSYNONYMOUS"+"\t"+groups[i] +"\t"+countNon[i]+"\t"+ rateNon[i]);
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public static void groups(String inputFile, String outputFile, int groupsNumber, boolean retain36){
+        try {
+            BufferedReader br=IOUtils.getTextReader(inputFile);
+            BufferedWriter bw =IOUtils.getTextWriter(outputFile);
+            String line;
+            List<String> lineList;
+            TDoubleArrayList dafSyn=new TDoubleArrayList();
+            TDoubleArrayList dafNon=new TDoubleArrayList();
+            String type;
+            double siftScore=-1;
+            double daf=-1;
+            br.readLine();
+            while ((line=br.readLine())!=null){
+                lineList=PStringUtils.fastSplit(line);
+                if (lineList.get(0).equals("NA")) continue;
+                if (lineList.get(1).equals("NA")) continue;
+                if (lineList.get(0).equals("Variant_type")) continue;
+                type=lineList.get(0);
+                siftScore=Double.parseDouble(lineList.get(1));
+                daf=Double.parseDouble(lineList.get(2));
+                if (lineList.get(0).equals("NONSYNONYMOUS") && siftScore<0.05){
+                    dafNon.add(daf);
+                }else if (lineList.get(0).equals("SYNONYMOUS")){
+                    dafSyn.add(daf);
+                }
+            }
+            br.close();
+            double binsize=1d/groupsNumber;
+            double[] groups= DoubleStream.iterate(binsize, n->n+binsize).limit(groupsNumber).toArray();
+            int[] countSyn=new int[groups.length];
+            int[] countNon=new int[groups.length];
+            int index=-1;
+            for (int i = 0; i < dafSyn.size(); i++) {
+                index=Arrays.binarySearch(groups, dafSyn.get(i));
+                if (index>-1){
+                    countSyn[index+1]++;
+                }else {
+                    index=-index-1;
+                    countSyn[index]++;
+                }
+            }
+            for (int i = 0; i < dafNon.size(); i++) {
+                index=Arrays.binarySearch(groups, dafNon.get(i));
+                if (index>-1){
+                    countNon[index+1]++;
+                }else {
+                    index=-index-1;
+                    countNon[index]++;
+                }
+            }
+            double[] rateSyn=ArrayTool.getElementPercent(countSyn);
+            double[] rateNon=ArrayTool.getElementPercent(countNon);
+            bw.write("type"+"\t"+"group"+"\t"+"Count"+"\t"+"rate");
+            bw.newLine();
+            List<Integer> flag=IntStream.range(18, 83).boxed().collect(Collectors.toList());
+            for (int i = 0; i < groups.length; i++) {
+                if (flag.contains(i)) continue;
                 bw.write("SYNONYMOUS"+"\t"+groups[i] +"\t"+countSyn[i]+"\t"+ rateSyn[i]);
                 bw.newLine();
                 bw.write("NONSYNONYMOUS"+"\t"+groups[i] +"\t"+countNon[i]+"\t"+ rateNon[i]);
