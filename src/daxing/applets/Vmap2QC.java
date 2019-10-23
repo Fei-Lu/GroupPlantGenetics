@@ -1,7 +1,5 @@
 package daxing.applets;
 
-import daxing.common.ArrayTool;
-import daxing.common.NumberTool;
 import daxing.common.VCF;
 import utils.IOUtils;
 import utils.PArrayUtils;
@@ -15,14 +13,15 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 
 public class Vmap2QC {
 
     public Vmap2QC(){
 //        this.assessFalesPositiveRate("vcfDir");
 //        this.getMaf("vcfDir", "outFileDir");
-//        this.mergeAddRefCSFordxy("/Users/xudaxing/Documents/deleteriousMutation/data/004_AB&D/ab/chrAB.vcf", "/Users/xudaxing/Documents/deleteriousMutation/data/004_AB&D/d/chrD.vcf", "/Users/xudaxing/Documents/deleteriousMutation/analysis/003_dxy/merged.vcf");
+//        this.mergeAddRefCSFordxy("chrAB.vcf",
+//                "chrD.vcf",
+//                "merged.vcf");
     }
 
     public void assessFalesPositiveRate(String vcfDir){
@@ -186,59 +185,8 @@ public class Vmap2QC {
         vcf.write(mergedVCF);
     }
 
-    public static void mafGraph(String inputFile, double binwidth, int binsNum, String outFile){
-        if (binwidth*binsNum!=0.5){
-            System.out.println("please check your parameters");
-            System.exit(1);
-        }
-        double[] bins= DoubleStream.iterate(binwidth, n->n+binwidth).map(d->NumberTool.format(d, 2)).limit(binsNum).toArray();
-        int[] count=new int[bins.length];
-        for (int i = 0; i < count.length; i++) {
-            count[i]=0;
-        }
-        int aa=0;
-        String line=null;
-        try (BufferedReader br = IOUtils.getTextReader(inputFile);
-             BufferedWriter bw=IOUtils.getTextWriter(outFile)) {
-            List<String> lineList;
-            br.readLine();
-            bw.write("boundary"+"\t"+"count"+"\t"+"rate");
-            bw.newLine();
-            int index=Integer.MIN_VALUE;
-            double maf=-1;
-            while ((line=br.readLine())!=null){
-                aa++;
-                lineList=PStringUtils.fastSplit(line);
-                if (lineList.get(0).equals("NaN")) continue;
-                maf=Double.parseDouble(lineList.get(0));
-                index=Arrays.binarySearch(bins, maf);
-                if (index<0){
-                    index=-index-1;
-                    count[index]++;
-                }else {
-                    count[index]++;
-                }
-
-            }
-            double[] rate= ArrayTool.getElementPercent(count);
-            StringBuilder sb;
-            for (int i = 0; i < count.length; i++) {
-                sb=new StringBuilder();
-                sb.append(bins[i]).append("\t").append(count[i]).append("\t").append(rate[i]);
-                bw.write(sb.toString());
-                bw.newLine();
-            }
-        }catch (Exception e){
-            System.out.println(line);
-            System.out.println(aa);
-            e.printStackTrace();
-        }
-    }
-
-
-
 //    public static void main(String[] args) {
-//        new DeleteriousMutation(args[0]);
+//        new Vmap2QC();
 //    }
 
 }
