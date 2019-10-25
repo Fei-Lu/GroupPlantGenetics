@@ -266,6 +266,6 @@ public class FilterSNPGo {
 //    public static void main(String[] args) {
 //        FilterSNPGo.getTopDensity(args[0], args[1], Double.parseDouble(args[2]));
 //        FilterSNPGo.getFilteredVCF(args[0], args[1], args[2]);
-//        FilterSNPGo.mergePosList();
+//        FilterSNPGo.mergePosList(args[0], args[1], args[2], args[3]);
 //    }
 }
