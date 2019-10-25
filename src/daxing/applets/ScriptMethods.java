@@ -619,12 +619,13 @@ public class ScriptMethods {
         String[] files= Arrays.stream(input).filter(p.negate()).map(File::getAbsolutePath).toArray(String[]::new);
         String[] filesName=Arrays.stream(input).filter(p.negate()).map(File::getName)
                 .map(str->str.replaceAll("vcf", "subset.vcf")).toArray(String[]::new);
-        IntStream.range(0, files.length).forEach(e->ScriptMethods.getSubsetFromFile(files[e], rate, new File(outDir, filesName[e]).getAbsolutePath()));
+        IntStream.range(0, files.length).parallel().forEach(e->ScriptMethods.getSubsetFromFile(files[e], rate, new File(outDir,
+                filesName[e]).getAbsolutePath()));
         System.out.println(outDir+" subset is completed in "+Benchmark.getTimeSpanHours(start)+" hours");
     }
 
     public static void getSubsetFromDir(String inputDir, String outDir){
-        ScriptMethods.getSubsetFromDir(inputDir, 0.01, outDir);
+        ScriptMethods.getSubsetFromDir(inputDir, 0.001, outDir);
     }
 
     public static void caculateAncestralAllele(File ancestralAlleFile, File dbFile, File outFile){
@@ -1153,5 +1154,24 @@ public class ScriptMethods {
         String[] outNames=Arrays.stream(f2).map(File::getName).toArray(String[]::new);
         IntStream.range(0,f2.length).parallel().forEach(e->
                 ScriptMethods.reaplaceDafInAnnotationDB(f1[e], f2[e], new File(replacedSubPopAnnotationDBFileDir, outNames[e])));
+    }
+
+    public static void ww(String input, String out){
+        try (BufferedReader br = IOUtils.getTextReader(input);
+             BufferedWriter bw=IOUtils.getTextWriter(out)) {
+            double maf=-1d;
+            bw.write("maf"+"\n");
+            String line;
+            while ((line=br.readLine()).startsWith("##")){}
+            while ((line=br.readLine())!=null){
+                maf=VCF.calculateMaf(line);
+                if (maf==0)continue;
+                if (maf==-1) continue;
+                bw.write(String.valueOf(maf));
+                bw.newLine();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }
