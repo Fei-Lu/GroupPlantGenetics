@@ -20,7 +20,7 @@ public class NumberTool {
 
     /**
      *
-     * @param num  以千位分隔符分隔的字符串数字，如"123,256";
+     * @param num separated by thousands separator，如"123,256";
      * @return
      */
     public static int intValue(String num){
@@ -37,7 +37,7 @@ public class NumberTool {
 
     /**
      *
-     * @param num  以千位分隔符分隔的字符串数字，如"123,453,234.12";
+     * @param num  number separated by thousands separator, 如"123,453,234.12";
      * @return
      */
     public static double doubleValue(String num){
@@ -55,7 +55,7 @@ public class NumberTool {
     /**
      *
      * @param a
-     * @return
+     * @return number separated by thousands separator
      */
     public static String parse(int a){
         DecimalFormat df = new DecimalFormat();
@@ -65,7 +65,7 @@ public class NumberTool {
     /**
      *
      * @param a
-     * @return
+     * @return number separated by thousands separator
      */
     public static String parse(double a){
         DecimalFormat df = new DecimalFormat();
