@@ -1,5 +1,7 @@
 package daxing.applets;
 
+import daxing.common.DateTime;
+import daxing.common.NumberTool;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
 import utils.IOUtils;
@@ -17,6 +19,7 @@ import java.util.stream.IntStream;
 public class PhylipSequential {
 
     public static void toPhylipSequentialFormat(String vcfInputDir, String chrPosRefTaxonDir, String outDir){
+        System.out.println(DateTime.getDateTimeOfNow()+" start");
         File[] files1=IOUtils.listRecursiveFiles(new File(vcfInputDir));
         File[] files2=IOUtils.listRecursiveFiles(new File(chrPosRefTaxonDir));
         Predicate<File> p=File::isHidden;
@@ -35,6 +38,8 @@ public class PhylipSequential {
         }
         IntStream.range(0, f1.length).parallel().forEach(e->
                 PhylipSequential.toPhylipSequentialFormat(f1[e], f2[e], new File(outDir, outNames[e])));
+        PhylipSequential.merge(outDir);
+        System.out.println(DateTime.getDateTimeOfNow());
     }
 
     /**
@@ -83,16 +88,74 @@ public class PhylipSequential {
                 }
                 index=posList.binarySearch(pos);
                 if (index<0){
-//                    sb.append("N");
+                    sb.append("N");
                 }else {
                     count++;
                     sb.append(lineList.get(3).toUpperCase());
                 }
             }
-            System.out.println("total snp number: "+total+"\t"+"barley having allele snp: "+count);
+            System.out.println(vcfInputFile.getName()+" "+NumberTool.format(count/total, 2)+"("+count+"/"+total+") " +
+                    "snp having barley allele");
             bw.write(sb.toString());
             bw.newLine();
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void merge(String outDir){
+        File[] files=IOUtils.listRecursiveFiles(new File(outDir));
+        Predicate<File> p=File::isHidden;
+        File[] f1=Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
+        BufferedReader[] brs=new BufferedReader[f1.length];
+        for (int i = 0; i < brs.length; i++) {
+            brs[i]=IOUtils.getTextReader(f1[i].getAbsolutePath());
+        }
+        StringBuilder sb=new StringBuilder();
+        int i=Integer.MIN_VALUE;
+        try (BufferedWriter bw = IOUtils.getTextWriter(new File(outDir, "barley.txt").getAbsolutePath())) {
+            String line;
+            int sbLen;
+            line=brs[0].readLine();
+            sb.append("Barley.........").append(line);
+            if (sb.length()==65){
+                bw.write(sb.toString());
+                bw.newLine();
+                sb=new StringBuilder();
+            }
+            for (i = 0; i < brs.length; i++) {
+                while ((line=brs[i].readLine())!=null){
+                    if (sb.length()==0){
+                        sb.append("...............").append(line);
+                        if (sb.length()==65){
+                            bw.write(sb.toString());
+                            bw.newLine();
+                            sb=new StringBuilder();
+                        }
+                    }else if (sb.length()<65){
+                        if (sb.length()+line.length()<65){
+                            sb.append(line);
+                            continue;
+                        }
+                        sb.append(line, 0, (65-sb.length()));
+                        bw.write(sb.toString());
+                        bw.newLine();
+                        sbLen=sb.length();
+                        sb=new StringBuilder();
+                        sb.append("...............");
+                        sb.append(line, 65-sbLen, line.length());
+                    }else if (sb.length()==65){
+                        bw.write(sb.toString());
+                        bw.newLine();
+                        sb=new StringBuilder();
+                    }
+                }
+            }
+            bw.write(sb.toString());
+            bw.newLine();
+        }catch (Exception e){
+            System.out.println(sb.toString());
+            System.out.println(i);
             e.printStackTrace();
         }
     }
