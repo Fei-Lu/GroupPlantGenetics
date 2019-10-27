@@ -39,7 +39,7 @@ public class PhylipSequential {
         IntStream.range(0, f1.length).parallel().forEach(e->
                 PhylipSequential.toPhylipSequentialFormat(f1[e], f2[e], new File(outDir, outNames[e])));
         PhylipSequential.merge(outDir);
-        System.out.println(DateTime.getDateTimeOfNow());
+        System.out.println(DateTime.getDateTimeOfNow()+" end");
     }
 
     /**
@@ -55,8 +55,10 @@ public class PhylipSequential {
             List<String> lineList;
             TIntHashSet chrs=new TIntHashSet();
             TIntArrayList posList=new TIntArrayList();
+            int total=0;
             while ((line=br1.readLine()).startsWith("##")){}
             while ((line= br1.readLine())!=null){
+                total++;
                 lineList= PStringUtils.fastSplit(line);
                 chrs.add(Integer.parseInt(lineList.get(0)));
                 posList.add(Integer.parseInt(lineList.get(1)));
@@ -69,10 +71,8 @@ public class PhylipSequential {
             int chr=-1;
             int pos=-1;
             int index=-1;
-            int count=0;
-            int total=0;
+            double count=0;
             while ((line=br2.readLine())!=null){
-                total++;
                 if (sb.length()%50==0 && sb.length()!=0){
                     sb.append("\n");
                     bw.write(sb.toString());
@@ -112,50 +112,35 @@ public class PhylipSequential {
             brs[i]=IOUtils.getTextReader(f1[i].getAbsolutePath());
         }
         StringBuilder sb=new StringBuilder();
-        int i=Integer.MIN_VALUE;
-        try (BufferedWriter bw = IOUtils.getTextWriter(new File(outDir, "barley.txt").getAbsolutePath())) {
+        StringBuilder temp;
+        try(BufferedWriter bw=IOUtils.getTextWriter(new File(outDir, "barley.txt").getAbsolutePath())){
             String line;
-            int sbLen;
-            line=brs[0].readLine();
-            sb.append("Barley.........").append(line);
-            if (sb.length()==65){
-                bw.write(sb.toString());
-                bw.newLine();
-                sb=new StringBuilder();
-            }
-            for (i = 0; i < brs.length; i++) {
+            String[] lines;
+            for (int i = 0; i < brs.length; i++) {
                 while ((line=brs[i].readLine())!=null){
-                    if (sb.length()==0){
-                        sb.append("...............").append(line);
-                        if (sb.length()==65){
-                            bw.write(sb.toString());
+                    if (sb.length()>=1000){
+                        lines=PStringUtils.getMultilineString(50, sb.toString());
+                        for (int j = 0; j < lines.length-1; j++) {
+                            temp=new StringBuilder();
+                            bw.write(temp.append("...............").append(lines[j]).toString());
                             bw.newLine();
-                            sb=new StringBuilder();
                         }
-                    }else if (sb.length()<65){
-                        if (sb.length()+line.length()<65){
-                            sb.append(line);
-                            continue;
-                        }
-                        sb.append(line, 0, (65-sb.length()));
-                        bw.write(sb.toString());
-                        bw.newLine();
-                        sbLen=sb.length();
                         sb=new StringBuilder();
-                        sb.append("...............");
-                        sb.append(line, 65-sbLen, line.length());
-                    }else if (sb.length()==65){
-                        bw.write(sb.toString());
-                        bw.newLine();
-                        sb=new StringBuilder();
+                        sb.append(lines[lines.length-1]);
                     }
+                    sb.append(line);
                 }
             }
-            bw.write(sb.toString());
-            bw.newLine();
+            lines=PStringUtils.getMultilineString(50, sb.toString());
+            for (int i = 0; i < lines.length; i++) {
+                temp=new StringBuilder();
+                bw.write(temp.append("...............").append(lines[i]).toString());
+                bw.newLine();
+            }
+            for (int i = 0; i < brs.length; i++) {
+                brs[i].close();
+            }
         }catch (Exception e){
-            System.out.println(sb.toString());
-            System.out.println(i);
             e.printStackTrace();
         }
     }
