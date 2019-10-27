@@ -57,6 +57,14 @@ public enum WheatLineage {
 
     /**
      *
+     * @return 5,6,11,12, ...
+     */
+    public static int[]  dLineage(){
+        return WheatLineage.getWheatLineageOf(WheatLineage.D);
+    }
+
+    /**
+     *
      * @return 1A, 1B, 2A, 2B, 3A, 3B, ...
      */
     public static List<String> abLineage(){

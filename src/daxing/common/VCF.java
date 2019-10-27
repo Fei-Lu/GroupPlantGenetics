@@ -90,7 +90,7 @@ public class VCF {
     }
 
     /**
-     * merge chr001, chr002, chr003, ... to chr.lineageA.vcf, chr.lineageB.vcf, chr.lineageD.vcf
+     * merge chr001, chr002, chr003, ... to chr.Asubgenome.vcf, chr.Bsubgenome.vcf, chr.Dsubgenome.vcf
      * @param inputVcfDir
      * @param outDir
      * @param chrConvertionRule
@@ -127,7 +127,7 @@ public class VCF {
                 vcfArray[i].addVCF(new VCF(f[indexArray[i].get(j)]));
             }
         }
-        String[] outNames={"chr.lineageA.vcf", "chr.lineageB.vcf", "chr.lineageD.vcf"};
+        String[] outNames={"chr.Asubgenome.vcf", "chr.Bsubgenome.vcf", "chr.Dsubgenome.vcf"};
         for (int i = 0; i < vcfArray.length; i++) {
             if (vcfArray[i]==null) continue;
             vcfArray[i].changeToRefChr(chrConvertionRule);
