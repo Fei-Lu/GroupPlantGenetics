@@ -11,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
@@ -55,30 +56,32 @@ public class PhylipSequential {
             List<String> lineList;
             TIntHashSet chrs=new TIntHashSet();
             TIntArrayList posList=new TIntArrayList();
-            int total=0;
-            while ((line=br1.readLine()).startsWith("##")){}
-            while ((line= br1.readLine())!=null){
-                total++;
-                lineList= PStringUtils.fastSplit(line);
+            List<String> alleleList=new ArrayList<>();
+            br2.readLine();
+            while ((line=br2.readLine())!=null){
+                lineList=PStringUtils.fastSplit(line);
                 chrs.add(Integer.parseInt(lineList.get(0)));
                 posList.add(Integer.parseInt(lineList.get(1)));
+                alleleList.add(lineList.get(3));
             }
             if (chrs.size()>1){
-                System.out.println("please check your "+vcfInputFile.getName()+" it has duplicated chromosome");
+                System.out.println("please check your "+chrPosRefTaxonFile.getName()+" it has duplicated chromosome");
                 System.exit(1);
             }
-            br2.readLine();
             int chr=-1;
             int pos=-1;
             int index=-1;
             double count=0;
-            while ((line=br2.readLine())!=null){
+            int total=0;
+            while ((line=br1.readLine()).startsWith("##")){}
+            while ((line= br1.readLine())!=null){
+                total++;
                 if (sb.length()%50==0 && sb.length()!=0){
                     sb.append("\n");
                     bw.write(sb.toString());
                     sb=new StringBuilder();
                 }
-                lineList=PStringUtils.fastSplit(line);
+                lineList= PStringUtils.fastSplit(line);
                 chr=Integer.parseInt(lineList.get(0));
                 pos=Integer.parseInt(lineList.get(1));
                 if (chr!=chrs.iterator().next()){
