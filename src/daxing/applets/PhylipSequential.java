@@ -106,7 +106,7 @@ public class PhylipSequential {
         }
     }
 
-    public static void merge(String outDir){
+    private static void merge(String outDir){
         File[] files=IOUtils.listRecursiveFiles(new File(outDir));
         Predicate<File> p=File::isHidden;
         File[] f1=Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
