@@ -2,6 +2,7 @@ package daxing.applets;
 
 import daxing.common.DateTime;
 import daxing.common.NumberTool;
+import daxing.common.WheatLineage;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
 import utils.IOUtils;
@@ -15,12 +16,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class PhylipSequential {
 
     public static void toPhylipSequentialFormat(String vcfInputDir, String chrPosRefTaxonDir, String outDir){
         System.out.println(DateTime.getDateTimeOfNow()+" start");
+        File outFileDir=new File(outDir, "chr");
+        outFileDir.mkdir();
         File[] files1=IOUtils.listRecursiveFiles(new File(vcfInputDir));
         File[] files2=IOUtils.listRecursiveFiles(new File(chrPosRefTaxonDir));
         Predicate<File> p=File::isHidden;
@@ -38,8 +42,8 @@ public class PhylipSequential {
             System.out.println("please check your "+vcfInputDir+" and "+chrPosRefTaxonDir);
         }
         IntStream.range(0, f1.length).parallel().forEach(e->
-                PhylipSequential.toPhylipSequentialFormat(f1[e], f2[e], new File(outDir, outNames[e])));
-        PhylipSequential.merge(outDir);
+                PhylipSequential.toPhylipSequentialFormat(f1[e], f2[e], new File(outFileDir, outNames[e])));
+        PhylipSequential.merge(outFileDir.getAbsolutePath());
         System.out.println(DateTime.getDateTimeOfNow()+" end");
     }
 
@@ -106,17 +110,25 @@ public class PhylipSequential {
         }
     }
 
-    private static void merge(String outDir){
+    /**
+     *
+     * @param outDir
+     * @param chrs
+     * @param outFile
+     */
+    private static void merge(String outDir, int[] chrs, String outFile){
         File[] files=IOUtils.listRecursiveFiles(new File(outDir));
+        List<Integer> chrList= Arrays.stream(chrs).boxed().collect(Collectors.toList());
         Predicate<File> p=File::isHidden;
-        File[] f1=Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
+        Predicate<File> p2=p.negate().and(f->chrList.contains(Integer.parseInt(f.getName().substring(3,6))));
+        File[] f1=Arrays.stream(files).filter(p2.negate()).toArray(File[]::new);
         BufferedReader[] brs=new BufferedReader[f1.length];
         for (int i = 0; i < brs.length; i++) {
             brs[i]=IOUtils.getTextReader(f1[i].getAbsolutePath());
         }
         StringBuilder sb=new StringBuilder();
         StringBuilder temp;
-        try(BufferedWriter bw=IOUtils.getTextWriter(new File(outDir, "barley.txt").getAbsolutePath())){
+        try(BufferedWriter bw=IOUtils.getTextWriter(outFile)){
             String line;
             String[] lines;
             for (int i = 0; i < brs.length; i++) {
@@ -146,6 +158,12 @@ public class PhylipSequential {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    private static void merge(String outDir){
+        String out=new File(outDir).getParent();
+        merge(outDir, WheatLineage.ablineage(), new File(out, "chrAB.subgenome.txt").getAbsolutePath());
+        merge(outDir, WheatLineage.dLineage(), new File(out, "chrD.subgenome.txt").getAbsolutePath());
     }
 
 //    public static void main(String[] args) {
