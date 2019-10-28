@@ -121,7 +121,7 @@ public class PhylipSequential {
         List<Integer> chrList= Arrays.stream(chrs).boxed().collect(Collectors.toList());
         Predicate<File> p=File::isHidden;
         Predicate<File> p2=p.negate().and(f->chrList.contains(Integer.parseInt(f.getName().substring(3,6))));
-        File[] f1=Arrays.stream(files).filter(p2.negate()).toArray(File[]::new);
+        File[] f1=Arrays.stream(files).filter(p2).toArray(File[]::new);
         BufferedReader[] brs=new BufferedReader[f1.length];
         for (int i = 0; i < brs.length; i++) {
             brs[i]=IOUtils.getTextReader(f1[i].getAbsolutePath());
