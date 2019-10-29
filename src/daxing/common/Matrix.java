@@ -309,10 +309,10 @@ public class Matrix {
         Matrix matrix=new Matrix(dxyMatrix, false);
         double[] cs=matrix.getRow(taxon);
         try (BufferedWriter bw = IOUtils.getTextWriter(outFile)) {
-            bw.write("dxy");
+            bw.write("taxon\tdxy");
             bw.newLine();
-            for (int i = 0; i < cs.length; i++) {
-                bw.write(String.valueOf(cs[i]));
+            for (int i = 0; i < cs.length-1; i++) {
+                bw.write(matrix.getId().get(i)+"\t"+ cs[i]);
                 bw.newLine();
             }
         }catch (Exception e){
