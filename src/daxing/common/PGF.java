@@ -11,16 +11,12 @@ import format.position.ChrPos;
 import format.range.Range;
 import format.range.RangeInterface;
 import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.map.hash.TIntIntHashMap;
 import utils.IOUtils;
 import utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  *  modified from GeneFuture class.
@@ -243,9 +239,9 @@ public class PGF {
         }
     }
 
-    public TIntIntHashMap checkDuplicatedGene(){
+    public Map<Integer, TIntArrayList> getOverlappedGeneIndex(){
         RangeInterface interSection;
-        TIntIntHashMap geneIndexOverlappedCountMap=new TIntIntHashMap();
+        Map<Integer, TIntArrayList> geneIndexOverlappedGeneindexMap=new HashMap<>();
         List<RangeInterface>  interSectionList;
         TIntArrayList overlappedGeneIndex;
         for (int i = 0; i < genes.length-1; i++) {
@@ -258,10 +254,38 @@ public class PGF {
                 overlappedGeneIndex.add(j);
             }
             if (interSectionList.size()==0) continue;
-            System.out.println("overlapped gene "+genes[i].geneName+" overlapped count "+interSectionList.size());
-            geneIndexOverlappedCountMap.put(i, interSectionList.size());
+//            System.out.println("overlapped gene "+genes[i].geneName+" overlapped count "+interSectionList.size());
+            geneIndexOverlappedGeneindexMap.put(i, overlappedGeneIndex);
         }
-        return geneIndexOverlappedCountMap;
+        return geneIndexOverlappedGeneindexMap;
+    }
+
+    public void writeOverlappedGene(String outFile){
+        Map<Integer, TIntArrayList> geneIndexOverlappedGeneindexMap = this.getOverlappedGeneIndex();
+        List<Integer> geneIndexList=new ArrayList<>(geneIndexOverlappedGeneindexMap.keySet());
+        Collections.sort(geneIndexList);
+        try (BufferedWriter bw = IOUtils.getTextWriter(outFile)) {
+            bw.write("GeneNameIndex\tOverlappedGeneNameIndex");
+            bw.newLine();
+            StringBuilder sb;
+            int geneIndex;
+            TIntArrayList values;
+            for (int i = 0; i < geneIndexList.size(); i++) {
+                sb=new StringBuilder();
+                geneIndex=geneIndexList.get(i);
+                values=geneIndexOverlappedGeneindexMap.get(geneIndex);
+                sb.append(genes[geneIndex].geneName).append(",").append(geneIndex).append("\t");
+                for (int j = 0; j < values.size(); j++) {
+                    sb.append(genes[values.get(j)].geneName).append(",").append(values.get(j)).append(";");
+                }
+                sb.deleteCharAt(sb.length()-1);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public int getCDSIndex (int geneIndex, int transcriptIndex, int chr, int pos) {
