@@ -113,6 +113,15 @@ public class GerpEvalution {
         return count;
     }
 
+    /**
+     * Chr	Pos	GerpScore
+     * 1A	6997	0.861
+     * 1A	19328	0.202
+     * 1A	22122	0.861
+     * ...   ....   ....
+     * @param outFile
+     * @param chrConvertionRule
+     */
     public void write(File outFile, ChrConvertionRule chrConvertionRule){
         try (BufferedWriter bw = IOUtils.getTextWriter(outFile.getAbsolutePath())) {
             bw.write("Chr\tPos\tGerpScore");
@@ -135,6 +144,18 @@ public class GerpEvalution {
         }
     }
 
+    /**
+     * if IsGene is intergenic, BioType will be "."
+     * IsGene: intergenic, gene
+     * BioType:  intron, ., 5'UTR, 3'UTR, CDS
+     * Chr	Pos	GerpScore	IsGene	BioType
+     * 1	6997	0.861	intergenic	.
+     * 1	19328	0.202	intergenic	.
+     * 1	22122	0.861	intergenic	.
+     * 1	28355	0.239	intergenic	.
+     * @param outFile
+     * @param pgf
+     */
     public void writeAnnotation(String outFile, PGF pgf){
         int chr=-1;
         int pos=-1;
