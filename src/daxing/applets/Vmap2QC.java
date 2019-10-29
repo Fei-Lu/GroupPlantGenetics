@@ -139,7 +139,7 @@ public class Vmap2QC {
             lineList= PStringUtils.fastSplit(line);
             tauschiiTaxons=lineList.stream().skip(9+419).collect(Collectors.joining("\t"));
             bread=lineList.stream().limit(9+419).collect(Collectors.joining("\t"));
-            bw.write(bread+"\t"+emmerTaxons+"\t"+tauschiiTaxons);
+            bw.write(bread+"\t"+emmerTaxons+"\t"+tauschiiTaxons+"\tRefCS");
             bw.newLine();
             String emmerGenotype;
             String tauschiiGenotype;
