@@ -148,6 +148,8 @@ public class GerpEvalution {
         int tempIndex=Integer.MIN_VALUE;
         StringBuilder sb;
         try (BufferedWriter bw = IOUtils.getTextWriter(outFile)) {
+            bw.write("Chr\tPos\tGerpScore\tIsGene\tBioType");
+            bw.newLine();
             for (int i = 0; i < this.getPos().length; i++) {
                 for (int j = 0; j < this.getPos()[i].size(); j++) {
                     chr=i+1;
