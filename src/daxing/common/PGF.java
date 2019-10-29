@@ -9,8 +9,12 @@ import format.dna.FastaByte;
 import format.dna.SequenceByte;
 import format.position.ChrPos;
 import format.range.Range;
+import format.range.RangeInterface;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.map.hash.TIntIntHashMap;
 import utils.IOUtils;
 import utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.util.ArrayList;
@@ -237,6 +241,27 @@ public class PGF {
         else {
             return new ChrPos((short)this.getGeneChromosome(geneIndex),utr5.get(utr5.size()-1).getRangeEnd()-1);
         }
+    }
+
+    public TIntIntHashMap checkDuplicatedGene(){
+        RangeInterface interSection;
+        TIntIntHashMap geneIndexOverlappedCountMap=new TIntIntHashMap();
+        List<RangeInterface>  interSectionList;
+        TIntArrayList overlappedGeneIndex;
+        for (int i = 0; i < genes.length-1; i++) {
+            interSectionList=new ArrayList<>();
+            overlappedGeneIndex=new TIntArrayList();
+            for (int j = i+1; j < genes.length; j++) {
+                interSection= genes[i].geneRange.getIntersection(genes[j].geneRange);
+                if (interSection==null) break;
+                interSectionList.add(interSection);
+                overlappedGeneIndex.add(j);
+            }
+            if (interSectionList.size()==0) continue;
+            System.out.println("overlapped gene "+genes[i].geneName+" overlapped count "+interSectionList.size());
+            geneIndexOverlappedCountMap.put(i, interSectionList.size());
+        }
+        return geneIndexOverlappedCountMap;
     }
 
     public int getCDSIndex (int geneIndex, int transcriptIndex, int chr, int pos) {
