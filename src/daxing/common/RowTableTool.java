@@ -1,8 +1,11 @@
 package daxing.common;
 
 import format.table.RowTable;
+import org.apache.commons.lang.StringUtils;
+import utils.IOUtils;
 import utils.Tuple;
 
+import java.io.BufferedReader;
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -42,5 +45,27 @@ public class RowTableTool<T> extends RowTable<T> {
      */
     public void sortBy(Comparator<List<T>> comparator){
         this.cells.sort(comparator);
+    }
+
+    /**
+     * extract the specific column for big table
+     * @param inFile
+     * @param columnIndex
+     * @return
+     */
+    public static Set<String> getColumnSet(String inFile, int columnIndex){
+        Set<String> s=new HashSet<>();
+        try (BufferedReader br = IOUtils.getTextReader(inFile)) {
+            String line;
+            String[] temp;
+            br.readLine();
+            while ((line=br.readLine())!=null){
+                temp= StringUtils.split(line);
+                s.add(temp[columnIndex]);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return s;
     }
 }
