@@ -16,11 +16,23 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
+/**
+ * chr001 chr002 chr003, ...
+ */
 public class GerpEvalution {
 
     private TIntArrayList[] pos;
     private TDoubleArrayList[] rsScore;
 
+    /**
+     * Chr     Pos     GerpNeutralRate GerpScore
+     * 1       1       0       0
+     * 1       2       0       0
+     * 1       3       0       0
+     * 1       4       0       0
+     * 1       5       0       0
+     * @param gerpScoresDir
+     */
     public GerpEvalution(String gerpScoresDir){
         this.initilize(gerpScoresDir);
     }
