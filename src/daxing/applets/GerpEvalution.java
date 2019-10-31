@@ -69,7 +69,7 @@ public class GerpEvalution {
                     System.out.println("file error, check your "+gerpFile.getName());
                     System.exit(1);
                 }
-                if (gerpScore==0) continue;
+//                if (gerpScore==0) continue;
                 posList.add(posLine);
                 gerpScoreList.add(gerpScore);
             }
@@ -101,7 +101,7 @@ public class GerpEvalution {
         double total=this.getTotalSites();
         for (int i = 0; i < rsScore.length; i++) {
             for (int j = 0; j < rsScore[i].size(); j++) {
-                if (rsScore[i].get(j)<0) continue;
+                if (rsScore[i].get(j)<=0) continue;
                 count++;
             }
         }
