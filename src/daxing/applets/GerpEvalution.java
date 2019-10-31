@@ -96,18 +96,26 @@ public class GerpEvalution {
         return count;
     }
 
-    public int getNumberOfGerpScoreGreatThan0(){
-        int count=0;
+    public int evaluateGerpScore(){
+        int greatThan0=0;
+        int equal0=0;
+        int lessThan0=0;
         double total=this.getTotalSites();
         for (int i = 0; i < rsScore.length; i++) {
             for (int j = 0; j < rsScore[i].size(); j++) {
-                if (rsScore[i].get(j)<=0) continue;
-                count++;
+                if (rsScore[i].get(j)>0){
+                    greatThan0++;
+                }else if (rsScore[i].get(j)==0){
+                    equal0++;
+                }else {
+                    lessThan0++;
+                }
+
             }
         }
-        System.out.println("Total sites: "+(int)total+"\t"+"Constrained regions: "+count+"\t"+ NumberTool.format( count/total,
-                4));
-        return count;
+        System.out.println("Total sites: "+(int)total+"\t"+"Constrained regions: "+greatThan0+"\n"+ "Less than 0: "+lessThan0+
+                "\n"+"equal 0: "+equal0);
+        return greatThan0;
     }
 
     public double ratio(double start, double end){
