@@ -1,8 +1,7 @@
 package daxing.applets;
 
 import daxing.common.ChrConvertionRule;
-import format.range.Range;
-import format.range.RangeInterface;
+import daxing.common.ChrRange;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
 import org.apache.commons.lang.StringUtils;
@@ -17,17 +16,15 @@ import java.util.function.Predicate;
 
 public class MultipleMaf {
 
-    public static List<RangeInterface> getRange(String multileMafFile, String abd,
-                                                   ChrConvertionRule chrConvertionRule){
-        List<RangeInterface> rangeInterfaceList=new ArrayList<>();
+    public static List<ChrRange> getRange(String multileMafFile, String abd){
+        List<ChrRange> rangeInterfaceList=new ArrayList<>();
         try (BufferedReader br1 = IOUtils.getTextReader(multileMafFile)) {
             String line;
             String[] temp;
             List<String> lines;
-            RangeInterface range;
+            ChrRange range;
             int refStart, len;
             String chr;
-            int vcfChr, vcfStart, vcfEnd;
             StringBuilder sb;
             while ((line=br1.readLine()).startsWith("#")){}
             do {
@@ -40,10 +37,7 @@ public class MultipleMaf {
                 chr=sb.append(temp[2].substring(3)).append(abd).toString();
                 refStart=Integer.parseInt(temp[3])+1;
                 len=Integer.parseInt(temp[4]);
-                vcfChr=chrConvertionRule.getVCFChrFromRefChrPos(chr, refStart);
-                vcfStart=chrConvertionRule.getVCFPosFromRefChrPos(chr, refStart);
-                vcfEnd=vcfStart+len;
-                range=new Range(vcfChr, vcfStart, vcfEnd);
+                range=new ChrRange(chr, refStart, refStart+len);
                 rangeInterfaceList.add(range);
             }while ((line=br1.readLine())!=null && !(line.equals("##eof maf")));
 
@@ -59,7 +53,7 @@ public class MultipleMaf {
      * @param recordRange
      * @param outFile 没有排序
      */
-    public static void getGerpFile(String jgerpFile, List<RangeInterface> recordRange, String outFile){
+    public static void getGerpFile(String jgerpFile, List<ChrRange> recordRange, String outFile, ChrConvertionRule c){
         try (BufferedReader br = IOUtils.getTextReader(jgerpFile);
              BufferedWriter bw=IOUtils.getTextWriter(outFile)) {
             bw.write("Chr\tPos\tGerpNeutralRate\tGerpScore");
@@ -68,17 +62,21 @@ public class MultipleMaf {
             String[] temp;
             List<String> lines=new ArrayList<>();
             StringBuilder sb;
-            RangeInterface range;
-            int chr, pos;
+            ChrRange range;
+            String chr;
+            int pos;
+            int vcfChr, vcfPos;
             for (int i = 0; i < recordRange.size(); i++) {
                 range=recordRange.get(i);
-                for (int j = 0; j < range.getRangeSize(); j++) {
-                    chr=range.getRangeChromosome();
-                    pos=range.getRangeStart()+j;
+                for (int j = 0; j < range.getLength(); j++) {
+                    chr=range.getChr();
+                    pos=range.getStart()+j;
                     while ((line=br.readLine())!=null){
                         temp=StringUtils.split(line);
                         sb=new StringBuilder();
-                        sb.append(chr).append("\t").append(pos).append("\t").append(temp[0]).append("\t").append(temp[1]);
+                        vcfChr=c.getVCFChrFromRefChrPos(chr, pos);
+                        vcfPos=c.getVCFPosFromRefChrPos(chr, pos);
+                        sb.append(vcfChr).append("\t").append(vcfPos).append("\t").append(temp[0]).append("\t").append(temp[1]);
                         bw.write(sb.toString());
                         bw.newLine();
                         break;
