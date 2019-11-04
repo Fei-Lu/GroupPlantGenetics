@@ -313,6 +313,47 @@ public class VCF {
     }
 
     /**
+     * recode 1A, 1B, 1D, 2A, 2B, 2D, ... to 1, 2, 3, 4, 5, 6, ...
+     * @param vcfFile
+     * @param outFile
+     */
+    public static void recode(String vcfFile, String outFile){
+        int[] integers= IntStream.range(1,8).toArray();
+        String[] abd={"A","B","D"};
+        Map<String, Integer> chrIDmap=new HashMap<>();
+        int count=0;
+        for (int i = 0; i < integers.length; i++) {
+            for (int j = 0; j < abd.length; j++) {
+                count++;
+                chrIDmap.put(integers[i]+abd[j], count);
+            }
+        }
+        try (BufferedReader br = IOUtils.getTextReader(vcfFile);
+             BufferedWriter bw=IOUtils.getTextWriter(outFile)) {
+            String line;
+            while ((line=br.readLine()).startsWith("##")){
+                bw.write(line);
+                bw.newLine();
+            }
+            bw.write(line);
+            bw.newLine();
+            List<String> lineList;
+            String key;
+            Integer value;
+            while ((line=br.readLine())!=null){
+                lineList= PStringUtils.fastSplit(line);
+                key=lineList.get(0);
+                value=chrIDmap.get(key);
+                lineList.set(0, String.valueOf(value));
+                bw.write(lineList.stream().collect(Collectors.joining("\t")));
+                bw.newLine();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    /**
      *
      * @return 返回VCF文件所有taxa的总数
      */
