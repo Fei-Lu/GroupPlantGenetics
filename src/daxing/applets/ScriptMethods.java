@@ -619,7 +619,7 @@ public class ScriptMethods {
         String[] files= Arrays.stream(input).filter(p.negate()).map(File::getAbsolutePath).toArray(String[]::new);
         String[] filesName=Arrays.stream(input).filter(p.negate()).map(File::getName)
                 .map(str->str.replaceAll("vcf", "subset.vcf")).toArray(String[]::new);
-        IntStream.range(0, files.length).parallel().forEach(e->ScriptMethods.getSubsetFromFile(files[e], rate, new File(outDir,
+        IntStream.range(0, files.length).forEach(e->ScriptMethods.getSubsetFromFile(files[e], rate, new File(outDir,
                 filesName[e]).getAbsolutePath()));
         System.out.println(outDir+" subset is completed in "+Benchmark.getTimeSpanHours(start)+" hours");
     }
