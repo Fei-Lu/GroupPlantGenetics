@@ -1,7 +1,11 @@
 package daxing.common;
 
 import gnu.trove.list.array.TIntArrayList;
-import utils.*;
+import org.apache.commons.math3.util.CombinatoricsUtils;
+import utils.Benchmark;
+import utils.IOUtils;
+import utils.PArrayUtils;
+import utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -233,7 +237,7 @@ public class VCF {
      * @param rate 0.001
      * @param numThreads 36
      */
-    public static void getSubSetVcfFromFile(String vcfDir, String subsetFileDir, double rate, int numThreads){
+    public static void getSubSetVcfFromDir(String vcfDir, String subsetFileDir, double rate, int numThreads){
         long totalStart=System.nanoTime();
         File[] files=IOUtils.listRecursiveFiles(new File(vcfDir));
         Predicate<File> p=File::isHidden;
@@ -291,6 +295,23 @@ public class VCF {
         System.out.println("samping "+vcfDir+" into "+subsetFileDir+" is completed in "+Benchmark.getTimeSpanHours(totalStart)+" hours");
     }
 
+    public static void caculateLD(String inputVcfDir, String outDir, ChrConvertionRule c){
+        VCF.getSubSetVcfFromDir(inputVcfDir, outDir, 0.9, 10);
+        File subdir=new File(outDir, "subsetVCF");
+        subdir.mkdir();
+        VCF.mergeVCFtoChr(outDir, subdir.getAbsolutePath(), c);
+        File[] files=IOUtils.listRecursiveFiles(subdir);
+        IntStream.range(0, files.length).forEach(e->{
+            VCF vcf=new VCF(files[e]);
+            Iterator<int[]> iterator = CombinatoricsUtils.combinationsIterator(vcf.data.size(), 2);
+            int[] combinationIndex;
+            while (iterator.hasNext()) {
+                combinationIndex = iterator.next();
+
+            }
+        });
+    }
+
     /**
      *
      * @return 返回VCF文件所有taxa的总数
@@ -300,6 +321,11 @@ public class VCF {
     }
 
     public List<List<String>> getData(){return this.data;}
+
+//    public double caculateR2(int rowIndex1, int rowIndex2){
+//
+//    }
+
 
     /**
      * 根据VCF文件的CHR和POS对该对象排序
