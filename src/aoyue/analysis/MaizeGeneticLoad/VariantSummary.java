@@ -5,10 +5,8 @@
  */
 package aoyue.analysis.MaizeGeneticLoad;
 
-import com.google.common.collect.Table;
 import format.genomeAnnotation.GeneFeature;
 import format.range.Range;
-import format.range.Ranges;
 import format.table.RowTable;
 import gnu.trove.list.array.TByteArrayList;
 import gnu.trove.list.array.TCharArrayList;
@@ -17,20 +15,17 @@ import gnu.trove.list.array.TIntArrayList;
 import graphcis.r.DensityPlot;
 import graphcis.r.Histogram;
 import graphcis.r.ScatterPlot;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import utils.IOFileFormat;
-import static utils.IOFileFormat.Text;
 import utils.IOUtils;
 import utils.PArrayUtils;
 import utils.PStringUtils;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.util.*;
+
+import static utils.IOFileFormat.Text;
 
 /**
  *
@@ -44,15 +39,15 @@ public class VariantSummary {
         //this.densityTest_deprecated();
         //this.densityTest();
         //this.density();
-       // this.filterHmp321Info();
+        this.filterHmp321Info();
         this.filterHmp321Info_bysiftTrans();
         this.filterHmp321Info_bysiftTrans_useDataBase();
         //this.testarraylength();
 //        this.summarizeTranscript_deprecated();
         this.summarizeTranscript2();
-       //this.classifySNPs();
+       this.classifySNPs();
 //       this.binarySearchtest();
-//       this.mkBarplotOfSNPs();
+       this.mkBarplotOfSNPs();
 //       this.mkHmp321MafPlot();
 //       this.mkHmp321MafPlot_useR();
  //      this.SiftGerp_Correlation();
@@ -1010,7 +1005,7 @@ public class VariantSummary {
             double nonSyn = t.getCellAsDouble(i, 8);
             if (Double.isNaN(ratio)) { //说明比值是一个NaN，此基因中没有同义突变，只有非同义突变， 若非同义突变大于0.02就删去不要
                 if (nonSyn > nonSynGeneCut) continue;
-                tranNameList.add(t.getCellAsString(i, 1));
+                tranNameList.add(t.getCellAsString(i, 0));
                 ifOut[i] = true;
             }
             else {
@@ -1091,7 +1086,7 @@ public class VariantSummary {
                     1	111527	A	0.0039893617	G	0.9960106383
                     1	111542	T	0.0012987013	C	0.9987012987
                     */
-                    if (t1.getCell(j, 16).equals("SYNONYMOUS")) {
+                    if (t1.getCell(j, 16).equals("SYNONYMOUS")) {   //16	17	18 Variant_type	SIFT_score	Transcript
                         if (t1.getCell(j, 17).startsWith("N")) continue;
                         double sift = t1.getCellAsDouble(j, 17);
                         bw[0].write(String.valueOf(chr)+"\t"+String.valueOf(pos)+"\t"+t1.getCell(j, 6)+"\t"+String.valueOf(maf)+"\t"+da+"\t"+daf);
@@ -1138,7 +1133,9 @@ public class VariantSummary {
     } 
 
 
-    
+    /**
+     * 目的：
+     */
     private void summarizeTranscript2(){
         String infileDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/001_hmp321Info_filter";
         String geneFeatureFileS = "/Users/Aoyue/Documents/Data/referenceGenome/GeneAnnotation/Zea_mays.AGPv4.38.pgf";
@@ -1164,6 +1161,9 @@ public class VariantSummary {
         //String[] genes = new String[gf.getGeneNumber()];
         int cntchr11and12 = 0;
         int cntchr1to10 = 0;
+        
+        //*********************************** START1 ***********************************//
+        //该段代码的作用是，通过读取每个基因，得到最长转录本的名字，计算该转录本的长度。
         for (int i = 0; i < gf.getGeneNumber(); i++) {
             int chrIndex = gf.getGeneChromosome(i)-1;
             /*这个地方是先过滤数据，将定位在11号12号染色体上的基因过滤掉，并且跳出循环*/
@@ -1171,7 +1171,7 @@ public class VariantSummary {
                 cntchr11and12++;
                 continue;
             }
-            cntchr1to10++;
+            cntchr1to10++; //能够得到1-10号染色体的基因数目
             int longTransIndex = gf.getLongestTranscriptIndex(i);
             String geneName = gf.getTranscriptName(i, longTransIndex); //得到最长的转录本的名字
             //genes[i] = geneName;
@@ -1180,15 +1180,15 @@ public class VariantSummary {
             int cnt = 0;
          
             
-        /*对于每一个基因的编码序列，我们进行一个for循环，对于编码序列的起始和终止位置，我们又得到一个循环*/    
+        /*对于每一个基因的编码序列，还有很多个cds片段，即cdsList；我们对cdsList进行for循环，得到每个cds的起始和终止位置，从而计算出总长*/    
             for (int j = 0; j < cdsList.size(); j++) {
                 int rStart = cdsList.get(j).start;
                 int rEnd = cdsList.get(j).end;
                 for (int k = rStart; k < rEnd; k++) {
                     /*posGeneMap是一个HashMap数组，一条染色体对应一个String类型的ArrayList；
                     故得到该位点的所属基因名字列表，如果该位点不含基因名，就将 genename赋值给该位点，完善posGeneMap
-                    否则，如果还位点含有其他基因的基因名字，依旧把genename赋值给该位点*/
-                    ArrayList<String> geneNameList = posGeneMap[chrIndex].get(k);
+                    否则，如果该位点含有其他基因的基因名字，依旧把genename赋值给该位点*/
+                    ArrayList<String> geneNameList = posGeneMap[chrIndex].get(k); //建立map的关系，那个位点对应哪个list HashMap<Integer, ArrayList<String>>[] posGeneMap = new HashMap[chrNum]; 
                     if (geneNameList == null) {
                         geneNameList = new ArrayList();
                         geneNameList.add(geneName);
@@ -1198,14 +1198,18 @@ public class VariantSummary {
                         geneNameList.add(geneName);
                         posGeneMap[chrIndex].put(k, geneNameList); /*最终将posGeneMap绘图完成*/
                     }
-                    cnt++; /*每一个CDS位点加完geneName，cnt就加1，最终cnt是所有cdslist相加的和*/
+                    cnt++; /*每一个CDS位点相加，最终得到这个cds的长度。*/
                 }
-            }
-            geneCDSLengthMap.put(geneName, cnt);
+                
+                // 最终cnt是一个基因的所有cdslist中，每个cds的每个位点包含的基因数目的总和
+            } //该循环是一个基因的所有cds循环
+            geneCDSLengthMap.put(geneName, cnt); //
         }
+        //*********************************** END1 ***********************************//
         
         System.out.println(cntchr11and12 + "genes are not used");
         System.out.println(cntchr1to10 + "genes are used");
+        
         
         String[] genes = genesList.toArray(new String[genesList.size()]);
         Arrays.sort(genes); //genes指所有基因对应最长转录本的名字的组合，是一个数组。
@@ -1225,14 +1229,14 @@ public class VariantSummary {
                     cnt++; //检测程序运行的情况
                     if (cnt%1000000 == 0) System.out.println("Hmp\tchr"+String.valueOf(chrIndex+1)+"\t"+String.valueOf(cnt) + " ###hmpInfo Process");
                     List<String> l = PStringUtils.fastSplit(temp);
-                    if (l.get(3).contains("<") || l.get(3).contains(",")) continue;
+                    if (l.get(3).contains("<") || l.get(3).contains(",")) continue; //过滤含有2个alt和含有indel的位点
                     int pos = Integer.valueOf(l.get(1));
                     /*一个位置对应一个genelist， 该位置可能是很多基因的位点，存入geneNameList;开始循环，如果搜索到这个基因，index为第几个基因，就让该基因的计数加一*/
                     ArrayList<String> geneNameList = posGeneMap[chrIndex].get(pos);
-                    if (geneNameList == null) continue;
+                    if (geneNameList == null) continue; //说明该变异位点不在基因区
                     for (int i = 0; i < geneNameList.size(); i++) {
-                        int index = Arrays.binarySearch(genes, geneNameList.get(i));
-                        snpCount[index]++; //该位点有几个基因，就有几次snpCount.
+                        int index = Arrays.binarySearch(genes, geneNameList.get(i));//在基因库的第i个位置，该基因数加一
+                        snpCount[index]++; //第i个位置的基因含有的snp数目；
                     }
                     /*将该位置加入snpPosList，表明该位置是有基因的，没有基因的位置就不必加到snpPosList中去*/
                     snpPosList.add(pos);
@@ -1244,17 +1248,17 @@ public class VariantSummary {
             catch (Exception e) {
                 e.printStackTrace();
             }
-            snpPos[chrIndex] = snpPosList.toArray();
-            snps[chrIndex] = snpList.toArray();
-            snpAnc[chrIndex] = snpAncList.toArray();
+            snpPos[chrIndex] = snpPosList.toArray(); //第n条染色体的在基因区间的snp所对应的pos的集合；
+            snps[chrIndex] = snpList.toArray(); //第n条染色体的在区间内的snp所对应的alt的集合
+            snpAnc[chrIndex] = snpAncList.toArray(); //第n条染色体的在区间内的snp所对应的ancestral allele的集合
         });
         
         /*分为4类： 同义突变 非同义突变 有害突变 高GERP值的有害突变 NA值的计数*/
         int[] synCount = new int[genes.length];
-        int[] nonCount = new int[genes.length];
+        int[] nonCount = new int[genes.length]; //非同义突变的数目
         int[] delCount = new int[genes.length];
         int[] delHGCount = new int[genes.length];
-        int[] naCount = new int[genes.length];
+        int[] naCount = new int[genes.length];  //非同义突变，但是sift值是NA的数目
         
         int[] b73SynCount = new int[genes.length];
         int[] b73NonCount = new int[genes.length];
@@ -1262,7 +1266,7 @@ public class VariantSummary {
         int[] b73DelHGCount = new int[genes.length];
         int[] noAncCount = new int[genes.length];
         
-        TIntArrayList[] delPosList = new TIntArrayList[chrNum];
+        TIntArrayList[] delPosList = new TIntArrayList[chrNum]; //有害变异的位点集合
         hmpList.stream().forEach(f -> {
             int chrIndex = Integer.valueOf(f.getName().split("_chr")[1].replaceFirst("_AGPv4_AnnoDB.txt", ""))-1;
             delPosList[chrIndex] = new TIntArrayList();
@@ -1274,36 +1278,36 @@ public class VariantSummary {
                     cnt++;
                     if (cnt%1000000 == 0) System.out.println("Sift\tchr"+String.valueOf(chrIndex+1)+"\t"+String.valueOf(cnt) + " ### SIFT Process");
                     List<String> l = PStringUtils.fastSplit(temp);
-                    if (l.get(16).startsWith("NA")) continue;
-                    if (l.get(18).startsWith("NA")) continue;
+                    if (l.get(16).startsWith("NA")) continue; //Variant_type	SIFT_score	Transcript  16 17 18
+                    if (l.get(18).startsWith("NA")) continue; //没有变异类型和转录本的位点，都过滤掉。
                     String gene = l.get(18);
                     int geneIndex = Arrays.binarySearch(genes, gene); //在genes数组里搜索 sift中的基因
                     if (geneIndex < 0) continue;
                     int pos = Integer.valueOf(l.get(1));
                     int index = Arrays.binarySearch(snpPos[chrIndex], pos); // 
                     if (index < 0) continue;
-                    if (snps[chrIndex][index] != l.get(3).getBytes()[0]) continue;
+                    if (snps[chrIndex][index] != l.get(3).getBytes()[0]) continue; //再次验证，如果该位点的alt和数据库中的alt不一致，则过滤掉。
                     byte ref = l.get(2).getBytes()[0];
                     byte derivedState = -1; //mean ancestral allele is not defined
-                    if (snpAnc[chrIndex][index] == snps[chrIndex][index]) {
+                    if (snpAnc[chrIndex][index] == snps[chrIndex][index]) { //如果ancestral allele 等于alt的话，derived allele就等于1
                         derivedState = 1; //mean b73 carries derived allele
                     }
-                    else if (snpAnc[chrIndex][index] == ref) {
+                    else if (snpAnc[chrIndex][index] == ref) { //如果ancestral allele 等于ref的话，derived allele就等于0
                         derivedState = 0;
                     }
                     
-                    if (derivedState == -1) noAncCount[geneIndex]++;
+                    if (derivedState == -1) noAncCount[geneIndex]++; //如果ancestral allele 不存在的话，derived allele就等于-1
                     
                     String type = null;
                     if (l.get(16).equals("NA")) {
                         
                     }
                     else {
-                        if (l.get(16).equals("SYNONYMOUS")) {
+                        if (l.get(16).equals("SYNONYMOUS")) { //如果type等于syn，那么 该位点所属的基因的syn属性就加一
                             type = "Syn";
                             synCount[geneIndex]++;
-                            if (derivedState == 1) {
-                                b73SynCount[geneIndex]++;
+                            if (derivedState == 1) {  //如果derived allele就等于1，说明ancestral allele 等于alt， derived allele 等于ref； 如何计算daf,判断da是major还是minor，如果da是major那么daf=1-maf，如何判断major allele和minor allele？ 如果ref allele frequency > alt allele frequence,那么major是ref; 反之亦然；
+                                b73SynCount[geneIndex]++; //如果参考基因组是 derived allele,那么就加一，为什么？
                             }
                         }
                         else {
@@ -1312,8 +1316,8 @@ public class VariantSummary {
                             if (derivedState == 1) {
                                 b73NonCount[geneIndex]++;
                             }
-                            if (l.get(17).startsWith("NA")) {
-                                    naCount[geneIndex]++;
+                            if (l.get(17).startsWith("NA")) { //index 17列是sift的值，NON-SYNONYMOUS 存在的情况下，sift可能有也可能没有。
+                                    naCount[geneIndex]++; //是nonsynonymous类型但是没有sift值的个数
                             }
                             else{
                                 if (Double.valueOf(l.get(17)) < 0.05) {
@@ -1334,6 +1338,9 @@ public class VariantSummary {
             }
         });
         
+        /**
+         * 
+         */
         int[][] delPos = new int[chrNum][];
         for (int i = 0; i < chrNum; i++) {
             delPos[i] = delPosList[i].toArray();
@@ -1358,7 +1365,7 @@ public class VariantSummary {
                     List<String> l = PStringUtils.fastSplit(temp);
                     int pos = Integer.valueOf(l.get(1));
                     if(l.get(14).equals("NA")) continue;
-                    ArrayList<String> geneNameList = posGeneMap[chrIndex].get(pos);
+                    ArrayList<String> geneNameList = posGeneMap[chrIndex].get(pos); //根据pos信息，得到该pos对应的gene name的集合
                     if (geneNameList == null) continue;
                     for (int i = 0; i < geneNameList.size(); i++) {
                         String gene = geneNameList.get(i);
@@ -1367,10 +1374,10 @@ public class VariantSummary {
                         
                         double treeValue = Double.valueOf(l.get(14));
                         double scoreValue = Double.valueOf(l.get(15));
-                        if (treeValue == 0) continue;
-                        gerpAlignCount[geneIndex]++;
+                        if (treeValue == 0) continue; //过滤枝长是0的数目
+                        gerpAlignCount[geneIndex]++; //如果枝长不是0，说明该位点存在保守不保守
                         gerpTree[geneIndex]+=treeValue;
-                        gerpScore[geneIndex]+=scoreValue;
+                        gerpScore[geneIndex]+=scoreValue; //第i个基因的gerpscore的总和是多少
                         int index = Arrays.binarySearch(snpPos[chrIndex], pos);
                         if (index < 0) continue;
 
@@ -1411,19 +1418,21 @@ public class VariantSummary {
                 int cdsLength = geneCDSLengthMap.get(genes[i]);
                 sb.append("\t").append(cdsLength).append("\t").append(snpCount[i]).append("\t").append((double)snpCount[i]/cdsLength).append("\t");
                 int ifSiftAligned = 1;
-                if (naCount[i] == nonCount[i]) ifSiftAligned = 0;
+                if (naCount[i] == nonCount[i]) ifSiftAligned = 0; //非同义突变，但是sift值是NA的数目 等于 非同义突变的数目，那么说明在这个基因内部没有sift突变
                 sb.append(ifSiftAligned).append("\t").append(synCount[i]).append("\t").append((double)synCount[i]/cdsLength).append("\t");
                 sb.append(nonCount[i]).append("\t").append((double)nonCount[i]/cdsLength).append("\t");
                 double ratio = 0;
-                if (synCount[i] == 0) ratio = Double.NaN;
+                if (synCount[i] == 0) ratio = Double.NaN; 
                 else ratio = (double)nonCount[i]/synCount[i];
                 sb.append(ratio).append("\t").append(delCount[i]).append("\t").append((double)delCount[i]/cdsLength).append("\t");
                 sb.append(delHGCount[i]).append("\t").append((double)delHGCount[i]/cdsLength).append("\t");
                 int ifGerpAligned = 1;
                 if (gerpAlignCount[i] == 0) ifGerpAligned = 0;
                 sb.append(ifGerpAligned).append("\t").append(gerpAlignCount[i]).append("\t").append((double)gerpAlignCount[i]/cdsLength).append("\t");
+                
                 if (gerpAlignCount[i] == 0) sb.append(Double.NaN).append("\t").append(Double.NaN).append("\t");
                 else sb.append((double)gerpTree[i]/gerpAlignCount[i]).append("\t").append((double)gerpScore[i]/gerpAlignCount[i]).append("\t");
+                
                 if (snpGerpAlignCount[i] == 0) sb.append(Double.NaN).append("\t").append(Double.NaN);
                 else sb.append((double)snpGerpTree[i]/snpGerpAlignCount[i]).append("\t").append((double)snpGerpScore[i]/snpGerpAlignCount[i]);
                 
@@ -1747,7 +1756,9 @@ public class VariantSummary {
         
     }
     
-    
+    /**
+     * 主要是想看，由最开始的数据库，只进行sift过滤，过滤掉了多少位点，保留了多少的有sift值的位点。因为技术过滤（深度，杂合度过滤）时，把某些有sift值的位点也过滤掉了，我们拿到的最终的位点不是最开始计算的所有sift值位点。
+     */
     private void filterHmp321Info_bysiftTrans_useDataBase(){
         String inDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/annoDB_new";
         String outDirS = "/Users/Aoyue/Documents/maizeGeneticLoad/001_variantSummary/002_hmp321SiftTrans_filter_useDatabase";
@@ -1827,8 +1838,6 @@ public class VariantSummary {
                 
             }
         });
-        
-        
     }
     
     private void filterHmp321Info () {
@@ -1865,7 +1874,7 @@ public class VariantSummary {
                         if (Integer.valueOf(l.get(11)) > siteDepthCut) continue;
                         double siteHeterozygous = Double.valueOf(l.get(13))/Double.valueOf(l.get(12)); //12列是位点的次数，13列是位点的杂合子数
                         if (siteHeterozygous > siteHeterozygousCut) continue;
-                        double indiDepth = Double.valueOf(l.get(11))/Double.valueOf(l.get(12)); // 第11列是该位点的测序深度。12列是该位点有几个taxa被测到。
+                        double indiDepth = Double.valueOf(l.get(11))/Double.valueOf(l.get(12)); // 第11列是该位点的测序深度。12列是该位点有几个taxa被测到。 //求得是平均测序深度
                         if (indiDepth>maxIndiDepth) continue;
                         bw.write(temp);
                         bw.newLine();

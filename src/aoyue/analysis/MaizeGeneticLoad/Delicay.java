@@ -103,8 +103,8 @@ public class Delicay {
         /**
          * 对数据进行排序，打印出来。
          */
-        this.sort();
-        this.testbreak();
+        //this.sort();
+        //this.testbreak();
         
         
         
@@ -154,9 +154,10 @@ public class Delicay {
     }
     
     public void countCaseInGroup(){
-        String infileS = "/Users/Aoyue/Documents/国家分布134.txt";
+        //String infileS = "/Users/Aoyue/Documents/国家分布134.txt";
+        String infileS = "/Users/Aoyue/project/wheatVMapII/003_dataAnalysis/005_vcf/018_annoDB/007_checkDelCount/delSNP/chrA.subgenome.delSNP.changeChrPos.txt";
         RowTable<String> t = new RowTable<>(infileS);
-        List<String> l = t.getColumn(0);
+        List<String> l = t.getColumn(4);
         System.out.println(l.size() + " list个数");
         Set<String> s = new HashSet<>(l);
         System.out.println(s.size() + " set个数");
