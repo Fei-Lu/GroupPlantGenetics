@@ -85,7 +85,7 @@ public class LD {
     }
 
     /**
-     * 过滤不在同一染色体上的r2值, r2为-1的值, distance大于distancesThresh的r2值
+     * 过滤不在同一染色体上的r2值, r2为-1(NaN)的值, distance大于distancesThresh的r2值
      * @param physicalDistanceR2File
      * @param distancesThresh
      */
