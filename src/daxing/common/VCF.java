@@ -31,6 +31,12 @@ public class VCF {
         this.initilize(inputFile.getAbsolutePath());
     }
 
+    public VCF(String meta, List<String> header, List<List<String>> data){
+        this.meta=meta;
+        this.header=header;
+        this.data=data;
+    }
+
     private void initilize(String inputFile){
         BufferedReader br;
         try{
@@ -362,6 +368,49 @@ public class VCF {
     }
 
     public List<List<String>> getData(){return this.data;}
+
+    public List<String> getHeader(){
+        return header;
+    }
+
+    public VCF subsetVCF(Set<String> subsetTaxonSet){
+        List<String> headList=this.getHeader();
+        List<String> subsetTaxonList=new ArrayList<>(subsetTaxonSet);
+        TIntArrayList subsetTaxonIndexList=new TIntArrayList();
+        int index=Integer.MIN_VALUE;
+        for (int i = 0; i < subsetTaxonList.size(); i++) {
+            index=headList.indexOf(subsetTaxonList.get(i));
+            if (index < -1){
+                System.out.println(subsetTaxonList.get(i)+" not in this VCF");
+                continue;
+            }
+            subsetTaxonIndexList.add(index);
+        }
+        subsetTaxonIndexList.add(IntStream.range(0, 9).toArray());
+        subsetTaxonIndexList.sort();
+        List<String> subHeader=new ArrayList<>();
+        List<List<String>> subData=new ArrayList<>();
+        for (int i = 0; i < headList.size(); i++) {
+            if (!subsetTaxonIndexList.contains(i)) continue;
+            subHeader.add(headList.get(i));
+        }
+        List<String> lineList;
+        List<String> subLineList;
+        Predicate<String> p=str->str.startsWith("./.");
+        Predicate<String> only0_0=str->str.equals("0/0");
+        Predicate<String> pp=only0_0.or(str->str.equals("1/1"));
+        for (int i = 0; i < this.getData().size(); i++) {
+            lineList=this.getData().get(i);
+            subLineList=new ArrayList<>();
+            for (int j = 0; j < lineList.size(); j++) {
+                if (!subsetTaxonIndexList.contains(j)) continue;
+                subLineList.add(lineList.get(j));
+            }
+            if(subLineList.stream().skip(9).filter(p.negate()).map(str->str.substring(0, 3)).allMatch(pp)) continue;
+            subData.add(subLineList);
+        }
+        return new VCF(this.meta, subHeader, subData);
+    }
 
 //    public double caculateR2(int rowIndex1, int rowIndex2){
 //
