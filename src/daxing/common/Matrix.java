@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 
 /**
  * have column name, but header can be false;
+ * dxy, r2
  * 默认的数据类型为double, 可以以int类型输出
  */
 public class Matrix {
