@@ -91,7 +91,8 @@ public class LD {
      */
     public void  writePhysicalDistanceR2ForLDDecay(String physicalDistanceR2File, int distancesThresh){
         try (BufferedWriter bw = IOUtils.getTextWriter(physicalDistanceR2File)) {
-            bw.write("SNP1\tSNP2\tDistance\tr2\n");
+            bw.write("Distance\tr2\n");
+//            bw.write("SNP1\tSNP2\tDistance\tr2\n");
             Iterator<int[]> iterator = CombinatoricsUtils.combinationsIterator(header.size(), 2);
             int[] combinationIndex;
             StringBuilder sb;
@@ -113,8 +114,8 @@ public class LD {
                     continue;
                 }
                 sb=new StringBuilder();
-                sb.append(this.getSNP(combinationIndex[0]).toString()).append("\t");
-                sb.append(this.getSNP(combinationIndex[1]).toString()).append("\t");
+//                sb.append(this.getSNP(combinationIndex[0]).toString()).append("\t");
+//                sb.append(this.getSNP(combinationIndex[1]).toString()).append("\t");
                 sb.append(this.caculateDistanceBetweenSNPs(combinationIndex[0], combinationIndex[1])).append("\t");
                 sb.append(this.getR2(combinationIndex[0], combinationIndex[1]));
                 bw.write(sb.toString());
