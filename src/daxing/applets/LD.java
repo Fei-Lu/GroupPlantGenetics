@@ -1,9 +1,11 @@
 package daxing.applets;
 
 import gnu.trove.list.array.TDoubleArrayList;
+import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.math3.util.CombinatoricsUtils;
 import utils.IOUtils;
+import utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -124,6 +126,59 @@ public class LD {
             System.out.println("On different chromosome: "+count);
             System.out.println("r2 < 0: "+cnt);
             System.out.println("great than "+distancesThresh+": "+cnnt);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public static void slidingWindow(String inputDistanceR2File, int windowSize, int stepSize, String outFile){
+        try (BufferedReader br = IOUtils.getTextReader(inputDistanceR2File);
+             BufferedWriter bw=IOUtils.getTextWriter(outFile)) {
+            String header=br.readLine();
+            bw.write(header);
+            bw.newLine();
+            int[] distancesArray;
+            double[] r2Array;
+            String line;
+            TIntArrayList distanceList=new TIntArrayList();
+            TDoubleArrayList r2List=new TDoubleArrayList();
+            List<String> temp;
+            while ((line=br.readLine())!=null){
+                temp= PStringUtils.fastSplit(line);
+                distanceList.add(Integer.parseInt(temp.get(0)));
+                r2List.add(Double.parseDouble(temp.get(1)));
+            }
+            distancesArray=distanceList.toArray();
+            r2Array=r2List.toArray();
+            int maxDistace=distancesArray[distancesArray.length-1];
+            int num=(maxDistace-windowSize)/stepSize+2;
+            int[] boundaryS=IntStream.iterate(0, n->n+stepSize).limit(num).toArray();
+            int[] boundaryL=IntStream.iterate(windowSize, n->n+stepSize).limit(num).toArray();
+            TIntArrayList indexS=new TIntArrayList();
+            TDoubleArrayList newR2List=new TDoubleArrayList();
+
+            double sum=0d;
+            int k=0;
+            int count=0;
+            for (int i = 0; i < boundaryL.length; i++) {
+                for (int j = k; j < r2Array.length; j++) {
+                    int distance=distancesArray[j];
+                    int index=boundaryL[i];
+                    if (distancesArray[j]<boundaryL[i]){
+                        sum+=r2Array[j];
+                        count++;
+                    }else {
+                        bw.write(sum+"\t"+count);
+                        bw.newLine();
+                        newR2List.add(sum/count);
+                        sum=r2Array[j];
+                        count=1;
+                        k=j+1;
+                        break;
+                    }
+                }
+            }
+            bw.flush();
         }catch (Exception e){
             e.printStackTrace();
         }
