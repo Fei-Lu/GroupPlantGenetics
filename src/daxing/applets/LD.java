@@ -1,7 +1,6 @@
 package daxing.applets;
 
 import gnu.trove.list.array.TDoubleArrayList;
-import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.math3.util.CombinatoricsUtils;
 import utils.IOUtils;
@@ -134,13 +133,13 @@ public class LD {
     public static void slidingWindow(String inputDistanceR2File, int windowSize, int stepSize, String outFile){
         try (BufferedReader br = IOUtils.getTextReader(inputDistanceR2File);
              BufferedWriter bw=IOUtils.getTextWriter(outFile)) {
-            String header=br.readLine();
-            bw.write(header);
+            br.readLine();
+            bw.write("WindowFromTo\tWindowMiddleDistance\tCountInWindow\tWindowAverageR2");
             bw.newLine();
-            int[] distancesArray;
+            double[] distancesArray;
             double[] r2Array;
             String line;
-            TIntArrayList distanceList=new TIntArrayList();
+            TDoubleArrayList distanceList=new TDoubleArrayList();
             TDoubleArrayList r2List=new TDoubleArrayList();
             List<String> temp;
             while ((line=br.readLine())!=null){
@@ -150,33 +149,49 @@ public class LD {
             }
             distancesArray=distanceList.toArray();
             r2Array=r2List.toArray();
-            int maxDistace=distancesArray[distancesArray.length-1];
+            int maxDistace=(int)distancesArray[distancesArray.length-1];
             int num=(maxDistace-windowSize)/stepSize+2;
-            int[] boundaryS=IntStream.iterate(0, n->n+stepSize).limit(num).toArray();
-            int[] boundaryL=IntStream.iterate(windowSize, n->n+stepSize).limit(num).toArray();
-            TIntArrayList indexS=new TIntArrayList();
-            TDoubleArrayList newR2List=new TDoubleArrayList();
-
-            double sum=0d;
-            int k=0;
+            double[] boundaryS=IntStream.iterate(0, n->n+stepSize).limit(num).mapToDouble(n->n-0.1).toArray();
+            double[] boundaryL=IntStream.iterate(windowSize, n->n+stepSize).limit(num).mapToDouble(n->n-0.1).toArray();
+            int[] indexS=new int[boundaryS.length];
+            int[] indexL=new int[boundaryL.length];
+            for (int i = 0; i < indexL.length; i++) {
+                indexS[i]= Integer.MIN_VALUE;
+                indexL[i]=Integer.MIN_VALUE;
+            }
+            int index=Integer.MAX_VALUE;
+            for (int i = 0; i < boundaryS.length; i++) {
+                index=Arrays.binarySearch(distancesArray, boundaryS[i]);
+                indexS[i]=-index-1;
+                index=Arrays.binarySearch(distancesArray, boundaryL[i]);
+                indexL[i]=-index-1;
+            }
+            int countInBoundary=-1;
+            StringBuilder sb;
+            double sumOfR2=0;
             int count=0;
-            for (int i = 0; i < boundaryL.length; i++) {
-                for (int j = k; j < r2Array.length; j++) {
-                    int distance=distancesArray[j];
-                    int index=boundaryL[i];
-                    if (distancesArray[j]<boundaryL[i]){
-                        sum+=r2Array[j];
-                        count++;
-                    }else {
-                        bw.write(sum+"\t"+count);
-                        bw.newLine();
-                        newR2List.add(sum/count);
-                        sum=r2Array[j];
-                        count=1;
-                        k=j+1;
-                        break;
-                    }
+            int cnt=0;
+            for (int j = 0; j < indexS.length; j++) {
+                countInBoundary=indexL[j]-indexS[j];
+                if (countInBoundary<1){
+                    count++;
                 }
+                sb=new StringBuilder();
+                for (int i = indexS[j]; i < indexL[j]; i++) {
+                    sumOfR2+=r2Array[i];
+                }
+                sb.append((int)(boundaryS[j]+0.1)).append("_").append((int)(boundaryL[j]+0.1)).append("\t");
+                sb.append((double) windowSize/2+boundaryS[j]+0.1).append("\t");
+                sb.append(countInBoundary).append("\t");
+                sb.append(sumOfR2/countInBoundary).append("\n");
+                bw.write(sb.toString());
+                sumOfR2=0;
+            }
+            System.out.println(cnt+" r2 great than 100000000 ");
+            if(count==0){
+                System.out.println(count+" window count were 0");
+            }else {
+                System.out.println(count+" windows count were 0, and its r2 will be setting NaN");
             }
             bw.flush();
         }catch (Exception e){
