@@ -11,6 +11,13 @@ import java.io.BufferedWriter;
 import java.util.*;
 import java.util.stream.IntStream;
 
+
+/**
+ * plink --vcf chrAll.tauschii.vcf  --chr-set 21 --make-bed --out chrAll.tauschii
+ * plink --bfile chrAll.tauschii --r2 --matrix
+ * note: plink.ld outFile not sorted, and include inter-Chromosome R2
+ * using plink.ld and bim File as input, getting result file for ggplot
+ */
 public class LD {
 
     List<TDoubleArrayList> matrix;
