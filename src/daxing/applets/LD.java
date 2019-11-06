@@ -238,4 +238,14 @@ public class LD {
             return sb.toString();
         }
     }
+
+//    public static void main(String[] args) {
+//        LD ld=new LD(args[0], args[1]);
+//        ld.writePhysicalDistanceR2ForLDDecay(args[3], Integer.parseInt(args[4]));
+//        Comparator<List<String>> c=Comparator.comparing(l->Integer.parseInt(l.get(0)));
+//        RowTableTool<String> rowTable=new RowTableTool<>(args[3]);
+//        rowTable.sortBy(c);
+//        rowTable.writeTextTable(args[5], IOFileFormat.Text);
+//        LD.slidingWindow(args[5], Integer.parseInt(args[6]), Integer.parseInt(args[7]), args[8]);
+//    }
 }
