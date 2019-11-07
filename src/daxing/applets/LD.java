@@ -8,6 +8,7 @@ import utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -137,6 +138,31 @@ public class LD {
         }
     }
 
+    public static void getDistanceLessThan(int distanceThresh, double r2Thresh, String inputDistanceR2File,
+                                           String outFile){
+        try (BufferedReader br = IOUtils.getTextReader(inputDistanceR2File);
+             BufferedWriter bw=IOUtils.getTextWriter(outFile)) {
+            String line;
+            line=br.readLine();
+            bw.write(line);
+            bw.newLine();
+            List<String> temp;
+            while ((line=br.readLine())!=null){
+                temp= PStringUtils.fastSplit(line);
+                if(Double.parseDouble(temp.get(1))<r2Thresh) continue;
+                if (Integer.parseInt(temp.get(0))<distanceThresh){
+                    bw.write(line);
+                    bw.newLine();
+                }else {
+                    break;
+                }
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void slidingWindow(String inputDistanceR2File, int windowSize, int stepSize, String outFile){
         try (BufferedReader br = IOUtils.getTextReader(inputDistanceR2File);
              BufferedWriter bw=IOUtils.getTextWriter(outFile)) {
@@ -253,6 +279,7 @@ public class LD {
 //        RowTableTool<String> rowTable=new RowTableTool<>(args[3]);
 //        rowTable.sortBy(c);
 //        rowTable.writeTextTable(args[5], IOFileFormat.Text);
-//        LD.slidingWindow(args[5], Integer.parseInt(args[6]), Integer.parseInt(args[7]), args[8]);
+//        LD.getDistanceLessThan(Integer.parseInt(args[11]), Double.parseDouble(args[12]), args[5], args[6]);
+//        LD.slidingWindow(args[6], Integer.parseInt(args[13]), Integer.parseInt(args[14]), args[7]);
 //    }
 }
