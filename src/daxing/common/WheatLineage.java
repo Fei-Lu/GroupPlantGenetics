@@ -73,4 +73,17 @@ public enum WheatLineage {
         a.addAll(b);
         return a.stream().sorted().collect(Collectors.toList());
     }
+
+    /**
+     *
+     * @return 1A, 1B, 1D, 2A, 2B, 2D, ...
+     */
+    public static List<String> abdLineage(){
+        List<String> a=WheatLineage.wheatLineageOf(WheatLineage.A);
+        List<String> b=WheatLineage.wheatLineageOf(WheatLineage.B);
+        List<String> d=WheatLineage.wheatLineageOf(WheatLineage.D);
+        a.addAll(b);
+        a.addAll(d);
+        return a.stream().sorted().collect(Collectors.toList());
+    }
 }
