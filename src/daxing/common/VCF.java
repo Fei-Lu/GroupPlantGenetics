@@ -508,6 +508,34 @@ public class VCF {
         this.data=res;
     }
 
+    /**
+     * change refChr and reffPos to vcfChr and vcfPos
+     * @param chrConvertionRule
+     */
+    public void changeToVCFChr(ChrConvertionRule chrConvertionRule){
+        List<List<String>> data=this.data;
+        List<List<String>> res=new ArrayList<>();
+        for (int i = 0; i < data.size(); i++) {
+            res.add(new ArrayList<>());
+        }
+        List<String> line;
+        String refChr;
+        int refPos;
+        int vcfChr;
+        int vcfPos;
+        for (int i = 0; i < data.size(); i++) {
+            line=data.get(i);
+            refChr=line.get(0);
+            refPos=Integer.parseInt(line.get(1));
+            vcfChr= chrConvertionRule.getVCFChrFromRefChrPos(refChr, refPos);
+            vcfPos= chrConvertionRule.getVCFPosFromRefChrPos(refChr, refPos);
+            line.set(0, String.valueOf(vcfChr));
+            line.set(1, String.valueOf(vcfPos));
+            res.get(i).addAll(line);
+        }
+        this.data=res;
+    }
+
     public void write(String outFile){
         this.sort();
         BufferedWriter bw;
