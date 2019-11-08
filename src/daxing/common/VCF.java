@@ -147,6 +147,7 @@ public class VCF {
 
     /**
      * merge chr001 chr002 chr003 chr004, ... to chr1A chr1B chr1D, ...
+     * suitable for small VCF file
      * @param inputVcfDir
      * @param outDir
      * @param chrConvertionRule
@@ -176,6 +177,68 @@ public class VCF {
             vcf.changeToRefChr(chrConvertionRule);
             outName=VCF.getchrToChrMap().get(chrIDArray[indexList.get(i)]);
             vcf.write(outDir, "chr"+outName+outNameArray[indexList.get(i)]);
+        }
+    }
+
+    /**
+     * only support chr001 --- chr042, suitable for large VCF file
+     * @param inputVcfDir
+     * @param outDir
+     * @param chrConvertionRule
+     */
+    public static void fastMergeVCFtoChr(String inputVcfDir, String outDir, ChrConvertionRule chrConvertionRule){
+        File[] files=IOUtils.listRecursiveFiles(new File(inputVcfDir));
+        Predicate<File> hidden=File::isHidden;
+        File[] f=Arrays.stream(files).filter(hidden.negate()).sorted().toArray(File[]::new);
+        List<String> outChrs=WheatLineage.abdLineage();
+        try{
+            BufferedReader br1, br2;
+            BufferedWriter bw;
+            List<String> temp;
+            String line;
+            int vcfChr, vcfPos;
+            String refChr;
+            int refPos;
+            for (int i = 0; i < f.length; i=i+2) {
+                br1=IOUtils.getTextReader(f[i].getAbsolutePath());
+                br2=IOUtils.getTextReader(f[i+1].getAbsolutePath());
+                bw=IOUtils.getTextWriter(new File(outDir, "chr"+outChrs.get(i/2)+".vcf").getAbsolutePath());
+                while ((line=br1.readLine()).startsWith("##")){
+                    bw.write(line);
+                    bw.newLine();
+                }
+                bw.write(line);
+                bw.newLine();
+                while ((line=br1.readLine())!=null){
+                    temp=PStringUtils.fastSplit(line);
+                    vcfChr=Integer.parseInt(temp.get(0));
+                    vcfPos=Integer.parseInt(temp.get(1));
+                    refChr= chrConvertionRule.getRefChrFromVCFChr(vcfChr);
+                    refPos=chrConvertionRule.getRefPosFromVCFChrPos(vcfChr, vcfPos);
+                    temp.set(0, refChr);
+                    temp.set(1, String.valueOf(refPos));
+                    bw.write(temp.stream().collect(Collectors.joining("\t")));
+                    bw.newLine();
+                }
+                br1.close();
+                while ((line=br2.readLine()).startsWith("##")){}
+                while ((line=br2.readLine())!=null){
+                    temp=PStringUtils.fastSplit(line);
+                    vcfChr=Integer.parseInt(temp.get(0));
+                    vcfPos=Integer.parseInt(temp.get(1));
+                    refChr= chrConvertionRule.getRefChrFromVCFChr(vcfChr);
+                    refPos=chrConvertionRule.getRefPosFromVCFChrPos(vcfChr, vcfPos);
+                    temp.set(0, refChr);
+                    temp.set(1, String.valueOf(refPos));
+                    bw.write(temp.stream().collect(Collectors.joining("\t")));
+                    bw.newLine();
+                }
+                br2.close();
+                bw.flush();
+                bw.close();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 
