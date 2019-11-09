@@ -92,7 +92,7 @@ public class ArrayTool {
      * @return
      */
     public static double[] getElementPercent(int[] a){
-        double sum=Arrays.stream(a).sum();
+        double sum=Arrays.stream(a).mapToDouble(Double::valueOf).sum();
         return Arrays.stream(a).mapToDouble(e->e/sum).toArray();
     }
 
