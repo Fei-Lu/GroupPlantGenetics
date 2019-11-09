@@ -5,6 +5,8 @@ import daxing.filterSNP.Cells;
 import daxing.filterSNP.DepthInfo;
 import daxing.filterSNP.Dot;
 import format.position.ChrPos;
+import format.range.Range;
+import format.range.RangeInterface;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
@@ -1174,4 +1176,155 @@ public class ScriptMethods {
             e.printStackTrace();
         }
     }
+
+    /**
+     * 从VCF 目录中ChrPos
+     * @param inputDir
+     * @param outDir
+     */
+    public static void getChrPosForLD(String inputDir, String outDir, double rate){
+        File[] files=IOUtils.listRecursiveFiles(new File(inputDir));
+        Predicate<File> p=File::isHidden;
+        File[] f= Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
+        String[] outNames= Arrays.stream(f).map(File::getName)
+                .map(str->str.replaceAll(".vcf$", ".chrpos.mafGreatThan0.05.txt"))
+                .toArray(String[]::new);
+        IntStream.range(0, f.length).parallel().forEach(e->{
+            try (BufferedReader br = IOUtils.getTextReader(f[e].getAbsolutePath());
+                 BufferedWriter bw=IOUtils.getTextWriter(new File(outDir, outNames[e]).getAbsolutePath())) {
+                bw.write("Chr\tPos\tMaf\n");
+                String line;
+                double maf;
+                List<String> temp;
+                StringBuilder sb;
+                while ((line=br.readLine()).startsWith("##")){}
+                while ((line=br.readLine())!=null){
+                    maf= VCF.calculateMaf(line);
+                    if (maf<0.05) continue;
+                    if (Math.random()>=rate) continue;
+                    temp= PStringUtils.fastSplit(line);
+                    sb=new StringBuilder();
+                    sb.append(temp.get(0)).append("\t").append(temp.get(1)).append("\t").append(maf);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        });
+    }
+
+    public static void getSubVcfForLD(String vmapIIPop, String popChrPosDir, String outDir){
+        File[] files1=IOUtils.listRecursiveFiles(new File(vmapIIPop));
+        File[] files2=IOUtils.listRecursiveFiles(new File(popChrPosDir));
+        List<String> filesName2= Arrays.stream(files2).map(File::getName).map(str->str.substring(0, 6))
+                .collect(Collectors.toList());
+        Predicate<File> hidden=File::isHidden;
+        Predicate<File> inFile2=file -> filesName2.contains(file.getName().substring(0, 6));
+        File[] f1=Arrays.stream(files1).filter(hidden.negate().and(inFile2)).toArray(File[]::new);
+        File[] f2=Arrays.stream(files2).filter(hidden.negate()).toArray(File[]::new);
+        IntStream.range(0, f1.length).forEach(e->{
+            try (BufferedReader br = IOUtils.getTextReader(f1[e].getAbsolutePath())) {
+                List<RangeInterface> anchors=ScriptMethods.getAnchorsForLD(f2[e].getAbsolutePath());
+                BufferedWriter[] bws=new BufferedWriter[anchors.size()];
+                String outName;
+                for (int i = 0; i < bws.length; i++) {
+                    outName= "chr"+PStringUtils.getNDigitNumber(3, anchors.get(i).getRangeChromosome())+"."+
+                            (anchors.get(i).getRangeEnd()-25000000)+ ".vcf";
+                    bws[i]=IOUtils.getTextWriter(new File(outDir, outName).getAbsolutePath());
+                }
+                int chr=-1;
+                int pos=-1;
+                double maf;
+                String line;
+                List<String> temp;
+                while ((line=br.readLine()).startsWith("##")){
+                    for (int i = 0; i < bws.length; i++) {
+                        bws[i].write(line);
+                        bws[i].newLine();
+                        continue;
+                    }
+                }
+                for (int i = 0; i < bws.length; i++) {
+                    bws[i].write(line);
+                    bws[i].newLine();
+                    continue;
+                }
+                chr=Integer.parseInt(PStringUtils.fastSplit(br.readLine()).get(0));
+                if (chr!=anchors.get(0).getRangeChromosome()){
+                    System.out.println("File error, program exist");
+                    System.exit(1);
+                }
+                StringBuilder sb;
+                int k=0;
+                while ((line=br.readLine())!=null){
+                    maf=VCF.calculateMaf(line);
+                    if (maf<0.05) continue;
+                    temp=PStringUtils.fastSplit(line);
+                    chr=Integer.parseInt(temp.get(0));
+                    pos=Integer.parseInt(temp.get(1));
+                    for (int i = k; i < anchors.size(); i++) {
+                        if (!anchors.get(i).isContain(chr, pos)) {
+                            bws[i].flush();
+                            bws[i].close();
+                            k=i+1;
+                            continue;
+                        }
+                        bws[i].write(line);
+                        bws[i].newLine();
+                        break;
+                    }
+                }
+                bws[bws.length-1].flush();
+                bws[bws.length-1].close();
+
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        });
+
+    }
+
+    private static List<RangeInterface> getAnchorsForLD(String chrPosFile){
+        List<RangeInterface> anchors=new ArrayList<>();
+        RangeInterface anchor;
+        try (BufferedReader br = IOUtils.getTextReader(chrPosFile)) {
+            br.readLine();
+            String line;
+            List<String> temp;
+            while ((line=br.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                anchor=ScriptMethods.caculateAnchorRange(Integer.parseInt(temp.get(0)),
+                        Integer.parseInt(temp.get(1)));
+                anchors.add(anchor);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return anchors;
+    }
+
+    private static RangeInterface caculateAnchorRange(int anchorChr, int anchorPos){
+        RangeInterface anchor;
+        int end=anchorPos+25000000;
+        int start=-1;
+        if (anchorPos<25000000){
+            start=0;
+        }else {
+            start=anchorPos-25000000;
+        }
+        return new Range(anchorChr, start, end);
+    }
+
+    private static double[] caculateSubPopMafInVmapII(String vcfline){
+        double[] maf12=new double[2];
+        List<String> temp=PStringUtils.fastSplit(vcfline);
+        List<String> tem=PStringUtils.fastSplit(temp.get(7), ";");
+        List<String> te1=PStringUtils.fastSplit(tem.get(7), "=");
+        List<String> te2=PStringUtils.fastSplit(tem.get(8), "=");
+        maf12[0]=Double.parseDouble(te1.get(1));
+        maf12[1]=Double.parseDouble(te2.get(1));
+        return maf12;
+    }
+
 }
