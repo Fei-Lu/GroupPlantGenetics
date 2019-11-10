@@ -1,7 +1,6 @@
 package daxing.ancestralAllele;
 
 import daxing.common.ChrConvertionRule;
-import daxing.common.CollectionTool;
 import daxing.common.WheatLineage;
 import format.position.ChrPos;
 import gnu.trove.list.array.TIntArrayList;
@@ -47,7 +46,7 @@ public class MAF {
     }
 
     private void initialize(Path mafInputFileDir){
-        List<String> d_lineage= CollectionTool.wheatLineageOf(WheatLineage.D);
+        List<String> d_lineage= WheatLineage.wheatLineageOf(WheatLineage.D);
         File[] files=IOUtils.listRecursiveFiles(new File(mafInputFileDir.toString()));
         Predicate<File> p=File::isHidden;
         File[] fileArray= Arrays.stream(files).filter(p.negate()).filter(e->e.getName().endsWith("maf")).toArray(File[]::new);
