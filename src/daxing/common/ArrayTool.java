@@ -1,10 +1,10 @@
 package daxing.common;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public class ArrayTool {
 
@@ -96,24 +96,4 @@ public class ArrayTool {
         return Arrays.stream(a).mapToDouble(e->e/sum).toArray();
     }
 
-    /**
-     * 返回A B D对应的ChrID
-     * @param aOrbOrd
-     * @return
-     */
-    public static int[] getWheatLineageOf(WheatLineage aOrbOrd){
-        int[] a= Stream.concat(IntStream.iterate(1, n->n+6).limit(7).boxed(),
-                IntStream.iterate(2, n->n+6).limit(7).boxed()).sorted().mapToInt(Integer::intValue).toArray();
-        int[] b=Stream.concat(IntStream.iterate(3, n->n+6).limit(7).boxed(),
-                IntStream.iterate(4, n->n+6).limit(7).boxed()).sorted().mapToInt(Integer::intValue).toArray();
-        int[] d=Stream.concat(IntStream.iterate(5, n->n+6).limit(7).boxed(),
-                IntStream.iterate(6, n->n+6).limit(7).boxed()).sorted().mapToInt(Integer::intValue).toArray();
-        if (aOrbOrd.toString().equals("A")){
-            return a;
-        }else if (aOrbOrd.toString().equals("B")){
-            return b;
-        }else {
-            return d;
-        }
-    }
 }
