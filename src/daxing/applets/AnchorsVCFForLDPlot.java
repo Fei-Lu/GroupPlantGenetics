@@ -18,40 +18,68 @@ import java.util.function.Predicate;
 
 public class AnchorsVCFForLDPlot {
 
-    public static void getAnchorPoint(String chrSizeFile, int numberOfAnchors, String outDir){
+    public static void getAnchorPoint(String poloid, String chrSizeFile, int numberOfAnchors, String outDir){
         try (BufferedReader br = IOUtils.getTextReader(chrSizeFile)) {
-            List<String> abdChr= WheatLineage.abdLineage();
-            int[] abdChrSize=new int[21];
-            BufferedWriter[] bws=new BufferedWriter[abdChr.size()];
-            for (int i = 0; i < abdChr.size(); i++) {
-                bws[i]= IOUtils.getTextWriter(new File(outDir, "chr"+abdChr.get(i)+"_anchorPoint.txt").getAbsolutePath());
-                bws[i].write("Chr\tPos\n");
-            }
             String line;
             List<String> temp;
             br.readLine();
             br.readLine();
             int count=0;
+            TIntArrayList chrAllSize=new TIntArrayList(21);
             while ((line=br.readLine())!=null){
                 temp= PStringUtils.fastSplit(line);
-                abdChrSize[count]=Integer.parseInt(temp.get(1));
+                chrAllSize.add(Integer.parseInt(temp.get(1)));
                 count++;
                 if (count==21) break;
             }
-            double[] rate= ArrayTool.getElementPercent(abdChrSize);
-            int[] anchorsNum=new int[abdChrSize.length];
+            List<String> chrs=null;
+            TIntArrayList chrSize=null;
+            switch (poloid.toUpperCase()){
+                case "D":
+                    chrs=WheatLineage.dLineage();
+                    chrSize=new TIntArrayList(7);
+                    for (int i = 2; i < chrAllSize.size(); i=i+3) {
+                        chrSize.add(chrAllSize.get(i));
+                    }
+                    break;
+                case "AB":
+                    chrs=WheatLineage.abLineage();
+                    chrSize=new TIntArrayList(14);
+                    for (int i = 0; i < chrAllSize.size(); i++) {
+                        if ((i-2)%3==0) continue;
+                        chrSize.add(chrAllSize.get(i));
+                    }
+                    break;
+                case "ABD":
+                    chrs=WheatLineage.abdLineage();
+                    chrSize=new TIntArrayList(21);
+                    for (int i = 0; i < chrAllSize.size(); i++) {
+                        chrSize.add(chrAllSize.get(i));
+                    }
+                    break;
+                default:
+                    System.out.println("please input D AB or ABD");
+                    System.exit(1);
+            }
+            BufferedWriter[] bws=new BufferedWriter[chrs.size()];
+            for (int i = 0; i < chrs.size(); i++) {
+                bws[i]= IOUtils.getTextWriter(new File(outDir, "chr"+chrs.get(i)+"_anchorPoint.txt").getAbsolutePath());
+                bws[i].write("Chr\tPos\n");
+            }
+            double[] rate= ArrayTool.getElementPercent(chrSize.toArray());
+            int[] anchorsNum=new int[chrSize.size()];
             for (int i = 0; i < rate.length; i++) {
                 anchorsNum[i]= (int) (numberOfAnchors*rate[i]);
                 System.out.println(anchorsNum[i]);
             }
             int[] randomNum;
             StringBuilder sb;
-            for (int i = 0; i < abdChrSize.length; i++) {
-                randomNum=ArrayTool.getRandomNonrepetitionArray(anchorsNum[i], 0, abdChrSize[i]+1);
+            for (int i = 0; i < chrSize.size(); i++) {
+                randomNum=ArrayTool.getRandomNonrepetitionArray(anchorsNum[i], 0, chrSize.get(i)+1);
                 Arrays.sort(randomNum);
                 for (int j = 0; j < randomNum.length; j++) {
                     sb=new StringBuilder();
-                    sb.append(abdChr.get(i)).append("\t").append(randomNum[j]);
+                    sb.append(chrs.get(i)).append("\t").append(randomNum[j]);
                     bws[i].write(sb.toString());
                     bws[i].newLine();
                 }
@@ -140,7 +168,9 @@ public class AnchorsVCFForLDPlot {
                 long pointer1=Integer.MIN_VALUE;
                 long pointer2=Integer.MIN_VALUE;
                 BufferedWriter bw;
+                int anchorNumber=0;
                 while ((line=br1.readLine())!=null){
+                    anchorNumber++;
                     temp=PStringUtils.fastSplit(line);
                     chr=temp.get(0);
                     if (!chr.equals(chrs.iterator().next())){
@@ -174,6 +204,7 @@ public class AnchorsVCFForLDPlot {
                     pointer2=pointer2+size;
                     rac.seek(pointer1);
                     String[] te;
+                    long start2=System.nanoTime();
                     while ((lin=rac.readLine())!=null && rac.getFilePointer()<pointer2){
                         te= StringUtils.split(lin, "\t;=");
                         if (Double.parseDouble(te[20])<0.05) continue;
@@ -183,6 +214,8 @@ public class AnchorsVCFForLDPlot {
                     }
                     bw.flush();
                     bw.close();
+                    System.out.println("anchor "+anchorNumber+" completed in "+Benchmark.getTimeSpanMinutes(start2)+
+                            " mintes");
                 }
                 System.out.println("chr"+chr+" complicated in "+Benchmark.getTimeSpanMinutes(start)+" minutes");
             }catch (Exception ex){
