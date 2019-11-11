@@ -39,7 +39,7 @@ public class ScriptMethods {
      */
     public static void getLastz(String wheatInputDir, String outgroupInputDir, String outMAFDir, String logFileDir, String outSH){
         File[] files1= IOUtils.listRecursiveFiles(new File(wheatInputDir));
-        int[] d=WheatLineage.dLineage();
+        int[] d=WheatLineage.dlineage();
         List<Integer> l= Arrays.stream(d).boxed().collect(Collectors.toList());
         Predicate<File> dPredicate= e-> l.contains(StringTool.getNumFromString(e.getName()));
         File[] files2=IOUtils.listRecursiveFiles(new File(outgroupInputDir));

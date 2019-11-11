@@ -186,8 +186,8 @@ public class AnchorsVCFForLDPlot {
                     if (index2<0){
                         index2=-index2-1;
                     }
-                    bw= IOUtils.getTextWriter(new File(anchorsOutDir, chr+"."+anchor.getStart()+"_"+
-                            anchor.getEnd()+".txt").getAbsolutePath());
+                    bw= IOUtils.getTextWriter(new File(anchorsOutDir, "chr"+chr+"."+anchor.getStart()+"_"+
+                            anchor.getEnd()+".vcf").getAbsolutePath());
                     long size=0;
                     rac.seek(0);
                     while ((lin=rac.readLine()).startsWith("##")){
