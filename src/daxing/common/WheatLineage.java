@@ -59,7 +59,7 @@ public enum WheatLineage {
      *
      * @return 5,6,11,12, ...
      */
-    public static int[]  dLineage(){
+    public static int[]  dlineage(){
         return WheatLineage.getWheatLineageOf(WheatLineage.D);
     }
 
@@ -72,6 +72,14 @@ public enum WheatLineage {
         List<String> b=WheatLineage.wheatLineageOf(WheatLineage.B);
         a.addAll(b);
         return a.stream().sorted().collect(Collectors.toList());
+    }
+
+    /**
+     *
+     * @return 1D, 2D, 3D, ...
+     */
+    public static List<String> dLineage(){
+        return WheatLineage.wheatLineageOf(WheatLineage.D);
     }
 
     /**
