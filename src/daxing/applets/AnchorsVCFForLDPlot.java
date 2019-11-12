@@ -233,8 +233,9 @@ public class AnchorsVCFForLDPlot {
 
 
 //    public static void main(String[] args) {
-//        AnchorsVCFForLDPlot.getAnchorPoint(args[0], Integer.parseInt(args[1]), args[2]);
-//        AnchorsVCFForLDPlot.getChrPosMaf(args[0], args[1]);
+//        AnchorsVCFForLDPlot.getAnchorPoint(args[0], args[1], Integer.parseInt(args[2]), args[3]);
+//        AnchorsVCFForLDPlot.getChrPosLen(args[0], args[1]);
+//        AnchorsVCFForLDPlot.getAnchors(args[0], args[1], args[2], args[3], Double.parseDouble(args[4]), Integer.parseInt(args[5]));
 //    }
 
 }
