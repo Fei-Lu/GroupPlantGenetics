@@ -214,8 +214,8 @@ public class AnchorsVCFForLDPlot {
                     }
                     bw.flush();
                     bw.close();
-                    System.out.println("anchor "+anchorNumber+" completed in "+Benchmark.getTimeSpanMinutes(start2)+
-                            " mintes");
+                    System.out.println("anchor "+anchorNumber+" completed in "+Benchmark.getTimeSpanMilliseconds(start2)+
+                            " ms");
                 }
                 System.out.println("chr"+chr+" complicated in "+Benchmark.getTimeSpanMinutes(start)+" minutes");
             }catch (Exception ex){
