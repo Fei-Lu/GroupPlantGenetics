@@ -181,7 +181,7 @@ public class VCF {
     }
 
     /**
-     * only support chr001 --- chr042, suitable for large VCF file
+     * only support even, between chr001 and chr042, suitable for large VCF file
      * @param inputVcfDir
      * @param outDir
      * @param chrConvertionRule
