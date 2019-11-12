@@ -159,12 +159,10 @@ public class AnchorsVCFForLDPlot {
                             List<String> temp;
                             Set<String> chrs=new HashSet<>();
                             TIntArrayList posList=new TIntArrayList();
-                            TIntArrayList lenList=new TIntArrayList();
                             while ((line=br2.readLine())!=null){
                                 temp=PStringUtils.fastSplit(line);
                                 chrs.add(temp.get(0));
                                 posList.add(Integer.parseInt(temp.get(1)));
-                                lenList.add(Integer.parseInt(temp.get(2)));
                             }
                             br2.close();
                             if (chrs.size()>1){
