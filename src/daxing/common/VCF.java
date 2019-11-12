@@ -386,7 +386,7 @@ public class VCF {
      * @param vcfFile
      * @param outFile
      */
-    public static void recode(String vcfFile, String outFile){
+    public static void recode(File vcfFile, File outFile){
         int[] integers= IntStream.range(1,8).toArray();
         String[] abd={"A","B","D"};
         Map<String, Integer> chrIDmap=new HashMap<>();
@@ -397,8 +397,8 @@ public class VCF {
                 chrIDmap.put(integers[i]+abd[j], count);
             }
         }
-        try (BufferedReader br = IOUtils.getTextReader(vcfFile);
-             BufferedWriter bw=IOUtils.getTextWriter(outFile)) {
+        try (BufferedReader br = IOUtils.getTextReader(vcfFile.getAbsolutePath());
+             BufferedWriter bw=IOUtils.getTextWriter(outFile.getAbsolutePath())) {
             String line;
             while ((line=br.readLine()).startsWith("##")){
                 bw.write(line);
@@ -419,6 +419,32 @@ public class VCF {
             }
         }catch (Exception e){
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * parallel
+     * @param vcfDir
+     * @param outDir
+     * @param numThreads
+     */
+    public static void recode(String vcfDir, String outDir, int numThreads){
+        File[] files=IOUtils.listRecursiveFiles(new File(vcfDir));
+        Predicate<File> p=File::isHidden;
+        File[] f1=Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
+        String[] outNames= Arrays.stream(f1).map(File::getName).map(str->str.replaceAll("vcf$", "recoded.vcf"))
+                .toArray(String[]::new);
+        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(f1.length, numThreads);
+        for (int i = 0; i < indices.length; i++) {
+            Integer[] subLibIndices = new Integer[indices[i][1]-indices[i][0]];
+            for (int j = 0; j < subLibIndices.length; j++) {
+                subLibIndices[j] = indices[i][0]+j;
+            }
+            List<Integer> integerList=Arrays.asList(subLibIndices);
+            integerList.parallelStream()
+                    .forEach(index-> {
+                        VCF.recode(f1[index], new File(outDir, outNames[index]));
+                    });
         }
     }
 
