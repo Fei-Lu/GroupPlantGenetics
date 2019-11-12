@@ -202,7 +202,7 @@ public class AnchorsVCFForLDPlot {
                         if (linePointer < startIndex || linePointer > endIndex) continue;
                         te= StringUtils.split(lin, "\t;=");
                         if (Double.parseDouble(te[20])<0.05) continue;
-//                        if (Math.random()>rate) continue;
+                        if (Math.random()>rate) continue;
                         bw.write(lin);
                         bw.newLine();
                     }
