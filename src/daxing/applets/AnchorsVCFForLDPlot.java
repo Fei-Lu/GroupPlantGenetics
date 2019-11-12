@@ -1,7 +1,6 @@
 package daxing.applets;
 
 import daxing.common.ArrayTool;
-import daxing.common.RandomAccessFileTool;
 import daxing.common.WheatLineage;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.lang3.StringUtils;
@@ -127,11 +126,11 @@ public class AnchorsVCFForLDPlot {
         }
     }
 
-    public static void getAnchors(String anchorPointDir, String chrPosMafDir, String vcfDir, String anchorsOutDir,
+    public static void getAnchors(String anchorPointDir, String chrPosLenDir, String vcfDir, String anchorsOutDir,
                                   double rate){
         long start1=System.nanoTime();
         File[] files1=IOUtils.listRecursiveFiles(new File(anchorPointDir));
-        File[] files2=IOUtils.listRecursiveFiles(new File(chrPosMafDir));
+        File[] files2=IOUtils.listRecursiveFiles(new File(chrPosLenDir));
         File[] files3=IOUtils.listRecursiveFiles(new File(vcfDir));
         Predicate<File> p=File::isHidden;
         File[] f1=Arrays.stream(files1).filter(p.negate()).toArray(File[]::new);
@@ -141,8 +140,8 @@ public class AnchorsVCFForLDPlot {
         for (int i = 0; i < f1.length; i++) {
             long start=System.nanoTime();
             try (BufferedReader br1 = IOUtils.getTextReader(f1[i].getAbsolutePath());
-                 BufferedReader br2 = IOUtils.getTextReader(f2[i].getAbsolutePath());
-                 RandomAccessFile rac=new RandomAccessFile(f3[i].getAbsoluteFile(), "r")) {
+                 BufferedReader br2 = IOUtils.getTextReader(f2[i].getAbsolutePath())) {
+                BufferedReader br3;
                 br1.readLine();
                 br2.readLine();
                 String line;
@@ -165,8 +164,8 @@ public class AnchorsVCFForLDPlot {
                 int pos;
                 int index1=Integer.MIN_VALUE;
                 int index2=Integer.MIN_VALUE;
-                long pointer1=Integer.MIN_VALUE;
-                long pointer2=Integer.MIN_VALUE;
+                int startIndex=Integer.MIN_VALUE;
+                int endIndex=Integer.MIN_VALUE;
                 BufferedWriter bw;
                 int anchorNumber=0;
                 while ((line=br1.readLine())!=null){
@@ -181,37 +180,33 @@ public class AnchorsVCFForLDPlot {
                     index1=posList.binarySearch(anchor.getStart());
                     index2=posList.binarySearch(anchor.getEnd());
                     if (index1<0){
-                        index1=-index1-1;
+                        startIndex=-index1-1;
                     }
                     if (index2<0){
-                        index2=-index2-1;
+                        endIndex=-index2-2;
                     }
                     bw= IOUtils.getTextWriter(new File(anchorsOutDir, "chr"+chr+"."+anchor.getStart()+"_"+
                             anchor.getEnd()+".vcf").getAbsolutePath());
-                    long size=0;
-                    rac.seek(0);
-                    while ((lin=rac.readLine()).startsWith("##")){
+                    br3=IOUtils.getTextReader(f3[i].getAbsolutePath());
+                    while ((lin=br3.readLine()).startsWith("##")){
                         bw.write(lin);
                         bw.newLine();
-                        size+=lin.length()+1;
                     }
                     bw.write(lin);
                     bw.newLine();
-                    size=size+lin.length()+1;
-                    pointer1= RandomAccessFileTool.getPointer(lenList, index1);
-                    pointer2=RandomAccessFileTool.getPointer(lenList, index2);
-                    pointer1=pointer1+size;
-                    pointer2=pointer2+size;
-                    rac.seek(pointer1);
                     String[] te;
                     long start2=System.nanoTime();
-                    while ((lin=rac.readLine())!=null && rac.getFilePointer()<pointer2){
+                    int linePointer=-1;
+                    while ((lin=br3.readLine())!=null){
+                        linePointer++;
+                        if (linePointer < startIndex || linePointer > endIndex) continue;
                         te= StringUtils.split(lin, "\t;=");
                         if (Double.parseDouble(te[20])<0.05) continue;
-                        if (Math.random()>rate) continue;
+//                        if (Math.random()>rate) continue;
                         bw.write(lin);
                         bw.newLine();
                     }
+                    br3.close();
                     bw.flush();
                     bw.close();
                     System.out.println("anchor "+anchorNumber+" completed in "+Benchmark.getTimeSpanMilliseconds(start2)+
