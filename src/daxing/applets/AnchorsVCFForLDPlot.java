@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class AnchorsVCFForLDPlot {
 
@@ -177,6 +178,7 @@ public class AnchorsVCFForLDPlot {
                             int endIndex=Integer.MIN_VALUE;
                             BufferedWriter bw;
                             int anchorNumber=0;
+                            List<String> vcfLines;
                             while ((line=br1.readLine())!=null){
                                 anchorNumber++;
                                 temp=PStringUtils.fastSplit(line);
@@ -204,16 +206,12 @@ public class AnchorsVCFForLDPlot {
                                 }
                                 bw.write(lin);
                                 bw.newLine();
-                                String[] te;
                                 long start2=System.nanoTime();
-                                int linePointer=-1;
-                                while ((lin=br3.readLine())!=null){
-                                    linePointer++;
-                                    if (linePointer < startIndex || linePointer > endIndex) continue;
-                                    te= StringUtils.split(lin, "\t;=");
-                                    if (Double.parseDouble(te[20])<0.05) continue;
-                                    if (Math.random()>rate) continue;
-                                    bw.write(lin);
+                                Predicate<String> pre=str->Double.parseDouble(StringUtils.split(str, "\t;=")[20])<0.05;
+                                Predicate<String> predicate=pre.negate().and(str->Math.random()<rate);
+                                vcfLines= br3.lines().skip(startIndex).limit(endIndex-startIndex).filter(predicate).collect(Collectors.toList());
+                                for (int j = 0; j < vcfLines.size(); j++) {
+                                    bw.write(vcfLines.get(j));
                                     bw.newLine();
                                 }
                                 br3.close();
