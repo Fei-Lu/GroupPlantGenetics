@@ -6,9 +6,13 @@ import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.lang3.StringUtils;
 import utils.Benchmark;
 import utils.IOUtils;
+import utils.PArrayUtils;
 import utils.PStringUtils;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -127,7 +131,7 @@ public class AnchorsVCFForLDPlot {
     }
 
     public static void getAnchors(String anchorPointDir, String chrPosLenDir, String vcfDir, String anchorsOutDir,
-                                  double rate){
+                                  double rate, int numThread){
         long start1=System.nanoTime();
         File[] files1=IOUtils.listRecursiveFiles(new File(anchorPointDir));
         File[] files2=IOUtils.listRecursiveFiles(new File(chrPosLenDir));
@@ -136,88 +140,95 @@ public class AnchorsVCFForLDPlot {
         File[] f1=Arrays.stream(files1).filter(p.negate()).toArray(File[]::new);
         File[] f2=Arrays.stream(files2).filter(p.negate()).toArray(File[]::new);
         File[] f3=Arrays.stream(files3).filter(p.negate()).toArray(File[]::new);
-        String lin=null;
-        for (int i = 0; i < f1.length; i++) {
-            long start=System.nanoTime();
-            try (BufferedReader br1 = IOUtils.getTextReader(f1[i].getAbsolutePath());
-                 BufferedReader br2 = IOUtils.getTextReader(f2[i].getAbsolutePath())) {
-                BufferedReader br3;
-                br1.readLine();
-                br2.readLine();
-                String line;
-                List<String> temp;
-                Set<String> chrs=new HashSet<>();
-                TIntArrayList posList=new TIntArrayList();
-                TIntArrayList lenList=new TIntArrayList();
-                while ((line=br2.readLine())!=null){
-                    temp=PStringUtils.fastSplit(line);
-                    chrs.add(temp.get(0));
-                    posList.add(Integer.parseInt(temp.get(1)));
-                    lenList.add(Integer.parseInt(temp.get(2)));
-                }
-                br2.close();
-                if (chrs.size()>1){
-                    System.out.println("check your "+f2[i].getName());
-                    System.exit(1);
-                }
-                String chr=null;
-                int pos;
-                int index1=Integer.MIN_VALUE;
-                int index2=Integer.MIN_VALUE;
-                int startIndex=Integer.MIN_VALUE;
-                int endIndex=Integer.MIN_VALUE;
-                BufferedWriter bw;
-                int anchorNumber=0;
-                while ((line=br1.readLine())!=null){
-                    anchorNumber++;
-                    temp=PStringUtils.fastSplit(line);
-                    chr=temp.get(0);
-                    if (!chr.equals(chrs.iterator().next())){
-                        System.out.println("check your "+f1[i].getName()+" and "+ f2[i].getName());
-                    }
-                    pos=Integer.parseInt(temp.get(1));
-                    Anchor anchor=new Anchor(chr, pos);
-                    index1=posList.binarySearch(anchor.getStart());
-                    index2=posList.binarySearch(anchor.getEnd());
-                    if (index1<0){
-                        startIndex=-index1-1;
-                    }
-                    if (index2<0){
-                        endIndex=-index2-2;
-                    }
-                    bw= IOUtils.getTextWriter(new File(anchorsOutDir, "chr"+chr+"."+anchor.getStart()+"_"+
-                            anchor.getEnd()+".vcf").getAbsolutePath());
-                    br3=IOUtils.getTextReader(f3[i].getAbsolutePath());
-                    while ((lin=br3.readLine()).startsWith("##")){
-                        bw.write(lin);
-                        bw.newLine();
-                    }
-                    bw.write(lin);
-                    bw.newLine();
-                    String[] te;
-                    long start2=System.nanoTime();
-                    int linePointer=-1;
-                    while ((lin=br3.readLine())!=null){
-                        linePointer++;
-                        if (linePointer < startIndex || linePointer > endIndex) continue;
-                        te= StringUtils.split(lin, "\t;=");
-                        if (Double.parseDouble(te[20])<0.05) continue;
-                        if (Math.random()>rate) continue;
-                        bw.write(lin);
-                        bw.newLine();
-                    }
-                    br3.close();
-                    bw.flush();
-                    bw.close();
-                    System.out.println("anchor "+anchorNumber+" completed in "+Benchmark.getTimeSpanMilliseconds(start2)+
-                            " ms");
-                }
-                System.out.println("chr"+chr+" complicated in "+Benchmark.getTimeSpanMinutes(start)+" minutes");
-            }catch (Exception ex){
-                System.out.println(lin);
-                ex.printStackTrace();
+        int[][] indices= PArrayUtils.getSubsetsIndicesBySubsetSize(f1.length, numThread);
+        for (int i = 0; i < indices.length; i++) {
+            Integer[] subLibIndices = new Integer[indices[i][1]-indices[i][0]];
+            for (int j = 0; j < subLibIndices.length; j++) {
+                subLibIndices[j] = indices[i][0]+j;
             }
-
+            List<Integer> integerList=Arrays.asList(subLibIndices);
+            integerList.parallelStream()
+                    .forEach(index-> {
+                        long start=System.nanoTime();
+                        try (BufferedReader br1 = IOUtils.getTextReader(f1[index].getAbsolutePath());
+                             BufferedReader br2 = IOUtils.getTextReader(f2[index].getAbsolutePath())) {
+                            BufferedReader br3;
+                            br1.readLine();
+                            br2.readLine();
+                            String line;
+                            List<String> temp;
+                            Set<String> chrs=new HashSet<>();
+                            TIntArrayList posList=new TIntArrayList();
+                            TIntArrayList lenList=new TIntArrayList();
+                            while ((line=br2.readLine())!=null){
+                                temp=PStringUtils.fastSplit(line);
+                                chrs.add(temp.get(0));
+                                posList.add(Integer.parseInt(temp.get(1)));
+                                lenList.add(Integer.parseInt(temp.get(2)));
+                            }
+                            br2.close();
+                            if (chrs.size()>1){
+                                System.out.println("check your "+f2[index].getName());
+                                System.exit(1);
+                            }
+                            String chr=null;
+                            int pos;
+                            int index1=Integer.MIN_VALUE;
+                            int index2=Integer.MIN_VALUE;
+                            int startIndex=Integer.MIN_VALUE;
+                            int endIndex=Integer.MIN_VALUE;
+                            BufferedWriter bw;
+                            int anchorNumber=0;
+                            while ((line=br1.readLine())!=null){
+                                anchorNumber++;
+                                temp=PStringUtils.fastSplit(line);
+                                chr=temp.get(0);
+                                if (!chr.equals(chrs.iterator().next())){
+                                    System.out.println("check your "+f1[index].getName()+" and "+ f2[index].getName());
+                                }
+                                pos=Integer.parseInt(temp.get(1));
+                                Anchor anchor=new Anchor(chr, pos);
+                                index1=posList.binarySearch(anchor.getStart());
+                                index2=posList.binarySearch(anchor.getEnd());
+                                if (index1<0){
+                                    startIndex=-index1-1;
+                                }
+                                if (index2<0){
+                                    endIndex=-index2-2;
+                                }
+                                bw= IOUtils.getTextWriter(new File(anchorsOutDir, "chr"+chr+"."+anchor.getStart()+"_"+
+                                        anchor.getEnd()+".vcf").getAbsolutePath());
+                                br3=IOUtils.getTextReader(f3[index].getAbsolutePath());
+                                String lin=null;
+                                while ((lin=br3.readLine()).startsWith("##")){
+                                    bw.write(lin);
+                                    bw.newLine();
+                                }
+                                bw.write(lin);
+                                bw.newLine();
+                                String[] te;
+                                long start2=System.nanoTime();
+                                int linePointer=-1;
+                                while ((lin=br3.readLine())!=null){
+                                    linePointer++;
+                                    if (linePointer < startIndex || linePointer > endIndex) continue;
+                                    te= StringUtils.split(lin, "\t;=");
+                                    if (Double.parseDouble(te[20])<0.05) continue;
+                                    if (Math.random()>rate) continue;
+                                    bw.write(lin);
+                                    bw.newLine();
+                                }
+                                br3.close();
+                                bw.flush();
+                                bw.close();
+                                System.out.println("chr"+chr+" anchor "+anchorNumber+" completed in "+Benchmark.getTimeSpanSeconds(start2)+
+                                        " s");
+                            }
+                            System.out.println("chr"+chr+" complicated in "+Benchmark.getTimeSpanMinutes(start)+" minutes");
+                        }catch (Exception ex){
+                            ex.printStackTrace();
+                        }
+                    });
         }
         System.out.println("complicated in "+Benchmark.getTimeSpanHours(start1)+" hours");
     }
