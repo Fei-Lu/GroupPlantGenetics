@@ -29,45 +29,6 @@ import java.util.stream.IntStream;
 
 public class ScriptMethods {
 
-    /**
-     * lastz /data1/home/daxing/reference/triticum_aestivum/bychr/chr005.fa /data1/home/daxing/reference/triticum_urartu/bychr/chr1A.fa --notransition --step=20  --nogapped --ambiguous=iupac --format=maf > /data1/home/daxing/ancestralAllele/MAF/ta_tu/wheatTauschii/Ta_chr005_vs_Au_chr1A.maf 2>/data1/home/daxing/ancestralAllele/MAF/ta_tu/wheatTauschiiLog/Ta_chr005_vs_Au_chr1ALog.txt &
-     *
-     * @param wheatInputDir
-     * @param outgroupInputDir
-     * @param outMAFDir
-     * @param outSH
-     */
-    public static void getLastz(String wheatInputDir, String outgroupInputDir, String outMAFDir, String logFileDir, String outSH){
-        File[] files1= IOUtils.listRecursiveFiles(new File(wheatInputDir));
-        int[] d=WheatLineage.dlineage();
-        List<Integer> l= Arrays.stream(d).boxed().collect(Collectors.toList());
-        Predicate<File> dPredicate= e-> l.contains(StringTool.getNumFromString(e.getName()));
-        File[] files2=IOUtils.listRecursiveFiles(new File(outgroupInputDir));
-        Predicate<File> p= e->e.getName().endsWith("fa");
-        File[] f1= Arrays.stream(files1).filter(p).filter(dPredicate).toArray(File[]::new);
-        File[] f2=Arrays.stream(files2).filter(p).toArray(File[]::new);
-        try(BufferedWriter bw=IOUtils.getTextWriter(outSH)){
-            StringBuilder sb;
-            sb=new StringBuilder();
-            for (int i = 0; i < f1.length; i++) {
-                for (int j = 0; j < f2.length; j++) {
-                    sb.append("lastz ").append(f1[i].getAbsolutePath()).append(" ").append(f2[j].getAbsolutePath())
-                            .append(" --notransition --step=20  --nogapped --ambiguous=iupac --format=maf > ")
-                            .append(outMAFDir).append("/Ta_").append(f1[i].getName(), 0, 6).append("_vs_Au_")
-                            .append(f2[j].getName(), 0, 5).append(".maf 2>").append(logFileDir+"/Ta_")
-                            .append(f1[i].getName(), 0, 6).append("_vs_Au_").append(f2[j].getName(), 0, 5)
-                            .append("Log.txt &");
-                    bw.write(sb.toString());
-                    bw.newLine();
-                    sb=new StringBuilder();
-                }
-            }
-            bw.flush();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
     public static void getTopRows(File inputFile, int n, File outputFile){
         try{
             long start=System.nanoTime();

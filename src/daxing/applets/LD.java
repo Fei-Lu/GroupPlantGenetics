@@ -1,15 +1,20 @@
 package daxing.applets;
 
+import daxing.common.RowTableTool;
 import gnu.trove.list.array.TDoubleArrayList;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.math3.util.CombinatoricsUtils;
+import utils.IOFileFormat;
 import utils.IOUtils;
+import utils.PArrayUtils;
 import utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 
@@ -24,18 +29,18 @@ public class LD {
     List<TDoubleArrayList> matrix;
     List<SNP> header;
 
-    public LD(String ldMatrixFile, String bimFile){
+    public LD(File ldMatrixFile, File bimFile){
         List<TDoubleArrayList> matrix=new ArrayList<>();
         List<SNP> snpList=new ArrayList<>();
         int i=0;
-        try (BufferedReader br1 = IOUtils.getTextReader(ldMatrixFile);
-             BufferedReader br2=IOUtils.getTextReader(bimFile)) {
+        try (BufferedReader br1 = IOUtils.getTextReader(ldMatrixFile.getAbsolutePath());
+             BufferedReader br2=IOUtils.getTextReader(bimFile.getAbsolutePath())) {
             String line;
             String[] temp;
             TDoubleArrayList t;
             SNP snp;
             while ((line=br1.readLine())!=null){
-                temp= StringUtils.split(line, " ");
+                temp= StringUtils.split(line, "\t");
                 t=new TDoubleArrayList();
                 for (i = 0; i < temp.length; i++) {
                     if (temp[i].equals("nan")){
@@ -67,6 +72,9 @@ public class LD {
      * @return double or -1d if nan exist
      */
     public double getR2(int snpIndex1, int snpIndex2){
+        if (snpIndex2>snpIndex1){
+            return this.matrix.get(snpIndex2).get(snpIndex1);
+        }
         return this.matrix.get(snpIndex1).get(snpIndex2);
     }
 
@@ -138,6 +146,39 @@ public class LD {
         }
     }
 
+    /**
+     * 过滤r2为-1(NaN)的值
+     * @param physicalDistanceR2File
+     */
+    public void  writePhysicalDistanceR2ForLDDecay(String physicalDistanceR2File, double rate){
+        try (BufferedWriter bw = IOUtils.getTextWriter(physicalDistanceR2File)) {
+            bw.write("Distance\tr2\n");
+//            bw.write("SNP1\tSNP2\tDistance\tr2\n");
+            Iterator<int[]> iterator = CombinatoricsUtils.combinationsIterator(header.size(), 2);
+            int[] combinationIndex;
+            StringBuilder sb;
+            int cnt=0;
+            while (iterator.hasNext()) {
+                combinationIndex = iterator.next();
+                if (this.getR2(combinationIndex[0], combinationIndex[1])<0) {
+                    cnt++;
+                    continue;
+                }
+                if (Math.random()>rate) continue;
+                sb=new StringBuilder();
+//                sb.append(this.getSNP(combinationIndex[0]).toString()).append("\t");
+//                sb.append(this.getSNP(combinationIndex[1]).toString()).append("\t");
+                sb.append(this.caculateDistanceBetweenSNPs(combinationIndex[0], combinationIndex[1])).append("\t");
+                sb.append(this.getR2(combinationIndex[0], combinationIndex[1]));
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            System.out.println(new File(physicalDistanceR2File).getName()+" r2 < 0: "+cnt);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
     public static void getDistanceLessThan(int distanceThresh, double r2Thresh, String inputDistanceR2File,
                                            String outFile){
         try (BufferedReader br = IOUtils.getTextReader(inputDistanceR2File);
@@ -203,7 +244,6 @@ public class LD {
             StringBuilder sb;
             double sumOfR2=0;
             int count=0;
-            int cnt=0;
             for (int j = 0; j < indexS.length; j++) {
                 countInBoundary=indexL[j]-indexS[j];
                 if (countInBoundary<1){
@@ -220,7 +260,6 @@ public class LD {
                 bw.write(sb.toString());
                 sumOfR2=0;
             }
-            System.out.println(cnt+" r2 great than 100000000 ");
             if(count==0){
                 System.out.println(count+" window count were 0");
             }else {
@@ -230,6 +269,58 @@ public class LD {
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    public static void getDistaceR2(String ld_bimDir, String distanceR2OutDir, int numThreads, double rate){
+        File[] files=new File(ld_bimDir).listFiles();
+        File[] ldFiles=IOUtils.listFilesEndsWith(files, "ld");
+        File[] bimFiles=IOUtils.listFilesEndsWith(files, "bim");
+        Predicate<File> p=File::isHidden;
+        File[] lds=Arrays.stream(ldFiles).filter(p.negate()).sorted().toArray(File[]::new);
+        File[] bims=Arrays.stream(bimFiles).filter(p.negate()).sorted().toArray(File[]::new);
+        String[] outNames= Arrays.stream(lds).map(File::getName).map(str->str.replaceAll("ld$", "distance_r2.txt"))
+                .toArray(String[]::new);
+        files=null;
+        ldFiles=null;
+        bimFiles=null;
+        int[][] indices= PArrayUtils.getSubsetsIndicesBySubsetSize(lds.length, numThreads);
+        for (int i = 0; i < indices.length; i++) {
+            Integer[] subLibIndices = new Integer[indices[i][1]-indices[i][0]];
+            for (int j = 0; j < subLibIndices.length; j++) {
+                subLibIndices[j] = indices[i][0]+j;
+            }
+            List<Integer> integerList=Arrays.asList(subLibIndices);
+            integerList.parallelStream()
+                    .forEach(index-> {
+                        LD ld=new LD(lds[index], bims[index]);
+                        ld.writePhysicalDistanceR2ForLDDecay(new File(distanceR2OutDir, outNames[index]).getAbsolutePath(), rate);
+                    });
+        }
+        File[] distanceR2Files=IOUtils.listRecursiveFiles(new File(distanceR2OutDir));
+        BufferedReader br;
+        BufferedWriter bw=IOUtils.getTextWriter(new File(distanceR2OutDir, "chrAll.distaceR2.txt").getAbsolutePath());
+        try {
+            String line;
+            bw.write("Distance\tr2\n");
+            for (int i = 0; i < distanceR2Files.length; i++) {
+                br=IOUtils.getTextReader(distanceR2Files[i].getAbsolutePath());
+                br.readLine();
+                while ((line=br.readLine())!=null){
+                    bw.write(line);
+                    bw.newLine();
+                }
+                br.close();
+                distanceR2Files[i].delete();
+            }
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        RowTableTool rowTableTool= new RowTableTool(new File(distanceR2OutDir, "chrAll.distaceR2.txt").getAbsolutePath());
+        Comparator<List<String>> c=Comparator.comparing(l->Integer.parseInt(l.get(0)));
+        rowTableTool.sortBy(c);
+        rowTableTool.writeTextTable(new File(distanceR2OutDir, "chrAll.distaceR2.txt").getAbsolutePath(), IOFileFormat.Text);
     }
 
     private class SNP {
@@ -273,7 +364,7 @@ public class LD {
     }
 
 //    public static void main(String[] args) {
-//        LD ld=new LD(args[0], args[1]);
+//        LD ld=new LD(new File(args[0]), new File(args[1]));
 //        ld.writePhysicalDistanceR2ForLDDecay(args[3], Integer.parseInt(args[4]));
 //        Comparator<List<String>> c=Comparator.comparing(l->Integer.parseInt(l.get(0)));
 //        RowTableTool<String> rowTable=new RowTableTool<>(args[3]);
