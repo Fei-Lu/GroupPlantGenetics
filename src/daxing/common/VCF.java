@@ -429,6 +429,7 @@ public class VCF {
      * @param numThreads
      */
     public static void recode(String vcfDir, String outDir, int numThreads){
+        long start=System.nanoTime();
         File[] files=IOUtils.listRecursiveFiles(new File(vcfDir));
         Predicate<File> p=File::isHidden;
         File[] f1=Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
@@ -443,9 +444,12 @@ public class VCF {
             List<Integer> integerList=Arrays.asList(subLibIndices);
             integerList.parallelStream()
                     .forEach(index-> {
+                        long start1=System.nanoTime();
                         VCF.recode(f1[index], new File(outDir, outNames[index]));
+                        System.out.println(new File(outDir, outNames[index]).getName()+" completed in "+Benchmark.getTimeSpanMinutes(start1)+" minutes");
                     });
         }
+        System.out.println("completed in "+Benchmark.getTimeSpanHours(start)+" hours");
     }
 
     /**
