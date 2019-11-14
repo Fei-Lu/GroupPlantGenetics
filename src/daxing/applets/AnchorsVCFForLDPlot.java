@@ -13,10 +13,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -218,7 +215,7 @@ public class AnchorsVCFForLDPlot {
                                 bw.flush();
                                 bw.close();
                                 System.out.println("chr"+chr+" anchor "+anchorNumber+" completed in "+Benchmark.getTimeSpanSeconds(start2)+
-                                        " s");
+                                        " s, only "+rate+" were retained");
                             }
                             System.out.println("chr"+chr+" complicated in "+Benchmark.getTimeSpanMinutes(start)+" minutes");
                         }catch (Exception ex){
