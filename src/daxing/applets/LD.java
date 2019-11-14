@@ -1,5 +1,6 @@
 package daxing.applets;
 
+import daxing.common.NumberTool;
 import daxing.common.RowTableTool;
 import gnu.trove.list.array.TDoubleArrayList;
 import org.apache.commons.lang.StringUtils;
@@ -26,11 +27,11 @@ import java.util.stream.IntStream;
  */
 public class LD {
 
-    List<TDoubleArrayList> matrix;
+    List<TDoubleArrayList> triangle;
     List<SNP> header;
 
     public LD(File ldMatrixFile, File bimFile){
-        List<TDoubleArrayList> matrix=new ArrayList<>();
+        List<TDoubleArrayList> triangle=new ArrayList<>();
         List<SNP> snpList=new ArrayList<>();
         int i=0;
         try (BufferedReader br1 = IOUtils.getTextReader(ldMatrixFile.getAbsolutePath());
@@ -50,14 +51,14 @@ public class LD {
                     }
 
                 }
-                matrix.add(t);
+                triangle.add(t);
             }
            while ((line=br2.readLine())!=null){
                temp= StringUtils.split(line, "\t");
                snp=new SNP(Integer.parseInt(temp[0]), Integer.parseInt(temp[3]));
                snpList.add(snp);
            }
-           this.matrix=matrix;
+           this.triangle=triangle;
            this.header=snpList;
         }catch (Exception e){
             System.out.println(i);
@@ -73,9 +74,9 @@ public class LD {
      */
     public double getR2(int snpIndex1, int snpIndex2){
         if (snpIndex2>snpIndex1){
-            return this.matrix.get(snpIndex2).get(snpIndex1);
+            return this.triangle.get(snpIndex2).get(snpIndex1);
         }
-        return this.matrix.get(snpIndex1).get(snpIndex2);
+        return this.triangle.get(snpIndex1).get(snpIndex2);
     }
 
     public SNP getSNP(int snpIndex){
@@ -147,33 +148,34 @@ public class LD {
     }
 
     /**
-     * 过滤r2为-1(NaN)的值
+     * 过滤r2为-1(NaN)的值, 且抽取rate
      * @param physicalDistanceR2File
      */
     public void  writePhysicalDistanceR2ForLDDecay(String physicalDistanceR2File, double rate){
         try (BufferedWriter bw = IOUtils.getTextWriter(physicalDistanceR2File)) {
             bw.write("Distance\tr2\n");
-//            bw.write("SNP1\tSNP2\tDistance\tr2\n");
-            Iterator<int[]> iterator = CombinatoricsUtils.combinationsIterator(header.size(), 2);
-            int[] combinationIndex;
+            List<TDoubleArrayList> triangle=this.triangle;
+            double cnt=0;
+            int total=0;
             StringBuilder sb;
-            int cnt=0;
-            while (iterator.hasNext()) {
-                combinationIndex = iterator.next();
-                if (this.getR2(combinationIndex[0], combinationIndex[1])<0) {
-                    cnt++;
-                    continue;
+            for (int i = 0; i < triangle.size(); i++) {
+                for (int j = 0; j < triangle.get(i).size(); j++) {
+                    if (i==j) continue;
+                    total++;
+                    if (this.getR2(i, j)<0){
+                        cnt++;
+                        continue;
+                    }
+                    if (Math.random()>rate) continue;
+                    sb=new StringBuilder();
+                    sb.append(this.caculateDistanceBetweenSNPs(i, j)).append("\t");
+                    sb.append(this.getR2(i, j));
+                    bw.write(sb.toString());
+                    bw.newLine();
                 }
-                if (Math.random()>rate) continue;
-                sb=new StringBuilder();
-//                sb.append(this.getSNP(combinationIndex[0]).toString()).append("\t");
-//                sb.append(this.getSNP(combinationIndex[1]).toString()).append("\t");
-                sb.append(this.caculateDistanceBetweenSNPs(combinationIndex[0], combinationIndex[1])).append("\t");
-                sb.append(this.getR2(combinationIndex[0], combinationIndex[1]));
-                bw.write(sb.toString());
-                bw.newLine();
             }
-            System.out.println(new File(physicalDistanceR2File).getName()+" r2 < 0: "+cnt);
+            System.out.println(new File(physicalDistanceR2File).getName()+" r2 < 0: "+ NumberTool.format(cnt/total,
+                    5)+"("+(int)cnt+", "+total+")"+ " among r2 great than 0, only "+rate+" were retained");
         }catch (Exception e){
             e.printStackTrace();
         }
