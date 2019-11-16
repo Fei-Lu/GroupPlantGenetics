@@ -312,7 +312,7 @@ public class LD {
                     bw.newLine();
                 }
                 br.close();
-                distanceR2Files[i].delete();
+//                distanceR2Files[i].delete();
             }
             bw.flush();
             bw.close();
@@ -323,6 +323,39 @@ public class LD {
         Comparator<List<String>> c=Comparator.comparing(l->Integer.parseInt(l.get(0)));
         rowTableTool.sortBy(c);
         rowTableTool.writeTextTable(new File(distanceR2OutDir, "chrAll.distaceR2.txt").getAbsolutePath(), IOFileFormat.Text);
+    }
+
+    public static void mergeDistanceR2ForGGplot(String distanceR2Dir, String[] group, String outFile){
+        File[] files=IOUtils.listRecursiveFiles(new File(distanceR2Dir));
+        Predicate<File> p=File::isHidden;
+        File[] f1=Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
+        BufferedReader br;
+        BufferedWriter bw=IOUtils.getTextWriter(outFile);
+        String line;
+        StringBuilder sb;
+        String header;
+        boolean first=true;
+        try {
+            for (int i = 0; i < f1.length; i++) {
+                br=IOUtils.getTextReader(f1[i].getAbsolutePath());
+                if (first){
+                    header=br.readLine();
+                    bw.write(header+"\tGroup\n");
+                    first=false;
+                }
+                while ((line=br.readLine())!=null){
+                    sb=new StringBuilder();
+                    sb.append(line).append("\t").append(group[i]);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+                br.close();
+            }
+            bw.flush();
+            bw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private class SNP {
