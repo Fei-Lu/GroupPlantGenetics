@@ -54,7 +54,7 @@ public class Shell {
     }
 
     /**
-     * plink --vcf chrTauschiiRecoded.vcf --chr-set 21 --make-bed --r2  triangle --out f
+     * plink --vcf chrTauschiiRecoded.vcf --chr-set 21 --make-bed --r2  triangle  --threads 1 --out f
      * @param vcfInputDir
      * @param outDir
      * @param outShellFile

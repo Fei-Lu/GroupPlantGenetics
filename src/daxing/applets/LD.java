@@ -326,9 +326,9 @@ public class LD {
     }
 
     public static void mergeDistanceR2ForGGplot(String distanceR2Dir, String[] group, String outFile){
-        File[] files=IOUtils.listRecursiveFiles(new File(distanceR2Dir));
+        File[] files=new File(distanceR2Dir).listFiles();
         Predicate<File> p=File::isHidden;
-        File[] f1=Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
+        File[] f1=Arrays.stream(files).filter(p.negate().and(File::isFile)).sorted().toArray(File[]::new);
         BufferedReader br;
         BufferedWriter bw=IOUtils.getTextWriter(outFile);
         String line;
@@ -338,8 +338,8 @@ public class LD {
         try {
             for (int i = 0; i < f1.length; i++) {
                 br=IOUtils.getTextReader(f1[i].getAbsolutePath());
+                header=br.readLine();
                 if (first){
-                    header=br.readLine();
                     bw.write(header+"\tGroup\n");
                     first=false;
                 }
