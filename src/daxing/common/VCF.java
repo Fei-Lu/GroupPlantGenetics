@@ -113,9 +113,9 @@ public class VCF {
         int[] chrIDArray=Arrays.stream(f).filter(p).map(File::getName).map(str->str.substring(3,6))
                 .mapToInt(Integer::parseInt).toArray();
         int[][] lineage=new int[3][];
-        lineage[0]=WheatLineage.getWheatLineageOf(WheatLineage.A);
-        lineage[1]=WheatLineage.getWheatLineageOf(WheatLineage.B);
-        lineage[2]=WheatLineage.getWheatLineageOf(WheatLineage.D);
+        lineage[0]=WheatLineage.valueOf("A").getChrID();
+        lineage[1]=WheatLineage.valueOf("B").getChrID();
+        lineage[2]=WheatLineage.valueOf("D").getChrID();
         TIntArrayList[] indexArray=new TIntArrayList[3];
         for (int i = 0; i < 3; i++) {
             indexArray[i]=new TIntArrayList();
