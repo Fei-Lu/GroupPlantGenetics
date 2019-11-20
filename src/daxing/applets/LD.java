@@ -2,6 +2,7 @@ package daxing.applets;
 
 import daxing.common.NumberTool;
 import daxing.common.RowTableTool;
+import daxing.common.WheatLineage;
 import gnu.trove.list.array.TDoubleArrayList;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.math3.util.CombinatoricsUtils;
@@ -356,6 +357,14 @@ public class LD {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void getSubgenomeLD(String subgenomeDir, String subgenoem, String outDir){
+        File[] files=Arrays.stream(new File(subgenomeDir).listFiles()).sorted().toArray(File[]::new);
+        Predicate<File> hidden=File::isHidden;
+        Predicate<File> subgenome=f->f.getName().substring(4,5).equals(WheatLineage.valueOf(subgenoem));
+        File[] f=Arrays.stream(files).filter(hidden.negate().and(subgenome)).toArray(File[]::new);
+        System.out.println("ok");
     }
 
     private class SNP {

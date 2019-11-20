@@ -61,14 +61,6 @@ public enum WheatLineage {
 
     /**
      *
-     * @return 5,6,11,12, ...
-     */
-    public static int[] dlineage(){
-        return WheatLineage.valueOf("D").getChrID();
-    }
-
-    /**
-     *
      * @return 1A, 1B, 2A, 2B, 3A, 3B, ...
      */
     public static List<String> abLineage(){
@@ -80,19 +72,11 @@ public enum WheatLineage {
 
     /**
      *
-     * @return 1D, 2D, 3D, ...
-     */
-    public static List<String> dLineage(){
-        return WheatLineage.valueOf("D").getChr();
-    }
-
-    /**
-     *
      * @return 1A, 1B, 1D, 2A, 2B, 2D, ...
      */
     public static List<String> abdLineage(){
         List<String> ab=WheatLineage.abLineage();
-        List<String> d=WheatLineage.dLineage();
+        List<String> d=WheatLineage.valueOf("D").getChr();
         ab.addAll(d);
         return ab.stream().sorted().collect(Collectors.toList());
     }

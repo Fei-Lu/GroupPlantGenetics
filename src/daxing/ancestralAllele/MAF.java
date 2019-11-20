@@ -46,7 +46,7 @@ public class MAF {
     }
 
     private void initialize(Path mafInputFileDir){
-        List<String> d_lineage= WheatLineage.wheatLineageOf(WheatLineage.D);
+        List<String> d_lineage= WheatLineage.valueOf("D").getChr();
         File[] files=IOUtils.listRecursiveFiles(new File(mafInputFileDir.toString()));
         Predicate<File> p=File::isHidden;
         File[] fileArray= Arrays.stream(files).filter(p.negate()).filter(e->e.getName().endsWith("maf")).toArray(File[]::new);

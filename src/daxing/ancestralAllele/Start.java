@@ -1,12 +1,14 @@
 package daxing.ancestralAllele;
 
 import daxing.common.ChrConvertionRule;
+import daxing.common.WheatLineage;
 import utils.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Start {
     private String workingDir;
@@ -93,6 +95,10 @@ public class Start {
 
     public static void main(String[] args) {
 //        new Start(args[0]);
+//        WheatLineage a=WheatLineage.valueOf("A");
+        int[] ab= WheatLineage.ablineage();
+        List<String> bb=WheatLineage.abdLineage();
+        System.out.println("ok");
     }
 
 

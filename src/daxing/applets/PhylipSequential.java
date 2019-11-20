@@ -163,7 +163,7 @@ public class PhylipSequential {
     private static void merge(String outDir){
         String out=new File(outDir).getParent();
         merge(outDir, WheatLineage.ablineage(), new File(out, "chrAB.subgenome.txt").getAbsolutePath());
-        merge(outDir, WheatLineage.dlineage(), new File(out, "chrD.subgenome.txt").getAbsolutePath());
+        merge(outDir, WheatLineage.valueOf("D").getChrID(), new File(out, "chrD.subgenome.txt").getAbsolutePath());
     }
 
 //    public static void main(String[] args) {

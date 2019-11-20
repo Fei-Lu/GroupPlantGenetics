@@ -37,7 +37,7 @@ public class AnchorsVCFForLDPlot {
             TIntArrayList chrSize=null;
             switch (poloid.toUpperCase()){
                 case "D":
-                    chrs=WheatLineage.dLineage();
+                    chrs=WheatLineage.valueOf("D").getChr();
                     chrSize=new TIntArrayList(7);
                     for (int i = 2; i < chrAllSize.size(); i=i+3) {
                         chrSize.add(chrAllSize.get(i));
