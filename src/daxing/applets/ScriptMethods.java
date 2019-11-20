@@ -673,7 +673,7 @@ public class ScriptMethods {
         File[] f1=Arrays.stream(files1).filter(p.negate()).toArray(File[]::new);
         File[] f2=Arrays.stream(files2).filter(p.negate()).toArray(File[]::new);
         String[] outName= Arrays.stream(f2).map(File::getName).map(str->str.replaceAll("SIFT", "Anc")).toArray(String[]::new);
-        int[] dIndex=WheatLineage.getWheatLineageOf(WheatLineage.D);
+        int[] dIndex=WheatLineage.dlineage();
         Arrays.stream(dIndex).forEach(e->{
             ScriptMethods.caculateAncestralAllele(f1[e-1], f2[e-1], new File(outFileDir, outName[e-1]));
         });
@@ -1020,7 +1020,7 @@ public class ScriptMethods {
 
     public static void caculateMaf(String inputChrposFileDir, String vcfFileDir, String outChrPosDafDir){
         File[] files1=IOUtils.listRecursiveFiles(new File(inputChrposFileDir));
-        int[] d_lineage=WheatLineage.getWheatLineageOf(WheatLineage.D);
+        int[] d_lineage=WheatLineage.dlineage();
         List<String> f2=VCF.getAllVcfInputPath(vcfFileDir, d_lineage);
         Predicate<File> p=File::isHidden;
         File[] f1=Arrays.stream(files1).filter(p.negate()).toArray(File[]::new);
