@@ -1,5 +1,6 @@
 package daxing.applets;
 
+import com.google.common.math.Stats;
 import daxing.common.NumberTool;
 import daxing.common.RowTableTool;
 import daxing.common.WheatLineage;
@@ -214,7 +215,7 @@ public class LD {
         try (BufferedReader br = IOUtils.getTextReader(inputDistanceR2File);
              BufferedWriter bw=IOUtils.getTextWriter(outFile)) {
             br.readLine();
-            bw.write("WindowFromTo\tWindowMiddleDistance\tCountInWindow\tWindowAverageR2");
+            bw.write("WindowFromTo\tWindowMiddleDistance\tCountInWindow\tWindowAverageR2\tSDofWindowR2");
             bw.newLine();
             double[] distancesArray;
             double[] r2Array;
@@ -248,28 +249,34 @@ public class LD {
             }
             int countInBoundary=-1;
             StringBuilder sb;
-            double sumOfR2=0;
+            List<Double> doubleList;
             int count=0;
+            Stats stats;
             for (int j = 0; j < indexS.length; j++) {
                 countInBoundary=indexL[j]-indexS[j];
                 if (countInBoundary<1){
                     count++;
                 }
                 sb=new StringBuilder();
+                doubleList=new ArrayList<>();
                 for (int i = indexS[j]; i < indexL[j]; i++) {
-                    sumOfR2+=r2Array[i];
+                    doubleList.add(r2Array[i]);
                 }
+                stats=Stats.of(doubleList);
                 sb.append((int)(boundaryS[j]+0.1)).append("_").append((int)(boundaryL[j]+0.1)).append("\t");
                 sb.append((double) windowSize/2+boundaryS[j]+0.1).append("\t");
                 sb.append(countInBoundary).append("\t");
-                sb.append(sumOfR2/countInBoundary).append("\n");
+                if (countInBoundary<1) {
+                    sb.append("NaN").append("\t").append("NaN").append("\n");
+                }else {
+                    sb.append(stats.mean()).append("\t").append(stats.populationStandardDeviation()).append("\n");
+                }
                 bw.write(sb.toString());
-                sumOfR2=0;
             }
             if(count==0){
                 System.out.println(count+" window count were 0");
             }else {
-                System.out.println(count+" windows count were 0, and its r2 will be setting NaN");
+                System.out.println(count+" windows count were 0, and its r2 and SD will be setting NaN");
             }
             bw.flush();
         }catch (Exception e){
