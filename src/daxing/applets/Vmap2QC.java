@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class Vmap2QC {
 
     public Vmap2QC(){
-//        this.assessFalesPositiveRate("vcfDir");
+        this.assessFalesPositiveRate("/data4/home/aoyue/vmap2/genotype/mergedVCF/011_VMapII");
 //        this.getMaf("vcfDir", "outFileDir");
 //        this.mergeAddRefCSFordxy("chrAB.vcf",
 //                "chrD.vcf",

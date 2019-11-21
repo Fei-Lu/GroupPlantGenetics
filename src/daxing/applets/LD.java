@@ -4,6 +4,7 @@ import daxing.common.NumberTool;
 import daxing.common.RowTableTool;
 import daxing.common.WheatLineage;
 import gnu.trove.list.array.TDoubleArrayList;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.math3.util.CombinatoricsUtils;
 import utils.IOFileFormat;
@@ -15,6 +16,8 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
@@ -326,8 +329,14 @@ public class LD {
         rowTableTool.writeTextTable(new File(distanceR2OutDir, "chrAll.distaceR2.txt").getAbsolutePath(), IOFileFormat.Text);
     }
 
-    public static void mergeDistanceR2ForGGplot(String distanceR2Dir, String[] group, String outFile){
-        File[] files=new File(distanceR2Dir).listFiles();
+    /**
+     *
+     * @param slidingWindowDistanceR2Dir slidingWindow dir
+     * @param group
+     * @param outFile
+     */
+    public static void mergeDistanceR2ForGGplot(String slidingWindowDistanceR2Dir, String[] group, String outFile){
+        File[] files=new File(slidingWindowDistanceR2Dir).listFiles();
         Predicate<File> p=File::isHidden;
         File[] f1=Arrays.stream(files).filter(p.negate().and(File::isFile)).sorted().toArray(File[]::new);
         BufferedReader br;
@@ -359,12 +368,50 @@ public class LD {
         }
     }
 
-    public static void getSubgenomeLD(String subgenomeDir, String subgenoem, String outDir){
+    public static void getSubgenomeLD(String subgenomeDir, String subgenome, double rate, String outDir){
         File[] files=Arrays.stream(new File(subgenomeDir).listFiles()).sorted().toArray(File[]::new);
-        Predicate<File> hidden=File::isHidden;
-        Predicate<File> subgenome=f->f.getName().substring(4,5).equals(WheatLineage.valueOf(subgenoem));
-        File[] f=Arrays.stream(files).filter(hidden.negate().and(subgenome)).toArray(File[]::new);
-        System.out.println("ok");
+        Predicate<File> h=File::isHidden;
+        Predicate<File> s=f->f.getName().substring(4,5).equals(WheatLineage.valueOf(subgenome).name());
+        Predicate<File> r=f->Math.random()<rate;
+        File[] f=Arrays.stream(files).filter(h.negate().and(s)).filter(r).toArray(File[]::new);
+        String[] outNames=Arrays.stream(f).map(File::getName).toArray(String[]::new);
+        try {
+            for (int i = 0; i < outNames.length; i++) {
+                Files.copy(f[i].toPath(), Paths.get(outDir, outNames[i]));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void mergeToSubgenome(String input1Dir, String inout2Dir, String mergedFile){
+        File[] files1=new File(input1Dir).listFiles();
+        File[] files2=new File(inout2Dir).listFiles();
+        File[] mergedFiles= (File[]) ArrayUtils.addAll(files1, files2);
+        BufferedReader br;
+        BufferedWriter bw;
+        try {
+            bw=IOUtils.getTextWriter(mergedFile);
+            bw.write("Distance\tR2\n");
+            String line;
+            for (int i = 0; i < mergedFiles.length; i++) {
+                br=IOUtils.getTextReader(mergedFiles[i].getAbsolutePath());
+                br.readLine();
+                while ((line=br.readLine())!=null){
+                    bw.write(line);
+                    bw.newLine();
+                }
+                br.close();
+            }
+            bw.flush();
+            bw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        RowTableTool<String> rowTable=new RowTableTool<>(mergedFile);
+        Comparator<List<String>> comparator= Comparator.comparing(l->Integer.parseInt(l.get(0)));
+        rowTable.sortBy(comparator);
+        rowTable.writeTextTable(mergedFile, IOFileFormat.Text);
     }
 
     private class SNP {
