@@ -14,7 +14,7 @@ import com.koloboke.collect.map.hash.HashIntObjMaps;
 import format.range.Range;
 import format.range.RangeValStr;
 import format.table.RowTable;
-import htsjdk.samtools.BAMFileReader;
+//import htsjdk.samtools.BAMFileReader;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;

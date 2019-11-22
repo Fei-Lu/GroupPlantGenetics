@@ -10,7 +10,7 @@ package xujun.analysis.rnaseq;
 import static com.sun.javafx.animation.TickCalculation.sub;
 import com.sun.javafx.geom.Point2D;
 import format.table.RowTable;
-import static htsjdk.samtools.util.SequenceUtil.a;
+//import static htsjdk.samtools.util.SequenceUtil.a;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
