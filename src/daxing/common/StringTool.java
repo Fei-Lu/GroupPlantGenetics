@@ -2,9 +2,13 @@ package daxing.common;
 
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.lang.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,26 +71,26 @@ public class StringTool {
         return StringUtils.countMatches(str, subStr);
     }
 
-//    /**
-//     * 解析HTNL格式的行 如"<td class="numeric" bgcolor="#00fe00"> 2,354 </td>"
-//     * @param strOfHtml
-//     * @param tag "body", "td", et al.
-//     * @return
-//     */
-//    public static List<String> parseLineInHtmlFormat(String strOfHtml, String tag){
-//        Document document= Jsoup.parse(strOfHtml);
-//        Elements elements=document.getElementsByTag(tag);
-//        return elements.eachText();
-//    }
+    /**
+     * 解析HTNL格式的行 如"<td class="numeric" bgcolor="#00fe00"> 2,354 </td>"
+     * @param strOfHtml
+     * @param tag "body", "td", et al.
+     * @return
+     */
+    public static List<String> parseLineInHtmlFormat(String strOfHtml, String tag){
+        Document document= Jsoup.parse(strOfHtml);
+        Elements elements=document.getElementsByTag(tag);
+        return elements.eachText();
+    }
 
-//    /**
-//     * 解析HTNL格式的行 如"<td class="numeric" bgcolor="#00fe00"> 2,354 </td>", 默认的tag为"body"
-//     * @param strOfHtml
-//     * @return
-//     */
-//    public static List<String> parseLineInHtmlFormat(String strOfHtml){
-//        return StringTool.parseLineInHtmlFormat(strOfHtml, "body");
-//    }
+    /**
+     * 解析HTNL格式的行 如"<td class="numeric" bgcolor="#00fe00"> 2,354 </td>", 默认的tag为"body"
+     * @param strOfHtml
+     * @return
+     */
+    public static List<String> parseLineInHtmlFormat(String strOfHtml){
+        return StringTool.parseLineInHtmlFormat(strOfHtml, "body");
+    }
 
     /**
      *
