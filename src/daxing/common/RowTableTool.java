@@ -6,7 +6,11 @@ import utils.IOUtils;
 import utils.Tuple;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 public class RowTableTool<T> extends RowTable<T> {
@@ -67,5 +71,47 @@ public class RowTableTool<T> extends RowTable<T> {
             e.printStackTrace();
         }
         return s;
+    }
+
+    /**
+     * merge multiple table into one table with a new column
+     * note: each row name of the new column is equal to table file name without file extension
+     * @param tablesInputDir
+     * @param newColumnName new column name
+     * @param outFile
+     */
+    public static void meregMultipleTable(String tablesInputDir, String newColumnName, String outFile){
+        File[] files=new File(tablesInputDir).listFiles();
+        Predicate<File> p=File::isHidden;
+        File[] f1=Arrays.stream(files).filter(p.negate().and(File::isFile)).sorted().toArray(File[]::new);
+        String[] groupNames= Arrays.stream(f1).map(File::getName).map(str->str.replaceAll("[.].+$", ""))
+                                    .toArray(String[]::new);
+        BufferedReader br;
+        BufferedWriter bw=IOUtils.getTextWriter(outFile);
+        String line;
+        StringBuilder sb;
+        String header;
+        boolean first=true;
+        try {
+            for (int i = 0; i < f1.length; i++) {
+                br=IOUtils.getTextReader(f1[i].getAbsolutePath());
+                header=br.readLine();
+                if (first){
+                    bw.write(header+"\t"+newColumnName+"\n");
+                    first=false;
+                }
+                while ((line=br.readLine())!=null){
+                    sb=new StringBuilder();
+                    sb.append(line).append("\t").append(groupNames[i]);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+                br.close();
+            }
+            bw.flush();
+            bw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

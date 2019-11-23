@@ -1,5 +1,6 @@
 package daxing.common;
 
+import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -7,7 +8,6 @@ import org.jsoup.select.Elements;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,7 +50,7 @@ public class StringTool {
      * @return index数组
      */
     public static int[] getIndexOfSubStr(String str, String subStr){
-        List<Integer> indexes =new ArrayList<>();
+        TIntArrayList indexes =new TIntArrayList();
         int index=0, wordlen=0;
         while (index!=-1){
             index=str.indexOf(subStr, index+wordlen);
@@ -59,7 +59,7 @@ public class StringTool {
             }
             wordlen=subStr.length();
         }
-        return indexes.stream().mapToInt(Integer::intValue).toArray();
+        return indexes.toArray();
     }
 
     /**
