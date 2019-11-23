@@ -1117,4 +1117,49 @@ public class ScriptMethods {
                 ScriptMethods.reaplaceDafInAnnotationDB(f1[e], f2[e], new File(replacedSubPopAnnotationDBFileDir, outNames[e])));
     }
 
+    public static void getWindow(String inFile, int[] group, String outFile){
+        TIntArrayList groupList=new TIntArrayList(group);
+        try (BufferedReader br = IOUtils.getTextReader(inFile);
+             BufferedWriter bw=IOUtils.getTextWriter(outFile)) {
+            bw.write(br.readLine());
+            bw.newLine();
+            String line;
+            List<String> temp;
+            while ((line=br.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                if (groupList.contains(Integer.parseInt(temp.get(2)))){
+                    bw.write(line);
+                    bw.newLine();
+                }
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void caculateLD(String ingputFile, int kb, String outFile){
+        try (BufferedReader br = IOUtils.getTextReader(ingputFile);
+             BufferedWriter bw=IOUtils.getTextWriter(outFile)) {
+            String line;
+            List<String> temp;
+            int distance=0;
+            TIntArrayList distanceList=new TIntArrayList();
+            TDoubleArrayList r2List=new TDoubleArrayList();
+            br.readLine();
+            while ((line=br.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                distance=Integer.parseInt(temp.get(0));
+                if (distance>45000000) continue;
+                distanceList.add(distance);
+                r2List.add(Double.parseDouble(temp.get(1)));
+            }
+            int groupNum=distanceList.get(distanceList.size()-1);
+            int[] kbs=IntStream.iterate(kb, n->n+kb).limit(groupNum).toArray();
+        }catch (Exception e){
+
+        }
+
+    }
+
 }
