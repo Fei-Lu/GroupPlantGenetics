@@ -3,7 +3,7 @@ package daxing.common;
 import format.table.RowTable;
 import org.apache.commons.lang.StringUtils;
 import utils.IOUtils;
-import utils.Tuple;
+
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
+import utils.Dyad;
 
 public class RowTableTool<T> extends RowTable<T> {
 
@@ -31,7 +32,7 @@ public class RowTableTool<T> extends RowTable<T> {
         return map;
     }
 
-    public Tuple<T[], T[]> getTuple(int columnIndexA, int columnIndexB){
+    public Dyad<T[], T[]> getDyad(int columnIndexA, int columnIndexB){
         Set<T> s=new HashSet<>(this.getColumn(columnIndexA));
         if (s.size()<this.getColumn(columnIndexA).size()){
             System.out.println(columnIndexA+" column has duplicated keys");
@@ -40,7 +41,7 @@ public class RowTableTool<T> extends RowTable<T> {
         List<T> value=this.getColumn(columnIndexB);
         T[] k= (T[]) key.toArray();
         T[] v= (T[]) value.toArray();
-        return new Tuple(k, v);
+        return new Dyad(k, v);
     }
 
     /**
