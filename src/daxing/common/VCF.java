@@ -2,6 +2,7 @@ package daxing.common;
 
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.util.CombinatoricsUtils;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import utils.Benchmark;
 import utils.IOUtils;
 import utils.PArrayUtils;
@@ -187,6 +188,7 @@ public class VCF {
      * @param chrConvertionRule
      */
     public static void fastMergeVCFtoChr(String inputVcfDir, String outDir, ChrConvertionRule chrConvertionRule){
+        long start= System.nanoTime();
         File[] files=IOUtils.listRecursiveFiles(new File(inputVcfDir));
         Predicate<File> hidden=File::isHidden;
         File[] f=Arrays.stream(files).filter(hidden.negate()).sorted().toArray(File[]::new);
@@ -236,7 +238,10 @@ public class VCF {
                 br2.close();
                 bw.flush();
                 bw.close();
+                System.out.println(new File(outDir, "chr"+outChrs.get(i/2)+".vcf").getName()+" completed in "
+                        +Benchmark.getTimeSpanMinutes(start)+" minutes");
             }
+            System.out.println(" all chromosomes completed in "+Benchmark.getTimeSpanHours(start)+" hours");
         }catch (Exception e){
             e.printStackTrace();
         }
