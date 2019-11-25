@@ -8,7 +8,9 @@ import format.position.ChrPos;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import utils.Benchmark;
+import utils.Dyad;
 import utils.IOUtils;
 import utils.PStringUtils;
 
@@ -1138,28 +1140,56 @@ public class ScriptMethods {
         }
     }
 
-    public static void caculateLD(String ingputFile, int kb, String outFile){
+    public static void caculateLD(String ingputFile, int binWidth_kb, int threshForDistance_Mb, String outFile){
         try (BufferedReader br = IOUtils.getTextReader(ingputFile);
              BufferedWriter bw=IOUtils.getTextWriter(outFile)) {
             String line;
             List<String> temp;
-            int distance=0;
-            TIntArrayList distanceList=new TIntArrayList();
-            TDoubleArrayList r2List=new TDoubleArrayList();
+            int distance=Integer.MIN_VALUE;
+            double r2=Double.MIN_VALUE;
+            int thresh=binWidth_kb*1000;
+            int limit=threshForDistance_Mb*1000000;
+            int kb=binWidth_kb;
+            DescriptiveStatistics r2Stats=new DescriptiveStatistics();
             br.readLine();
+            bw.write("window_kb\tnumberInWindow\tmeanOfR2\n");
+            StringBuilder sb;
             while ((line=br.readLine())!=null){
                 temp=PStringUtils.fastSplit(line);
                 distance=Integer.parseInt(temp.get(0));
-                if (distance>45000000) continue;
-                distanceList.add(distance);
-                r2List.add(Double.parseDouble(temp.get(1)));
+                if (distance > limit) break;
+                r2=Double.parseDouble(temp.get(1));
+                if (distance > thresh){
+                    sb=new StringBuilder();
+                    sb.append(kb).append("\t").append(r2Stats.getN()).append("\t").append(r2Stats.getMean());
+                    bw.write(sb.toString());
+                    bw.newLine();
+                    thresh+=binWidth_kb*1000;
+                    kb+=binWidth_kb;
+                    r2Stats=new DescriptiveStatistics();
+                }
+                r2Stats.addValue(r2);
             }
-            int groupNum=distanceList.get(distanceList.size()-1);
-            int[] kbs=IntStream.iterate(kb, n->n+kb).limit(groupNum).toArray();
+            sb=new StringBuilder();
+            sb.append(kb).append("\t").append(r2Stats.getN()).append("\t").append(r2Stats.getMean());
+            bw.write(sb.toString());
+            bw.newLine();
+            bw.flush();
         }catch (Exception e){
-
+            e.printStackTrace();
         }
 
+    }
+
+    private static void write(BufferedWriter bw, TIntArrayList distanceList, TDoubleArrayList r2List) throws IOException {
+        StringBuilder sb;
+
+        for (int i = 0; i < distanceList.size(); i++) {
+            sb=new StringBuilder();
+            sb.append(distanceList.get(i)).append("\t").append(r2List.get(i));
+            bw.write(sb.toString());
+            bw.newLine();
+        }
     }
 
 }
