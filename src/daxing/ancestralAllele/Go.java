@@ -8,7 +8,7 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
-public class Start {
+public class Go {
     private String workingDir;
     private String chrConvertionRule;
     private String chrallvcfFile;
@@ -18,7 +18,7 @@ public class Start {
     private int indexOfWheatInOutGroup2;
     private String[] subDir={"refOutgroupAllele", "merge", "sorted", "ancestralAllele"};
 
-    Start(String parameterFileS){
+    Go(String parameterFileS){
         this.initializeParameter(parameterFileS);
         this.getOutgroupAllele();
 //        this.sort();
@@ -91,10 +91,9 @@ public class Start {
         MAF.getAncestralAlleleParallel(input, out);
     }
 
-    public static void main(String[] args) {
-//        new Start(args[0]);
-        System.out.println("ok");
-    }
+//    public static void main(String[] args) {
+////        new Start(args[0]);
+//    }
 
 
 }
