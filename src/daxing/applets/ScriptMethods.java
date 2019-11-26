@@ -1181,15 +1181,24 @@ public class ScriptMethods {
 
     }
 
-    private static void write(BufferedWriter bw, TIntArrayList distanceList, TDoubleArrayList r2List) throws IOException {
-        StringBuilder sb;
-
-        for (int i = 0; i < distanceList.size(); i++) {
-            sb=new StringBuilder();
-            sb.append(distanceList.get(i)).append("\t").append(r2List.get(i));
-            bw.write(sb.toString());
+    public static void retain(String inputFile, String outFile, int thresh_bp){
+        try (BufferedReader br = IOUtils.getTextReader(inputFile);
+             BufferedWriter bw=IOUtils.getTextWriter(outFile)) {
+            String line;
+            List<String> temp;
+            bw.write(br.readLine());
             bw.newLine();
+            while ((line=br.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                if (Integer.parseInt(temp.get(0))> thresh_bp) break;
+                bw.write(line);
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
+
 
 }
