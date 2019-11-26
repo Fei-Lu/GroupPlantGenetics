@@ -188,6 +188,7 @@ public class VCF {
      * @param chrConvertionRule
      */
     public static void fastMergeVCFtoChr(String inputVcfDir, String outDir, ChrConvertionRule chrConvertionRule){
+        System.out.println(DateTime.getDateTimeOfNow()+ "start");
         long start= System.nanoTime();
         File[] files=IOUtils.listRecursiveFiles(new File(inputVcfDir));
         Predicate<File> hidden=File::isHidden;
@@ -242,6 +243,7 @@ public class VCF {
                         +Benchmark.getTimeSpanMinutes(start)+" minutes");
             }
             System.out.println(" all chromosomes completed in "+Benchmark.getTimeSpanHours(start)+" hours");
+            System.out.println(DateTime.getDateTimeOfNow()+" end");
         }catch (Exception e){
             e.printStackTrace();
         }
