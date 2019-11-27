@@ -3,6 +3,7 @@ package daxing.applets;
 import daxing.common.NumberTool;
 import daxing.common.RowTableTool;
 import daxing.common.WheatLineage;
+import format.dna.snp.SNP;
 import gnu.trove.list.array.TDoubleArrayList;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -108,45 +109,42 @@ public class LD {
     }
 
     /**
-     * 过滤不在同一染色体上的r2值, r2为-1(NaN)的值, distance大于distancesThresh的r2值
+     * 过滤r2为-1(NaN)的值
      * @param physicalDistanceR2File
-     * @param distancesThresh
      */
-    public void  writePhysicalDistanceR2ForLDDecay(String physicalDistanceR2File, int distancesThresh){
+    public void  writeLD(String physicalDistanceR2File){
         try (BufferedWriter bw = IOUtils.getTextWriter(physicalDistanceR2File)) {
             bw.write("Distance\tr2\n");
-//            bw.write("SNP1\tSNP2\tDistance\tr2\n");
-            Iterator<int[]> iterator = CombinatoricsUtils.combinationsIterator(header.size(), 2);
-            int[] combinationIndex;
+//            bw.write("SNP1\tSNP2\tDistance\tR2\n");
+            List<TDoubleArrayList> triangle=this.triangle;
+            List<SNP> snpList=this.header;
             StringBuilder sb;
-            int count=0;
-            int cnt=0;
-            int cnnt=0;
-            while (iterator.hasNext()) {
-                combinationIndex = iterator.next();
-                if (!isOnSameChromosome(combinationIndex[0], combinationIndex[1])) {
-                    count++;
-                    continue;
-                }
-                if (this.getR2(combinationIndex[0], combinationIndex[1])<0) {
+            double cnt=0;
+            int total=0;
+            int mediumIndex=Integer.MIN_VALUE;
+            if (NumberTool.isOdd(snpList.size())) {
+                mediumIndex=(snpList.size()+1)/2;
+            }else {
+                mediumIndex=snpList.size()/2;
+            }
+            for (int i = 0; i < this.header.size(); i++) {
+                if (i==mediumIndex) continue;
+                total++;
+                if (this.getR2(mediumIndex, i)<0){
                     cnt++;
                     continue;
                 }
-                if (this.caculateDistanceBetweenSNPs(combinationIndex[0], combinationIndex[1])>distancesThresh){
-                    cnnt++;
-                    continue;
-                }
                 sb=new StringBuilder();
-//                sb.append(this.getSNP(combinationIndex[0]).toString()).append("\t");
-//                sb.append(this.getSNP(combinationIndex[1]).toString()).append("\t");
-                sb.append(this.caculateDistanceBetweenSNPs(combinationIndex[0], combinationIndex[1])).append("\t");
-                sb.append(this.getR2(combinationIndex[0], combinationIndex[1]));
+//                sb.append(this.getSNP(mediumIndex).toString()).append("\t");
+//                sb.append(this.getSNP(i).toString()).append("\t");
+                sb.append(this.caculateDistanceBetweenSNPs(mediumIndex, i)).append("\t");
+                sb.append(this.getR2(mediumIndex, i));
                 bw.write(sb.toString());
                 bw.newLine();
             }
-            System.out.println("On different chromosome: "+count);
-            System.out.println("r2 < 0: "+cnt);
-            System.out.println("great than "+distancesThresh+": "+cnnt);
+            bw.flush();
+            System.out.println(new File(physicalDistanceR2File).getName()+" r2 < 0: "+ NumberTool.format(cnt/total,
+                    5)+"("+(int)cnt+", "+total+")"+ " among r2 great than 0, only "+mediumIndex+" row were retained");
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -179,6 +177,7 @@ public class LD {
                     bw.newLine();
                 }
             }
+            bw.flush();
             System.out.println(new File(physicalDistanceR2File).getName()+" r2 < 0: "+ NumberTool.format(cnt/total,
                     5)+"("+(int)cnt+", "+total+")"+ " among r2 great than 0, only "+rate+" were retained");
         }catch (Exception e){
@@ -215,8 +214,6 @@ public class LD {
                 if (Integer.parseInt(temp.get(0))<distanceThresh){
                     bw.write(line);
                     bw.newLine();
-                }else {
-                    break;
                 }
             }
             bw.flush();
@@ -313,9 +310,8 @@ public class LD {
      * @param ld_bimDir
      * @param distanceR2OutDir
      * @param numThreads
-     * @param rate
      */
-    public static void getDistaceR2(String ld_bimDir, String distanceR2OutDir, int numThreads, double rate){
+    public static void getDistaceR2(String ld_bimDir, String distanceR2OutDir, int numThreads){
         File[] files=new File(ld_bimDir).listFiles();
         File[] ldFiles=IOUtils.listFilesEndsWith(files, "ld");
         File[] bimFiles=IOUtils.listFilesEndsWith(files, "bim");
@@ -337,7 +333,7 @@ public class LD {
             integerList.parallelStream()
                     .forEach(index-> {
                         LD ld=new LD(lds[index], bims[index]);
-                        ld.writePhysicalDistanceR2ForLDDecay(new File(distanceR2OutDir, outNames[index]).getAbsolutePath(), rate);
+                        ld.writeLD(new File(distanceR2OutDir, outNames[index]).getAbsolutePath());
                     });
         }
         File[] distanceR2Files=IOUtils.listRecursiveFiles(new File(distanceR2OutDir));
@@ -470,7 +466,7 @@ public class LD {
             return pos;
         }
 
-        public String getChr(int chrID){
+        public String getChr(){
             int[] integers= IntStream.range(1,8).toArray();
             String[] abd={"A","B","D"};
             Map<Integer, String> chrIDmap=new HashMap<>();
@@ -487,7 +483,7 @@ public class LD {
         @Override
         public String toString() {
             StringBuilder sb=new StringBuilder();
-            sb.append(this.getChr(chrID)).append("-").append(pos);
+            sb.append(this.getChr()).append("-").append(pos);
             return sb.toString();
         }
     }
