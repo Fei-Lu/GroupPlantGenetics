@@ -2,6 +2,7 @@ package daxing.common;
 
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.util.CombinatoricsUtils;
 import utils.Benchmark;
@@ -372,21 +373,52 @@ public class VCF {
         System.out.println("samping "+vcfDir+" into "+subsetFileDir+" is completed in "+Benchmark.getTimeSpanHours(totalStart)+" hours");
     }
 
-    public static void caculateLD(String inputVcfDir, String outDir, ChrConvertionRule c){
-        VCF.getSubSetVcfFromDir(inputVcfDir, outDir, 0.9, 10);
-        File subdir=new File(outDir, "subsetVCF");
-        subdir.mkdir();
-        VCF.mergeVCFtoChr(outDir, subdir.getAbsolutePath(), c);
-        File[] files=IOUtils.listRecursiveFiles(subdir);
-        IntStream.range(0, files.length).forEach(e->{
-            VCF vcf=new VCF(files[e]);
-            Iterator<int[]> iterator = CombinatoricsUtils.combinationsIterator(vcf.data.size(), 2);
-            int[] combinationIndex;
-            while (iterator.hasNext()) {
-                combinationIndex = iterator.next();
-
+    /**
+     * calculate r2 from genotype
+     * note: only support binary allele, and genotype must be one of the following, "0/0", "1/1", "0/1", "./."
+     * @param genotype1
+     * @param genotype2
+     * @return r2
+     */
+    public static double calculateR2(String[] genotype1, String[] genotype2){
+        if (genotype1.length != genotype2.length){
+            System.out.println("please check your input genotype array, its length is not same ");
+            System.exit(1);
+        }
+        String[] genoypes={"0/0", "1/1", "0/1", "./."};
+        double[] values={0, 1};
+        Map<String, Double> genotypeValue=new HashMap<>();
+        for (int i = 0; i < values.length; i++) {
+            genotypeValue.put(genoypes[i], values[i]);
+        }
+        TDoubleArrayList array1=new TDoubleArrayList();
+        TDoubleArrayList array2=new TDoubleArrayList();
+        for (int i = 0; i < genotype1.length; i++) {
+            if (genotype1[i].equals("./.")) continue;
+            if (genotype2[i].equals("./.")) continue;
+            if (genotype1[i].equals("0/1") && genotype2[i].equals("0/1")) continue;
+            if (genotype1[i].equals("0/1")){
+                array1.add(0);
+                array1.add(1);
+                array2.add(genotypeValue.get(genotype2[i]));
+                array2.add(genotypeValue.get(genotype2[i]));
+                continue;
             }
-        });
+            if (genotype2[i].equals("0/1")){
+                array2.add(0);
+                array2.add(1);
+                array1.add(genotypeValue.get(genotype1[i]));
+                array1.add(genotypeValue.get(genotype1[i]));
+                continue;
+            }
+            array1.add(genotypeValue.get(genotype1[i]));
+            array1.add(genotypeValue.get(genotype1[i]));
+            array2.add(genotypeValue.get(genotype2[i]));
+            array2.add(genotypeValue.get(genotype2[i]));
+        }
+        PearsonsCorrelation pearsonsCorrelation=new PearsonsCorrelation();
+        double r=pearsonsCorrelation.correlation(array1.toArray(), array2.toArray());
+        return Math.pow(r, 2);
     }
 
     /**
@@ -667,56 +699,6 @@ public class VCF {
 
 
     }
-
-    /**
-     * calculate r2 from genotype
-     * note: only support binary allele, and genotype must be one of the following, "0/0", "1/1", "0/1", "./."
-     * @param genotype1
-     * @param genotype2
-     * @return r2
-     */
-    public static double calculateR2(String[] genotype1, String[] genotype2){
-        if (genotype1.length != genotype2.length){
-            System.out.println("please check your input genotype array, its length is not same ");
-            System.exit(1);
-        }
-        String[] genoypes={"0/0", "1/1", "0/1", "./."};
-        double[] values={0, 1};
-        Map<String, Double> genotypeValue=new HashMap<>();
-        for (int i = 0; i < values.length; i++) {
-            genotypeValue.put(genoypes[i], values[i]);
-        }
-        TDoubleArrayList array1=new TDoubleArrayList();
-        TDoubleArrayList array2=new TDoubleArrayList();
-        for (int i = 0; i < genotype1.length; i++) {
-            if (genotype1[i].equals("./.")) continue;
-            if (genotype2[i].equals("./.")) continue;
-            if (genotype1[i].equals("0/1") && genotype2[i].equals("0/1")) continue;
-            if (genotype1[i].equals("0/1")){
-                array1.add(0);
-                array1.add(1);
-                array2.add(genotypeValue.get(genotype2[i]));
-                array2.add(genotypeValue.get(genotype2[i]));
-                continue;
-            }
-            if (genotype2[i].equals("0/1")){
-                array2.add(0);
-                array2.add(1);
-                array1.add(genotypeValue.get(genotype1[i]));
-                array1.add(genotypeValue.get(genotype1[i]));
-                continue;
-            }
-            array1.add(genotypeValue.get(genotype1[i]));
-            array1.add(genotypeValue.get(genotype1[i]));
-            array2.add(genotypeValue.get(genotype2[i]));
-            array2.add(genotypeValue.get(genotype2[i]));
-        }
-        PearsonsCorrelation pearsonsCorrelation=new PearsonsCorrelation();
-        double r=pearsonsCorrelation.correlation(array1.toArray(), array2.toArray());
-        return Math.pow(r, 2);
-    }
-
-
 
     public void write(String outFile){
         this.sort();
