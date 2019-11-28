@@ -1,8 +1,9 @@
 package daxing.common;
 
+import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
+import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.util.CombinatoricsUtils;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import utils.Benchmark;
 import utils.IOUtils;
 import utils.PArrayUtils;
@@ -635,6 +636,87 @@ public class VCF {
         }
         this.data=res;
     }
+
+    public void writeR2(String outFile){
+        try (BufferedWriter bw = IOUtils.getTextWriter(outFile)) {
+            bw.write("Chr1\tPos1\tChr2\tPos2\tr2\n");
+            List<List<String>> data=this.getData();
+            String[] genotype1, genotype2;
+            double r2=-1;
+            StringBuilder sb;
+            Iterator<int[]> iterator = CombinatoricsUtils.combinationsIterator(data.size(), 2);
+            int[] combinationIndex;
+            while (iterator.hasNext()) {
+                combinationIndex = iterator.next();
+                genotype1=data.get(combinationIndex[0]).stream().skip(9).map(str->str.substring(0, 3)).toArray(String[]::new);
+                genotype2= data.get(combinationIndex[1]).stream().skip(9).map(str->str.substring(0, 3)).toArray(String[]::new);
+                r2=VCF.calculateR2(genotype1, genotype2);
+                sb=new StringBuilder(30);
+                sb.append(data.get(combinationIndex[0]).get(0)).append("\t");
+                sb.append(data.get(combinationIndex[0]).get(1)).append("\t");
+                sb.append(data.get(combinationIndex[1]).get(0)).append("\t");
+                sb.append(data.get(combinationIndex[1]).get(1)).append("\t");
+                sb.append(r2);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    /**
+     * calculate r2 from genotype
+     * note: only support binary allele, and genotype must be one of the following, "0/0", "1/1", "0/1", "./."
+     * @param genotype1
+     * @param genotype2
+     * @return r2
+     */
+    public static double calculateR2(String[] genotype1, String[] genotype2){
+        if (genotype1.length != genotype2.length){
+            System.out.println("please check your input genotype array, its length is not same ");
+            System.exit(1);
+        }
+        String[] genoypes={"0/0", "1/1", "0/1", "./."};
+        double[] values={0, 1};
+        Map<String, Double> genotypeValue=new HashMap<>();
+        for (int i = 0; i < values.length; i++) {
+            genotypeValue.put(genoypes[i], values[i]);
+        }
+        TDoubleArrayList array1=new TDoubleArrayList();
+        TDoubleArrayList array2=new TDoubleArrayList();
+        for (int i = 0; i < genotype1.length; i++) {
+            if (genotype1[i].equals("./.")) continue;
+            if (genotype2[i].equals("./.")) continue;
+            if (genotype1[i].equals("0/1") && genotype2[i].equals("0/1")) continue;
+            if (genotype1[i].equals("0/1")){
+                array1.add(0);
+                array1.add(1);
+                array2.add(genotypeValue.get(genotype2[i]));
+                array2.add(genotypeValue.get(genotype2[i]));
+                continue;
+            }
+            if (genotype2[i].equals("0/1")){
+                array2.add(0);
+                array2.add(1);
+                array1.add(genotypeValue.get(genotype1[i]));
+                array1.add(genotypeValue.get(genotype1[i]));
+                continue;
+            }
+            array1.add(genotypeValue.get(genotype1[i]));
+            array1.add(genotypeValue.get(genotype1[i]));
+            array2.add(genotypeValue.get(genotype2[i]));
+            array2.add(genotypeValue.get(genotype2[i]));
+        }
+        PearsonsCorrelation pearsonsCorrelation=new PearsonsCorrelation();
+        double r=pearsonsCorrelation.correlation(array1.toArray(), array2.toArray());
+        return Math.pow(r, 2);
+    }
+
+
 
     public void write(String outFile){
         this.sort();
