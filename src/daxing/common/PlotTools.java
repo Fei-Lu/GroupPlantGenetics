@@ -16,6 +16,10 @@ import java.util.stream.IntStream;
 
 public class PlotTools {
 
+    public enum Type{
+        SD, MEDIAN
+    }
+
     /**
      * CHROM POS WEIR_AND_COCKERHAM_FST
      * 1D	113140	0.250977
@@ -28,9 +32,10 @@ public class PlotTools {
      * @param windowSize
      * @param stepSize
      * @param outFile
+     * @param sdMedian 是否输出标准差和中位数
      */
     public static void slidingWindow(String inputFile, int columnIndex, int windowSize, int stepSize,
-                                     String outFile){
+                                     String outFile, boolean sdMedian){
         RowTableTool<String> rowTable=new RowTableTool<>(inputFile);
         Set<String> chrNum=new HashSet<>(rowTable.getColumn(0));
         if (chrNum.size()!=1){
@@ -81,7 +86,12 @@ public class PlotTools {
         int count=0;
         DescriptiveStatistics stats;
         try (BufferedWriter bw = IOUtils.getTextWriter(outFile)) {
-            bw.write("CHROM\tBIN_START\tBIN_END\tN_VARIANTS\tMEAN_"+valueName+"\tSD\tMEDIAN\n");
+            if (sdMedian){
+                bw.write("CHROM\tBIN_START\tBIN_END\tN_VARIANTS\tMEAN_"+valueName+"\tSD\tMEDIAN\n");
+            }
+            else {
+                bw.write("CHROM\tBIN_START\tBIN_END\tN_VARIANTS\tMEAN_"+valueName+"\n");
+            }
             for (int j = 0; j < indexS.length; j++) {
                 countInBoundary = indexL[j] - indexS[j];
                 if (countInBoundary < 1) {
@@ -96,10 +106,20 @@ public class PlotTools {
                 sb.append((int) (boundaryS[j] + 0.1)).append("\t").append((int) (boundaryL[j] + 0.1)).append("\t");
                 sb.append(countInBoundary).append("\t");
                 if (countInBoundary < 1) {
-                    sb.append("NaN").append("\t").append("NaN").append("\t").append("NaN").append("\t").append("NaN").append("\n");
+                    if (sdMedian){
+                        sb.append("NaN").append("\t").append("NaN").append("\t").append("NaN").append("\t").append("NaN").append("\n");
+                    }
+                    else {
+                        sb.append("NaN").append("\t").append("NaN").append("\n");
+                    }
                 } else {
-                    sb.append(stats.getMean()).append("\t").append(stats.getStandardDeviation()).append("\t");
-                    sb.append(stats.getPercentile(50)).append("\n");
+                    if (sdMedian){
+                        sb.append(stats.getMean()).append("\t").append(stats.getStandardDeviation()).append("\t");
+                        sb.append(stats.getPercentile(50)).append("\n");
+                    }
+                    else {
+                        sb.append(stats.getMean()).append("\n");
+                    }
                 }
                 bw.write(sb.toString());
             }
@@ -112,6 +132,11 @@ public class PlotTools {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void slidingWindow(String inputFile, int columnIndex, int windowSize, int stepSize,
+                                     String outFile){
+        slidingWindow(inputFile, columnIndex, windowSize, stepSize, outFile, false);
     }
 
     public static void windowMean(String ingputFile, int binWidth_kb, int threshForDistance_Mb, String outFile){
