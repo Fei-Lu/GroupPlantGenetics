@@ -123,9 +123,9 @@ public class LD {
             int total=0;
             int mediumIndex=Integer.MIN_VALUE;
             if (NumberTool.isOdd(snpList.size())) {
-                mediumIndex=(snpList.size()+1)/2;
+                mediumIndex=(snpList.size()+1)/2-1;
             }else {
-                mediumIndex=snpList.size()/2;
+                mediumIndex=snpList.size()/2-1;
             }
             for (int i = 0; i < this.header.size(); i++) {
                 if (i==mediumIndex) continue;
