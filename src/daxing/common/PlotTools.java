@@ -24,11 +24,12 @@ public class PlotTools {
      * 1D	201064	0.287936
      * 1D	554081	0.930793
      * @param inputFile
+     * @param columnIndex
      * @param windowSize
      * @param stepSize
      * @param outFile
      */
-    public static void slidingWindow(String inputFile, int columnIndex2, int windowSize, int stepSize,
+    public static void slidingWindow(String inputFile, int columnIndex, int windowSize, int stepSize,
                                      String outFile){
         RowTableTool<String> rowTable=new RowTableTool<>(inputFile);
         Set<String> chrNum=new HashSet<>(rowTable.getColumn(0));
@@ -39,7 +40,7 @@ public class PlotTools {
         Comparator<List<String>> c=Comparator.comparing(l->Integer.parseInt(l.get(1)));
         rowTable.sortBy(c);
         List<String> posListStr=rowTable.getColumn(1);
-        List<String> valueListStr=rowTable.getColumn(columnIndex2);
+        List<String> valueListStr=rowTable.getColumn(columnIndex);
         TDoubleArrayList keyList=new TDoubleArrayList();
         TDoubleArrayList valueList=new TDoubleArrayList();
         int cnt=0;
@@ -54,7 +55,7 @@ public class PlotTools {
             valueList.add(Double.parseDouble(valueListStr.get(i)));
         }
         System.out.print(new File(inputFile).getName()+" had "+cnt+" NaN rows");
-        String valueName=rowTable.getColumnName(columnIndex2).toUpperCase();
+        String valueName=rowTable.getColumnName(columnIndex).toUpperCase();
         String chrName=rowTable.getCell(0, 0);
         double[] key=keyList.toArray();
         double[] value=valueList.toArray();
