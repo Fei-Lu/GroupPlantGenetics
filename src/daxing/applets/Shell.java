@@ -4,6 +4,7 @@ import daxing.common.StringTool;
 import daxing.common.WheatLineage;
 import utils.IOUtils;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -75,6 +76,39 @@ public class Shell {
                 bw.write(sb.toString());
                 bw.newLine();
             }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * parallel for Shell script
+     * @param inputSh
+     * @param threadNum
+     * @param outputSh
+     */
+    public static void getShellParallelScript(String inputSh, int threadNum, String outputSh){
+        try (BufferedReader br = IOUtils.getTextReader(inputSh);
+             BufferedWriter bw=IOUtils.getTextWriter(outputSh)) {
+            int count=0;
+            String temp;
+            StringBuilder sb;
+            bw.write("echo $(date '+%Y-%m-%d %H:%M:%S') start");
+            bw.newLine();
+            while ((temp=br.readLine())!=null){
+                count++;
+                if (count % threadNum==0){
+                    sb=new StringBuilder();
+                    sb.append(temp).append("\n");
+                    sb.append("wait").append("\n");
+                    bw.write(sb.toString());
+                    continue;
+                }
+                bw.write(temp);
+                bw.newLine();
+            }
+            bw.write("echo $(date '+%Y-%m-%d %H:%M:%S') end");
             bw.flush();
         } catch (IOException e) {
             e.printStackTrace();
