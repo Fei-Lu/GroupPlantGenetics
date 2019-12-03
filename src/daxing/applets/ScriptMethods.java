@@ -1,5 +1,6 @@
 package daxing.applets;
 
+import com.apple.laf.AquaInternalFrameDockIconUI;
 import daxing.common.*;
 import daxing.filterSNP.Cells;
 import daxing.filterSNP.DepthInfo;
@@ -9,6 +10,7 @@ import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import smile.stat.Stat;
 import utils.Benchmark;
 import utils.Dyad;
 import utils.IOUtils;
@@ -1140,9 +1142,19 @@ public class ScriptMethods {
         }
     }
 
-    public static void caculateLD(String ingputFile, int binWidth_kb, int threshForDistance_Mb, String outFile){
-        try (BufferedReader br = IOUtils.getTextReader(ingputFile);
-             BufferedWriter bw=IOUtils.getTextWriter(outFile)) {
+    public static void calculateLD(String ingputDir, int binWidth_kb, int threshForDistance_Mb, String outDir){
+        File[] files= IOUtils.listRecursiveFiles(new File(ingputDir));
+        Predicate<File> h= File::isHidden;
+        File[] f=Arrays.stream(files).filter(h.negate()).toArray(File[]::new);
+        String[] outNames=Arrays.stream(f).map(File::getName).toArray(String[]::new);
+        IntStream.range(0, f.length).parallel().forEach(e->{
+            calculateLD(f[e], binWidth_kb, threshForDistance_Mb, new File(outDir, outNames[e]));
+        });
+    }
+
+    public static void calculateLD(File ingputFile, int binWidth_kb, int threshForDistance_Mb, File outFile){
+        try (BufferedReader br = IOUtils.getTextReader(ingputFile.getAbsolutePath());
+             BufferedWriter bw=IOUtils.getTextWriter(outFile.getAbsolutePath())) {
             String line;
             List<String> temp;
             int distance=Integer.MIN_VALUE;
