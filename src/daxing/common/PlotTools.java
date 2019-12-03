@@ -16,10 +16,6 @@ import java.util.stream.IntStream;
 
 public class PlotTools {
 
-    public enum Type{
-        SD, MEDIAN
-    }
-
     /**
      * CHROM POS WEIR_AND_COCKERHAM_FST
      * 1D	113140	0.250977
