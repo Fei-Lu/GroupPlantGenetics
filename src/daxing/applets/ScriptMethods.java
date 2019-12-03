@@ -22,10 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
@@ -1207,6 +1204,60 @@ public class ScriptMethods {
                 bw.newLine();
             }
             bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void testMyAncestralAllele(String db_ancestralFile, String myancstralDir,
+                                     ChrConvertionRule chrConvertionRule){
+        Map<String, String> db=new HashMap<>();
+        try (BufferedReader br1 = IOUtils.getTextReader(db_ancestralFile)) {
+            br1.readLine();
+            String line;
+            List<String> stringList;
+            StringBuilder sb;
+            while ((line=br1.readLine())!=null){
+                stringList= PStringUtils.fastSplit(line);
+                sb=new StringBuilder();
+                sb.append(stringList.get(0)).append("_").append(stringList.get(1));
+                db.put(sb.toString(), stringList.get(2));
+            }
+            File[] files=IOUtils.listRecursiveFiles(new File(myancstralDir));
+            Predicate<File> p=File::isHidden;
+            File[] f= Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
+            BufferedReader br2;
+            String key;
+            String value;
+            String chr;
+            int pos;
+            int vcfChr, vcfPos;
+            for (int i = 0; i < f.length; i++) {
+                br2=IOUtils.getTextReader(f[i].getAbsolutePath());
+                br2.readLine();
+                int count=0;
+                int cnt=0;
+                while ((line=br2.readLine())!=null){
+                    stringList=PStringUtils.fastSplit(line);
+                    vcfChr=Integer.parseInt(stringList.get(0));
+                    vcfPos=Integer.parseInt(stringList.get(1));
+                    chr=chrConvertionRule.getRefChrFromVCFChr(vcfChr);
+                    pos=chrConvertionRule.getRefPosFromVCFChrPos(vcfChr, vcfPos);
+                    sb=new StringBuilder();
+                    key=sb.append("chr").append(chr).append("_").append(pos).toString();
+                    if (!db.containsKey(key)) continue;
+                    value=db.get(key);
+                    if (value.equals(stringList.get(3))) {
+                        cnt++;
+                        continue;
+                    }
+                    count++;
+                    System.out.println("DB: "+key+"\t"+value);
+                    System.out.println("My: "+key+"\t"+stringList.get(3));
+                }
+                System.out.println(f[i].getName()+" "+count+" ancestral allele different from DB");
+                System.out.println(f[i].getName()+" "+cnt+" ancestral allele same as DB");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
