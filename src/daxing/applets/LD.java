@@ -1,5 +1,6 @@
 package daxing.applets;
 
+import com.apple.laf.AquaInternalFrameDockIconUI;
 import daxing.common.NumberTool;
 import daxing.common.RowTableTool;
 import daxing.common.WheatLineage;
@@ -9,6 +10,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.util.CombinatoricsUtils;
+import smile.stat.Stat;
 import utils.IOFileFormat;
 import utils.IOUtils;
 import utils.PArrayUtils;
@@ -222,6 +224,16 @@ public class LD {
         }
     }
 
+    public static void slidingWindow(String inputDistanceR2Dir, int windowSize, int stepSize, String outDir){
+        File[] files=IOUtils.listRecursiveFiles(new File(inputDistanceR2Dir));
+        Predicate<File> h=File::isHidden;
+        File[] f=Arrays.stream(files).filter(h.negate()).toArray(File[]::new);
+        String[] outName= Arrays.stream(f).map(File::getName).map(str->str.replaceAll("txt$", "slidingWindow.txt")).toArray(String[]::new);
+        IntStream.range(0, f.length).parallel().forEach(e->{
+            slidingWindow(f[e], windowSize, stepSize, new File(outDir, outName[e]));
+        });
+    }
+
     /**
      * Distance	r2
      * 1	0.146269
@@ -233,9 +245,9 @@ public class LD {
      * @param stepSize
      * @param outFile
      */
-    public static void slidingWindow(String inputDistanceR2File, int windowSize, int stepSize, String outFile){
-        try (BufferedReader br = IOUtils.getTextReader(inputDistanceR2File);
-             BufferedWriter bw=IOUtils.getTextWriter(outFile)) {
+    public static void slidingWindow(File inputDistanceR2File, int windowSize, int stepSize, File outFile){
+        try (BufferedReader br = IOUtils.getTextReader(inputDistanceR2File.getAbsolutePath());
+             BufferedWriter bw=IOUtils.getTextWriter(outFile.getAbsolutePath())) {
             br.readLine();
             bw.write("WindowFromTo\tWindowMiddleDistance\tCountInWindow\tWindowAverageR2\tSDofWindowR2");
             bw.newLine();
@@ -402,17 +414,28 @@ public class LD {
         }
     }
 
-    public static void getSubgenomeLD(String subgenomeDir, String subgenome, double rate, String outDir){
+    public static void getSubgenomeLD(String subgenomeDir, String subgenome, double rate, String outFile){
         File[] files=Arrays.stream(new File(subgenomeDir).listFiles()).sorted().toArray(File[]::new);
         Predicate<File> h=File::isHidden;
         Predicate<File> s=f->f.getName().substring(4,5).equals(WheatLineage.valueOf(subgenome).name());
         Predicate<File> r=f->Math.random()<rate;
         File[] f=Arrays.stream(files).filter(h.negate().and(s)).filter(r).toArray(File[]::new);
-        String[] outNames=Arrays.stream(f).map(File::getName).toArray(String[]::new);
         try {
-            for (int i = 0; i < outNames.length; i++) {
-                Files.copy(f[i].toPath(), Paths.get(outDir, outNames[i]));
+            BufferedReader br;
+            BufferedWriter bw=IOUtils.getTextWriter(outFile);
+            bw.write("Distance\tr2\n");
+            String line;
+            for (int i = 0; i < f.length; i++) {
+                br= IOUtils.getTextReader(f[i].getAbsolutePath());
+                br.readLine();
+                while ((line=br.readLine())!=null){
+                    bw.write(line);
+                    bw.newLine();
+                }
+                br.close();
             }
+            bw.flush();
+            bw.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
