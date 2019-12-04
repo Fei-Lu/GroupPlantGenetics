@@ -55,7 +55,7 @@ public class Shell {
     }
 
     /**
-     * plink --vcf chrTauschiiRecoded.vcf --chr-set 21 --make-bed --r2  triangle  --threads 1 --out f
+     * plink --vcf chrTauschiiRecoded.vcf --allow-extra-chr --chr-set 21 --make-bed --r2  triangle  --threads 1 --out f
      * @param vcfInputDir
      * @param outDir
      * @param outShellFile
@@ -70,7 +70,7 @@ public class Shell {
             StringBuilder sb;
             for (int i = 0; i < f1.length; i++) {
                 sb=new StringBuilder();
-                sb.append("plink --vcf ").append(f1[i].getAbsolutePath()).append(" --chr-set 21 ")
+                sb.append("plink --vcf --allow-extra-chr ").append(f1[i].getAbsolutePath()).append(" --chr-set 21 ")
                         .append("--make-bed ").append("--r2 --matrix --out ")
                         .append(new File(outDir, outNames[i]).getAbsolutePath());
                 bw.write(sb.toString());
