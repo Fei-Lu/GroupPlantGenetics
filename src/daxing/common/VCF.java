@@ -583,7 +583,7 @@ public class VCF {
         for(int i=0,size=data.size();i<size;i++){
             String info=data.get(i).stream().limit(8).collect(Collectors.toList()).get(7);
             String ns=PStringUtils.fastSplit(info, ";").get(2);
-            int nsValue=Integer.valueOf(PStringUtils.fastSplit(ns, "=").get(1));
+            int nsValue=Integer.parseInt(PStringUtils.fastSplit(ns, "=").get(1));
             genotypeMissingRate[i]=(this.getNumberOfTaxa()-nsValue)/this.getNumberOfTaxa();
         }
         return genotypeMissingRate;
@@ -598,7 +598,7 @@ public class VCF {
         for(int i=0,size=data.size();i<size;i++){
             String info=data.get(i).stream().limit(8).collect(Collectors.toList()).get(7);
             String ns=PStringUtils.fastSplit(info, ";").get(2);
-            int nsValue=Integer.valueOf(PStringUtils.fastSplit(ns, "=").get(1));
+            int nsValue=Integer.parseInt(PStringUtils.fastSplit(ns, "=").get(1));
             numberOfSamplesWithAllele[i]=nsValue;
         }
         return numberOfSamplesWithAllele;

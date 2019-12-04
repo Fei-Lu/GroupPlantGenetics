@@ -23,7 +23,7 @@ public class StringTool {
         Pattern p=Pattern.compile("\\d+");
         Matcher m=p.matcher(str);
         if(m.find()){
-            return Integer.valueOf(m.group());
+            return Integer.parseInt(m.group());
         }else {
             System.out.println(str+":"+"\t"+"don not contains any number");
             return Integer.MIN_VALUE;
