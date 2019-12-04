@@ -5,6 +5,7 @@
  */
 package daxing.common;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import format.dna.FastaByte;
 import format.dna.SequenceByte;
 import format.position.ChrPos;
@@ -39,37 +40,38 @@ public class PGF {
      * Read from pgf file of gene annotation
      * @param infileS
      */
+    @SuppressFBWarnings("DM_BOXED_PRIMITIVE_FOR_PARSING")
     private void readFile (String infileS) {
         try {
             BufferedReader br = IOUtils.getTextReader(infileS);
-            int geneNumber = Integer.valueOf(br.readLine().split("\t")[1]);
+            int geneNumber = Integer.parseInt(br.readLine().split("\t")[1]);
             genes = new Gene[geneNumber];
             String temp;
             for (int i = 0; i < geneNumber; i++) {
                 temp = br.readLine();
                 String[] tem = temp.split("\t");
-                genes[i] = new Gene(tem[1], Integer.valueOf(tem[2]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4]), Byte.valueOf(tem[5]), tem[6], tem[7]);
+                genes[i] = new Gene(tem[1], Integer.parseInt(tem[2]), Integer.parseInt(tem[3]), Integer.parseInt(tem[4]), Byte.parseByte(tem[5]), tem[6], tem[7]);
                 tem = br.readLine().split("\t");
-                int transcriptNumber = Integer.valueOf(tem[1]);
-                genes[i].setLongestTranscriptIndex(Integer.valueOf(tem[2]));
+                int transcriptNumber = Integer.parseInt(tem[1]);
+                genes[i].setLongestTranscriptIndex(Integer.parseInt(tem[2]));
                 for (int j = 0; j < transcriptNumber; j++) {
                     temp = br.readLine();
                     tem = temp.split("\t");
-                    int chr = Integer.valueOf(tem[2]);
-                    Transcript t = new Transcript(tem[1], chr, Integer.valueOf(tem[3]), Integer.valueOf(tem[4]), Byte.valueOf(tem[5]));
+                    int chr = Integer.parseInt(tem[2]);
+                    Transcript t = new Transcript(tem[1], chr, Integer.parseInt(tem[3]), Integer.parseInt(tem[4]), Byte.parseByte(tem[5]));
                     tem = br.readLine().split("\t");
                     if (!tem[1].startsWith("NA")) {
                         tem = tem[1].split(";");
                         for (int k = 0; k < tem.length; k++) {
                             String[] te = tem[k].split(":");
-                            t.add5UTR(chr, Integer.valueOf(te[0]), Integer.valueOf(te[1]));
+                            t.add5UTR(chr, Integer.parseInt(te[0]), Integer.parseInt(te[1]));
                         }
                     }
                     tem = br.readLine().split("\t");
                     tem = tem[1].split(";");
                     for (int k = 0; k < tem.length; k++) {
                         String[] te = tem[k].split(":");
-                        t.addCDS(chr, Integer.valueOf(te[0]), Integer.valueOf(te[1]));
+                        t.addCDS(chr, Integer.parseInt(te[0]), Integer.parseInt(te[1]));
                     }
                     br.readLine();
                     tem = br.readLine().split("\t");
@@ -77,7 +79,7 @@ public class PGF {
                         tem = tem[1].split(";");
                         for (int k = 0; k < tem.length; k++) {
                             String[] te = tem[k].split(":");
-                            t.add3UTR(chr, Integer.valueOf(te[0]), Integer.valueOf(te[1]));
+                            t.add3UTR(chr, Integer.parseInt(te[0]), Integer.parseInt(te[1]));
                         }
                     }
                     t.calculateIntron();
@@ -102,7 +104,7 @@ public class PGF {
         try {
             BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             for (int i = 0; i < this.getGeneNumber(); i++) {
-                String title = String.valueOf(this.getGeneChromosome(i))+"_"+String.valueOf(this.getGeneStart(i)+"_"+String.valueOf(this.getGeneEnd(i))+"_"+String.valueOf(this.getGeneName(i)));
+                String title = this.getGeneChromosome(i) +"_"+ this.getGeneStart(i) + "_" + this.getGeneEnd(i) + "_" + this.getGeneName(i);
                 int chrIndex = genomef.getIndexByName(String.valueOf(this.getGeneChromosome(i)));
                 String chrseq = genomef.getSeq(chrIndex);
                 StringBuilder sb = new StringBuilder();
@@ -139,7 +141,7 @@ public class PGF {
         try {
             BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             for (int i = 0; i < this.getGeneNumber(); i++) {
-                String title = String.valueOf(this.getGeneChromosome(i))+"_"+String.valueOf(this.getGeneStart(i)+"_"+String.valueOf(this.getGeneEnd(i))+"_"+String.valueOf(this.getGeneName(i)));
+                String title = this.getGeneChromosome(i) +"_"+ this.getGeneStart(i) + "_" + this.getGeneEnd(i) + "_" + this.getGeneName(i);
                 int chrIndex = genomef.getIndexByName(String.valueOf(this.getGeneChromosome(i)));
                 String chrseq = genomef.getSeq(chrIndex);
                 String geneSeq = chrseq.substring(this.getGeneStart(i)-1, this.getGeneEnd(i)-1);
@@ -166,7 +168,7 @@ public class PGF {
     public void writeFile (String outfileS) {
         try {
             BufferedWriter bw = IOUtils.getTextWriter(outfileS);
-            bw.write("GeneNumber\t"+String.valueOf(this.getGeneNumber()));
+            bw.write("GeneNumber\t"+ this.getGeneNumber());
             bw.newLine();
             for (int i = 0; i < this.getGeneNumber(); i++) {
                 StringBuilder sb = new StringBuilder();
@@ -649,7 +651,7 @@ public class PGF {
                             description = te[j].replaceFirst("description=", "");
                         }
                     }
-                    genes[index] = new Gene (query, Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1, (byte)(tem[6].equals("+")? 1:0), biotype, description);
+                    genes[index] = new Gene (query, Integer.parseInt(tem[0]), Integer.parseInt(tem[3]), Integer.parseInt(tem[4])+1, (byte)(tem[6].equals("+")? 1:0), biotype, description);
                 }
             }
             for (int i = 0; i < info.length; i++) {
@@ -658,7 +660,7 @@ public class PGF {
                     String[] te = tem[8].split(";");
                     String geneName = te[1].split("=")[1];
                     int geneIndex = Arrays.binarySearch(geneNames, geneName);
-                    Transcript t = new Transcript (te[0].split("=")[1], Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1, (byte)(tem[6].equals("+")? 1:0));
+                    Transcript t = new Transcript (te[0].split("=")[1], Integer.parseInt(tem[0]), Integer.parseInt(tem[3]), Integer.parseInt(tem[4])+1, (byte)(tem[6].equals("+")? 1:0));
                     genes[geneIndex].addTranscript(t);
                 }
             }
@@ -672,7 +674,7 @@ public class PGF {
                     geneName = transcriptName.split("\\.")[0];
                     int geneIndex = Arrays.binarySearch(geneNames, geneName);
                     int transcriptIndex = genes[geneIndex].getTranscriptIndex(transcriptName);
-                    genes[geneIndex].ts.get(transcriptIndex).addCDS(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1);
+                    genes[geneIndex].ts.get(transcriptIndex).addCDS(Integer.parseInt(tem[0]), Integer.parseInt(tem[3]), Integer.parseInt(tem[4])+1);
                 }
                 else if (tem[2].startsWith("five_prime_UTR")) {
                     String[] te = tem[8].split(";");
@@ -681,7 +683,7 @@ public class PGF {
                     geneName = transcriptName.split("\\.")[0];
                     int geneIndex = Arrays.binarySearch(geneNames, geneName);
                     int transcriptIndex = genes[geneIndex].getTranscriptIndex(transcriptName);
-                    genes[geneIndex].ts.get(transcriptIndex).add5UTR(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1);
+                    genes[geneIndex].ts.get(transcriptIndex).add5UTR(Integer.parseInt(tem[0]), Integer.parseInt(tem[3]), Integer.parseInt(tem[4])+1);
                 }
                 else if (tem[2].startsWith("three_prime_UTR")) {
                     String[] te = tem[8].split(";");
@@ -690,7 +692,7 @@ public class PGF {
                     geneName = transcriptName.split("\\.")[0];
                     int geneIndex = Arrays.binarySearch(geneNames, geneName);
                     int transcriptIndex = genes[geneIndex].getTranscriptIndex(transcriptName);
-                    genes[geneIndex].ts.get(transcriptIndex).add3UTR(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1);
+                    genes[geneIndex].ts.get(transcriptIndex).add3UTR(Integer.parseInt(tem[0]), Integer.parseInt(tem[3]), Integer.parseInt(tem[4])+1);
                 }
             }
             for (int i = 0; i < this.genes.length; i++) {
@@ -755,7 +757,7 @@ public class PGF {
                             description = te[j].replaceFirst("description=", "");
                         }
                     }
-                    genes[index] = new Gene (query, Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1, (byte)(tem[6].equals("+")? 1:0), biotype, description);
+                    genes[index] = new Gene (query, Integer.parseInt(tem[0]), Integer.parseInt(tem[3]), Integer.parseInt(tem[4])+1, (byte)(tem[6].equals("+")? 1:0), biotype, description);
                 }
             }
             for (int i = 0; i < info.length; i++) {
@@ -764,7 +766,7 @@ public class PGF {
                     String[] te = tem[8].split(";");
                     String geneName = te[1].split(":")[1];
                     int geneIndex = Arrays.binarySearch(geneNames, geneName);
-                    Transcript t = new Transcript (te[0].split(":")[1], Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1, (byte)(tem[6].equals("+")? 1:0));
+                    Transcript t = new Transcript (te[0].split(":")[1], Integer.parseInt(tem[0]), Integer.parseInt(tem[3]), Integer.parseInt(tem[4])+1, (byte)(tem[6].equals("+")? 1:0));
                     genes[geneIndex].addTranscript(t);
                 }
             }
@@ -778,7 +780,7 @@ public class PGF {
                     geneName = transcriptName.split("_")[0];
                     int geneIndex = Arrays.binarySearch(geneNames, geneName);
                     int transcriptIndex = genes[geneIndex].getTranscriptIndex(transcriptName);
-                    genes[geneIndex].ts.get(transcriptIndex).addCDS(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1);
+                    genes[geneIndex].ts.get(transcriptIndex).addCDS(Integer.parseInt(tem[0]), Integer.parseInt(tem[3]), Integer.parseInt(tem[4])+1);
                 }
                 else if (tem[2].startsWith("five_prime_UTR")) {
                     String[] te = tem[8].split(":");
@@ -787,7 +789,7 @@ public class PGF {
                     geneName = transcriptName.split("_")[0];
                     int geneIndex = Arrays.binarySearch(geneNames, geneName);
                     int transcriptIndex = genes[geneIndex].getTranscriptIndex(transcriptName);
-                    genes[geneIndex].ts.get(transcriptIndex).add5UTR(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1);
+                    genes[geneIndex].ts.get(transcriptIndex).add5UTR(Integer.parseInt(tem[0]), Integer.parseInt(tem[3]), Integer.parseInt(tem[4])+1);
                 }
                 else if (tem[2].startsWith("three_prime_UTR")) {
                     String[] te = tem[8].split(":");
@@ -796,7 +798,7 @@ public class PGF {
                     geneName = transcriptName.split("_")[0];
                     int geneIndex = Arrays.binarySearch(geneNames, geneName);
                     int transcriptIndex = genes[geneIndex].getTranscriptIndex(transcriptName);
-                    genes[geneIndex].ts.get(transcriptIndex).add3UTR(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1);
+                    genes[geneIndex].ts.get(transcriptIndex).add3UTR(Integer.parseInt(tem[0]), Integer.parseInt(tem[3]), Integer.parseInt(tem[4])+1);
                 }
             }
             for (int i = 0; i < this.genes.length; i++) {
