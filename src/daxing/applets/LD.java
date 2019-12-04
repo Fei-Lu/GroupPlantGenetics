@@ -1,16 +1,12 @@
 package daxing.applets;
 
-import com.apple.laf.AquaInternalFrameDockIconUI;
 import daxing.common.NumberTool;
 import daxing.common.RowTableTool;
 import daxing.common.WheatLineage;
-import format.dna.snp.SNP;
 import gnu.trove.list.array.TDoubleArrayList;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.commons.math3.util.CombinatoricsUtils;
-import smile.stat.Stat;
 import utils.IOFileFormat;
 import utils.IOUtils;
 import utils.PArrayUtils;
@@ -20,8 +16,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
@@ -63,7 +57,7 @@ public class LD {
             }
            while ((line=br2.readLine())!=null){
                temp= StringUtils.split(line, "\t");
-               snp=new SNP(Integer.parseInt(temp[0]), Integer.parseInt(temp[3]));
+               snp=new SNP(temp[0], Integer.parseInt(temp[3]));
                snpList.add(snp);
            }
            this.triangle=triangle;
@@ -94,7 +88,7 @@ public class LD {
     public boolean isOnSameChromosome(int snpIndex1, int snpIndex2){
         SNP snp1=this.getSNP(snpIndex1);
         SNP snp2=this.getSNP(snpIndex2);
-        return snp1.chrID==snp2.chrID ? true: false;
+        return snp1.chr.equals(snp2.chr) ? true: false;
     }
 
     /**
@@ -473,34 +467,20 @@ public class LD {
 
     private class SNP {
 
-        int chrID;
+        String chr;
         int pos;
 
-        SNP(int chrID, int pos){
-            this.chrID=chrID;
+        SNP(String chr, int pos){
+            this.chr = chr;
             this.pos=pos;
         }
 
-        public int getChrID() {
-            return chrID;
+        public String getChr() {
+            return chr;
         }
 
         public int getPos() {
             return pos;
-        }
-
-        public String getChr(){
-            int[] integers= IntStream.range(1,8).toArray();
-            String[] abd={"A","B","D"};
-            Map<Integer, String> chrIDmap=new HashMap<>();
-            int count=0;
-            for (int i = 0; i < integers.length; i++) {
-                for (int j = 0; j < abd.length; j++) {
-                    count++;
-                    chrIDmap.put(count, integers[i]+abd[j]);
-                }
-            }
-            return chrIDmap.get(chrID);
         }
 
         @Override
