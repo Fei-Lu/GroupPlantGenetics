@@ -1,6 +1,5 @@
 package daxing.applets;
 
-import com.apple.laf.AquaInternalFrameDockIconUI;
 import daxing.common.*;
 import daxing.filterSNP.Cells;
 import daxing.filterSNP.DepthInfo;
@@ -10,9 +9,7 @@ import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import smile.stat.Stat;
 import utils.Benchmark;
-import utils.Dyad;
 import utils.IOUtils;
 import utils.PStringUtils;
 
