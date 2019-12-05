@@ -1,17 +1,21 @@
 package daxing.applets;
 
 import daxing.common.DateTime;
+import daxing.common.MD5;
 import daxing.common.NumberTool;
 import daxing.common.WheatLineage;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
 import utils.IOUtils;
+import utils.PArrayUtils;
 import utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,8 +45,16 @@ public class PhylipSequential {
             if (chrF1[i]==chrF2[i]) continue;
             System.out.println("please check your "+vcfInputDir+" and "+chrPosRefTaxonDir);
         }
-        IntStream.range(0, f1.length).parallel().forEach(e->
-                PhylipSequential.toPhylipSequentialFormat(f1[e], f2[e], new File(outFileDir, outNames[e])));
+        int[][] indices= PArrayUtils.getSubsetsIndicesBySubsetSize(f1.length, 21);
+        for (int i = 0; i < indices.length; i++) {
+            Integer[] subLibIndices = new Integer[indices[i][1]-indices[i][0]];
+            for (int j = 0; j < subLibIndices.length; j++) {
+                subLibIndices[j] = indices[i][0]+j;
+            }
+            List<Integer> integerList=Arrays.asList(subLibIndices);
+            integerList.parallelStream()
+                    .forEach(e-> PhylipSequential.toPhylipSequentialFormat(f1[e], f2[e], new File(outFileDir, outNames[e])));
+        }
         PhylipSequential.merge(outFileDir.getAbsolutePath());
         System.out.println(DateTime.getDateTimeOfNow()+" end");
     }
@@ -54,7 +66,7 @@ public class PhylipSequential {
     private static void toPhylipSequentialFormat(File vcfInputFile, File chrPosRefTaxonFile, File outFile){
         StringBuilder sb=new StringBuilder();
         try (BufferedReader br1 = IOUtils.getTextGzipReader(vcfInputFile.getAbsolutePath());
-             BufferedReader br2 = IOUtils.getTextReader(chrPosRefTaxonFile.getAbsolutePath());
+             BufferedReader br2 = IOUtils.getTextGzipReader(chrPosRefTaxonFile.getAbsolutePath());
              BufferedWriter bw=IOUtils.getTextWriter(outFile.getAbsolutePath())) {
             String line;
             List<String> lineList;
@@ -62,11 +74,14 @@ public class PhylipSequential {
             TIntArrayList posList=new TIntArrayList();
             List<String> alleleList=new ArrayList<>();
             br2.readLine();
+            String allele;
             while ((line=br2.readLine())!=null){
                 lineList=PStringUtils.fastSplit(line);
+                allele=lineList.get(5);
+                if (!(allele.equals("A") || allele.equals("T") || allele.equals("C") || allele.equals("G"))) continue;
                 chrs.add(Integer.parseInt(lineList.get(0)));
                 posList.add(Integer.parseInt(lineList.get(1)));
-                alleleList.add(lineList.get(3));
+                alleleList.add(allele);
             }
             if (chrs.size()>1){
                 System.out.println("please check your "+chrPosRefTaxonFile.getName()+" it has duplicated chromosome");
@@ -98,7 +113,7 @@ public class PhylipSequential {
                     sb.append("N");
                 }else {
                     count++;
-                    sb.append(lineList.get(3).toUpperCase());
+                    sb.append(alleleList.get(index).toUpperCase());
                 }
             }
             System.out.println(vcfInputFile.getName()+" "+NumberTool.format(count/total, 2)+"("+count+"/"+total+") " +
@@ -137,7 +152,7 @@ public class PhylipSequential {
                         lines=PStringUtils.getMultilineString(50, sb.toString());
                         for (int j = 0; j < lines.length-1; j++) {
                             temp=new StringBuilder();
-                            bw.write(temp.append("...............").append(lines[j]).toString());
+                            bw.write(temp.append("               ").append(lines[j]).toString());
                             bw.newLine();
                         }
                         sb=new StringBuilder();
@@ -149,7 +164,7 @@ public class PhylipSequential {
             lines=PStringUtils.getMultilineString(50, sb.toString());
             for (int i = 0; i < lines.length; i++) {
                 temp=new StringBuilder();
-                bw.write(temp.append("...............").append(lines[i]).toString());
+                bw.write(temp.append("               ").append(lines[i]).toString());
                 bw.newLine();
             }
             for (int i = 0; i < brs.length; i++) {
