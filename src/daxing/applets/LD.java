@@ -430,23 +430,27 @@ public class LD {
             }
             bw.flush();
             bw.close();
+            RowTableTool<String> rowTableTool=new RowTableTool<>(outFile);
+            Comparator<List<String>> c=Comparator.comparing(l->Integer.parseInt(l.get(0)));
+            rowTableTool.sortBy(c);
+            rowTableTool.writeTextTable(outFile, IOFileFormat.Text);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static void mergeToSubgenome(String input1Dir, String inout2Dir, String mergedFile){
-        File[] files1=new File(input1Dir).listFiles();
-        File[] files2=new File(inout2Dir).listFiles();
-        File[] mergedFiles= (File[]) ArrayUtils.addAll(files1, files2);
+    public static void mergeToAB(String inputFile1, String inputFile2, String mergedFile){
+        String[] input=new String[2];
+        input[0]=inputFile1;
+        input[1]=inputFile2;
         BufferedReader br;
         BufferedWriter bw;
         try {
             bw=IOUtils.getTextWriter(mergedFile);
             bw.write("Distance\tR2\n");
             String line;
-            for (int i = 0; i < mergedFiles.length; i++) {
-                br=IOUtils.getTextReader(mergedFiles[i].getAbsolutePath());
+            for (int i = 0; i < input.length; i++) {
+                br=IOUtils.getTextReader(input[i]);
                 br.readLine();
                 while ((line=br.readLine())!=null){
                     bw.write(line);
