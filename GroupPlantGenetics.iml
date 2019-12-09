@@ -10,5 +10,8 @@
     <orderEntry type="library" name="jxl-2.6.12" level="project" />
     <orderEntry type="library" name="lib" level="project" />
     <orderEntry type="module" module-name="PublicPlantGenetics" />
+    <orderEntry type="module" module-name="PrivateJavaCodeByAoyue" />
+    <orderEntry type="module" module-name="GeneticLoad" />
+    <orderEntry type="module" module-name="PrivatePlantGenetics" />
   </component>
 </module>
