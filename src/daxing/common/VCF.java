@@ -50,7 +50,7 @@ public class VCF {
             }
             StringBuilder sb=new StringBuilder();
             String temp;
-            List<List<String>> lists=new ArrayList<>();
+            List<List<String>> lists=new ArrayList<>(1000);
             while ((temp=br.readLine()).startsWith("##")){
                 sb.append(temp).append("\n");
             }
