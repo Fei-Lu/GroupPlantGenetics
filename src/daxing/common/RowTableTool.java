@@ -2,6 +2,7 @@ package daxing.common;
 
 import format.table.RowTable;
 import org.apache.commons.lang.StringUtils;
+import utils.IOFileFormat;
 import utils.IOUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -10,24 +11,11 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.IntStream;
 
 public class RowTableTool<T> extends RowTable<T> {
 
     public RowTableTool(String infileS){
         super(infileS);
-    }
-
-    public Map<T, T> getMap(int columnIndex){
-        Set<T> s=new HashSet<>(this.getColumn(0));
-        if (s.size()<this.getColumn(0).size()){
-            System.out.println("0 column has duplicated keys");
-        }
-        List<T> key=this.getColumn(0);
-        List<T> value=this.getColumn(columnIndex);
-        Map<T,T> map=new HashMap<>();
-        IntStream.range(0,key.size()).forEach(index-> map.put(key.get(index), value.get(index)));
-        return map;
     }
 
     /**
@@ -57,6 +45,10 @@ public class RowTableTool<T> extends RowTable<T> {
      */
     public void sortBy(Comparator<List<T>> comparator){
         this.cells.sort(comparator);
+    }
+
+    public void write(String outfile){
+        this.writeTextTable(outfile, IOFileFormat.Text);
     }
 
     /**
