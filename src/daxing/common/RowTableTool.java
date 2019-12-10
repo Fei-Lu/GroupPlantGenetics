@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
-import utils.Dyad;
 
 public class RowTableTool<T> extends RowTable<T> {
 
@@ -32,16 +31,16 @@ public class RowTableTool<T> extends RowTable<T> {
         return map;
     }
 
-    public Dyad<T[], T[]> getDyad(int columnIndexA, int columnIndexB){
-        Set<T> s=new HashSet<>(this.getColumn(columnIndexA));
-        if (s.size()<this.getColumn(columnIndexA).size()){
-            System.out.println(columnIndexA+" column has duplicated keys");
-        }
-        List<T> key=this.getColumn(columnIndexA);
-        List<T> value=this.getColumn(columnIndexB);
-        T[] k= (T[]) key.toArray();
-        T[] v= (T[]) value.toArray();
-        return new Dyad(k, v);
+    /**
+     * Removes all of the rows of this rowTable that satisfy the given predicate
+     * @param p 追对表格进行过滤的函数式接口
+     * @return true, if any row were removed
+     */
+    public boolean removeIf(Predicate<List<T>> p){
+        List<List<T>> cells=this.cells;
+        boolean f=cells.removeIf(p);
+        this.cells=cells;
+        return f;
     }
 
     /**

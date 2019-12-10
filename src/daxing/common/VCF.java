@@ -373,6 +373,12 @@ public class VCF {
         System.out.println("samping "+vcfDir+" into "+subsetFileDir+" is completed in "+Benchmark.getTimeSpanHours(totalStart)+" hours");
     }
 
+    public static double calculateR2(List<String> vcfLine1, List<String> vcfLine2){
+        String[] genotype1=vcfLine1.stream().skip(9).map(str->str.substring(0, 3)).toArray(String[]::new);
+        String[] genotype2=vcfLine2.stream().skip(9).map(str->str.substring(0, 3)).toArray(String[]::new);
+        return calculateR2(genotype1, genotype2);
+    }
+
     /**
      * calculate r2 from genotype
      * note: only support binary allele, and genotype must be one of the following, "0/0", "1/1", "0/1", "./."
@@ -416,6 +422,7 @@ public class VCF {
             array2.add(genotypeValue.get(genotype2[i]));
             array2.add(genotypeValue.get(genotype2[i]));
         }
+        if (array1.size()<20) return Double.NaN;
         PearsonsCorrelation pearsonsCorrelation=new PearsonsCorrelation();
         double r=pearsonsCorrelation.correlation(array1.toArray(), array2.toArray());
         return Math.pow(r, 2);
@@ -680,9 +687,7 @@ public class VCF {
             int[] combinationIndex;
             while (iterator.hasNext()) {
                 combinationIndex = iterator.next();
-                genotype1=data.get(combinationIndex[0]).stream().skip(9).map(str->str.substring(0, 3)).toArray(String[]::new);
-                genotype2= data.get(combinationIndex[1]).stream().skip(9).map(str->str.substring(0, 3)).toArray(String[]::new);
-                r2=VCF.calculateR2(genotype1, genotype2);
+                r2=VCF.calculateR2(data.get(combinationIndex[0]), data.get(combinationIndex[1]));
                 sb=new StringBuilder(30);
                 sb.append(data.get(combinationIndex[0]).get(0)).append("\t");
                 sb.append(data.get(combinationIndex[0]).get(1)).append("\t");
