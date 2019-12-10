@@ -3,13 +3,12 @@ package daxing.common;
 import format.table.RowTable;
 import org.apache.commons.lang.StringUtils;
 import utils.IOUtils;
-
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
@@ -41,6 +40,15 @@ public class RowTableTool<T> extends RowTable<T> {
         boolean f=cells.removeIf(p);
         this.cells=cells;
         return f;
+    }
+
+    /**
+     * Performs the given action for each row
+     * @param consumer The action to be performed for each element
+     */
+    public void forEach(Consumer<List<T>> consumer){
+        List<List<T>> cells=this.cells;
+        cells.forEach(consumer);
     }
 
     /**
