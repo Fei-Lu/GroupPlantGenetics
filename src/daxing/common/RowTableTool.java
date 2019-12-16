@@ -20,7 +20,7 @@ public class RowTableTool<T> extends RowTable<T> {
 
     /**
      * Removes all of the rows of this rowTable that satisfy the given predicate
-     * @param p 追对表格进行过滤的函数式接口
+     * @param p 针对表格进行过滤的函数式接口
      * @return true, if any row were removed
      */
     public boolean removeIf(Predicate<List<T>> p){

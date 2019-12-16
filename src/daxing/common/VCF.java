@@ -513,6 +513,16 @@ public class VCF {
         return header;
     }
 
+    /**
+     * Removes all of the rows of this rowTable that satisfy the given predicate
+     * @param p 针对行进行过滤的函数式接口
+     * @return true, if any row were removed
+     */
+    public boolean removeIf(Predicate<List<String>> p){
+        List<List<String>> data=this.getData();
+        return data.removeIf(p);
+    }
+
     public VCF subsetVCF(Set<String> subsetTaxonSet){
         List<String> headList=this.getHeader();
         List<String> subsetTaxonList=new ArrayList<>(subsetTaxonSet);
