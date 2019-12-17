@@ -184,6 +184,94 @@ public class VCF {
     }
 
     /**
+     *
+     * @param inputVcfDir
+     * @param outDir
+     */
+    public static void fastMergeVCFtoLineage(String inputVcfDir, String outDir){
+        System.out.println(DateTime.getDateTimeOfNow()+ " start");
+        File[] files=new File(inputVcfDir).listFiles();
+        Predicate<File> hidden=File::isHidden;
+        Predicate<File> p= hidden.negate().and(f->f.getName().toLowerCase().startsWith("chr"));
+        File[] f=Arrays.stream(files).filter(p).sorted().toArray(File[]::new);
+        TIntArrayList[] abd=new TIntArrayList[3];
+        abd[0]=new TIntArrayList(WheatLineage.valueOf("A").getChrID());
+        abd[1]=new TIntArrayList(WheatLineage.valueOf("B").getChrID());
+        abd[2]=new TIntArrayList(WheatLineage.valueOf("D").getChrID());
+        Predicate<File> ap=fa->abd[0].contains(Integer.parseInt(fa.getName().substring(3,6)));
+        Predicate<File> bp=fa->abd[1].contains(Integer.parseInt(fa.getName().substring(3,6)));
+        Predicate<File> dp=fa->abd[2].contains(Integer.parseInt(fa.getName().substring(3,6)));
+        File[][] abd_lineageFile=new File[3][];
+        abd_lineageFile[0]= Arrays.stream(f).filter(ap).toArray(File[]::new);
+        abd_lineageFile[1]= Arrays.stream(f).filter(bp).toArray(File[]::new);
+        abd_lineageFile[2]= Arrays.stream(f).filter(dp).toArray(File[]::new);
+        String[] outNames={"chr.Asubgenome.vcf", "chr.Bsubgenome.vcf", "chr.Dsubgenome.vcf"};
+        BufferedWriter[] bws=new BufferedWriter[3];
+        for (int i = 0; i < bws.length; i++) {
+            bws[i]=IOUtils.getTextWriter(new File(outDir, outNames[i]).getAbsolutePath());
+        }
+        try {
+            BufferedReader br;
+            boolean ifFirst=true;
+            StringBuilder sb;
+            for (int i = 0; i < abd_lineageFile.length; i++) {
+                for (int j = 0; j < abd_lineageFile[i].length; j++) {
+                    sb=new StringBuilder(1000);
+                    br=IOUtils.getTextGzipReader(abd_lineageFile[i][j].getAbsolutePath());
+                    String line;
+                    while ((line=br.readLine()).startsWith("##")){
+                        sb.append(line);
+                        sb.append("\n");
+                    }
+                    sb.append(line);
+                    sb.append("\n");
+                    if (ifFirst){
+                        bws[i].write(sb.toString());
+                        ifFirst=false;
+                    }
+                    while ((line=br.readLine())!=null){
+                        bws[i].write(line);
+                        bws[i].newLine();
+                    }
+                    br.close();
+                }
+                bws[i].flush();
+                bws[i].close();
+                ifFirst=true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println(DateTime.getDateTimeOfNow()+" end");
+    }
+
+    public static void fastMergeVCFtoAB(String a_lineageVCF, String b_lineageVCF, String out_AB_lineageFile){
+        try (BufferedReader bufferedReader= IOUtils.getTextReader(a_lineageVCF);
+             BufferedReader bufferedReader1=IOUtils.getTextReader(b_lineageVCF);
+             BufferedWriter bufferedWriter=IOUtils.getTextWriter(out_AB_lineageFile)) {
+            String line;
+            while ((line=bufferedReader.readLine()).startsWith("##")){
+                bufferedWriter.write(line);
+                bufferedWriter.newLine();
+            }
+            bufferedWriter.write(line);
+            bufferedWriter.newLine();
+            while ((line=bufferedReader.readLine())!=null){
+                bufferedWriter.write(line);
+                bufferedWriter.newLine();
+            }
+            while ((line=bufferedReader1.readLine()).startsWith("##")){}
+            while ((line=bufferedReader1.readLine())!=null){
+                bufferedWriter.write(line);
+                bufferedWriter.newLine();
+            }
+            bufferedWriter.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * only support even, between chr001 and chr042, suitable for large VCF file
      * @param inputVcfDir
      * @param outDir
