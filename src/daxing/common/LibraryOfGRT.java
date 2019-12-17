@@ -2,6 +2,7 @@ package daxing.common;
 
 import analysis.pipeline.grt.LibraryInfo;
 import format.dna.Read;
+import utils.Benchmark;
 import utils.IOUtils;
 import utils.PArrayUtils;
 import java.io.BufferedReader;
@@ -40,6 +41,7 @@ public class LibraryOfGRT extends LibraryInfo {
 
     private void splitBarcode(String lib, String fastqR1, String fastqR2,
                               HashMap<String, Set<String>> barcodeR1TaxaMap, HashMap<String, Set<String>> barcodeR2TaxaMap, String[] taxaNames, String outputDir, String cutter1, String cutter2){
+        long start=System.nanoTime();
         HashMap<String, BufferedWriter[]> taxaWriterMap = new HashMap<>();
         BufferedWriter bw1, bw2;
         BufferedWriter[] bwArray;
@@ -145,6 +147,7 @@ public class LibraryOfGRT extends LibraryInfo {
             }
             System.out.println("Total read count: "+totalCnt+"\nPassed read count: "+processedCnt);
             System.out.println("The probability of sequencing error in the reads of the "+lib+" library is "+((double)totalCnt-processedCnt)/totalCnt);
+            System.out.println("completed in "+ Benchmark.getTimeSpanMinutes(start)+" minutes");
         }catch (Exception e){
             e.printStackTrace();
         }
