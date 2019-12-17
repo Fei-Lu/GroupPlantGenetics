@@ -43,12 +43,9 @@ public class LibraryOfGRT extends LibraryInfo {
         HashMap<String, BufferedWriter[]> taxaWriterMap = new HashMap<>();
         BufferedWriter bw1, bw2;
         BufferedWriter[] bwArray;
-        File outputSubDir;
         for (String str:taxaNames){
-            outputSubDir=new File(outputDir, str);
-            outputSubDir.mkdir();
-            bw1= IOUtils.getNIOTextWriter(new File(outputSubDir, str+"-1.fq").getAbsolutePath());
-            bw2= IOUtils.getNIOTextWriter(new File(outputSubDir, str+"-2.fq").getAbsolutePath());
+            bw1= IOUtils.getNIOTextWriter(new File(outputDir, str+"-1.fq").getAbsolutePath());
+            bw2= IOUtils.getNIOTextWriter(new File(outputDir, str+"-2.fq").getAbsolutePath());
             bwArray=new BufferedWriter[2];
             bwArray[0]=bw1;
             bwArray[1]=bw2;
@@ -74,7 +71,7 @@ public class LibraryOfGRT extends LibraryInfo {
             String[] barcodeR2 = bSetR2.toArray(new String[bSetR2.size()]);
             Arrays.sort(barcodeR1);
             Arrays.sort(barcodeR2);
-            String read1ID, read2ID, seq1, seq2;
+            String read1ID, read2ID, seq1, seq2, des1, des2, qual1, qual2;
             int index1, index2;
             Set<String> taxaSR1, taxaSR2;
             int totalCnt = 0;
@@ -89,6 +86,10 @@ public class LibraryOfGRT extends LibraryInfo {
                 read2ID = br2.readLine();
                 seq1=br1.readLine();
                 seq2=br2.readLine();
+                des1=br1.readLine();
+                des2=br2.readLine();
+                qual1=br1.readLine();
+                qual2=br2.readLine();
                 totalCnt++;
                 if (totalCnt%10000000 == 0) {
                     System.out.println("Total read count: "+totalCnt+"\tPassed read count: "+processedCnt);
@@ -119,8 +120,10 @@ public class LibraryOfGRT extends LibraryInfo {
                 lenBarcodeR1=barcodeR1[index1].length();
                 lenBarcodeR2=barcodeR2[index2].length();
                 reads1_2=new Read[2];
-                reads1_2[0]=new Read(read1ID, seq1.substring(lenBarcodeR1), br1.readLine(), br1.readLine().substring(lenBarcodeR1), 33);
-                reads1_2[1]=new Read(read2ID, seq2.substring(lenBarcodeR2), br2.readLine(), br2.readLine().substring(lenBarcodeR2), 33);
+                reads1_2[0]=new Read(read1ID, seq1.substring(lenBarcodeR1), des1, qual1.substring(lenBarcodeR1)
+                        , 33);
+                reads1_2[1]=new Read(read2ID, seq2.substring(lenBarcodeR2), des2, qual2.substring(lenBarcodeR2)
+                        , 33);
                 bwArray = taxaWriterMap.get(newSet.iterator().next());
                 bwArray[0].write(String.join("\n", read1ID, reads1_2[0].getSequence(), reads1_2[0].getDescription(), reads1_2[0].getQualS(33)));
                 bwArray[0].newLine();
