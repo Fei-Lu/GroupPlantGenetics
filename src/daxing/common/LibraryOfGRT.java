@@ -10,7 +10,7 @@ import java.io.File;
 import java.util.*;
 
 public class LibraryOfGRT extends LibraryInfo {
-    int numThreads=32;
+    int numThreads=1;
 
     public LibraryOfGRT(String barcodeFileS, String libFastqMapFileS, String cutter1, String cutter2) {
         super(barcodeFileS, libFastqMapFileS, cutter1, cutter2);
@@ -83,8 +83,8 @@ public class LibraryOfGRT extends LibraryInfo {
             System.out.println("Parsing " + fastqR1 + "\t" + fastqR2);
             Read[] reads1_2;
             boolean b;
-            BufferedWriter bwError1=IOUtils.getNIOTextWriter(new File(outputDir, "sequencingError-1.fq").getAbsolutePath());
-            BufferedWriter bwError2=IOUtils.getNIOTextWriter(new File(outputDir, "sequencingError-2.fq").getAbsolutePath());
+//            BufferedWriter bwError1=IOUtils.getNIOTextWriter(new File(outputDir, "sequencingError-1.fq").getAbsolutePath());
+//            BufferedWriter bwError2=IOUtils.getNIOTextWriter(new File(outputDir, "sequencingError-2.fq").getAbsolutePath());
             while ((read1ID = br1.readLine()) != null) {
                 read2ID = br2.readLine();
                 seq1=br1.readLine();
@@ -97,10 +97,10 @@ public class LibraryOfGRT extends LibraryInfo {
                 index2 = Arrays.binarySearch(barcodeR2, seq2);
                 b=(index1 == -1 || index2==-1 );
                 if (b){
-                    bwError1.write(String.join("\n", read1ID, seq1, br1.readLine(), br1.readLine()));
-                    bwError1.newLine();
-                    bwError2.write(String.join("\n", read2ID, seq2, br2.readLine(), br2.readLine()));
-                    bwError2.newLine();
+//                    bwError1.write(String.join("\n", read1ID, seq1, br1.readLine(), br1.readLine()));
+//                    bwError1.newLine();
+//                    bwError2.write(String.join("\n", read2ID, seq2, br2.readLine(), br2.readLine()));
+//                    bwError2.newLine();
                     continue;
                 }
                 index1 = -index1 - 2;
@@ -110,10 +110,10 @@ public class LibraryOfGRT extends LibraryInfo {
                 Set<String> newSet = new HashSet<>(taxaSR1);
                 newSet.retainAll(taxaSR2);
                 if (newSet.size() != 1) {
-                    bwError1.write(String.join("\n", read1ID, seq1, br1.readLine(), br1.readLine()));
-                    bwError1.newLine();
-                    bwError2.write(String.join("\n", read2ID, seq2, br2.readLine(), br2.readLine()));
-                    bwError2.newLine();
+//                    bwError1.write(String.join("\n", read1ID, seq1, br1.readLine(), br1.readLine()));
+//                    bwError1.newLine();
+//                    bwError2.write(String.join("\n", read2ID, seq2, br2.readLine(), br2.readLine()));
+//                    bwError2.newLine();
                     continue;
                 }
                 lenBarcodeR1=barcodeR1[index1].length();
@@ -130,10 +130,10 @@ public class LibraryOfGRT extends LibraryInfo {
             }
             br1.close();
             br2.close();
-            bwError1.flush();
-            bwError1.close();
-            bwError2.flush();
-            bwError2.close();
+//            bwError1.flush();
+//            bwError1.close();
+//            bwError2.flush();
+//            bwError2.close();
             for (BufferedWriter[] bufferedWriters: taxaWriterMap.values()){
                 bufferedWriters[0].flush();
                 bufferedWriters[1].flush();
