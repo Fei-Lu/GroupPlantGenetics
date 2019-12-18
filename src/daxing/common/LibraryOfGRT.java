@@ -46,8 +46,8 @@ public class LibraryOfGRT extends LibraryInfo {
         BufferedWriter bw1, bw2;
         BufferedWriter[] bwArray;
         for (String str:taxaNames){
-            bw1= IOUtils.getNIOTextWriter(new File(outputDir, str+"-1.fq").getAbsolutePath());
-            bw2= IOUtils.getNIOTextWriter(new File(outputDir, str+"-2.fq").getAbsolutePath());
+            bw1= IOUtils.getTextGzipWriter(new File(outputDir, str+"-1.fq.gz").getAbsolutePath());
+            bw2= IOUtils.getTextGzipWriter(new File(outputDir, str+"-2.fq.gz").getAbsolutePath());
             bwArray=new BufferedWriter[2];
             bwArray[0]=bw1;
             bwArray[1]=bw2;
