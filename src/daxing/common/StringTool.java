@@ -49,7 +49,7 @@ public class StringTool {
      * @param subStr 子字符串
      * @return index数组
      */
-    public static int[] getIndexOfSubStr(String str, String subStr){
+    public static TIntArrayList getIndexOfSubStr(String str, String subStr){
         TIntArrayList indexes =new TIntArrayList();
         int index=0, wordlen=0;
         while (index!=-1){
@@ -59,7 +59,7 @@ public class StringTool {
             }
             wordlen=subStr.length();
         }
-        return indexes.toArray();
+        return indexes;
     }
 
     /**

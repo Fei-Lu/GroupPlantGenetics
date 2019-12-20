@@ -200,7 +200,7 @@ public class SeqByte implements SequenceInterface {
      */
     public int getIndexInDashStr(int position){
         String seqWithDash=this.getSequence();
-        int[] indexOfDash= StringTool.getIndexOfSubStr(seqWithDash, "-");
+        TIntArrayList indexOfDash= StringTool.getIndexOfSubStr(seqWithDash, "-");
         TIntArrayList allIndex=new TIntArrayList(IntStream.range(0, seqWithDash.length()).toArray());
         allIndex.removeAll(indexOfDash);
         return allIndex.get(position);
@@ -213,7 +213,7 @@ public class SeqByte implements SequenceInterface {
      */
     public int getIndexInSeqWithoutDash(int indexInDashSeq){
         String seqWithDash=this.getSequence();
-        int[] indexOfDash= StringTool.getIndexOfSubStr(seqWithDash, "-");
+        TIntArrayList indexOfDash= StringTool.getIndexOfSubStr(seqWithDash, "-");
         TIntArrayList allIndex=new TIntArrayList(IntStream.range(0, seqWithDash.length()).toArray());
         allIndex.removeAll(indexOfDash);
         return allIndex.binarySearch(indexInDashSeq);

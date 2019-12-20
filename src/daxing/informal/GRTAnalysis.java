@@ -1,6 +1,7 @@
 package daxing.informal;
 
 import daxing.common.StringTool;
+import gnu.trove.list.array.TIntArrayList;
 import utils.Benchmark;
 import utils.IOUtils;
 import java.io.BufferedReader;
@@ -39,17 +40,17 @@ public class GRTAnalysis {
                 sb.append(temp);
             }
             str=sb.toString();
-            int[] frequency1= StringTool.getIndexOfSubStr(str,"GGATCC");
-            int[] frequency2=StringTool.getIndexOfSubStr(str,"CCGG");
+            TIntArrayList frequency1= StringTool.getIndexOfSubStr(str,"GGATCC");
+            TIntArrayList frequency2=StringTool.getIndexOfSubStr(str,"CCGG");
             sb=new StringBuilder();
-            for(int i=0;i<frequency1.length;i++){
-                sb.append(frequency1[i]);
+            for(int i=0;i<frequency1.size();i++){
+                sb.append(frequency1.get(i));
                 sb.append("\n");
             }
             bw1.write(sb.toString());
             sb=new StringBuilder();
-            for(int i=0;i<frequency2.length;i++){
-                sb.append(frequency2[i]);
+            for(int i=0;i<frequency2.size();i++){
+                sb.append(frequency2.get(i));
                 sb.append("\n");
             }
             bw2.write(sb.toString());

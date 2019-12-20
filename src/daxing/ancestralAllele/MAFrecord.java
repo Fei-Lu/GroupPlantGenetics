@@ -186,8 +186,8 @@ public class MAFrecord  {
         SeqByte seqByte2=this.getSeq(indexForTaxons.get(0));
         String seqWithDash1=seqByte1.getSequence();
         String seqWithDash2=seqByte2.getSequence();
-        int[] indexOfDash1= StringTool.getIndexOfSubStr(seqWithDash1, "-");
-        int[] indexOfDash2= StringTool.getIndexOfSubStr(seqWithDash2, "-");
+        TIntArrayList indexOfDash1= StringTool.getIndexOfSubStr(seqWithDash1, "-");
+        TIntArrayList indexOfDash2= StringTool.getIndexOfSubStr(seqWithDash2, "-");
         TIntHashSet allIndex1=new TIntHashSet(IntStream.range(0, seqWithDash1.length()).toArray());
         TIntHashSet allIndex2=new TIntHashSet(IntStream.range(0, seqWithDash2.length()).toArray());
         allIndex1.removeAll(indexOfDash1);
