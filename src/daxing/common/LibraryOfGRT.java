@@ -1,18 +1,15 @@
 package daxing.common;
 
 import analysis.pipeline.grt.LibraryInfo;
-import format.dna.Read;
 import gnu.trove.list.array.TIntArrayList;
 import utils.Benchmark;
 import utils.IOUtils;
-import utils.PArrayUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.util.*;
 
 public class LibraryOfGRT extends LibraryInfo {
-    int numThreads=1;
 
     public LibraryOfGRT(String barcodeFileS, String libFastqMapFileS, String cutter1, String cutter2) {
         super(barcodeFileS, libFastqMapFileS, cutter1, cutter2);
