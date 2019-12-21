@@ -660,12 +660,22 @@ public class VCF {
      */
     public void sort(){
         if (StringTool.isNumeric(data.get(0).get(0))){
-            Comparator<List<String>> c=Comparator.comparing(e->Integer.valueOf(e.get(0)));
-            data.sort(c.thenComparing(e->Integer.valueOf(e.get(1))));
+            Comparator<List<String>> c=Comparator.comparing(e->Integer.parseInt(e.get(0)));
+            c=c.thenComparing(e->Integer.parseInt(e.get(1)));
+            this.sort(c);
         }else {
             Comparator<List<String>> c=Comparator.comparing(e->e.get(0));
-            data.sort(c.thenComparing(e->Integer.valueOf(e.get(1))));
+            c=c.thenComparing(e->Integer.parseInt(e.get(1)));
+            this.sort(c);
         }
+    }
+
+    /**
+     *
+     * @param comparator
+     */
+    public void sort(Comparator<List<String>> comparator){
+        data.sort(comparator);
     }
 
     public void removeVarianceWithHighGenotypeMissingRate(double genotypeMissingRate){
