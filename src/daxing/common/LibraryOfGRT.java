@@ -36,8 +36,8 @@ public class LibraryOfGRT extends LibraryInfo {
         BufferedWriter bw1, bw2;
         BufferedWriter[] bwArray;
         for (String str:taxaNames){
-            bw1= IOUtils.getTextGzipWriter(new File(outputDir, str+"-1.fq.gz").getAbsolutePath());
-            bw2= IOUtils.getTextGzipWriter(new File(outputDir, str+"-2.fq.gz").getAbsolutePath());
+            bw1= IOUtils.getTextWriter(new File(outputDir, str+"-1.fq").getAbsolutePath());
+            bw2= IOUtils.getTextWriter(new File(outputDir, str+"-2.fq").getAbsolutePath());
             bwArray=new BufferedWriter[2];
             bwArray[0]=bw1;
             bwArray[1]=bw2;
@@ -121,8 +121,8 @@ public class LibraryOfGRT extends LibraryInfo {
                 bufferedWriters[1].close();
             }
             System.out.println("Total read count: "+totalCnt+"\nPassed read count: "+processedCnt);
-            System.out.println("The probability of sequencing error in the reads of the "+lib+" library is "+((double)totalCnt-processedCnt)/totalCnt);
-            System.out.println("completed in "+ Benchmark.getTimeSpanMilliseconds(start)+" ms");
+            System.out.print("The probability of sequencing error in the reads of the "+lib+" library is "+((double)totalCnt-processedCnt)/totalCnt);
+            System.out.println(", completed in "+ Benchmark.getTimeSpanMinutes(start)+" minutes");
         }catch (Exception e){
             e.printStackTrace();
         }
