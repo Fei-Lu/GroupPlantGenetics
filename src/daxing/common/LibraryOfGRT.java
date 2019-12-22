@@ -16,6 +16,8 @@ public class LibraryOfGRT extends LibraryInfo {
     }
 
     public void splitBarcode(String outputDir){
+        System.out.println(DateTime.getDateTimeOfNow()+" start");
+        long start=System.nanoTime();
         String[] libs = this.getLibArray();
         for (int i = 0; i < libs.length; i++) {
             String fastqR1 = this.getFastqFileSR1(i);
@@ -27,6 +29,8 @@ public class LibraryOfGRT extends LibraryInfo {
             String cutter2 = this.getCutter2();
             this.splitBarcode(libs[i], fastqR1, fastqR2, barcodeR1TaxaMap, barcodeR2TaxaMap, taxaNames, outputDir, cutter1, cutter2);
         }
+        System.out.println("all libraries completed in "+Benchmark.getTimeSpanHours(start)+" hours");
+        System.out.println(DateTime.getDateTimeOfNow()+" end");
     }
 
     private void splitBarcode(String lib, String fastqR1, String fastqR2,
