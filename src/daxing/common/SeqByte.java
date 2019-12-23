@@ -1,21 +1,18 @@
-package daxing.ancestralAllele;
+package daxing.common;
 
 import com.koloboke.collect.map.hash.HashByteByteMap;
 import com.koloboke.collect.map.hash.HashByteByteMaps;
 import com.koloboke.collect.map.hash.HashCharCharMap;
 import com.koloboke.collect.map.hash.HashCharCharMaps;
-import daxing.common.StringTool;
 import format.dna.DNAUtils;
 import format.dna.SequenceInterface;
 import gnu.trove.list.array.TCharArrayList;
 import gnu.trove.list.array.TIntArrayList;
-
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
 /**
- * this class use to store a DNA sequence of an alignment in MAF file format
- * it includes ATCGN-  and corresponding reverse complementary sequence (eg: -NCGAT)
+ * this class use to store a DNA sequence which includes "ATCGN-", it uses one byte to store a DNA base
  */
 
 public class SeqByte implements SequenceInterface {
@@ -24,6 +21,18 @@ public class SeqByte implements SequenceInterface {
 
     public SeqByte(String seq) {
         this.seqByte=seq.getBytes();
+    }
+
+    public SeqByte(byte[] seqByte){
+        this.seqByte=seqByte;
+    }
+
+    public byte[] getSeqByte() {
+        return seqByte;
+    }
+
+    public TIntArrayList getSubstrIndex(byte[] substr){
+        return new TIntArrayList();
     }
 
     @Override
