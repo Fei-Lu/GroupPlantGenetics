@@ -51,11 +51,11 @@ public class VariantSummary {
 //       this.mkHmp321MafPlot();
 //       this.mkHmp321MafPlot_useR();
  //      this.SiftGerp_Correlation();
-      //this.countDeleteriousHmp321();
+      this.countDeleteriousHmp321();
 //       this.checkTaxaNameSamewithFeiGroup();
        this.mkDepthOfHmp321();
        this.mkDepthSummary();
-       //this.countDeleteriousHmp32HighDepth();
+       this.countDeleteriousHmp32HighDepth();
 //       this.mkBurdenFile_deprecated();
 //       this.mkDistanceToB73();
 //       this.mergeRecDelHighAndDsitanceToB73();
@@ -459,7 +459,6 @@ public class VariantSummary {
             }
             for (int i = 0; i < taxa.length; i++) {
                 String outfileS = new File (taxaDepthDirS, PStringUtils.getNDigitNumber(5, i+1)+"depth.txt").getAbsolutePath();
-                try {
                     BufferedWriter bw = IOUtils.getTextWriter(outfileS);
                     bw.write(taxa[i]+"_siteDepth");
                     bw.newLine();
@@ -470,10 +469,6 @@ public class VariantSummary {
                     }
                     bw.flush();
                     bw.close();
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
             }
         }
         catch (Exception e) {
@@ -679,6 +674,7 @@ public class VariantSummary {
                         siteWithMinDepthCount[i]++; //查看过滤了位点后，每个taxa有多少个位点被测到了！！！！
                     }
                 }
+                br.close();
             }
             catch (Exception e) {
                 e.printStackTrace();
