@@ -1,5 +1,6 @@
 package daxing.common;
 
+import com.google.common.primitives.Bytes;
 import com.koloboke.collect.map.hash.HashByteByteMap;
 import com.koloboke.collect.map.hash.HashByteByteMaps;
 import com.koloboke.collect.map.hash.HashCharCharMap;
@@ -32,8 +33,30 @@ public class SeqByte implements SequenceInterface {
         return seqByte;
     }
 
-    public TIntArrayList getSubstrIndex(byte[] substr){
-        return new TIntArrayList();
+    /**
+     * 返回所有子数组的索引
+     * @param substr 子数组
+     * @return
+     */
+    public TIntArrayList indexOfAll(byte[] substr){
+        TIntArrayList indexes=new TIntArrayList();
+        byte[] seqByte=this.seqByte;
+        int index=0;
+        byte[] des;
+        int srcPos=0;
+        int accumulator=0;
+        int wordSize=0;
+        while (index!=-1){
+            des=new byte[seqByte.length-srcPos];
+            System.arraycopy(seqByte, srcPos, des, 0, des.length);
+            index=Bytes.indexOf(des, substr);
+            if (index==-1) continue;
+            accumulator=accumulator+index+wordSize;
+            indexes.add(accumulator);
+            wordSize=1;
+            srcPos=accumulator+wordSize;
+        }
+        return indexes;
     }
 
     @Override

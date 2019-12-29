@@ -46,7 +46,7 @@ public class StringTool {
     }
 
     /**
-     * 返回一个字符串中子字符串出现的index数组
+     * 返回一个字符串中子字符串出现的所有索引列表
      * @param str 字符串
      * @param subStr 子字符串
      * @return index数组
