@@ -162,7 +162,7 @@ public class LibraryOfGRT {
                 if (!bacode1_2Taxon.containsColumn(barcode2)) continue;
                 taxonName=bacode1_2Taxon.get(barcode1, barcode2);
                 if (taxonName==null) continue;
-                bwArray = taxaWriterMap.get(bacode1_2Taxon.get(barcode1, barcode2));
+                bwArray = taxaWriterMap.get(taxonName);
                 sb=new StringBuilder(400);
                 sb.append(read1ID).append("\n").append(seq1.substring(barcode1.length())).append("\n").append(des1);
                 sb.append("\n").append(qual1.substring(barcode1.length()));
