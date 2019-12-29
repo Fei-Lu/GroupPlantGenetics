@@ -22,7 +22,7 @@ import java.util.function.Predicate;
 
 /**
  *
- * @author xudaxing
+ * @author Daxing Xu
  */
 public class MD5 {
 

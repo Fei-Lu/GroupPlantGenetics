@@ -5,6 +5,9 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 
+/**
+ * @author Daxing Xu
+ */
 public class NumberTool {
 
     /**

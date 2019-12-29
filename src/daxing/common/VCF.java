@@ -2,14 +2,12 @@ package daxing.common;
 
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.util.CombinatoricsUtils;
 import utils.Benchmark;
 import utils.IOUtils;
 import utils.PArrayUtils;
 import utils.PStringUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -19,6 +17,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * @author Daxing Xu
+ */
 public class VCF {
 
     private String meta;

@@ -17,6 +17,7 @@ import java.util.stream.IntStream;
 
 /**
  * SnpEff version: SnpEff 4.3t (build 2017-11-24 10:18), by Pablo Cingolani
+ * @author Daxing Xu
  */
 public class SnpEffSummaryHTML {
 

@@ -21,6 +21,7 @@ import java.util.*;
 
 /**
  *  modified from GeneFuture class.
+ * @author Daxing Xu
  */
 public class PGF {
     Gene[] genes;

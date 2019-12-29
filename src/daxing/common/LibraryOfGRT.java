@@ -9,6 +9,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.util.*;
 
+/**
+ * @author Daxing Xu
+ */
 public class LibraryOfGRT extends LibraryInfo {
 
     public LibraryOfGRT(String barcodeFileS, String libFastqMapFileS, String cutter1, String cutter2) {

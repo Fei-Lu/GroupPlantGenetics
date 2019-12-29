@@ -13,6 +13,7 @@ import java.util.stream.IntStream;
 /**
  * VCF coordinates are 1-based;
  * 0-based coordinates in ChrNameMap class
+ * @author Daxing Xu
  */
 public class ChrConvertionRule {
     private  int[] chrID;

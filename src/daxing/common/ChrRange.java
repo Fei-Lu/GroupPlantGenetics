@@ -1,5 +1,8 @@
 package daxing.common;
 
+/**
+ * @author Daxing Xu
+ */
 public class ChrRange {
 
     String chr;

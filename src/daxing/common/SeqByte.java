@@ -13,6 +13,7 @@ import java.util.stream.IntStream;
 
 /**
  * this class use to store a DNA sequence which includes "ATCGN-", it uses one byte to store a DNA base
+ * @author Daxing Xu
  */
 
 public class SeqByte implements SequenceInterface {

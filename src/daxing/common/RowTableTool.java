@@ -12,6 +12,10 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+/**
+ * @author Daxing Xu
+ * @param <T>
+ */
 public class RowTableTool<T> extends RowTable<T> {
 
     public RowTableTool(String infileS){

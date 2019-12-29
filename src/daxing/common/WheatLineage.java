@@ -7,6 +7,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+/**
+ * @author Daxing Xu
+ */
 public enum WheatLineage {
     A, B, D;
 
