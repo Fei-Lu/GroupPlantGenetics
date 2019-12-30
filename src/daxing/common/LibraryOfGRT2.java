@@ -1,20 +1,17 @@
-package daxing;
+package daxing.common;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
-import daxing.common.DateTime;
-import daxing.common.StringTool;
 import format.table.RowTable;
 import gnu.trove.list.array.TIntArrayList;
 import utils.Benchmark;
 import utils.IOUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.util.*;
 
-public class LibraryOfGRT {
+public class LibraryOfGRT2 {
 
     String[] libs = null;
     String[][] taxaNames = null;
@@ -26,7 +23,7 @@ public class LibraryOfGRT {
     String cutter1 = null;
     String cutter2 = null;
 
-    public LibraryOfGRT (String barcodeFileS, String libFastqMapFileS, String cutter1, String cutter2) {
+    public LibraryOfGRT2(String barcodeFileS, String libFastqMapFileS, String cutter1, String cutter2) {
         this.parseBarcode(barcodeFileS, libFastqMapFileS);
         this.cutter1 = cutter1;
         this.cutter2 = cutter2;
