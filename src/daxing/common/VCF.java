@@ -409,7 +409,7 @@ public class VCF {
         File[] files=IOUtils.listRecursiveFiles(new File(vcfDir));
         Predicate<File> p=File::isHidden;
         File[] f1=Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
-        String[] f2=Arrays.stream(f1).map(File::getName).map(str->str.replaceAll("vcf$", "subset.vcf"))
+        String[] f2=Arrays.stream(f1).map(File::getName).map(str->str.replaceAll("vcf.*$", "subset"+rate+".vcf"))
                 .toArray(String[]::new);
         int[][] indices= PArrayUtils.getSubsetsIndicesBySubsetSize(f1.length, numThreads);
         for (int i = 0; i < indices.length; i++) {
@@ -428,7 +428,7 @@ public class VCF {
                         bw=IOUtils.getTextWriter(new File(subsetFileDir, f2[e]).getAbsolutePath());
                     }else {
                         br=IOUtils.getTextGzipReader(f1[e].getAbsolutePath());
-                        bw=IOUtils.getTextGzipWriter(new File(subsetFileDir, f2[e]).getAbsolutePath());
+                        bw=IOUtils.getTextWriter(new File(subsetFileDir, f2[e]).getAbsolutePath());
                     }
                     String line;
                     double r=-1d;
