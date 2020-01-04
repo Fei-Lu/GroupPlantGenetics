@@ -14,10 +14,10 @@ import format.range.RangeInterface;
 import gnu.trove.list.array.TIntArrayList;
 import utils.IOUtils;
 import utils.PStringUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  *  modified from GeneFuture class.
@@ -27,7 +27,6 @@ public class PGF {
     Gene[] genes;
     //0 sort by position, 1 by sort by name
     int sortType = 0;
-    public PGF () {}
 
     /**
      * Constructs a object from reading pgf (key gene feature) format
@@ -104,19 +103,23 @@ public class PGF {
         genomef.sortByName();
         try {
             BufferedWriter bw = IOUtils.getTextWriter(outfileS);
+            String title, chrseq, cdsSeq;
+            StringBuilder sb;
+            List<Range> cdsList;
+            SequenceByte s;
             for (int i = 0; i < this.getGeneNumber(); i++) {
-                String title = this.getGeneChromosome(i) +"_"+ this.getGeneStart(i) + "_" + this.getGeneEnd(i) + "_" + this.getGeneName(i);
+                title = this.getGeneChromosome(i) +"_"+ this.getGeneStart(i) + "_" + this.getGeneEnd(i) + "_" + this.getGeneName(i);
                 int chrIndex = genomef.getIndexByName(String.valueOf(this.getGeneChromosome(i)));
-                String chrseq = genomef.getSeq(chrIndex);
-                StringBuilder sb = new StringBuilder();
+                chrseq = genomef.getSeq(chrIndex);
+                sb = new StringBuilder();
                 int longestTranscriptIndex = this.getLongestTranscriptIndex(i);
-                List<Range> cdsList = this.getCDSList(i, longestTranscriptIndex);
+                cdsList = this.getCDSList(i, longestTranscriptIndex);
                 for (int j = 0; j < cdsList.size(); j++) {
                     sb.append(chrseq.subSequence(cdsList.get(j).getRangeStart()-1, cdsList.get(j).getRangeEnd()-1));
                 }
-                String cdsSeq = sb.toString();
-                if (this.getTranscriptStrand(i, 0) == 0) {
-                    SequenceByte s = new SequenceByte(cdsSeq);
+                cdsSeq = sb.toString();
+                if (this.getTranscriptStrand(i, longestTranscriptIndex) == 0) {
+                    s = new SequenceByte(cdsSeq);
                     cdsSeq = s.getReverseComplementarySeq();
                 }
                 bw.write(">"+title);
@@ -223,6 +226,13 @@ public class PGF {
         catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean removeIf(Predicate<Gene> predicate){
+        List<Gene> genes=CollectionTool.changeToList(this.genes);
+        boolean res=genes.removeIf(predicate);
+        this.genes=genes.toArray(new Gene[genes.size()]);
+        return res;
     }
 
     /**
@@ -867,7 +877,7 @@ public class PGF {
         Arrays.sort(genes);
     }
 
-    class Gene implements Comparable<Gene> {
+    public class Gene implements Comparable<Gene> {
         String geneName = null;
         Range geneRange = null;
         byte strand = Byte.MIN_VALUE;
@@ -892,16 +902,40 @@ public class PGF {
             geneRange = new Range(chr, start, end);
         }
 
+        public String getGeneName() {
+            return geneName;
+        }
+
+        public Range getGeneRange() {
+            return geneRange;
+        }
+
+        public byte getStrand() {
+            return strand;
+        }
+
+        public String getBiotype() {
+            return biotype;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public ArrayList<Transcript> getTs() {
+            return ts;
+        }
+
+        public int getLongestTranscriptIndex () {
+            return this.longestTranscriptIndex;
+        }
+
         public void addTranscript (Transcript t) {
             ts.add(t);
         }
 
         public int getTranscriptNumber () {
             return ts.size();
-        }
-
-        public int getLongestTranscriptIndex () {
-            return this.longestTranscriptIndex;
         }
 
         public int getTranscriptIndex (String transcriptName) {
@@ -940,7 +974,7 @@ public class PGF {
         }
     }
 
-    class Transcript implements Comparable<Transcript> {
+    public class Transcript implements Comparable<Transcript> {
         String transcriptName = null;
         Range transcriptRange = null;
         byte strand = Byte.MIN_VALUE;
