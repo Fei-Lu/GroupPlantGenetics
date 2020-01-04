@@ -1,7 +1,11 @@
 package daxing.common;
 
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
+import htsjdk.samtools.util.IOUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.util.CombinatoricsUtils;
 import utils.Benchmark;
@@ -586,6 +590,40 @@ public class VCF {
                     });
         }
         System.out.println("completed in "+Benchmark.getTimeSpanHours(start)+" hours");
+    }
+
+    /**
+     *
+     * @param vcfInputFile
+     * @param columnIndex
+     * @return chr pos columnIndex, no header
+     */
+    public static Table<Integer, Integer, String> getTable(String vcfInputFile, int columnIndex){
+        BufferedReader bufferedReader;
+        Table<Integer, Integer, String> table= HashBasedTable.create();
+        if (vcfInputFile.endsWith("gz")){
+            bufferedReader= IOUtils.getTextGzipReader(vcfInputFile);
+        }else {
+            bufferedReader=IOUtils.getTextReader(vcfInputFile);
+        }
+        try {
+            String line;
+            List<String> temp;
+            String[] tem;
+            while ((line=bufferedReader.readLine()).startsWith("##")){}
+            while ((line=bufferedReader.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                int chr=Integer.parseInt(temp.get(0));
+                int pos=Integer.parseInt(temp.get(1));
+                tem=StringUtils.split(temp.get(columnIndex), ",");
+                if (tem.length>1) continue;
+                table.put(chr, pos, tem[0]);
+            }
+            bufferedReader.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return table;
     }
 
     /**

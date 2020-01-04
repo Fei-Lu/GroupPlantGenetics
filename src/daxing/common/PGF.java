@@ -228,6 +228,11 @@ public class PGF {
         }
     }
 
+    /**
+     * Removes the genes that satisfy the given predicate
+     * @param predicate 针对基因进行过滤的函数式接口
+     * @return true, if any gene was removed
+     */
     public boolean removeIf(Predicate<Gene> predicate){
         List<Gene> genes=CollectionTool.changeToList(this.genes);
         boolean res=genes.removeIf(predicate);
