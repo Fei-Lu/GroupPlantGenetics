@@ -13,9 +13,7 @@ import format.range.Range;
 import format.range.RangeInterface;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
-import htsjdk.samtools.util.IOUtil;
 import org.apache.commons.lang3.ArrayUtils;
-import utils.Benchmark;
 import utils.IOUtils;
 import utils.PStringUtils;
 import java.io.BufferedReader;
@@ -153,32 +151,36 @@ public class PGF {
         String[] outNames=Arrays.stream(fa).map(File::getName).map(str->str.substring(0, 6)+".genes.fa").toArray(String[]::new);
         Gene[][] genes=this.getGeneOnAllChr();
         TIntArrayList chrs=this.getChrs();
-        if (fa.length!=chrs.size()){
-            System.out.println("error, check "+genomeFa_Dir+" and "+outDir);
-            System.exit(1);
-        }
-        IntStream.range(0, chrs.size()).forEach(e->
-                writeCDSSequencePerChr(chrs.get(e), genes[e], new FastaByte(fa[e].getAbsolutePath()),
-                        new File(outDir, outNames[e]).getAbsolutePath()));
+//        if (fa.length!=chrs.size()){
+//            System.out.println("error, check "+genomeFa_Dir+" and "+outDir);
+//            System.exit(1);
+//        }
+        IntStream.range(0, fa.length).parallel().forEach(e->
+                writeCDSSequencePerChr(chrs.get(e), genes[e], fa[e].getAbsolutePath(), new File(outDir, outNames[e]).getAbsolutePath()));
     }
 
-    private void writeCDSSequencePerChr(int chr, Gene[] gene, FastaByte chrFa, String outFile){
+    private void writeCDSSequencePerChr(int chr, Gene[] gene, String chrFaFile, String outFile){
         try {
+            FastaByte chrFa=new FastaByte(chrFaFile);
             BufferedWriter bw = IOUtils.getTextWriter(outFile);
             String title, chrseq, cdsSeq;
             StringBuilder sb;
             List<Range> cdsList;
             SequenceByte s;
             for (int i = 0; i < gene.length; i++) {
-                sb=new StringBuilder(50);
-                sb.append(gene[i].geneRange.chr).append("_").append(gene[i].geneRange.start).append("_");
-                sb.append(gene[i].geneRange.end).append("_").append(gene[i].getGeneName());
+                sb=new StringBuilder(100);
+                int longestTranscriptIndex = gene[i].longestTranscriptIndex;
+                cdsList = gene[i].ts.get(longestTranscriptIndex).cdsList;
+                sb.append(gene[i].geneRange.chr).append("_");
+                for (int j = 0; j < cdsList.size(); j++) {
+                    sb.append(cdsList.get(j).start).append(",").append(cdsList.get(j).end).append(";");
+                }
+                sb.deleteCharAt(sb.length()-1);
+                sb.append("_").append(gene[i].ts.get(longestTranscriptIndex).transcriptName);
                 title=sb.toString();
                 int chrIndex = chrFa.getIndexByName(String.valueOf(chr));
                 chrseq = chrFa.getSeq(chrIndex);
                 sb = new StringBuilder(2100);
-                int longestTranscriptIndex = gene[i].longestTranscriptIndex;
-                cdsList = gene[i].ts.get(longestTranscriptIndex).cdsList;
                 for (int j = 0; j < cdsList.size(); j++) {
                     sb.append(chrseq.subSequence(cdsList.get(j).getRangeStart()-1, cdsList.get(j).getRangeEnd()-1));
                 }
@@ -187,7 +189,7 @@ public class PGF {
                     s = new SequenceByte(cdsSeq);
                     cdsSeq = s.getReverseComplementarySeq();
                 }
-                sb=new StringBuilder(51);
+                sb=new StringBuilder(101);
                 sb.append(">").append(title);
                 bw.write(sb.toString());
                 bw.newLine();
