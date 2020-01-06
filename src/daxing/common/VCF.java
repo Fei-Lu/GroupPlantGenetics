@@ -8,6 +8,7 @@ import htsjdk.samtools.util.IOUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.util.CombinatoricsUtils;
+import smile.stat.Stat;
 import utils.Benchmark;
 import utils.IOUtils;
 import utils.PArrayUtils;
@@ -626,6 +627,41 @@ public class VCF {
         return table;
     }
 
+    public static List<String> getColumnList(File vcfFile, int columnIndex){
+        BufferedReader bufferedReader;
+        if (vcfFile.toString().endsWith("gz")){
+            bufferedReader=IOUtils.getTextGzipReader(vcfFile.getAbsolutePath());
+        }else {
+            bufferedReader=IOUtils.getTextReader(vcfFile.getAbsolutePath());
+        }
+        String line;
+        List<String> temp;
+        List<String> res = new ArrayList<>(1000);
+        try {
+            while ((line= bufferedReader.readLine()).startsWith("##")){}
+            while ((line=bufferedReader.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                res.add(temp.get(columnIndex));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return res;
+    }
+
+    public static List<String>[] getColumnList(String vcfDir, int columnIndex){
+        File[] files=IOUtils.listRecursiveFiles(new File(vcfDir));
+        Predicate<File> predicate=File::isHidden;
+        File[] f=Arrays.stream(files).filter(predicate.negate()).toArray(File[]::new);
+        List<String>[] res=new List[f.length];
+        List<String> pos;
+        for (int i = 0; i < f.length; i++) {
+            pos=VCF.getColumnList(f[i], columnIndex);
+            res[i]=pos;
+        }
+        return res;
+    }
+
     /**
      *
      * @return 返回VCF文件所有taxa的总数
@@ -638,6 +674,37 @@ public class VCF {
 
     public List<String> getHeader(){
         return header;
+    }
+
+    /**
+     *
+     * @param columnIndex
+     * @return chr pos columnIndex, no header
+     */
+    public Table<Integer, Integer, String> getTable(int columnIndex){
+        Table<Integer, Integer, String> table= HashBasedTable.create();
+        List<List<String>> data=this.getData();
+        String target;
+        for (int i = 0; i < data.size(); i++) {
+            int chr=Integer.parseInt(data.get(i).get(0));
+            int pos=Integer.parseInt(data.get(i).get(1));
+            target=data.get(i).get(columnIndex);
+            table.put(chr, pos, target);
+        }
+        return table;
+    }
+
+    /**
+     *
+     * @param columnIndex
+     * @return the specified column
+     */
+    public List<String> getColumnList(int columnIndex){
+        List<String> res = new ArrayList<>();
+        for (int i = 0; i < data.size(); i++) {
+            res.add(data.get(i).get(columnIndex));
+        }
+        return res;
     }
 
     /**
