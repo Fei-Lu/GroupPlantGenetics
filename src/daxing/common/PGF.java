@@ -14,6 +14,7 @@ import format.range.RangeInterface;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
 import org.apache.commons.lang3.ArrayUtils;
+import utils.Benchmark;
 import utils.IOUtils;
 import utils.PStringUtils;
 import java.io.BufferedReader;
@@ -154,6 +155,7 @@ public class PGF {
      * @param outDir
      */
     public void writeCDSSequencePerChr(String genomeFa_Dir, String outDir){
+        long start=System.nanoTime();
         File[] genomeFa=IOUtils.listRecursiveFiles(new File(genomeFa_Dir));
         Predicate<File> p=File::isHidden;
         File[] fa=Arrays.stream(genomeFa).filter(p.negate()).toArray(File[]::new);
@@ -166,9 +168,11 @@ public class PGF {
 //        }
         IntStream.range(0, fa.length).parallel().forEach(e->
                 writeCDSSequencePerChr(chrs.get(e), chrPGF[e], fa[e].getAbsolutePath(), new File(outDir, outNames[e]).getAbsolutePath()));
+        System.out.println(" pgf cds sequences per chromosome were write to "+outDir+" in "+Benchmark.getTimeSpanMinutes(start)+" minutes");
     }
 
     private void writeCDSSequencePerChr(int chr, PGF chrPGF, String chrFaFile, String outFile){
+        long start=System.nanoTime();
         try {
             FastaByte chrFa=new FastaByte(chrFaFile);
             BufferedWriter bw = IOUtils.getTextWriter(outFile);
@@ -206,6 +210,7 @@ public class PGF {
         catch (Exception e) {
             e.printStackTrace();
         }
+        System.out.println(chr+" completed in "+ Benchmark.getTimeSpanMinutes(start)+" minutes");
     }
 
     /**
