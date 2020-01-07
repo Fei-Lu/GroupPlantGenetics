@@ -40,6 +40,10 @@ public class PGF {
         this.readFile(infileS);
     }
 
+    public PGF(Gene[] genes){
+        this.genes=genes;
+    }
+
     /**
      * Read from pgf file of gene annotation
      * @param infileS
@@ -95,7 +99,7 @@ public class PGF {
         catch (Exception e) {
             e.printStackTrace();
         }
-        this.sortGeneByStartPosition();
+        this.sortGeneByGeneRange();
     }
 
     /**
@@ -144,22 +148,27 @@ public class PGF {
         }
     }
 
+    /**
+     * Write CDS sequences to different chromosome files
+     * @param genomeFa_Dir
+     * @param outDir
+     */
     public void writeCDSSequencePerChr(String genomeFa_Dir, String outDir){
         File[] genomeFa=IOUtils.listRecursiveFiles(new File(genomeFa_Dir));
         Predicate<File> p=File::isHidden;
         File[] fa=Arrays.stream(genomeFa).filter(p.negate()).toArray(File[]::new);
         String[] outNames=Arrays.stream(fa).map(File::getName).map(str->str.substring(0, 6)+".genes.fa").toArray(String[]::new);
-        Gene[][] genes=this.getGeneOnAllChr();
+        PGF[] chrPGF=this.getGeneOnAllChr();
         TIntArrayList chrs=this.getChrs();
 //        if (fa.length!=chrs.size()){
 //            System.out.println("error, check "+genomeFa_Dir+" and "+outDir);
 //            System.exit(1);
 //        }
         IntStream.range(0, fa.length).parallel().forEach(e->
-                writeCDSSequencePerChr(chrs.get(e), genes[e], fa[e].getAbsolutePath(), new File(outDir, outNames[e]).getAbsolutePath()));
+                writeCDSSequencePerChr(chrs.get(e), chrPGF[e], fa[e].getAbsolutePath(), new File(outDir, outNames[e]).getAbsolutePath()));
     }
 
-    private void writeCDSSequencePerChr(int chr, Gene[] gene, String chrFaFile, String outFile){
+    private void writeCDSSequencePerChr(int chr, PGF chrPGF, String chrFaFile, String outFile){
         try {
             FastaByte chrFa=new FastaByte(chrFaFile);
             BufferedWriter bw = IOUtils.getTextWriter(outFile);
@@ -167,25 +176,20 @@ public class PGF {
             StringBuilder sb;
             List<Range> cdsList;
             SequenceByte s;
-            for (int i = 0; i < gene.length; i++) {
+            for (int i = 0; i < chrPGF.getGeneNumber(); i++) {
                 sb=new StringBuilder(100);
-                int longestTranscriptIndex = gene[i].longestTranscriptIndex;
-                cdsList = gene[i].ts.get(longestTranscriptIndex).cdsList;
-                sb.append(gene[i].geneRange.chr).append("_");
-                for (int j = 0; j < cdsList.size(); j++) {
-                    sb.append(cdsList.get(j).start).append(",").append(cdsList.get(j).end).append(";");
-                }
-                sb.deleteCharAt(sb.length()-1);
-                sb.append("_").append(gene[i].ts.get(longestTranscriptIndex).transcriptName);
+                int longestTranscriptIndex = chrPGF.getLongestTranscriptIndex(i);
+                sb.append(chrPGF.getTranscriptName(i, longestTranscriptIndex));
                 title=sb.toString();
                 int chrIndex = chrFa.getIndexByName(String.valueOf(chr));
                 chrseq = chrFa.getSeq(chrIndex);
+                cdsList = chrPGF.getCDSList(i, longestTranscriptIndex);
                 sb = new StringBuilder(2100);
                 for (int j = 0; j < cdsList.size(); j++) {
                     sb.append(chrseq.subSequence(cdsList.get(j).getRangeStart()-1, cdsList.get(j).getRangeEnd()-1));
                 }
                 cdsSeq = sb.toString();
-                if (gene[i].strand == 0) {
+                if (chrPGF.getTranscriptStrand(i, longestTranscriptIndex)== 0) {
                     s = new SequenceByte(cdsSeq);
                     cdsSeq = s.getReverseComplementarySeq();
                 }
@@ -307,6 +311,18 @@ public class PGF {
         boolean res=genes.removeIf(predicate);
         this.genes=genes.toArray(new Gene[genes.size()]);
         return res;
+    }
+
+    public TIntArrayList getCDSPosOnGene(int geneIndex, int transcriptIndex){
+        List<Range> cdsList=this.getCDSList(geneIndex, transcriptIndex);
+        TIntArrayList cdsPosListOnGene=new TIntArrayList();
+        for (int i = 0; i < cdsList.size(); i++) {
+            int start=cdsList.get(i).start;
+            int end=cdsList.get(i).end;
+            cdsPosListOnGene.add(IntStream.range(start, end).toArray());
+        }
+        cdsPosListOnGene.sort();
+        return cdsPosListOnGene;
     }
 
     /**
@@ -793,7 +809,7 @@ public class PGF {
         catch (Exception e) {
             e.printStackTrace();
         }
-        this.sortGeneByStartPosition();
+        this.sortGeneByGeneRange();
     }
 
     /**
@@ -899,7 +915,7 @@ public class PGF {
         catch (Exception e) {
             e.printStackTrace();
         }
-        this.sortGeneByStartPosition();
+        this.sortGeneByGeneRange();
     }
 
     /**
@@ -944,33 +960,11 @@ public class PGF {
     }
 
     /**
-     * Sort genes by their chromosome positions
+     * Sort genes by their gene range
      */
-    public void sortGeneByStartPosition () {
+    public void sortGeneByGeneRange() {
         this.sortType = 0;
         Arrays.sort(genes);
-    }
-
-    /**
-     * Sort genes by their gene Range
-     */
-    public void sortByGeneRange(){
-        Comparator<Gene> chrComparator=Comparator.comparing(gene -> gene.geneRange);
-        Arrays.sort(genes, chrComparator);
-    }
-
-    /**
-     *
-     * @param chr
-     * @return all genes on target chromosome
-     */
-    public Gene[] getGeneOnChr(int chr){
-        this.sortByGeneRange();
-        int indexA=Arrays.binarySearch(this.genes, new Gene(chr, Integer.MIN_VALUE, Integer.MIN_VALUE));
-        int indexB=Arrays.binarySearch(this.genes, new Gene(chr+1, Integer.MIN_VALUE, Integer.MIN_VALUE));
-        int chrIndexA=-indexA-1;
-        int chrIndexB=-indexB-1;
-        return ArrayUtils.subarray(this.genes, chrIndexA, chrIndexB);
     }
 
     /**
@@ -989,11 +983,24 @@ public class PGF {
 
     /**
      *
+     * @param chr
+     * @return all genes on target chromosome
+     */
+    public PGF getGeneOnChr(int chr){
+        this.sortGeneByGeneRange();
+        int chrIndexA=this.getStartIndexOfChromosome(chr);
+        int chrIndexB=this.getEndIndexOfChromosome(chr);
+        Gene[] genes=ArrayUtils.subarray(this.genes, chrIndexA, chrIndexB);
+        return new PGF(genes);
+    }
+
+    /**
+     *
      * @return genes on each chromosome
      */
-    public Gene[][] getGeneOnAllChr(){
+    public PGF[] getGeneOnAllChr(){
         TIntArrayList chrList=this.getChrs();
-        Gene[][] genes=new Gene[chrList.size()][];
+        PGF[] genes=new PGF[chrList.size()];
         for (int i = 0; i < chrList.size(); i++) {
             genes[i]=this.getGeneOnChr(chrList.get(i));
         }
@@ -1130,6 +1137,10 @@ public class PGF {
 
         public int getChromosome () {
             return this.transcriptRange.chr;
+        }
+
+        public byte getStrand() {
+            return strand;
         }
 
         public void sortCDSByPosition () {
