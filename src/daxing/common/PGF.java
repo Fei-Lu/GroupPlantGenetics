@@ -158,7 +158,9 @@ public class PGF {
         long start=System.nanoTime();
         File[] genomeFa=IOUtils.listRecursiveFiles(new File(genomeFa_Dir));
         Predicate<File> p=File::isHidden;
-        File[] fa=Arrays.stream(genomeFa).filter(p.negate()).toArray(File[]::new);
+        TIntArrayList p_1_42 = new TIntArrayList(IntStream.range(1, 43).toArray());
+        Predicate<File> p1=f->p_1_42.contains(StringTool.getNumFromString(f.getName()));
+        File[] fa=Arrays.stream(genomeFa).filter(p.negate()).filter(p1).toArray(File[]::new);
         String[] outNames=Arrays.stream(fa).map(File::getName).map(str->str.substring(0, 6)+".genes.fa").toArray(String[]::new);
         PGF[] chrPGF=this.getGeneOnAllChr();
         TIntArrayList chrs=this.getChrs();
