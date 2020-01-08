@@ -1,9 +1,12 @@
 package daxing.common;
 
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 import format.table.RowTable;
 import org.apache.commons.lang.StringUtils;
 import utils.IOFileFormat;
 import utils.IOUtils;
+import utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -53,6 +56,35 @@ public class RowTableTool<T> extends RowTable<T> {
 
     public void write(String outfile){
         this.writeTextTable(outfile, IOFileFormat.Text);
+    }
+
+    /**
+     *
+     * @param columnKeyA
+     * @param columnKeyB
+     * @param columnValue
+     * @return
+     */
+    public Table<T, T, T> getTable(int columnKeyA, int columnKeyB, int columnValue){
+        Table<T, T, T> table=HashBasedTable.create();
+        List<List<T>> data=this.cells;
+        T key1, key2, value;
+        for (int i = 0; i < data.size(); i++) {
+            key1=data.get(i).get(columnKeyA);
+            key2=data.get(i).get(columnKeyB);
+            value=data.get(i).get(columnValue);
+            table.put(key1, key2, value);
+        }
+        return table;
+    }
+
+    /**
+     * 默认前两列为key
+     * @param columnIndex value
+     * @return
+     */
+    public Table<T,T,T> getTable(int columnIndex){
+        return getTable(0, 1, columnIndex);
     }
 
     /**
@@ -117,5 +149,42 @@ public class RowTableTool<T> extends RowTable<T> {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * tableFile
+     * Chr	Pos	Ancestral	Ref	Urartu	Barley
+     * 1	304	C	C	C	C
+     * 1	305	A	A	A	A
+     * 1	306	C	C	C	C
+     * 1	307	G	G	G	G
+     * @param tableFile
+     * @param columnKey1
+     */
+    public static Table<String, String, String> getTable(String tableFile, int columnKey1, int columnKey2, int columnValue){
+        BufferedReader br;
+        if (tableFile.endsWith("gz")){
+            br=IOUtils.getTextGzipReader(tableFile);
+        }else {
+            br=IOUtils.getTextReader(tableFile);
+        }
+        Table<String, String, String> table= HashBasedTable.create();
+        try {
+            String line;
+            List<String> temp;
+            br.readLine();
+            while ((line=br.readLine())!=null){
+                temp= PStringUtils.fastSplit(line);
+                table.put(temp.get(columnKey1), temp.get(columnKey2), temp.get(columnValue));
+            }
+            br.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return table;
+    }
+
+    public static Table<String, String, String> getTable(String tableFile, int columnIndex){
+        return getTable(tableFile, 0, 1, columnIndex);
     }
 }
