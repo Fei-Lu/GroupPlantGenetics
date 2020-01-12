@@ -59,6 +59,24 @@ public class RowTableTool<T> extends RowTable<T> {
     }
 
     /**
+     * 表格合并
+     * @param rowTable
+     * @return
+     */
+    public boolean add(RowTableTool<T> rowTable){
+        List<String> header_1=this.header;
+        List<String> header_2=rowTable.getHeader();
+        if (! header_1.equals(header_2)){
+            System.out.println("error, two rowTables were not equal");
+            System.exit(1);
+        }
+        List<List<T>> data=this.cells;
+        boolean res=data.addAll(rowTable.cells);
+        this.cells=data;
+        return res;
+    }
+
+    /**
      *
      * @param columnKeyA
      * @param columnKeyB
@@ -184,6 +202,12 @@ public class RowTableTool<T> extends RowTable<T> {
         return table;
     }
 
+    /**
+     *
+     * @param tableFile
+     * @param columnIndex
+     * @return
+     */
     public static Table<String, String, String> getTable(String tableFile, int columnIndex){
         return getTable(tableFile, 0, 1, columnIndex);
     }
