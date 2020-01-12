@@ -1,5 +1,0 @@
-Sample-ID	ReadPath1	ReadPath2
-AM1-A01	/Users/xudaxing/Desktop/AM/AM/AM1_A01/R1.fastq.gz	/Users/xudaxing/Desktop/AM/AM/AM1_A01/R2.fastq.gz
-AM1-A02	/Users/xudaxing/Desktop/AM/AM/AM1_A02/R1.fastq.gz	/Users/xudaxing/Desktop/AM/AM/AM1_A02/R2.fastq.gz
-AM1-A03	/Users/xudaxing/Desktop/AM/AM/AM1_A03/R1.fastq.gz	/Users/xudaxing/Desktop/AM/AM/AM1_A03/R2.fastq.gz
-AM1-A04	/Users/xudaxing/Desktop/AM/AM/AM1_A04/R1.fastq.gz	/Users/xudaxing/Desktop/AM/AM/AM1_A04/R2.fastq.gz
