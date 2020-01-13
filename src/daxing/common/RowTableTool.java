@@ -113,7 +113,7 @@ public class RowTableTool<T> extends RowTable<T> {
      */
     public static Set<String> getColumnSet(String inFile, int columnIndex){
         Set<String> s=new HashSet<>();
-        try (BufferedReader br = IOUtils.getTextReader(inFile)) {
+        try (BufferedReader br = IOTool.getReader(inFile)) {
             String line;
             String[] temp;
             br.readLine();
@@ -148,7 +148,7 @@ public class RowTableTool<T> extends RowTable<T> {
         boolean first=true;
         try {
             for (int i = 0; i < f1.length; i++) {
-                br=IOUtils.getTextReader(f1[i].getAbsolutePath());
+                br=IOTool.getTextReader(f1[i].getAbsolutePath());
                 header=br.readLine();
                 if (first){
                     bw.write(header+"\t"+newColumnName+"\n");

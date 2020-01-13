@@ -2,8 +2,12 @@ package daxing.common;
 
 import utils.IOUtils;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 
+/**
+ * @author xudaxing
+ */
 public class IOTool extends IOUtils {
 
     public static BufferedReader getReader(String file){
@@ -24,5 +28,13 @@ public class IOTool extends IOUtils {
             br=IOUtils.getTextReader(file.getAbsolutePath());
         }
         return br;
+    }
+
+    public static BufferedWriter getTextWriter(File file){
+       return IOUtils.getTextWriter(file.getAbsolutePath());
+    }
+
+    public static BufferedWriter getTextGzipWriter(File file){
+        return IOUtils.getTextGzipWriter(file.getAbsolutePath());
     }
 }

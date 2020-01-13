@@ -47,10 +47,10 @@ public class VCF {
     private void initilize(String inputFile){
         BufferedReader br;
         try{
-            if (inputFile.endsWith(".vcf")){
-                br=IOUtils.getTextReader(inputFile);
-            }else {
+            if (inputFile.endsWith("gz")){
                 br= IOUtils.getTextGzipReader(inputFile);
+            }else {
+                br=IOUtils.getTextReader(inputFile);
             }
             StringBuilder sb=new StringBuilder();
             String temp;

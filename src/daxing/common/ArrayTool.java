@@ -1,10 +1,12 @@
 package daxing.common;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * @author Daxing Xu
@@ -97,6 +99,42 @@ public class ArrayTool {
     public static double[] getElementPercent(int[] a){
         double sum=Arrays.stream(a).mapToDouble(Double::valueOf).sum();
         return Arrays.stream(a).mapToDouble(e->e/sum).toArray();
+    }
+
+    /**
+     *
+     * @param a
+     * @return 数组最大元素的索引, 如果有多个最大元素, 则返回多个最大元素对应的最小索引
+     */
+    public static int getMaxIndex(int[] a){
+        return IntStream.range(0, a.length).boxed().max(Comparator.comparing(e->a[e])).get();
+    }
+
+    /**
+     *
+     * @param a
+     * @return 数组最大元素的索引, 如果有多个最大元素, 则返回多个最大元素对应的最小索引
+     */
+    public static int getMaxIndex(double[] a){
+        return IntStream.range(0, a.length).boxed().max(Comparator.comparing(e->a[e])).get();
+    }
+
+    /**
+     *
+     * @param a
+     * @return 数组最小元素的索引, 如果有多个最小元素, 则返回多个最小元素对应的最小索引
+     */
+    public static int getMinIndex(int[] a){
+        return IntStream.range(0, a.length).boxed().min(Comparator.comparing(e->a[e])).get();
+    }
+
+    /**
+     *
+     * @param a
+     * @return 数组最小元素的索引, 如果有多个最小元素, 则返回多个最小元素对应的最小索引
+     */
+    public static int getMinIndex(double[] a){
+        return IntStream.range(0, a.length).boxed().min(Comparator.comparing(e->a[e])).get();
     }
 
 }
