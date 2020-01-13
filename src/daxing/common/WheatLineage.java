@@ -1,8 +1,11 @@
 package daxing.common;
 
+import utils.PStringUtils;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -50,6 +53,52 @@ public enum WheatLineage {
             chrs.add(chrID1_7[i]+this.name());
         }
         return chrs;
+    }
+
+    /**
+     *
+     * @param chrID_or_Chr Chr or ChrID
+     * @return
+     */
+    public Predicate<File> getPredicate(String chrID_or_Chr){
+        List<String> type=Stream.of("ChrID", "Chr").collect(Collectors.toList());
+        if (!type.contains(chrID_or_Chr)){
+            System.out.println("error, check your chrID_or_Chr, it must be ChrID or Chr");
+            System.exit(1);
+        }
+        Predicate<File> p=null;
+        List<String> chrs;
+        List<String> chrID;
+        if (chrID_or_Chr.equals("Chr")){
+            chrs=this.getChr();
+            p=f->chrs.contains(f.getName().substring(3,5));
+        }else {
+            chrID=Arrays.stream(this.getChrID()).boxed().map(str-> PStringUtils.getNDigitNumber(3, str)).collect(Collectors.toList());
+            p=f->chrID.contains(f.getName().substring(3,6));
+        }
+        return p;
+    }
+
+    /**
+     *
+     * @param chrID_or_Chr
+     * @return
+     */
+    public static Predicate<File> getABPredicate(String chrID_or_Chr){
+        List<String> type=Stream.of("ChrID", "Chr").collect(Collectors.toList());
+        if (!type.contains(chrID_or_Chr)){
+            System.out.println("error, check your chrID_or_Chr, it must be ChrID or Chr");
+            System.exit(1);
+        }
+        Predicate<File> p=null;
+        List<String> chrs=WheatLineage.abLineage();
+        List<String> chrID=Arrays.stream(WheatLineage.ablineage()).boxed().map(s->String.valueOf(s)).collect(Collectors.toList());
+        if (chrID_or_Chr.equals("Chr")){
+            p=f->chrs.contains(f.getName().substring(3,5));
+        }else {
+            p=f->chrID.contains(f.getName().substring(3,6));
+        }
+        return p;
     }
 
     /**

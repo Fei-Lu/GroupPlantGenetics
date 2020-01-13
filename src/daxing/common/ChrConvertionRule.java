@@ -2,10 +2,9 @@ package daxing.common;
 
 import format.position.ChrPos;
 import gnu.trove.list.array.TIntArrayList;
+import utils.IOUtils;
 import utils.PStringUtils;
-
 import java.io.BufferedReader;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.IntStream;
@@ -23,16 +22,20 @@ public class ChrConvertionRule {
     private  int[] endIndexOnOriChr;
 
     public ChrConvertionRule(Path chrConvertionRuleFile){
+        this.initialize(chrConvertionRuleFile.toString());
+    }
+
+    public ChrConvertionRule(String chrConvertionRuleFile){
         this.initialize(chrConvertionRuleFile);
     }
 
-    private void initialize(Path inputFile){
+    private void initialize(String inputFile){
         TIntArrayList chrIDlist=new TIntArrayList();
         TIntArrayList endIndexList=new TIntArrayList();
         List<String> oriChrNameList=new ArrayList<>();
         TIntArrayList startIndexOnOriChrList=new TIntArrayList();
         TIntArrayList endIndexOnOriChiList=new TIntArrayList();
-        try(BufferedReader br= Files.newBufferedReader(inputFile)){
+        try(BufferedReader br= IOUtils.getTextReader(inputFile)){
             br.readLine();
             String line;
             List<String> lineList;

@@ -211,4 +211,40 @@ public class RowTableTool<T> extends RowTable<T> {
     public static Table<String, String, String> getTable(String tableFile, int columnIndex){
         return getTable(tableFile, 0, 1, columnIndex);
     }
+
+    /**
+     * merge multiple tables
+     * @param rowTableFiles
+     * @param rowTableOutFile
+     */
+    public static void mergeRowTables(List<File> rowTableFiles, String rowTableOutFile){
+        BufferedReader br;
+        BufferedWriter bw;
+        String header, line;
+        try {
+            br=IOTool.getReader(rowTableFiles.get(0));
+            bw=IOUtils.getTextWriter(rowTableOutFile);
+            header=br.readLine();
+            bw.write(header);
+            bw.newLine();
+            while ((line=br.readLine())!=null){
+                bw.write(line);
+                bw.newLine();
+            }
+            br.close();
+            for (int i = 1; i < rowTableFiles.size(); i++) {
+                br=IOTool.getReader(rowTableFiles.get(i));
+                br.readLine();
+                while ((line=br.readLine())!=null){
+                    bw.write(line);
+                    bw.newLine();
+                }
+                br.close();
+            }
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
