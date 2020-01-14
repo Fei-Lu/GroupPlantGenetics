@@ -31,7 +31,7 @@ public class HTseqcountMerge {
     }
 //  
     public void CountMerge() {//顺序是HTSeq里面的顺序
-        String DirS = "/Users/yxh/Documents/RNA-seq/006test/DEseq2/01-12";
+        String DirS = "/Users/yxh/Documents/RNA-seq/006test/HTseqcount/coleoptile";
 //        String inputDirS = "/Users/yxh/Documents/RNA-seq/006test/HTseqcount/coleoptile";
 //        String outputDirS = "/Users/yxh/Documents/RNA-seq/006test/DEseq2";
 //        String inputDirS = "/data1/home/xiaohan/rnaseq/root/HTseqcount";
@@ -75,13 +75,13 @@ public class HTseqcountMerge {
             }
         });
         
-                String outputFileS = new File(DirS, "count01-12.txt").getAbsolutePath();
+                String outputFileS = new File(DirS, "countmergecol.txt").getAbsolutePath();
         try {
             StringBuilder sb = new StringBuilder();
             BufferedWriter bw = IOUtils.getTextWriter(outputFileS);
             sb.append("Gene" + "\t");
             for (int i = 0; i < fList.size(); i++) {
-                sb.append(fList.get(i).getName().replace(".txt", "") + "\t");
+                sb.append(fList.get(i).getName().replace(".count.txt", "") + "\t");
             }
             bw.write(sb.toString());
             bw.newLine();
