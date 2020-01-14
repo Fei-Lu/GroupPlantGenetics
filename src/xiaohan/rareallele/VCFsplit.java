@@ -68,7 +68,7 @@ public class VCFsplit {
             String infile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/AA.txt";
             BufferedReader br = xiaohan.rareallele.IOUtils.getTextReader(infile);
             String temp1 = null;
-            while ((temp1 = br.readLine()) != null){
+            while ((temp1 = br.readLine())!= null){
                 if(temp1.startsWith("#")) {
                     continue;
                 }
@@ -81,7 +81,7 @@ public class VCFsplit {
                     continue;
                 }
                 if(ChromosomeMap.get(chrNumber)>position){
-                    position = ChromosomeLength.get(chrNumber)-ChromosomeMap.get(chrNumber);
+                    position = position-ChromosomeLength.get(chrNumber);
                     chr = chrNumber;
                     String chr1 = String.valueOf(chr);
                     String position1 = String.valueOf(position);
