@@ -85,7 +85,7 @@ public class VCFsplit {
                     chr = chrNumber;
                     String chr1 = String.valueOf(chr);
                     String position1 = String.valueOf(position);
-                    System.out.println(chr1+"\t"+position1);
+                    System.out.println(chr1+"\t"+position1+"\t"+"snp_"+chr1+"_"+position);
                 }
             }
         } catch (IOException e) {
