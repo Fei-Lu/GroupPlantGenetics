@@ -1,6 +1,7 @@
 package xiaohan.rareallele;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -65,34 +66,57 @@ public class VCFsplit {
             ChromosomeLength.put(Integer.parseInt(temp[0]),Integer.parseInt(temp[4]));
         }
         try {
-            String infile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/AA.txt";
+            String infile = "/Users/yxh/Documents/RareAllele/004test/test/genotype20200115.txt";
             BufferedReader br = xiaohan.rareallele.IOUtils.getTextReader(infile);
+            BufferedWriter bw;
+            bw = IOUtils.getTextWriter("/Users/yxh/Documents/RareAllele/004test/test/genotype-2.txt");
             String temp1 = null;
             while ((temp1 = br.readLine())!= null){
                 if(temp1.startsWith("#")) {
+                    //System.out.println(temp1);
+                    bw.write(temp1);bw.newLine();
                     continue;
                 }
                 String[] temp2 = temp1.split("\t");
                 int chr = Integer.parseInt(temp2[0]);
                 int chrNumber = chr*2 - 1;
                 int position = Integer.parseInt(temp2[1]);
-                if (ChromosomeMap.get(chrNumber) <= position)
+                if (ChromosomeMap.get(chrNumber) >= position)
                 {
+                    chr = chrNumber;
+                    position = position;
+                    String name = "SNP_"+String.valueOf(chr)+"_"+String.valueOf(position);
+                    StringBuffer sb = new StringBuffer();
+                    sb.append(chr+"\t"+position+"\t"+name + "\t");
+                    for (int i = 3; i < temp2.length ; i++) {
+                        sb.append(temp2[i]);
+                        sb.append("\t");
+                    }
+                    //System.out.println(sb.toString());
+                    bw.write(sb.toString());bw.newLine();
                     continue;
                 }
-                if(ChromosomeMap.get(chrNumber)>position){
-                    position = position-ChromosomeLength.get(chrNumber);
-                    chr = chrNumber;
-                    String chr1 = String.valueOf(chr);
-                    String position1 = String.valueOf(position);
-                    System.out.println(chr1+"\t"+position1+"\t"+"snp_"+chr1+"_"+position);
+                else if(ChromosomeMap.get(chrNumber) <= position){
+                    chr = chrNumber + 1;
+                    position = position-ChromosomeLength.get(chrNumber+1);
+                    String name = "SNP_"+String.valueOf(chr)+"_"+String.valueOf(position);
+                    StringBuffer sb = new StringBuffer();
+                    sb.append(chr+"\t"+position+"\t"+name + "\t");
+                    for (int i = 3; i < temp2.length ; i++) {
+                        sb.append(temp2[i]);
+                        sb.append("\t");
+                    }
+                    bw.write(sb.toString());bw.newLine();
+                    continue;
                 }
             }
+            br.close();
+            bw.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
+    
     public static void main (String[] args){
         new VCFsplit();
     }
