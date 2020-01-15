@@ -17,10 +17,11 @@ public class Graph {
      * @param inputFile
      * @param binwidth
      * @param binsNum
+     * @param columnIndex
      * @param outFile
      */
-    public static void histogram(String inputFile, double binwidth, int binsNum, String outFile){
-        if (binwidth*binsNum!=0.5){
+    public static void histogram(String inputFile, double binwidth, int binsNum, int columnIndex, String outFile){
+        if (binwidth*binsNum!=1){
             System.out.println("please check your parameters");
             System.exit(1);
         }
@@ -43,7 +44,7 @@ public class Graph {
                 aa++;
                 lineList= PStringUtils.fastSplit(line);
 //                if (lineList.get(0).equals("NaN")) continue;
-                maf=Double.parseDouble(lineList.get(0));
+                maf=Double.parseDouble(lineList.get(columnIndex));
                 index= Arrays.binarySearch(bins, maf);
                 if (index<0){
                     index=-index-1;
