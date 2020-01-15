@@ -2,6 +2,7 @@ package daxing.applets;
 
 import com.google.common.collect.Table;
 import daxing.common.DateTime;
+import daxing.common.IOTool;
 import daxing.common.RowTableTool;
 import org.apache.commons.lang.StringUtils;
 import utils.Benchmark;
@@ -35,7 +36,7 @@ public class ABBA_BABA {
                                                int indexOfAncestralAllele){
         long start=System.nanoTime();
         Table<String, String, String> outGroupChrPosAllele= RowTableTool.getTable(ancestralFile.getAbsolutePath(), 2);
-        try (BufferedReader br1 = IOUtils.getTextGzipReader(vcfFile.getAbsolutePath());
+        try (BufferedReader br1 = IOTool.getReader(vcfFile);
              BufferedWriter bw= IOUtils.getTextWriter(outFile.getAbsolutePath())) {
             String line;
             List<String> temp, tem;
