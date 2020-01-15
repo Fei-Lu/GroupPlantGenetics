@@ -26,7 +26,7 @@ public class ABBA_BABA {
         List<File> files1= IOUtils.getVisibleFileListInDir(vcfDir);
         List<File> files2= IOUtils.getVisibleFileListInDir(ancestralVCFDir);
         String[] outNames=files1.stream().map(File::getName).map(str->str.replaceAll("vcf\\.gz", "geno")).toArray(String[]::new);
-        IntStream.range(0, files1.size()).forEach(e-> convertVCFToGenoFormat(files1.get(e), files2.get(e),
+        IntStream.range(0, files1.size()).parallel().forEach(e-> convertVCFToGenoFormat(files1.get(e), files2.get(e),
                 new File(genoOutDir, outNames[e]), indexOfAncestralAllele));
         System.out.println("completed in "+Benchmark.getTimeSpanHours(start)+" hours");
         System.out.println(DateTime.getDateTimeOfNow()+" end");
