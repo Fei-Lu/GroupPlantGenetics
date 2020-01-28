@@ -25,6 +25,10 @@ public class RowTableTool<T> extends RowTable<T> {
         super(infileS);
     }
 
+    public RowTableTool(String infileS, String delimiter){
+        super(infileS, delimiter);
+    }
+
     /**
      * Removes all of the rows of this rowTable that satisfy the given predicate
      * @param p 针对表格进行过滤的函数式接口
