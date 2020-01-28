@@ -35,10 +35,10 @@ public class Ancestral {
     private static String getAncestralAllele_twoOutGroup(String line, double thresh){
         String[] acgtArray={"A","C","G","T"};
         String[] temp= StringUtils.split(line, "\t ");
-        double p_major_ancestral= Double.parseDouble(temp[8]);
+        double p_major_ancestral= Double.parseDouble(temp[6]);
         int[] countOfACGT= Stream.of(temp[3].split(",")).mapToInt(Integer::parseInt).toArray();
         int majorAlleleIndex= ArrayTool.getMaxIndex(countOfACGT);
-        double[] p_alt= Arrays.asList(temp).subList(9, 13).stream().mapToDouble(Double::parseDouble).toArray();
+        double[] p_alt= Arrays.asList(temp).subList(7, 10).stream().mapToDouble(Double::parseDouble).toArray();
         IntPredicate majorAllelePredicate= e->e==majorAlleleIndex;
         double[] altAlleleCount= IntStream.range(0, p_alt.length).filter(majorAllelePredicate.negate())
                 .boxed().map(e->p_alt[e]).mapToDouble(Double::doubleValue).toArray();
@@ -77,46 +77,25 @@ public class Ancestral {
 
     private static void getAncestral_twoOutgroup(File inputFile, File outDir, double thresh){
         try (BufferedReader bufferedReader = IOTool.getReader(inputFile)) {
-            Set<String> chrs= RowTableTool.getColumnSet(inputFile.getAbsolutePath(), 0);
-            chrs.remove("0");
-            List<String> chrsList=new ArrayList<>(chrs);
-            Collections.sort(chrsList);
-            Map<String, BufferedWriter> chrBufferWriterMap=new HashMap<>();
-            BufferedWriter bw;
-            WheatLineage subgenome=WheatLineage.valueOf(inputFile.getName().substring(5,6));
-            String outgroupName=inputFile.getName().replaceAll("traes.", "").replaceAll("\\.gz$", "");
-            for (int i = 0; i < chrsList.size(); i++) {
-                bw=IOTool.getTextWriter(new File(outDir, chrsList.get(i)+subgenome+outgroupName+".ancestral.txt"));
-                bw.write("chr\tpos\tancestralAllele\n");
-                chrBufferWriterMap.put(chrsList.get(i), bw);
-            }
+            String outFileName="chr"+inputFile.getName().substring(0,2)+".secer.hovul.exon.probs.ancestral.txt.gz";
+            BufferedWriter bw=IOTool.getTextGzipWriter(new File(outDir, outFileName));
+            WheatLineage subgenome=WheatLineage.valueOf(inputFile.getName().substring(1,2));
+            bw.write("chr\tpos\tancestralAllele\n");
             String line, chr, pos, ancestralAllele;
+            StringBuilder sb;
             List<String> temp;
-            StringBuilder sb=new StringBuilder(32);
-            while ((line=bufferedReader.readLine()).startsWith("0")){}
-            temp= PStringUtils.fastSplit(line);
-            chr=temp.get(0);
-            pos=temp.get(2);
-            ancestralAllele= getAncestralAllele_twoOutGroup(line, thresh);
-            sb.append(chr.substring(3,4)+subgenome).append("\t").append(pos).append("\t").append(ancestralAllele);
-            bw=chrBufferWriterMap.get(chr);
-            bw.write(sb.toString());
-            bw.newLine();
             while ((line= bufferedReader.readLine())!=null){
                 temp=PStringUtils.fastSplit(line);
                 chr=temp.get(0);
                 pos=temp.get(2);
                 ancestralAllele= getAncestralAllele_twoOutGroup(line, thresh);
                 sb=new StringBuilder(32);
-                sb.append(chr.substring(3,4)+subgenome).append("\t").append(pos).append("\t").append(ancestralAllele);
-                bw=chrBufferWriterMap.get(chr);
+                sb.append(chr, 3, 4).append(subgenome).append("\t").append(pos).append("\t").append(ancestralAllele);
                 bw.write(sb.toString());
                 bw.newLine();
             }
-            for (Map.Entry<String, BufferedWriter> entry: chrBufferWriterMap.entrySet()){
-                entry.getValue().flush();
-                entry.getValue().close();
-            }
+            bw.flush();
+            bw.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -185,7 +164,7 @@ public class Ancestral {
         BufferedReader bufferedReader;
         BufferedWriter bufferedWriter=IOTool.getTextWriter(outFile);
         String line, chr, pos;
-        TDoubleArrayList alt_AF;
+        TDoubleArrayList node2_AF;
         String[] temp;
         StringBuilder sb=new StringBuilder(32);
         WheatLineage wheatLineage;
@@ -194,37 +173,21 @@ public class Ancestral {
             bufferedWriter.write("chrpos\tp_major_ancestral\tp_alt_maxAF\tp_alt_maxAF_removedMajor\n");
             for (int i = 0; i < files.size(); i++) {
                 bufferedReader=IOTool.getReader(files.get(i));
-                wheatLineage=WheatLineage.valueOf(files.get(i).getName().substring(5,6));
-                while ((line=bufferedReader.readLine()).startsWith("0")){}
-                temp=StringUtils.split(line, "\t ");
-                chr=temp[0]+wheatLineage;
-                pos=temp[2];
-                alt_AF=new TDoubleArrayList(Arrays.stream(temp).skip(9).collect(Collectors.toList()).stream().mapToDouble(Double::parseDouble).toArray());
-                int maxIndexOfAltAF=ArrayTool.getMaxIndex(alt_AF.toArray());
-                sb=new StringBuilder();
-                sb.append(chr).append("_").append(pos).append("\t").append(temp[8]).append("\t").append(alt_AF.get(maxIndexOfAltAF));
-                count_ACGT= Arrays.stream(Arrays.stream(temp).skip(3).limit(1).collect(Collectors.toList()).get(0).split(","))
-                        .mapToInt(Integer::parseInt).toArray();
-                int indexOfMajorAllele=ArrayTool.getMaxIndex(count_ACGT);
-                alt_AF.removeAt(indexOfMajorAllele);
-                maxIndexOfAltAF=ArrayTool.getMaxIndex(alt_AF.toArray());
-                sb.append("\t").append(alt_AF.get(maxIndexOfAltAF));
-                bufferedWriter.write(sb.toString());
-                bufferedWriter.newLine();
+                wheatLineage=WheatLineage.valueOf(files.get(i).getName().substring(1,2));
                 while ((line=bufferedReader.readLine())!=null){
                     temp=StringUtils.split(line, "\t ");
-                    chr=temp[0]+wheatLineage;
+                    chr=temp[0].substring(0,4)+wheatLineage;
                     pos=temp[2];
-                    alt_AF=new TDoubleArrayList(Arrays.stream(temp).skip(9).collect(Collectors.toList()).stream().mapToDouble(Double::parseDouble).toArray());
-                    maxIndexOfAltAF=ArrayTool.getMaxIndex(alt_AF.toArray());
+                    node2_AF= new TDoubleArrayList(Arrays.stream(temp).skip(7).collect(Collectors.toList()).stream().mapToDouble(Double::parseDouble).toArray());
+                    int maxIndexOfNode2AF=ArrayTool.getMaxIndex(node2_AF.toArray());
                     sb=new StringBuilder();
-                    sb.append(chr).append("_").append(pos).append("\t").append(temp[8]).append("\t").append(alt_AF.get(maxIndexOfAltAF));
+                    sb.append(chr).append("_").append(pos).append("\t").append(temp[6]).append("\t").append(node2_AF.get(maxIndexOfNode2AF));
                     count_ACGT= Arrays.stream(Arrays.stream(temp).skip(3).limit(1).collect(Collectors.toList()).get(0).split(","))
                             .mapToInt(Integer::parseInt).toArray();
-                    indexOfMajorAllele=ArrayTool.getMaxIndex(count_ACGT);
-                    alt_AF.removeAt(indexOfMajorAllele);
-                    maxIndexOfAltAF=ArrayTool.getMaxIndex(alt_AF.toArray());
-                    sb.append("\t").append(alt_AF.get(maxIndexOfAltAF));
+                    int indexOfMajorAllele=ArrayTool.getMaxIndex(count_ACGT);
+                    node2_AF.removeAt(indexOfMajorAllele);
+                    maxIndexOfNode2AF=ArrayTool.getMaxIndex(node2_AF.toArray());
+                    sb.append("\t").append(node2_AF.get(maxIndexOfNode2AF));
                     bufferedWriter.write(sb.toString());
                     bufferedWriter.newLine();
                 }
