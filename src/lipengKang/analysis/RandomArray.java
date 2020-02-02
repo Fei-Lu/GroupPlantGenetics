@@ -5,7 +5,6 @@
  */
 package lipengKang.analysis;
 
-import utils.*;
 import java.util.Random;
 
 /**

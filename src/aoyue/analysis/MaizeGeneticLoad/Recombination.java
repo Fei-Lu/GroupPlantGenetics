@@ -5,9 +5,9 @@
  */
 package aoyue.analysis.MaizeGeneticLoad;
 
-import format.genomeAnnotation.GeneFeature;
-import format.range.Range;
-import format.table.RowTable;
+import pgl.format.genomeAnnotation.GeneFeature;
+import pgl.format.range.Range;
+import pgl.format.table.RowTable;
 import gnu.trove.list.array.TIntArrayList;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -16,10 +16,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import analysis.maizeGeneticLoad.CrossMapUtils;
-import utils.IOFileFormat;
-import utils.IOUtils;
-import utils.PArrayUtils;
-import utils.PStringUtils;
+import pgl.utils.IOFileFormat;
+import pgl.utils.IOUtils;
+import pgl.utils.PArrayUtils;
+import pgl.utils.PStringUtils;
 
 /**
  *

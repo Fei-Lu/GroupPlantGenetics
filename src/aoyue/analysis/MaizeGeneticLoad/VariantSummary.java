@@ -5,27 +5,27 @@
  */
 package aoyue.analysis.MaizeGeneticLoad;
 
-import format.genomeAnnotation.GeneFeature;
-import format.range.Range;
-import format.table.RowTable;
+import pgl.format.genomeAnnotation.GeneFeature;
+import pgl.format.range.Range;
+import pgl.format.table.RowTable;
 import gnu.trove.list.array.TByteArrayList;
 import gnu.trove.list.array.TCharArrayList;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
-import graphcis.r.DensityPlot;
-import graphcis.r.Histogram;
-import graphcis.r.ScatterPlot;
-import utils.IOFileFormat;
-import utils.IOUtils;
-import utils.PArrayUtils;
-import utils.PStringUtils;
+import pgl.graphcis.r.DensityPlot;
+import pgl.graphcis.r.Histogram;
+import pgl.graphcis.r.ScatterPlot;
+import pgl.utils.IOFileFormat;
+import pgl.utils.IOUtils;
+import pgl.utils.PArrayUtils;
+import pgl.utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.util.*;
 
-import static utils.IOFileFormat.Text;
+import static pgl.utils.IOFileFormat.Text;
 
 /**
  *

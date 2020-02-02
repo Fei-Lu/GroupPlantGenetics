@@ -2,10 +2,10 @@ package daxing.common;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
-import format.table.RowTable;
+import pgl.format.table.RowTable;
 import gnu.trove.list.array.TIntArrayList;
-import utils.Benchmark;
-import utils.IOUtils;
+import pgl.utils.Benchmark;
+import pgl.utils.IOUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;

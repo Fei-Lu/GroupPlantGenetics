@@ -5,7 +5,7 @@
  */
 package aoyue.analysis.MaizeGeneticLoad;
 
-import format.table.RowTable;
+import pgl.format.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.util.ArrayList;
@@ -15,9 +15,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import utils.IOFileFormat;
-import utils.IOUtils;
-import utils.PStringUtils;
+import pgl.utils.IOFileFormat;
+import pgl.utils.IOUtils;
+import pgl.utils.PStringUtils;
 
 /**
  *

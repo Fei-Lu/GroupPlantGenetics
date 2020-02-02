@@ -5,7 +5,7 @@
  */
 package aoyue.analysis.MaizeGeneticLoad;
 
-import format.range.Range;
+import pgl.format.range.Range;
 import gnu.trove.set.hash.TIntHashSet;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -16,8 +16,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import utils.IOFileFormat;
-import utils.IOUtils;
+import pgl.utils.IOFileFormat;
+import pgl.utils.IOUtils;
 
 
 /**

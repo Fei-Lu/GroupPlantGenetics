@@ -5,7 +5,7 @@
  */
 package xuebo.analysis.wheat_epi;
 
-import format.dna.FastaByte;
+import pgl.format.dna.FastaByte;
 
 /**
  *

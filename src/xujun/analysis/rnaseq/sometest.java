@@ -7,8 +7,8 @@ package xujun.analysis.rnaseq;
 
 import com.koloboke.collect.map.hash.HashIntIntMap;
 import com.koloboke.collect.map.hash.HashIntIntMaps;
-import format.genomeAnnotation.GeneFeature;
-import format.table.RowTable;
+import pgl.format.genomeAnnotation.GeneFeature;
+import pgl.format.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import utils.Benchmark;
-import utils.IOUtils;
+import pgl.utils.Benchmark;
+import pgl.utils.IOUtils;
 
 /**
  *
@@ -67,8 +67,8 @@ public class sometest {
         String inputFile="/Users/xujun/Desktop/TEP/TEPOut/sams/TEPWithoutB.sam";
         String outputFile="/Users/xujun/Desktop/TEP/TEPOut/sams/morethan10.txt";
         try{
-            BufferedReader br = utils.IOUtils.getTextReader(inputFile);
-            BufferedWriter bw = utils.IOUtils.getTextWriter(outputFile);
+            BufferedReader br = pgl.utils.IOUtils.getTextReader(inputFile);
+            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputFile);
             String temp=null;
             int cont =0;
             while((temp= br.readLine()) != null){
@@ -101,8 +101,8 @@ public class sometest {
         String inputFile="/Users/xujun/Desktop/TEP/GeneName.txt";
         String outputFile="/Users/xujun/Desktop/TEP/GeneName1.txt";
         try{
-            BufferedReader br = utils.IOUtils.getTextReader(inputFile);
-            BufferedWriter bw = utils.IOUtils.getTextWriter(outputFile);
+            BufferedReader br = pgl.utils.IOUtils.getTextReader(inputFile);
+            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputFile);
             String temp=null;
             String geneName=null;
             int chro=0;
@@ -125,8 +125,8 @@ public class sometest {
         String outputFile="/Users/xujun/Desktop/RNA_seq/twice/STAR/GeneName.txt";
         HashSet<String> geneNameSet = new HashSet();
         try{
-            BufferedReader br = utils.IOUtils.getTextReader(inputFile);
-            BufferedWriter bw = utils.IOUtils.getTextWriter(outputFile);
+            BufferedReader br = pgl.utils.IOUtils.getTextReader(inputFile);
+            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputFile);
             String temp=null;
             String geneName=null;
             int chro=0;
@@ -154,8 +154,8 @@ public class sometest {
         String pgfFile="/Users/xujun/Desktop/Zea_mays.AGPv4.38.pgf";
         GeneFeature xj = new GeneFeature(pgfFile);
         try{
-            BufferedReader br = utils.IOUtils.getTextReader(inputFile);
-            BufferedWriter bw = utils.IOUtils.getTextWriter(outputFile);
+            BufferedReader br = pgl.utils.IOUtils.getTextReader(inputFile);
+            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputFile);
             String temp=null;
             String name=null;
             int chro=0;
@@ -187,8 +187,8 @@ public class sometest {
             position[i]="";
         }
         try{
-            BufferedReader br = utils.IOUtils.getTextReader(gtfFile);
-            BufferedWriter bw = utils.IOUtils.getTextWriter(outputFile);
+            BufferedReader br = pgl.utils.IOUtils.getTextReader(gtfFile);
+            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputFile);
  //           BufferedWriter bw1 = utils.IOUtils.getTextWriter(output);
             String temp=null;
             String genotype=null;
@@ -232,8 +232,8 @@ public class sometest {
 //        String output="/Users/xujun/Desktop/RNA_seq/twice/STAR/ExonLengthInfor.txt";
         int index=0;
         try{
-            BufferedReader br = utils.IOUtils.getTextReader(gtfFile);
-            BufferedWriter bw = utils.IOUtils.getTextWriter(outputFile);
+            BufferedReader br = pgl.utils.IOUtils.getTextReader(gtfFile);
+            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputFile);
  //           BufferedWriter bw1 = utils.IOUtils.getTextWriter(output);
             String temp=null;
             String genotype=null;
@@ -265,8 +265,8 @@ public class sometest {
         String phred=null;
         
         try{
-             BufferedReader br1 = utils.IOUtils.getTextReader(inputfile);
-             BufferedWriter bw = utils.IOUtils.getTextWriter(outputfile);
+             BufferedReader br1 = pgl.utils.IOUtils.getTextReader(inputfile);
+             BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputfile);
              while((news= br1.readLine()) != null){
                 phred=news.split("\t")[2];
                 int phred1=0;
@@ -298,8 +298,8 @@ public class sometest {
         String name=null;
         String phred=null;
         try{
-             BufferedReader br1 = utils.IOUtils.getTextReader(inputfile);
-             BufferedWriter bw = utils.IOUtils.getTextWriter(outputfile);
+             BufferedReader br1 = pgl.utils.IOUtils.getTextReader(inputfile);
+             BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputfile);
              while((news= br1.readLine()) != null){
                 number=news.split("\t")[1];               
                 if(Integer.parseInt(number)==1){
@@ -329,8 +329,8 @@ public class sometest {
         String news=null;
         String number=null;
         try{
-             BufferedReader br1 = utils.IOUtils.getTextReader(inputfile);
-             BufferedWriter bw = utils.IOUtils.getTextWriter(outputfile);
+             BufferedReader br1 = pgl.utils.IOUtils.getTextReader(inputfile);
+             BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputfile);
              while((news= br1.readLine()) != null){
                 number=news.split("\t")[1]; 
                 for(int i=1;i<=10;i++){

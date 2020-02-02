@@ -6,11 +6,11 @@
 package aoyue.analysis.MaizeGeneticLoad;
 
 import com.google.common.collect.Table;
-import format.table.RowTable;
+import pgl.format.table.RowTable;
 import java.io.BufferedWriter;
 import java.util.HashMap;
 import java.util.Set;
-import utils.IOUtils;
+import pgl.utils.IOUtils;
 
 /**
  *

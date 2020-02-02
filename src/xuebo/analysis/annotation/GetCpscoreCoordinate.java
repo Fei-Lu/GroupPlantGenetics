@@ -5,7 +5,7 @@
  */
 package xuebo.analysis.annotation;
 
-import format.table.RowTable;
+import pgl.format.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import utils.IOUtils;
+import pgl.utils.IOUtils;
 
 /**
  *

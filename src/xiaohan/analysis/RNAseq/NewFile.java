@@ -5,14 +5,14 @@
  */
 package xiaohan.analysis.RNAseq;
 
-import format.table.RowTable;
+import pgl.format.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import utils.IOUtils;
+import pgl.utils.IOUtils;
 
 /**
  *

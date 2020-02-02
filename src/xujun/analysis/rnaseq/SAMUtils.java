@@ -3,8 +3,6 @@
  */
 package xujun.analysis.rnaseq;
 
-import format.alignment.*;
-
 /**
  *
  * @author James Harriman

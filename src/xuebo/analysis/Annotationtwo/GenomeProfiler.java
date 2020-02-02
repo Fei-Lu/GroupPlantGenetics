@@ -17,12 +17,12 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import format.dna.BaseEncoder;
-import format.dna.FastaByte;
-import utils.Benchmark;
-import utils.PArrayUtils;
-import utils.PStringUtils;
-import utils.IOUtils;
+import pgl.format.dna.BaseEncoder;
+import pgl.format.dna.FastaByte;
+import pgl.utils.Benchmark;
+import pgl.utils.PArrayUtils;
+import pgl.utils.PStringUtils;
+import pgl.utils.IOUtils;
 
 /**
  *

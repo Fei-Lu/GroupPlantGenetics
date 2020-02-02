@@ -4,11 +4,11 @@ import daxing.common.DateTime;
 import daxing.common.PGF;
 import daxing.common.RowTableTool;
 import daxing.common.VCF;
-import format.dna.FastaByte;
+import pgl.format.dna.FastaByte;
 import gnu.trove.list.array.TIntArrayList;
-import utils.Benchmark;
-import utils.IOFileFormat;
-import utils.IOUtils;
+import pgl.utils.Benchmark;
+import pgl.utils.IOFileFormat;
+import pgl.utils.IOUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;

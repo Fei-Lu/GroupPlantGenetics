@@ -5,8 +5,8 @@
  */
 package xujun.analysis.rnaseq;
 
-import format.range.RangeValStr;
-import format.table.RowTable;
+import pgl.format.range.RangeValStr;
+import pgl.format.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import utils.IOUtils;
+import pgl.utils.IOUtils;
 import xuebo.analysis.annotation.FStringUtils;
 
 /**
@@ -47,8 +47,8 @@ public class GBS {
         String outfileDirS = "/Users/xujun/Desktop/DisLibrary.txt";
         int count [] =new int [library.size()];
             try {
-                BufferedReader br = utils.IOUtils.getTextGzipReader(infileDirS);
-                BufferedWriter bw = utils.IOUtils.getTextWriter(outfileDirS);
+                BufferedReader br = pgl.utils.IOUtils.getTextGzipReader(infileDirS);
+                BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outfileDirS);
                 String temp1=null;String index=null;
                 while((temp1 = br.readLine()) != null){
                     index=temp1.split(" ")[1].split(":")[3].substring(1, 6);
@@ -108,10 +108,10 @@ public class GBS {
             String infile2 = new File (infileDirS, name+"R2.fq.gz").getAbsolutePath();
             String outfile = new File (outfileDirS).getAbsolutePath();
             try {            
-                BufferedReader br1 = utils.IOUtils.getTextGzipReader(infile1);
-                BufferedReader br2 = utils.IOUtils.getTextGzipReader(infile2);
-                BufferedWriter bw1 = utils.IOUtils.getTextWriter(outfileDirS);
-                BufferedWriter bw2 = utils.IOUtils.getTextWriter(outfileDirS);
+                BufferedReader br1 = pgl.utils.IOUtils.getTextGzipReader(infile1);
+                BufferedReader br2 = pgl.utils.IOUtils.getTextGzipReader(infile2);
+                BufferedWriter bw1 = pgl.utils.IOUtils.getTextWriter(outfileDirS);
+                BufferedWriter bw2 = pgl.utils.IOUtils.getTextWriter(outfileDirS);
                 BufferedWriter tw1 = null;BufferedWriter tw2 = null;
                 String temp1=null;String temp2=null;String index=null;
                 while((temp1 = br1.readLine()) != null){
@@ -176,9 +176,9 @@ public class GBS {
             List<String> h2= new ArrayList();
             String sameName=null;int index=0;
             try {
-                BufferedReader br1 = utils.IOUtils.getTextGzipReader(infile1);
-                BufferedReader br2 = utils.IOUtils.getTextGzipReader(infile2);   
-                BufferedWriter bw = utils.IOUtils.getTextWriter(outfile);
+                BufferedReader br1 = pgl.utils.IOUtils.getTextGzipReader(infile1);
+                BufferedReader br2 = pgl.utils.IOUtils.getTextGzipReader(infile2);   
+                BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outfile);
                 while ((temp1 = br2.readLine()) != null) {
                     count1++;
                     seq1=br2.readLine();

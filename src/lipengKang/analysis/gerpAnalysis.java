@@ -11,7 +11,7 @@ import java.io.BufferedWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import utils.IOUtils;
+import pgl.utils.IOUtils;
 import lipengKang.analysis.KStringUtils;
 
 import zhouyao.analysis.wheatHapMap.YaoIOUtils;

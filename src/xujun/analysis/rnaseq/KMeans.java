@@ -23,7 +23,7 @@ package xujun.analysis.rnaseq;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Random;
-import format.table.RowTable;
+import pgl.format.table.RowTable;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.io.File;

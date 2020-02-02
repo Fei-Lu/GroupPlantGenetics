@@ -7,7 +7,7 @@ package xiaohan.analysis.RNAseq;
  */
 
 
-import format.table.RowTable;
+import pgl.format.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -17,9 +17,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import utils.Benchmark;
-import utils.IOUtils;
-import utils.PStringUtils;
+import pgl.utils.Benchmark;
+import pgl.utils.IOUtils;
+import pgl.utils.PStringUtils;
 
 /**
  *
@@ -71,8 +71,8 @@ public class DEanalysis {
                    bw[i]=IOUtils.getTextWriter(new File(outputDirS, barcodeStrain.get(barcodeList.get(i))+"_R1.fq").getAbsolutePath());
                    bw1[i]=IOUtils.getTextWriter(new File(outputDirS, barcodeStrain.get(barcodeList.get(i))+"_R2.fq").getAbsolutePath());
                 }
-                BufferedReader br = utils.IOUtils.getTextGzipReader(infile1);
-                BufferedReader br1 = utils.IOUtils.getTextGzipReader(infile2);
+                BufferedReader br = pgl.utils.IOUtils.getTextGzipReader(infile1);
+                BufferedReader br1 = pgl.utils.IOUtils.getTextGzipReader(infile2);
                 int pos = -1 ;
                 String temp = null;
                 String seq = null;String index = null;

@@ -6,17 +6,17 @@
 package daxing.common;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import format.dna.FastaByte;
-import format.dna.SequenceByte;
-import format.position.ChrPos;
-import format.range.Range;
-import format.range.RangeInterface;
+import pgl.format.dna.FastaByte;
+import pgl.format.dna.SequenceByte;
+import pgl.format.position.ChrPos;
+import pgl.format.range.Range;
+import pgl.format.range.RangeInterface;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
 import org.apache.commons.lang3.ArrayUtils;
-import utils.Benchmark;
-import utils.IOUtils;
-import utils.PStringUtils;
+import pgl.utils.Benchmark;
+import pgl.utils.IOUtils;
+import pgl.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;

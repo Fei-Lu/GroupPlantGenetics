@@ -1,9 +1,9 @@
 package daxing.applets;
 
 import daxing.common.VCF;
-import utils.IOUtils;
-import utils.PArrayUtils;
-import utils.PStringUtils;
+import pgl.utils.IOUtils;
+import pgl.utils.PArrayUtils;
+import pgl.utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

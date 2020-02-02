@@ -8,9 +8,9 @@ package xujun.analysis.rnaseq;
 import com.itextpdf.text.pdf.AcroFields.Item;
 import com.koloboke.collect.map.hash.HashByteByteMap;
 import com.koloboke.collect.map.hash.HashByteByteMaps;
-import format.dna.Fastq;
-import format.dna.Read;
-import format.table.RowTable;
+import pgl.format.dna.Fastq;
+import pgl.format.dna.Read;
+import pgl.format.table.RowTable;
 import static java.lang.Integer.sum;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,9 +27,9 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
-import utils.IOFileFormat;
-import utils.IOUtils;
-import utils.PStringUtils;
+import pgl.utils.IOFileFormat;
+import pgl.utils.IOUtils;
+import pgl.utils.PStringUtils;
 import static xujun.analysis.rnaseq.GBS.getKeyList;
 
 /**
@@ -72,8 +72,8 @@ public class DistinguishSample {
         String inputFile="/Users/xujun/Downloads/wheat.gtf";
         String temp=null;String [] tem = null;
         try{
-            BufferedReader br = utils.IOUtils.getTextReader(inputFile);
-            BufferedWriter bw = utils.IOUtils.getTextWriter("/Users/xujun/Downloads/rightchangewheat.gtf");
+            BufferedReader br = pgl.utils.IOUtils.getTextReader(inputFile);
+            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter("/Users/xujun/Downloads/rightchangewheat.gtf");
             while((temp=br.readLine())!=null){  
                 List<String> tList= PStringUtils.fastSplit(temp);
                 tem = tList.toArray(new String[tList.size()]);
@@ -125,8 +125,8 @@ public class DistinguishSample {
         String inputFile="/Users/xujun/Desktop/PLATE-seq_1.clean.fq";
         String temp=null;int count=0;
         try{
-            BufferedReader br = utils.IOUtils.getTextReader(inputFile);
-            BufferedWriter bw = utils.IOUtils.getTextWriter("/Users/xujun/Desktop/mayWrong.txt");
+            BufferedReader br = pgl.utils.IOUtils.getTextReader(inputFile);
+            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter("/Users/xujun/Desktop/mayWrong.txt");
             while((temp=br.readLine())!=null){  
                 count++;
                 if(count>=5754881){
@@ -302,9 +302,9 @@ public class DistinguishSample {
             String outfile=new File(outputDirS,"count").getAbsolutePath();
             String seq = null;
             try {
-                BufferedReader br1 = utils.IOUtils.getTextReader(infile1);                               
+                BufferedReader br1 = pgl.utils.IOUtils.getTextReader(infile1);                               
                 BufferedWriter[] bws = new BufferedWriter[rowNumber];//这里只是创建了一个bufferedreader类型的数组 并没有对里面的各个new
-                BufferedWriter bw = utils.IOUtils.getTextWriter(outfile);                               
+                BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outfile);                               
                 for (int i = 0; i < bws.length; i++) {
                     String outfileS = new File (outputDirS, nameList.get(i)).getAbsolutePath();
                     bws[i] = IOUtils.getTextWriter(outfileS);
@@ -437,11 +437,11 @@ public class DistinguishSample {
             String outfile2 = new File (outputDirS, name+"_2.fq.gz").getAbsolutePath();
             String outfileFasta = new File (outputFastaDirS, name+"_1.fa").getAbsolutePath();
             try {
-                BufferedReader br1 = utils.IOUtils.getTextGzipReader(infile1);
-                BufferedReader br2 = utils.IOUtils.getTextGzipReader(infile2);
-                BufferedWriter bw1 = utils.IOUtils.getTextGzipWriter(outfile1);
-                BufferedWriter bw2 = utils.IOUtils.getTextGzipWriter(outfile2);
-                BufferedWriter bwf = utils.IOUtils.getTextGzipWriter(outfileFasta);
+                BufferedReader br1 = pgl.utils.IOUtils.getTextGzipReader(infile1);
+                BufferedReader br2 = pgl.utils.IOUtils.getTextGzipReader(infile2);
+                BufferedWriter bw1 = pgl.utils.IOUtils.getTextGzipWriter(outfile1);
+                BufferedWriter bw2 = pgl.utils.IOUtils.getTextGzipWriter(outfile2);
+                BufferedWriter bwf = pgl.utils.IOUtils.getTextGzipWriter(outfileFasta);
                 String temp = null;
                 while ((temp = br1.readLine()) != null) {
                     bw1.write(temp);
@@ -486,11 +486,11 @@ public class DistinguishSample {
             String outfile2 = new File (outputDirS, name+"_2.fq").getAbsolutePath();
             String outfileFasta = new File (outputFastaDirS, name+"_1.fa").getAbsolutePath();
             try {
-                BufferedReader br1 = utils.IOUtils.getTextReader(infile1);
-                BufferedReader br2 = utils.IOUtils.getTextReader(infile2);
-                BufferedWriter bw1 = utils.IOUtils.getTextWriter(outfile1);
-                BufferedWriter bw2 = utils.IOUtils.getTextWriter(outfile2);
-                BufferedWriter bwf = utils.IOUtils.getTextWriter(outfileFasta);
+                BufferedReader br1 = pgl.utils.IOUtils.getTextReader(infile1);
+                BufferedReader br2 = pgl.utils.IOUtils.getTextReader(infile2);
+                BufferedWriter bw1 = pgl.utils.IOUtils.getTextWriter(outfile1);
+                BufferedWriter bw2 = pgl.utils.IOUtils.getTextWriter(outfile2);
+                BufferedWriter bwf = pgl.utils.IOUtils.getTextWriter(outfileFasta);
                 String temp = null;
                 int cnt = 0;
                 while ((temp = br1.readLine()) != null) {
@@ -547,8 +547,8 @@ public class DistinguishSample {
             int cnt=0;
             int sum=0;
             try {
-                BufferedReader br = utils.IOUtils.getTextReader(infile);
-                BufferedWriter bw = utils.IOUtils.getTextWriter(outfile);
+                BufferedReader br = pgl.utils.IOUtils.getTextReader(infile);
+                BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outfile);
                 br.readLine();br.readLine();br.readLine();br.readLine();                
                 while (br.readLine() != null) {
                     for (int i = 3; i < rt.getRowNumber(); i++) {
@@ -580,8 +580,8 @@ public class DistinguishSample {
         String seq=null;
         String name=null;
         try {
-                BufferedReader br = utils.IOUtils.getTextReader(inputfile);
-                BufferedWriter bw = utils.IOUtils.getTextWriter(outputfile);              
+                BufferedReader br = pgl.utils.IOUtils.getTextReader(inputfile);
+                BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputfile);              
                 while ((name=br.readLine()) != null) {
                     bw.write(name+"\n");
                     seq=br.readLine().substring(12);

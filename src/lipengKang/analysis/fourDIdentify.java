@@ -7,7 +7,7 @@ package lipengKang.analysis;
 
 import com.koloboke.collect.map.hash.HashIntIntMap;
 import com.koloboke.collect.map.hash.HashIntIntMaps;
-import format.range.RangeValStr;
+import pgl.format.range.RangeValStr;
 import gnu.trove.list.array.TIntArrayList;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -21,10 +21,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import utils.Benchmark;
-import utils.IOUtils;
+import pgl.utils.Benchmark;
+import pgl.utils.IOUtils;
 import  lipengKang.analysis.KStringUtils;
-import utils.PStringUtils;
+import pgl.utils.PStringUtils;
 import lipengKang.analysis.ParseCDSFasta;
 
 /**

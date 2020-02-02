@@ -2,7 +2,7 @@ package daxing.applets;
 
 import daxing.common.StringTool;
 import daxing.common.WheatLineage;
-import utils.IOUtils;
+import pgl.utils.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

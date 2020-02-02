@@ -2,13 +2,13 @@ package daxing.applets;
 
 import daxing.common.NumberTool;
 import daxing.common.WheatLineage;
-import format.dna.snp.AlleleEncoder;
+import pgl.format.dna.snp.AlleleEncoder;
 import gnu.trove.list.array.TByteArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
-import utils.IOUtils;
-import utils.PArrayUtils;
-import utils.PStringUtils;
+import pgl.utils.IOUtils;
+import pgl.utils.PArrayUtils;
+import pgl.utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

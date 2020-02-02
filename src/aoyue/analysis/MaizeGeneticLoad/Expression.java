@@ -7,7 +7,7 @@ package aoyue.analysis.MaizeGeneticLoad;
 
 import com.google.common.collect.Table;
 import static com.google.common.io.Files.map;
-import format.table.RowTable;
+import pgl.format.table.RowTable;
 import gnu.trove.list.array.TDoubleArrayList;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -23,10 +23,10 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import utils.IOFileFormat;
-import utils.IOUtils;
-import utils.PArrayUtils;
-import utils.PStringUtils;
+import pgl.utils.IOFileFormat;
+import pgl.utils.IOUtils;
+import pgl.utils.PArrayUtils;
+import pgl.utils.PStringUtils;
 
 /**
  *

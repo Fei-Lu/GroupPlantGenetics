@@ -8,7 +8,7 @@ package xuebo.analysis.annotation;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import utils.IOUtils;
+import pgl.utils.IOUtils;
 
 /**
  *
