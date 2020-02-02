@@ -15,7 +15,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import analysis.maizeGeneticLoad.CrossMapUtils;
+import deprecated.analysis.maizeGeneticLoad.CrossMapUtils;
 import pgl.utils.IOFileFormat;
 import pgl.utils.IOUtils;
 import pgl.utils.PArrayUtils;
