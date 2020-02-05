@@ -2,6 +2,7 @@ package daxing.common;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import com.mysql.cj.x.protobuf.MysqlxDatatypes;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.lang3.StringUtils;
@@ -959,7 +960,7 @@ public class VCF {
      * 将VCF按照"chr000.vcf, chr001.vcf"的形式进行输出
      * @param outputDir 输出目录
      */
-    public void writeVcfToSplitedChr(String outputDir){
+    public void writeVcfToSplitedChrID(String outputDir){
         this.sort();
         List<Integer> chrList=data.stream().flatMap(e->e.stream().limit(1)).mapToInt(Integer::valueOf).boxed()
                               .distinct().sorted().collect(Collectors.toCollection(ArrayList::new));
@@ -992,6 +993,46 @@ public class VCF {
                 }
             }
             for(Map.Entry<Integer, BufferedWriter> entry:strToBufferedWriterMap.entrySet()){
+                entry.getValue().flush();
+                entry.getValue().close();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public void writeVcfToSplitedChr(String outputDir){
+        this.sort();
+        List<String> chrList=data.stream().flatMap(e->e.stream().limit(1)).distinct().sorted().collect(Collectors.toList());
+        Map<String, BufferedWriter> strToBufferedWriterMap=new HashMap<>();
+        String key;
+        BufferedWriter value;
+        for(int i=0;i<chrList.size();i++){
+            key=chrList.get(i);
+            value=IOUtils.getTextWriter(outputDir+"/chr"+key+".vcf");
+            strToBufferedWriterMap.put(key, value);
+        }
+        StringBuilder sb=new StringBuilder();
+        sb.append(meta);
+        for(int i=0;i<header.size();i++){
+            sb.append(header.get(i));
+            sb.append("\t");
+        }
+        sb.deleteCharAt(sb.length()-1).append("\n");
+        try{
+            for(Map.Entry<String, BufferedWriter> entry:strToBufferedWriterMap.entrySet()){
+                entry.getValue().write(sb.toString());
+            }
+            for(int i=0;i<data.size();i++){
+                for(int j=0;j<data.get(i).size();j++){
+                    key=data.get(i).get(0);
+                    value=strToBufferedWriterMap.get(key);
+                    value.write(data.get(i).stream().collect(Collectors.joining("\t")));
+                    value.newLine();
+                    break;
+                }
+            }
+            for(Map.Entry<String, BufferedWriter> entry:strToBufferedWriterMap.entrySet()){
                 entry.getValue().flush();
                 entry.getValue().close();
             }
