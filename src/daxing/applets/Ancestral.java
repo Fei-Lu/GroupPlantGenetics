@@ -155,7 +155,7 @@ public class Ancestral {
         for (int i = 0; i < files.size(); i++) {
             vcf=new VCF(files.get(i));
             vcf.changeToVCFChr(c);
-            vcf.writeVcfToSplitedChr(outDir);
+            vcf.writeVcfToSplitedChrID(outDir);
         }
     }
 
