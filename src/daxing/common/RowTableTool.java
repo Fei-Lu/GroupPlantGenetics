@@ -110,6 +110,26 @@ public class RowTableTool<T> extends RowTable<T> {
     }
 
     /**
+     *
+     * @param columnName
+     * @return
+     */
+    public double[] getColumnAsDoubleArray(String columnName){
+        int columnIndex=this.hiMap.get(columnName);
+        return this.getColumnAsDoubleArray(columnIndex);
+    }
+
+    /**
+     *
+     * @param columnName
+     * @return
+     */
+    public int[] getColumnAsIntArray(String columnName){
+        int columnIndex=this.hiMap.get(columnName);
+        return this.getColumnAsIntArray(columnIndex);
+    }
+
+    /**
      * extract the specific column for big table
      * @param inFile
      * @param columnIndex
