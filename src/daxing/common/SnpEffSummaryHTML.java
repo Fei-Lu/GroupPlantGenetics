@@ -2,7 +2,7 @@ package daxing.common;
 
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.lang.StringUtils;
-import pgl.utils.IOUtils;
+import pgl.infra.utils.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

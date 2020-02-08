@@ -15,9 +15,9 @@ import com.koloboke.collect.map.hash.HashIntIntMap;
 import com.koloboke.collect.map.hash.HashIntIntMaps;
 import com.koloboke.collect.map.hash.HashIntObjMap;
 import com.koloboke.collect.map.hash.HashIntObjMaps;
-import pgl.format.range.Range;
-import pgl.format.range.RangeValStr;
-import pgl.format.table.RowTable;
+import pgl.infra.range.Range;
+import pgl.infra.range.RangeValStr;
+import pgl.infra.table.RowTable;
 //import htsjdk.samtools.BAMFileReader;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -38,10 +38,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import rcaller.RCaller;
 import rcaller.RCode;
-import pgl.utils.Benchmark;
-import pgl.utils.IOFileFormat;
-import pgl.utils.IOUtils;
-import pgl.utils.PStringUtils;
+import pgl.infra.utils.Benchmark;
+import pgl.infra.utils.IOFileFormat;
+import pgl.infra.utils.IOUtils;
+import pgl.infra.utils.PStringUtils;
 import xuebo.analysis.annotation.FStringUtils;
 
 /**

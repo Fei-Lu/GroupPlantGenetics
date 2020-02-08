@@ -6,8 +6,8 @@
 package aoyue.analysis.MaizeGeneticLoad;
 
 import com.itextpdf.text.pdf.parser.Path;
-import pgl.format.dna.FastaByte;
-import pgl.format.table.RowTable;
+import pgl.infra.dna.FastaByte;
+import pgl.infra.table.RowTable;
 import gnu.trove.list.array.TIntArrayList;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -24,9 +24,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import pgl.utils.IOFileFormat;
-import pgl.utils.IOUtils;
-import pgl.utils.PStringUtils;
+import pgl.infra.utils.IOFileFormat;
+import pgl.infra.utils.IOUtils;
+import pgl.infra.utils.PStringUtils;
 
 
 /**

@@ -19,8 +19,8 @@ package lipengKang.analysis;
 import lipengKang.analysis.DataProcessor;
 import lipengKang.analysis.PlateAndID;
 import com.google.common.primitives.Bytes;
-import pgl.format.table.RowTable;
-import pgl.format.table.TableInterface;
+import pgl.infra.table.RowTable;
+import pgl.infra.table.TableInterface;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -33,8 +33,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import pgl.utils.IOUtils;
-import pgl.utils.PStringUtils;
+import pgl.infra.utils.IOUtils;
+import pgl.infra.utils.PStringUtils;
 
 /**
  *

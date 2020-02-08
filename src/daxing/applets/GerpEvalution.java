@@ -3,11 +3,11 @@ package daxing.applets;
 import daxing.common.ChrConvertionRule;
 import daxing.common.NumberTool;
 import daxing.common.PGF;
-import pgl.format.range.Range;
+import pgl.infra.range.Range;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
-import pgl.utils.IOUtils;
-import pgl.utils.PStringUtils;
+import pgl.infra.utils.IOUtils;
+import pgl.infra.utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

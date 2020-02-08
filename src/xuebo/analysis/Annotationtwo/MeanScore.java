@@ -5,7 +5,7 @@
  */
 package xuebo.analysis.Annotationtwo;
 import java.io.BufferedReader;
-import pgl.utils.IOUtils;
+import pgl.infra.utils.IOUtils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;

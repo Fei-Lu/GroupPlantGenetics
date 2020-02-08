@@ -9,7 +9,7 @@ package xujun.analysis.rnaseq;
 
 import static com.sun.javafx.animation.TickCalculation.sub;
 import com.sun.javafx.geom.Point2D;
-import pgl.format.table.RowTable;
+import pgl.infra.table.RowTable;
 //import static htsjdk.samtools.util.SequenceUtil.a;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -38,7 +38,7 @@ import org.biojava.nbio.alignment.template.GapPenalty;
 import org.biojava.nbio.phylo.DistanceMatrixCalculator;
 import rcaller.RCaller;
 import rcaller.RCode;
-import pgl.utils.IOUtils;
+import pgl.infra.utils.IOUtils;
 import zhouyao.analysis.wheatHapMap.YaoIOUtils;
 /**
  *
@@ -165,7 +165,7 @@ public class SiPASHomo {
         }
         String temp =null;int n=0;
         try{
-            BufferedReader br=pgl.utils.IOUtils.getTextReader(geneFile);
+            BufferedReader br=IOUtils.getTextReader(geneFile);
             while((temp=br.readLine())!=null){
                 n++;
                 if(nameSet1.contains(temp.split("\t")[0]) && nameSet2.contains(temp.split("\t")[1]) && nameSet3.contains(temp.split("\t")[2])){

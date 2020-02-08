@@ -4,9 +4,9 @@
  * and open the template in the editor.
  */
 package xuebo.analysis.wheat_epi;
-import pgl.format.dna.FastaByte;
+import pgl.infra.dna.FastaByte;
 import java.io.BufferedReader;
-import pgl.utils.IOUtils;
+import pgl.infra.utils.IOUtils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;

@@ -2,8 +2,8 @@ package daxing.common;
 
 import pgl.analysis.pipeline.grt.LibraryInfo;
 import gnu.trove.list.array.TIntArrayList;
-import pgl.utils.Benchmark;
-import pgl.utils.IOUtils;
+import pgl.infra.utils.Benchmark;
+import pgl.infra.utils.IOUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;

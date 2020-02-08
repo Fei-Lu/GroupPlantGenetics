@@ -7,7 +7,7 @@ package xuebo.analysis.annotation;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import pgl.utils.IOUtils;
+import pgl.infra.utils.IOUtils;
 
 /**
  *

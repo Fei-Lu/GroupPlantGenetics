@@ -11,7 +11,7 @@ import java.io.BufferedWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import pgl.format.table.RowTable;
+import pgl.infra.table.RowTable;
 
 /**
  *

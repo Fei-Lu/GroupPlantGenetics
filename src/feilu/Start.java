@@ -6,8 +6,8 @@
 package feilu;
 
 import com.koloboke.collect.map.hash.HashByteByteMap;
-import pgl.format.dna.BaseEncoder;
-import pgl.format.table.RowTable;
+import pgl.infra.dna.BaseEncoder;
+import pgl.infra.table.RowTable;
 import java.io.BufferedWriter;
 import java.util.HashMap;
 import zhouyao.analysis.wheatHapMap.YaoIOUtils;

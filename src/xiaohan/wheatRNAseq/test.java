@@ -3,7 +3,7 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
-import pgl.utils.IOUtils;
+import pgl.infra.utils.IOUtils;
 
 /*
  * To change this license header, choose License Headers in Project Properties.

@@ -5,7 +5,7 @@
  */
 package aoyue.analysis.MaizeGeneticLoad;
 
-import pgl.format.range.Range;
+import pgl.infra.range.Range;
 import gnu.trove.set.hash.TIntHashSet;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -16,8 +16,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import pgl.utils.IOFileFormat;
-import pgl.utils.IOUtils;
+import pgl.infra.utils.IOFileFormat;
+import pgl.infra.utils.IOUtils;
 
 
 /**
@@ -59,7 +59,7 @@ public class Rangescp {
     public static String getRangePositionString (List<Range> rList) {
         return getRangePositionString(rList.toArray(new Range[rList.size()]));
     }
-    
+
     public void clearNote () {
         this.note.clear();
     }

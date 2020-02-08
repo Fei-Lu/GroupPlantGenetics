@@ -1,6 +1,6 @@
 package daxing.filterSNP;
 
-import pgl.format.position.ChrPos;
+import pgl.infra.position.ChrPos;
 
 public class Dot extends ChrPos {
 

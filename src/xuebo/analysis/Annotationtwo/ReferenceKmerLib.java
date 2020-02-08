@@ -6,11 +6,11 @@ import com.koloboke.collect.set.hash.HashIntSets;
 import com.koloboke.collect.set.hash.HashLongSet;
 import com.koloboke.collect.set.hash.HashLongSets;
 import java.io.DataOutputStream;
-import pgl.format.dna.BaseEncoder;
-import pgl.format.dna.FastaByte;
+import pgl.infra.dna.BaseEncoder;
+import pgl.infra.dna.FastaByte;
 
-import pgl.utils.Benchmark;
-import pgl.utils.IOUtils;
+import pgl.infra.utils.Benchmark;
+import pgl.infra.utils.IOUtils;
 
 public class ReferenceKmerLib {
     int kmerLength = -1;

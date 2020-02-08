@@ -5,8 +5,8 @@
  */
 package aoyue.analysis.WheatGeneticLoad;
 
-import pgl.format.table.RowTable;
-import pgl.utils.IOFileFormat;
+import pgl.infra.table.RowTable;
+import pgl.infra.utils.IOFileFormat;
 
 /**
  *

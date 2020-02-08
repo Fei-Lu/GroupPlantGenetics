@@ -1,9 +1,9 @@
 package daxing.common;
 
-import pgl.format.position.ChrPos;
+import pgl.infra.position.ChrPos;
 import gnu.trove.list.array.TIntArrayList;
-import pgl.utils.IOUtils;
-import pgl.utils.PStringUtils;
+import pgl.infra.utils.IOUtils;
+import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.nio.file.Path;
 import java.util.*;
