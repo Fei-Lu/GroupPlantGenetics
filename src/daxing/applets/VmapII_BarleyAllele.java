@@ -2,7 +2,7 @@ package daxing.applets;
 
 import daxing.common.NumberTool;
 import daxing.common.WheatLineage;
-import pgl.infra.dna.snp.AlleleEncoder;
+
 import gnu.trove.list.array.TByteArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
+import pgl.infra.dna.allele.AlleleEncoder;
 
 public class VmapII_BarleyAllele {
 

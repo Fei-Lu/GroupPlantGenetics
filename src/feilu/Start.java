@@ -37,7 +37,7 @@ public class Start {
         */
         String ori = "ATGCAGTC";
         byte[] oriByte = ori.getBytes();
-        HashByteByteMap ascMap = BaseEncoder.getAscIIByteMap();
+        HashByteByteMap ascMap = BaseEncoder.getAscIIBaseByteMap();
         byte[] tranByte = new byte[oriByte.length];
         for (int i = 0; i < oriByte.length; i++) {
             tranByte[i] = ascMap.get(oriByte[i]);
