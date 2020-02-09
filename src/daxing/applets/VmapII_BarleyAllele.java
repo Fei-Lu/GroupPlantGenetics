@@ -20,6 +20,7 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import pgl.infra.dna.allele.AlleleEncoder;
 
+
 public class VmapII_BarleyAllele {
 
     public static void extractIntersectionBetweenVmapIIandAncestral(String ancestralDir, String vmap2Dir, String outDir){
@@ -43,8 +44,8 @@ public class VmapII_BarleyAllele {
                 br2.readLine();
                 while ((line=br1.readLine())!=null){
                     temp= PStringUtils.fastSplit(line);
-                    if (!AlleleEncoder.alleleCharByteMap.containsKey(temp.get(5).charAt(0))) continue;
-                    byte allele= AlleleEncoder.alleleCharByteMap.get(temp.get(5).charAt(0));
+                    if (!AlleleEncoder.alleleBaseByteMap.containsKey(temp.get(5).charAt(0))) continue;
+                    byte allele= AlleleEncoder.alleleBaseByteMap.get(temp.get(5).charAt(0));
                     chrSet.add(Integer.parseInt(temp.get(0)));
                     posList.add(Integer.parseInt(temp.get(1)));
                     barleyAlleleList.add(allele);
