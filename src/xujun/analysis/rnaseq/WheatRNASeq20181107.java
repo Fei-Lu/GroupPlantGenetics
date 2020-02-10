@@ -593,7 +593,7 @@ public class WheatRNASeq20181107 {
         fList.stream().forEach(f -> {
             try {
                 BufferedReader br = IOUtils.getTextReader(f.getAbsolutePath());
-                BufferedWriter bw = IOUtils.getNIOTextWriter(inputDirS+"/change"+f.getName());
+                BufferedWriter bw = IOUtils.getTextWriter(inputDirS+"/change"+f.getName());
                 String temp = null;
                 String [] tem = null;
                 while ((temp = br.readLine()) != null) {
@@ -621,7 +621,7 @@ public class WheatRNASeq20181107 {
         List <String> indexList=new ArrayList<>();       
         try{
             BufferedReader br = IOUtils.getTextReader(inputFile);
-            BufferedWriter bw =IOUtils.getNIOTextWriter(inputFile.replace(".fq", ".txt"));
+            BufferedWriter bw =IOUtils.getTextWriter(inputFile.replace(".fq", ".txt"));
             String temp=null;
             while((temp = br.readLine()) != null){
                 String index=temp.split(" ")[1].split(":")[3];
