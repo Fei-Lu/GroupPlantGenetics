@@ -2,9 +2,9 @@ package daxing.applets;
 
 import daxing.common.*;
 import gnu.trove.list.array.TDoubleArrayList;
-import pgl.utils.Benchmark;
-import pgl.utils.IOUtils;
-import pgl.utils.PStringUtils;
+import pgl.infra.utils.Benchmark;
+import pgl.infra.utils.IOUtils;
+import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -101,7 +101,7 @@ public class Introgression {
 
     public static void addGeneForFreq(String freqTableDir, String outDir, String hcGeneFile, String pgfFile,
                                       String chrConvertionRule){
-        List<File> files=IOUtils.getVisibleFileListInDir(freqTableDir);
+        List<File> files= IOUtils.getVisibleFileListInDir(freqTableDir);
         String[] outNames= files.stream().map(File::getName).map(str->str.replaceAll("\\.freq","_HC_gene.freq"))
                             .toArray(String[]::new);
         IntStream.range(0, files.size()).forEach(e->addGeneForFreq(files.get(e), new File(outDir, outNames[e]),

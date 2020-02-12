@@ -1,6 +1,6 @@
 package daxing.common;
 
-import pgl.format.table.ColumnTable;
+import pgl.infra.table.ColumnTable;
 
 import java.util.List;
 
