@@ -16,12 +16,12 @@ package lipengKang.analysis;
  */
 
 
-import pgl.format.table.RowTable;
+import pgl.infra.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.util.Collections;
 import java.util.List;
-import pgl.utils.IOUtils;
+import pgl.infra.utils.IOUtils;
 
 /**
  *

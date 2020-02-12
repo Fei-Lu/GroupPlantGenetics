@@ -7,10 +7,10 @@ import gnu.trove.list.array.TDoubleArrayList;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import pgl.utils.IOFileFormat;
-import pgl.utils.IOUtils;
-import pgl.utils.PArrayUtils;
-import pgl.utils.PStringUtils;
+import pgl.infra.utils.IOFileFormat;
+import pgl.infra.utils.IOUtils;
+import pgl.infra.utils.PArrayUtils;
+import pgl.infra.utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

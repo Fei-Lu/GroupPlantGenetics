@@ -5,7 +5,7 @@
  */
 package aoyue.analysis.WheatGeneticLoad;
 
-import pgl.format.table.RowTable;
+import pgl.infra.table.RowTable;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import java.awt.Point;
@@ -19,9 +19,9 @@ import java.util.Collections;
 import java.util.List;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 //import static org.apache.spark.ml.tree.DecisionTreeModel$class.depth;
-import pgl.utils.IOFileFormat;
-import pgl.utils.IOUtils;
-import pgl.utils.PStringUtils;
+import pgl.infra.utils.IOFileFormat;
+import pgl.infra.utils.IOUtils;
+import pgl.infra.utils.PStringUtils;
 
 /**
  *

@@ -9,8 +9,7 @@ package xujun.analysis.rnaseq;
  *
  * @author Jun Xu
  */
-import com.koloboke.collect.map.hash.HashByteByteMap;
-import pgl.format.table.RowTable;
+import pgl.infra.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -24,9 +23,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import pgl.utils.IOUtils;
-import pgl.utils.PArrayUtils;
-import pgl.utils.PStringUtils;
+import pgl.infra.utils.IOUtils;
+import pgl.infra.utils.PArrayUtils;
+import pgl.infra.utils.PStringUtils;
 public class DemoSample{
     public DemoSample()  {
 
@@ -192,8 +191,8 @@ public class DemoSample{
 //            HTPM4[i]=HNor14[i]/(Hdepth4/1000000);
         }
         try{
-            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter("/Users/xujun/Desktop/HTPM.txt");
-            BufferedWriter bw1 = pgl.utils.IOUtils.getTextWriter("/Users/xujun/HTPMPatern.txt");
+            BufferedWriter bw = IOUtils.getTextWriter("/Users/xujun/Desktop/HTPM.txt");
+            BufferedWriter bw1 = IOUtils.getTextWriter("/Users/xujun/HTPMPatern.txt");
 //            bw.write("geneName"+"chr"+"s1116-1"+"\t"+"TPM"+"\t"+"PLATE-seq"+"\t"+"TPM"+"\t"+"Lexogen"+"\t"+"TPM"+"\t"+"SiPAS"+"\t"+"TPM");bw.newLine();
             bw.write("geneName"+"\t"+"chr"+"\t"+"s1116-1"+"\t"+"PLATE-seq"+"\t"+"Lexogen"+"\t"+"SiPAS");bw.newLine();
             bw1.write("geneName"+"\t"+"PLATE-seq");bw1.newLine();
@@ -254,7 +253,7 @@ public class DemoSample{
 //            Hcount4[index]=t.getCellAsDouble(i, 3);
         }
         try{
-            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter("/Users/xujun/Desktop/HTPMPatern.txt");
+            BufferedWriter bw = IOUtils.getTextWriter("/Users/xujun/Desktop/HTPMPatern.txt");
             bw.write("\t"+"PLATE-seq"+"\t"+"Lexogen"+"\t"+"SiPAS");bw.newLine();
             for(int i=0;i<Hcount2.length;i++){
                 bw.write(geneName.get(i)+"\t"+Hcount2[i]+"\t"+Hcount3[i]+"\t"+Hcount4[i]);
@@ -322,9 +321,9 @@ public void LibraryCompare(){
     String gffFile="/Users/xujun/Desktop/TEP/Zea_mays.AGPv4.38.modified.gff3";
     xujun.analysis.rnaseq.GeneFeature gf=new xujun.analysis.rnaseq.GeneFeature(gffFile);
     try{
-        BufferedWriter bw = pgl.utils.IOUtils.getTextWriter("/Users/xujun/Desktop/difGene.txt");
-        BufferedWriter bw1 = pgl.utils.IOUtils.getTextWriter("/Users/xujun/Desktop/allGene.txt");
-        BufferedWriter bw2 = pgl.utils.IOUtils.getTextWriter("/Users/xujun/Desktop/nonProteinGene.txt");
+        BufferedWriter bw = IOUtils.getTextWriter("/Users/xujun/Desktop/difGene.txt");
+        BufferedWriter bw1 = IOUtils.getTextWriter("/Users/xujun/Desktop/allGene.txt");
+        BufferedWriter bw2 = IOUtils.getTextWriter("/Users/xujun/Desktop/nonProteinGene.txt");
         String countFile="/Users/xujun/library.txt";
         RowTable<String> r =new RowTable<>(countFile);
         int countSame=0;int countDif=0;int countDifS=0;int countdif=0;int count=0;
@@ -578,8 +577,8 @@ public void test5 () throws IOException {
             String seq2=null;
             String temp2=null;
             try {
-                BufferedReader br1 = pgl.utils.IOUtils.getTextReader(infile1);
-                BufferedReader br2 = pgl.utils.IOUtils.getTextReader(infile2);
+                BufferedReader br1 = IOUtils.getTextReader(infile1);
+                BufferedReader br2 = IOUtils.getTextReader(infile2);
                 BufferedWriter[] bws = new BufferedWriter[rowNumber];//这里只是创建了一个bufferedreader类型的数组 并没有对里面的各个new
   //              BufferedWriter bw = utils.IOUtils.getTextWriter(outfile);
                 for (int i = 0; i < bws.length; i++) {
@@ -657,9 +656,9 @@ public void test5 () throws IOException {
             String seq1=null; 
             String temp=null;
             try {
-                BufferedReader br1 = pgl.utils.IOUtils.getTextReader(infile1);                               
+                BufferedReader br1 = IOUtils.getTextReader(infile1);                               
                 BufferedWriter[] bws = new BufferedWriter[rowNumber];//这里只是创建了一个bufferedreader类型的数组 并没有对里面的各个new
-                BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outfile);
+                BufferedWriter bw = IOUtils.getTextWriter(outfile);
                 for (int i = 0; i < bws.length; i++) {
                     String outfileS = new File (outputDirS, nameList.get(i)+".fq").getAbsolutePath();
                     bws[i] = IOUtils.getTextWriter(outfileS);
@@ -758,8 +757,8 @@ public void test5 () throws IOException {
             String temp=null;
             String phred=null;
             try {
-                BufferedReader br1 = pgl.utils.IOUtils.getTextReader(infile1);                              
-                BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outfile2);
+                BufferedReader br1 = IOUtils.getTextReader(infile1);                              
+                BufferedWriter bw = IOUtils.getTextWriter(outfile2);
                 List w=new ArrayList();
                 List q=new ArrayList();
                 //String seq=null;
@@ -873,8 +872,8 @@ public void test5 () throws IOException {
             String temp=null;
             String phred=null;
             try {
-                BufferedReader br1 = pgl.utils.IOUtils.getTextReader(infile1);                              
-                BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outfile2);
+                BufferedReader br1 = IOUtils.getTextReader(infile1);                              
+                BufferedWriter bw = IOUtils.getTextWriter(outfile2);
                 List w=new ArrayList();
                 List q=new ArrayList();
                 //String seq=null;
@@ -957,9 +956,9 @@ public void test5 () throws IOException {
         String q=null;
         String a=null;        
         try {
-                BufferedReader br1 = pgl.utils.IOUtils.getTextReader(inputFile1);   
-                BufferedReader br2 = pgl.utils.IOUtils.getTextReader(inputFile2);
-                BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputFile);
+                BufferedReader br1 = IOUtils.getTextReader(inputFile1);   
+                BufferedReader br2 = IOUtils.getTextReader(inputFile2);
+                BufferedWriter bw = IOUtils.getTextWriter(outputFile);
                 List w=new ArrayList();
                 while ((a= br1.readLine()) != null){                     
                         String seq1="";                   
@@ -1036,8 +1035,8 @@ public void test5 () throws IOException {
         String phred=null;
         int phred1=0;
         try {
-                BufferedReader br1 = pgl.utils.IOUtils.getTextReader(inputFile1);   
-                BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputFile);
+                BufferedReader br1 = IOUtils.getTextReader(inputFile1);   
+                BufferedWriter bw = IOUtils.getTextWriter(outputFile);
                 
                 while ((news= br1.readLine()) != null){  
                     List w=new ArrayList();
@@ -1066,8 +1065,8 @@ public void test5 () throws IOException {
          GeneFeature fs=new GeneFeature(kfffile);
          String inputfile="/Users/xujun/Desktop/news.fq"; 
          String outputfile="/Users/xujun/Desktop/notSIDname.text";
-         BufferedReader br1 = pgl.utils.IOUtils.getTextReader(inputfile);
-         BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputfile);
+         BufferedReader br1 = IOUtils.getTextReader(inputfile);
+         BufferedWriter bw = IOUtils.getTextWriter(outputfile);
          String a=null;
          int index=0;
          String name=null;
@@ -1109,11 +1108,11 @@ public void test5 () throws IOException {
         String phred=null;
         String phred1=null;
         try {
-                BufferedReader br1 = pgl.utils.IOUtils.getTextReader(inputFile1);   
-                BufferedReader br2 = pgl.utils.IOUtils.getTextReader(inputFile2);
-                BufferedReader br3 = pgl.utils.IOUtils.getTextReader(inputFile3);
-                BufferedReader br4 = pgl.utils.IOUtils.getTextReader(inputFile4);
-                BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputFile);
+                BufferedReader br1 = IOUtils.getTextReader(inputFile1);   
+                BufferedReader br2 = IOUtils.getTextReader(inputFile2);
+                BufferedReader br3 = IOUtils.getTextReader(inputFile3);
+                BufferedReader br4 = IOUtils.getTextReader(inputFile4);
+                BufferedWriter bw = IOUtils.getTextWriter(outputFile);
                 List w=new ArrayList();
                 while ((a= br1.readLine()) != null){ 
                      count++;
@@ -1183,8 +1182,8 @@ public void test5 () throws IOException {
          int location=0;
          int sum =0;
          try{
-             BufferedReader br1 = pgl.utils.IOUtils.getTextReader(inputfile);
-             BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputfile);            
+             BufferedReader br1 = IOUtils.getTextReader(inputfile);
+             BufferedWriter bw = IOUtils.getTextWriter(outputfile);            
              while((news= br1.readLine()) != null){
                 int phred1=0;
                 if(!w.contains(news.split("\t")[0])){
@@ -1225,11 +1224,11 @@ public void test5 () throws IOException {
         String outputfile="/Users/xujun/Desktop/news(MD).text";
         String news=null;
         try{
-             BufferedReader br1 = pgl.utils.IOUtils.getTextReader(inputFile1);
-             BufferedReader br2 = pgl.utils.IOUtils.getTextReader(inputFile2);
-             BufferedReader br3 = pgl.utils.IOUtils.getTextReader(inputFile3);
-             BufferedReader br4 = pgl.utils.IOUtils.getTextReader(inputFile4);
-             BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputfile);            
+             BufferedReader br1 = IOUtils.getTextReader(inputFile1);
+             BufferedReader br2 = IOUtils.getTextReader(inputFile2);
+             BufferedReader br3 = IOUtils.getTextReader(inputFile3);
+             BufferedReader br4 = IOUtils.getTextReader(inputFile4);
+             BufferedWriter bw = IOUtils.getTextWriter(outputfile);            
              while((news= br1.readLine()) != null){
                 bw.write(news+"\t"+br2.readLine()+"\t"+br3.readLine()+"\t"+br4.readLine().substring(5)+"\n");
              }
@@ -1261,9 +1260,9 @@ public void test5 () throws IOException {
          String [][] base=new String[13][];
          String SNPinsertion [][]=new String[13][];
          try{
-            BufferedReader br1 = pgl.utils.IOUtils.getTextReader(inputfile1);
-            BufferedReader br2 = pgl.utils.IOUtils.getTextReader(inputfile2);
-            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputfile); 
+            BufferedReader br1 = IOUtils.getTextReader(inputfile1);
+            BufferedReader br2 = IOUtils.getTextReader(inputfile2);
+            BufferedWriter bw = IOUtils.getTextWriter(outputfile); 
             while ((a= br1.readLine()) != null){ 
                 startpos=a.split("\t")[1];
                 chro=a.split("\t")[0];
@@ -1335,8 +1334,8 @@ public void test5 () throws IOException {
          int location=0;
          int sum =0;
          try{
-             BufferedReader br1 = pgl.utils.IOUtils.getTextReader(inputfile);
-             BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputfile);            
+             BufferedReader br1 = IOUtils.getTextReader(inputfile);
+             BufferedWriter bw = IOUtils.getTextWriter(outputfile);            
              while((news= br1.readLine()) != null){
                 int phred1=0;
                 if(!w.contains(news.split("\t")[0])){

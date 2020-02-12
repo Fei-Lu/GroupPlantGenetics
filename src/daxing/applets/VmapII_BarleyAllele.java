@@ -2,13 +2,13 @@ package daxing.applets;
 
 import daxing.common.NumberTool;
 import daxing.common.WheatLineage;
-import pgl.format.dna.snp.AlleleEncoder;
+
 import gnu.trove.list.array.TByteArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
-import pgl.utils.IOUtils;
-import pgl.utils.PArrayUtils;
-import pgl.utils.PStringUtils;
+import pgl.infra.utils.IOUtils;
+import pgl.infra.utils.PArrayUtils;
+import pgl.infra.utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -18,6 +18,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
+import pgl.infra.dna.allele.AlleleEncoder;
+
 
 public class VmapII_BarleyAllele {
 
@@ -42,8 +44,8 @@ public class VmapII_BarleyAllele {
                 br2.readLine();
                 while ((line=br1.readLine())!=null){
                     temp= PStringUtils.fastSplit(line);
-                    if (!AlleleEncoder.alleleCharByteMap.containsKey(temp.get(5).charAt(0))) continue;
-                    byte allele= AlleleEncoder.alleleCharByteMap.get(temp.get(5).charAt(0));
+                    if (!AlleleEncoder.alleleBaseByteMap.containsKey(temp.get(5).charAt(0))) continue;
+                    byte allele= AlleleEncoder.alleleBaseByteMap.get(temp.get(5).charAt(0));
                     chrSet.add(Integer.parseInt(temp.get(0)));
                     posList.add(Integer.parseInt(temp.get(1)));
                     barleyAlleleList.add(allele);

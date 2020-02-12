@@ -10,8 +10,8 @@ import java.io.BufferedWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import pgl.utils.IOUtils;
-import pgl.utils.PStringUtils;
+import pgl.infra.utils.IOUtils;
+import pgl.infra.utils.PStringUtils;
 
 /**
  *

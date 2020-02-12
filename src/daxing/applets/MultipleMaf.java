@@ -5,8 +5,8 @@ import daxing.common.ChrRange;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
 import org.apache.commons.lang.StringUtils;
-import pgl.utils.IOUtils;
-import pgl.utils.PStringUtils;
+import pgl.infra.utils.IOUtils;
+import pgl.infra.utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

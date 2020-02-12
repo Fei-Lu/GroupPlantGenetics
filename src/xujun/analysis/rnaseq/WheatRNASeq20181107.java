@@ -7,10 +7,10 @@ package xujun.analysis.rnaseq;
 
 import com.koloboke.collect.map.hash.HashIntIntMap;
 import com.koloboke.collect.map.hash.HashIntIntMaps;
-import pgl.format.range.Range;
-import pgl.format.range.RangeValStr;
-import pgl.format.table.ColumnTable;
-import pgl.format.table.RowTable;
+import pgl.infra.range.Range;
+import pgl.infra.range.RangeValStr;
+import pgl.infra.table.ColumnTable;
+import pgl.infra.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -26,9 +26,9 @@ import java.util.List;
 import java.util.Set;
 import rcaller.RCaller;
 import rcaller.RCode;
-import pgl.utils.Benchmark;
-import pgl.utils.IOUtils;
-import pgl.utils.PStringUtils;
+import pgl.infra.utils.Benchmark;
+import pgl.infra.utils.IOUtils;
+import pgl.infra.utils.PStringUtils;
 import xuebo.analysis.annotation.FStringUtils;
 import static xujun.analysis.rnaseq.DistinguishSample.getKeyList;
 
@@ -534,8 +534,8 @@ public class WheatRNASeq20181107 {
                    bw[i]=IOUtils.getTextWriter(new File(outputDirS, nameList.get(i)+"_R1.fq").getAbsolutePath());
                    bw1[i]=IOUtils.getTextWriter(new File(outputDirS, nameList.get(i)+"_R2.fq").getAbsolutePath());
                 }
-                BufferedReader br = pgl.utils.IOUtils.getTextGzipReader(infile2);
-                BufferedReader br1 = pgl.utils.IOUtils.getTextGzipReader(infile1);
+                BufferedReader br = IOUtils.getTextGzipReader(infile2);
+                BufferedReader br1 = IOUtils.getTextGzipReader(infile1);
                 String temp = null;String seq=null;
                 String currentBarcode=null;
                 while ((temp = br.readLine()) != null) {
@@ -593,7 +593,7 @@ public class WheatRNASeq20181107 {
         fList.stream().forEach(f -> {
             try {
                 BufferedReader br = IOUtils.getTextReader(f.getAbsolutePath());
-                BufferedWriter bw = IOUtils.getNIOTextWriter(inputDirS+"/change"+f.getName());
+                BufferedWriter bw = IOUtils.getTextWriter(inputDirS+"/change"+f.getName());
                 String temp = null;
                 String [] tem = null;
                 while ((temp = br.readLine()) != null) {
@@ -621,7 +621,7 @@ public class WheatRNASeq20181107 {
         List <String> indexList=new ArrayList<>();       
         try{
             BufferedReader br = IOUtils.getTextReader(inputFile);
-            BufferedWriter bw =IOUtils.getNIOTextWriter(inputFile.replace(".fq", ".txt"));
+            BufferedWriter bw =IOUtils.getTextWriter(inputFile.replace(".fq", ".txt"));
             String temp=null;
             while((temp = br.readLine()) != null){
                 String index=temp.split(" ")[1].split(":")[3];
@@ -909,9 +909,9 @@ public class WheatRNASeq20181107 {
             String temp=null;
             String phred=null;
             try {
-                BufferedReader br = pgl.utils.IOUtils.getTextReader(p.getAbsolutePath());                              
-                BufferedWriter bwL = pgl.utils.IOUtils.getTextWriter(new File(outputDirS,p.getName().replace(".fq", "L.txt")).getAbsolutePath());
-                BufferedWriter bwQ = pgl.utils.IOUtils.getTextWriter(new File(outputDirS,p.getName().replace(".fq", "Q.txt")).getAbsolutePath());
+                BufferedReader br = IOUtils.getTextReader(p.getAbsolutePath());                              
+                BufferedWriter bwL = IOUtils.getTextWriter(new File(outputDirS,p.getName().replace(".fq", "L.txt")).getAbsolutePath());
+                BufferedWriter bwQ = IOUtils.getTextWriter(new File(outputDirS,p.getName().replace(".fq", "Q.txt")).getAbsolutePath());
                 List L=new ArrayList();
                 List Q=new ArrayList();
                 while ((temp = br.readLine()) != null){
@@ -976,8 +976,8 @@ public class WheatRNASeq20181107 {
             String temp=null;
             String phred=null;
             try {
-                BufferedReader br = pgl.utils.IOUtils.getTextReader(p.getAbsolutePath());                              
-                BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(new File(outputDirS,p.getName().replace(".fq", "Q.txt")).getAbsolutePath());
+                BufferedReader br = IOUtils.getTextReader(p.getAbsolutePath());                              
+                BufferedWriter bw = IOUtils.getTextWriter(new File(outputDirS,p.getName().replace(".fq", "Q.txt")).getAbsolutePath());
                 List Q=new ArrayList();
                 while ((temp = br.readLine()) != null){
                     int allPhred=0;br.readLine();br.readLine();phred=br.readLine();
@@ -1228,8 +1228,8 @@ public class WheatRNASeq20181107 {
                    bw[i]=IOUtils.getTextWriter(new File(outputDirS, barcodeStrain.get(barcodeList.get(i))+"_R1.fq").getAbsolutePath());
                    bw1[i]=IOUtils.getTextWriter(new File(outputDirS, barcodeStrain.get(barcodeList.get(i))+"_R2.fq").getAbsolutePath());
                 }
-                BufferedReader br = pgl.utils.IOUtils.getTextReader(infile1);
-                BufferedReader br1 = pgl.utils.IOUtils.getTextGzipReader(infile2);
+                BufferedReader br = IOUtils.getTextReader(infile1);
+                BufferedReader br1 = IOUtils.getTextGzipReader(infile2);
                 int pos = -1 ;
                 String temp = null;
                 String seq = null;String index = null;
@@ -1305,14 +1305,14 @@ public class WheatRNASeq20181107 {
                 String infile2 = new File (inputDirS, p+"_R2.fq.gz").getAbsolutePath();
                 BufferedWriter [] bwR1 = new BufferedWriter[barcodeList.size()];
                 BufferedWriter [] bwR2 = new BufferedWriter[barcodeList.size()];
-                BufferedWriter bw1 = pgl.utils.IOUtils.getTextWriter(new File (outputDirS,"ratio.txt").getAbsolutePath());
-                BufferedWriter bw2 = pgl.utils.IOUtils.getTextWriter(new File (outputDirS,"error.txt").getAbsolutePath());
+                BufferedWriter bw1 = IOUtils.getTextWriter(new File (outputDirS,"ratio.txt").getAbsolutePath());
+                BufferedWriter bw2 = IOUtils.getTextWriter(new File (outputDirS,"error.txt").getAbsolutePath());
                 for (int i = 0; i < barcodeList.size(); i++) {
                    bwR1[i]=IOUtils.getTextWriter(new File(outputDirS, barcodeStrain.get(barcodeList.get(i))+"_R1.fq").getAbsolutePath());
                    bwR2[i]=IOUtils.getTextWriter(new File(outputDirS, barcodeStrain.get(barcodeList.get(i))+"_R2.fq").getAbsolutePath());
                 }
-                BufferedReader br = pgl.utils.IOUtils.getTextGzipReader(infile1);
-                BufferedReader br1 = pgl.utils.IOUtils.getTextGzipReader(infile2);
+                BufferedReader br = IOUtils.getTextGzipReader(infile1);
+                BufferedReader br1 = IOUtils.getTextGzipReader(infile2);
                 
                 int index1 = -1 ;int index2 = -1 ;
                 String temp = null;String temp1 = null;

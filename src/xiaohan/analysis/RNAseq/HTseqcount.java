@@ -11,8 +11,8 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import pgl.utils.Benchmark;
-import pgl.utils.IOUtils;
+import pgl.infra.utils.Benchmark;
+import pgl.infra.utils.IOUtils;
 
 /**
  *

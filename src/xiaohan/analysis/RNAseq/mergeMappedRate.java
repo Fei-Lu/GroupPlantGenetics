@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import pgl.utils.IOUtils;
+import pgl.infra.utils.IOUtils;
 
 /**
  *
@@ -38,7 +38,7 @@ public class mergeMappedRate {
         fileList.stream().forEach((String p) ->{
             try{
                 String infileS = new File (inputpath,p+".samLog.final.out").getAbsolutePath();
-                BufferedReader br = pgl.utils.IOUtils.getTextReader(infileS);
+                BufferedReader br = IOUtils.getTextReader(infileS);
                 BufferedWriter [] bw = new BufferedWriter [2];
                 for (int i = 0;i<2;i ++){
                     bw [i] = IOUtils.getTextWriter(new File(outputpath,p+".rate").getAbsolutePath());

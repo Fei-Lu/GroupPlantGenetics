@@ -5,8 +5,8 @@ import com.koloboke.collect.map.hash.HashByteByteMap;
 import com.koloboke.collect.map.hash.HashByteByteMaps;
 import com.koloboke.collect.map.hash.HashCharCharMap;
 import com.koloboke.collect.map.hash.HashCharCharMaps;
-import pgl.format.dna.DNAUtils;
-import pgl.format.dna.SequenceInterface;
+import pgl.infra.dna.DNAUtils;
+import pgl.infra.dna.SequenceInterface;
 import gnu.trove.list.array.TCharArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import java.util.Arrays;
@@ -157,7 +157,7 @@ public class SeqByte implements SequenceInterface {
 
     @Override
     public boolean isThereN() {
-        byte[] baseByteWithN = DNAUtils.getBaseWithNByteArray();
+        byte[] baseByteWithN = DNAUtils.getBaseWithNAscIIArray();
         for (int i = 0; i < this.getSequenceLength(); i++) {
             int index = Arrays.binarySearch(baseByteWithN, this.getBaseByte(i));
             if (index < 0) {

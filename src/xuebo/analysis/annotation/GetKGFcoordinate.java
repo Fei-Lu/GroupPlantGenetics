@@ -5,8 +5,8 @@
  */
 package xuebo.analysis.annotation;
 
-import pgl.format.range.Range;
-import pgl.format.range.Ranges;
+import pgl.infra.range.Range;
+import pgl.infra.range.Ranges;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import pgl.utils.IOUtils;
+import pgl.infra.utils.IOUtils;
 import xuebo.analysis.annotation.FStringUtils;
 
 

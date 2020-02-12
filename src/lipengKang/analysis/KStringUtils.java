@@ -5,9 +5,9 @@
  */
 package lipengKang.analysis;
 
-import pgl.utils.PStringUtils;
+import pgl.infra.utils.PStringUtils;
 import java.util.List;
-import static pgl.utils.PStringUtils.fastSplit;
+import static pgl.infra.utils.PStringUtils.fastSplit;
 
 /**
  *

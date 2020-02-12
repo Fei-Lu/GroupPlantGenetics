@@ -5,13 +5,13 @@
  */
 package xujun.analysis.rnaseq;
 
-import pgl.format.dna.FastaByte;
-import pgl.format.dna.SequenceByte;
-import pgl.format.position.ChrPos;
-import pgl.format.range.Range;
-import pgl.format.range.RangeValStr;
-import pgl.format.range.RangeValStrs;
-import pgl.format.range.Ranges;
+import pgl.infra.dna.FastaByte;
+import pgl.infra.dna.SequenceByte;
+import pgl.infra.position.ChrPos;
+import pgl.infra.range.Range;
+import pgl.infra.range.RangeValStr;
+import pgl.infra.range.RangeValStrs;
+import pgl.infra.range.Ranges;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import pgl.utils.IOUtils;
+import pgl.infra.utils.IOUtils;
 import xuebo.analysis.annotation.FStringUtils;
 
 

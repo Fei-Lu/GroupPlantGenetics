@@ -1,13 +1,13 @@
 package daxing.filterSNP;
 
 import daxing.common.CollectionTool;
-import pgl.format.position.ChrPos;
+import pgl.infra.position.ChrPos;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
-import pgl.utils.Benchmark;
-import pgl.utils.IOUtils;
-import pgl.utils.PArrayUtils;
-import pgl.utils.PStringUtils;
+import pgl.infra.utils.Benchmark;
+import pgl.infra.utils.IOUtils;
+import pgl.infra.utils.PArrayUtils;
+import pgl.infra.utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

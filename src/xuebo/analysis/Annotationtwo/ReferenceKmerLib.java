@@ -6,11 +6,11 @@ import com.koloboke.collect.set.hash.HashIntSets;
 import com.koloboke.collect.set.hash.HashLongSet;
 import com.koloboke.collect.set.hash.HashLongSets;
 import java.io.DataOutputStream;
-import pgl.format.dna.BaseEncoder;
-import pgl.format.dna.FastaByte;
+import pgl.infra.dna.BaseEncoder;
+import pgl.infra.dna.FastaByte;
 
-import pgl.utils.Benchmark;
-import pgl.utils.IOUtils;
+import pgl.infra.utils.Benchmark;
+import pgl.infra.utils.IOUtils;
 
 public class ReferenceKmerLib {
     int kmerLength = -1;
@@ -27,7 +27,7 @@ public class ReferenceKmerLib {
 //        inputGenomeFileS = "/Users/feilu/Documents/database/maize/reference/AGPv4/maizeAGPv4.fa";
 //        inputGenomeFileS = "/Users/feilu/Documents/database/maize/reference/download/Zea_mays.AGPv4.dna.chromosome.10.fa.gz";
         FastaByte f = new FastaByte(referenceGenomeFileS);
-        HashByteByteMap ascIIByteMap = BaseEncoder.getAscIIByteMap();
+        HashByteByteMap ascIIByteMap = BaseEncoder.getAscIIBaseByteMap();
         System.out.println("Building kmer library from reference...");
         System.out.println("KmerLength = "+String.valueOf(kmerLength)+ " bp");
         long start = System.nanoTime();

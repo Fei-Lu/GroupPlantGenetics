@@ -2,7 +2,7 @@ package daxing.applets;
 
 import daxing.common.SeqByte;
 import gnu.trove.list.array.TByteArrayList;
-import pgl.utils.IOUtils;
+import pgl.infra.utils.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;

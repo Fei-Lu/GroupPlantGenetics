@@ -5,8 +5,8 @@
  */
 package xuebo.analysis.annotation;
 
-import pgl.format.dna.FastaByte;
-import pgl.utils.IOFileFormat;
+import pgl.infra.dna.FastaByte;
+import pgl.infra.utils.IOFileFormat;
 
 /**
  *

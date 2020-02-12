@@ -10,7 +10,7 @@ import com.koloboke.collect.map.hash.HashByteByteMap;
 import com.koloboke.collect.map.hash.HashByteByteMaps;
 import com.koloboke.collect.map.hash.HashIntIntMap;
 import com.koloboke.collect.map.hash.HashIntIntMaps;
-import pgl.format.table.RowTable;
+import pgl.infra.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -26,8 +26,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import pgl.utils.IOFileFormat;
-import pgl.utils.IOUtils;
+import pgl.infra.utils.IOFileFormat;
+import pgl.infra.utils.IOUtils;
 
 /**
  *
@@ -61,8 +61,8 @@ public class RNAseq {
         xj.sortGeneByName();
         String temp=null;int index=0;int geneLength=0;
         try{
-            BufferedReader br = pgl.utils.IOUtils.getTextReader(inputFile);
-            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputfile);
+            BufferedReader br = IOUtils.getTextReader(inputFile);
+            BufferedWriter bw = IOUtils.getTextWriter(outputfile);
             bw.write(br.readLine());
             bw.newLine();
             while((temp=br.readLine())!=null){
@@ -94,8 +94,8 @@ public class RNAseq {
         int exonLength=0;int index=0;double TPM=0.00;
         double TPMwB=0.000;int cont=0;int wBcont=0;
         try{
-            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputFile);
-            BufferedWriter bw1 = pgl.utils.IOUtils.getTextWriter(output);
+            BufferedWriter bw = IOUtils.getTextWriter(outputFile);
+            BufferedWriter bw1 = IOUtils.getTextWriter(output);
             bw.write("\t"+"WithoutB"+"\t"+"barcode");
             bw.newLine();
             for(int i=0;i<rt.getRowNumber();i++){
@@ -126,7 +126,7 @@ public class RNAseq {
         int exonLength=0;int index=0;double TPM=0.00;
         double TPMwB=0.000;int cont=0;int wBcont=0;
         try{
-            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputFile);
+            BufferedWriter bw = IOUtils.getTextWriter(outputFile);
             bw.write("\t"+"WithoutB"+"\t"+"barcode");
             bw.newLine();
             for(int i=0;i<rt.getRowNumber();i++){
@@ -153,7 +153,7 @@ public class RNAseq {
         int startsite=0;
         int endsite=0;
         try{
-            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputFile);
+            BufferedWriter bw = IOUtils.getTextWriter(outputFile);
             for(int i=0;i<rt.getRowNumber();i++){
                 if(rt.getCell(i, 2).equals("exon")){
                     geneName=rt.getCell(i, 8).split(" ")[3].substring(6);
@@ -185,8 +185,8 @@ public class RNAseq {
         String name=null;
         int cont=0;
         try{
-                BufferedReader br = pgl.utils.IOUtils.getTextReader(inputfile);
-                BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputfile);
+                BufferedReader br = IOUtils.getTextReader(inputfile);
+                BufferedWriter bw = IOUtils.getTextWriter(outputfile);
                 while((temp= br.readLine()) != null){
                     name=temp.split("\t")[0];
                     if(name.contains("ENSRNA")){
@@ -213,9 +213,9 @@ public class RNAseq {
         String news=null;
         String name=null;
         try{
-                BufferedReader br = pgl.utils.IOUtils.getTextReader(gff3);
-                BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputfile);
-                BufferedWriter bw1 = pgl.utils.IOUtils.getTextWriter(output);
+                BufferedReader br = IOUtils.getTextReader(gff3);
+                BufferedWriter bw = IOUtils.getTextWriter(outputfile);
+                BufferedWriter bw1 = IOUtils.getTextWriter(output);
                 bw1.write("SampleName");bw1.newLine();
                 int chro=0;int startsite=0;
                 while((temp= br.readLine()) != null){
@@ -252,9 +252,9 @@ public class RNAseq {
         String temp=null;
         String name=null;
         try{
-                BufferedReader br = pgl.utils.IOUtils.getTextReader(inputfile);
-                BufferedReader br1 = pgl.utils.IOUtils.getTextReader(input);
-                BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputfile);
+                BufferedReader br = IOUtils.getTextReader(inputfile);
+                BufferedReader br1 = IOUtils.getTextReader(input);
+                BufferedWriter bw = IOUtils.getTextWriter(outputfile);
                 int cont=0;
                 while((temp= br1.readLine()) != null){
                     name=temp.split("\t")[0];
@@ -289,9 +289,9 @@ public class RNAseq {
         String name=null;
         int cont=0;
             try{
-                BufferedReader br = pgl.utils.IOUtils.getTextReader(input);
-                BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputfile);
-                BufferedWriter bw1 = pgl.utils.IOUtils.getTextWriter(output);
+                BufferedReader br = IOUtils.getTextReader(input);
+                BufferedWriter bw = IOUtils.getTextWriter(outputfile);
+                BufferedWriter bw1 = IOUtils.getTextWriter(output);
                 while((temp= br.readLine()) != null){
                     name=temp.split("\t")[0];
                     if(nameList.contains(name)){
@@ -321,7 +321,7 @@ public class RNAseq {
         int cont=0;
         int cont1=0;
             try{
-                BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(output);
+                BufferedWriter bw = IOUtils.getTextWriter(output);
                 for(int i=0;i<t.getRowNumber();i++){
                     if(Integer.parseInt(t.getCell(i, 1))>Integer.parseInt(t.getCell(i, 2))){
                        if(Integer.parseInt(t.getCell(i, 2))==0){
@@ -353,8 +353,8 @@ public class RNAseq {
         int endsite=0;
         int onelength=0;
         try{
-            BufferedReader br = pgl.utils.IOUtils.getTextReader(inputFile);
-            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputfile);
+            BufferedReader br = IOUtils.getTextReader(inputFile);
+            BufferedWriter bw = IOUtils.getTextWriter(outputfile);
             while((temp=br.readLine())!=null){  
                 chro=Integer.parseInt(temp.split("\t")[1]);
                 startsite=Integer.parseInt(temp.split("\t")[3]);
@@ -384,7 +384,7 @@ public class RNAseq {
         int startsite=0;
         int endsite=0;
         try{
-            BufferedReader br = pgl.utils.IOUtils.getTextReader(geneNewS);
+            BufferedReader br = IOUtils.getTextReader(geneNewS);
             int cont=0;
             while((temp=br.readLine())!=null){ 
                     if(Integer.parseInt(temp.split("\t")[1])==1){
@@ -417,8 +417,8 @@ public class RNAseq {
         int index=0;
         int chro=0;
         try{
-            BufferedReader br = pgl.utils.IOUtils.getTextReader(pgfFile);
-            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputFile);
+            BufferedReader br = IOUtils.getTextReader(pgfFile);
+            BufferedWriter bw = IOUtils.getTextWriter(outputFile);
             while((temp=br.readLine())!=null){  
                 if(temp.split("\t")[0].equals("Gene")){
  //                   index=fs.getGeneIndex(Integer.parseInt(temp.split("\t")[2]),Integer.parseInt(temp.split("\t")[3]));
@@ -445,7 +445,7 @@ public class RNAseq {
         int index=0;
         String chro="1";
         try{
-            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputFile);
+            BufferedWriter bw = IOUtils.getTextWriter(outputFile);
             for(int i=0;i<rt.getRowNumber();i++){
                 if(rt.getCell(i, 1).equals(chro)){}
                 else{
@@ -500,7 +500,7 @@ public class RNAseq {
             String temp2=null;
             int cutIndex=0;
             try {
-                BufferedReader br1 = pgl.utils.IOUtils.getTextReader(infile1);
+                BufferedReader br1 = IOUtils.getTextReader(infile1);
                 BufferedWriter[] bws = new BufferedWriter[rowNumber];//这里只是创建了一个bufferedreader类型的数组 并没有对里面的各个new
   //              BufferedWriter bw = utils.IOUtils.getTextWriter(outfile);
                 for (int i = 0; i < bws.length; i++) {
@@ -569,8 +569,8 @@ public class RNAseq {
          GeneFeature fs=new GeneFeature(pfffile);         
          String inputfile="/Users/xujun/Desktop/TEP.text"; 
          String outputfile="/Users/xujun/Desktop/TEPname.text";
-         BufferedReader br1 = pgl.utils.IOUtils.getTextReader(inputfile);
-         BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputfile);
+         BufferedReader br1 = IOUtils.getTextReader(inputfile);
+         BufferedWriter bw = IOUtils.getTextWriter(outputfile);
          String a=null;
          int index=0;
          String name=null;
@@ -610,8 +610,8 @@ public class RNAseq {
              baseseqs[i] = new ArrayList<>();
          }
          try{
-             BufferedReader br1 = pgl.utils.IOUtils.getTextReader(inputfile);
-             BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputfile);              
+             BufferedReader br1 = IOUtils.getTextReader(inputfile);
+             BufferedWriter bw = IOUtils.getTextWriter(outputfile);              
              while((news= br1.readLine()) != null){
                 int phred1=0;
                 if(!w.contains(news.split("\t")[0])){
@@ -664,8 +664,8 @@ public class RNAseq {
          String chro=null;
          String cigar=null;
          try{
-            BufferedReader br1 = pgl.utils.IOUtils.getTextReader(inputfile1);
-            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(outputfile); 
+            BufferedReader br1 = IOUtils.getTextReader(inputfile1);
+            BufferedWriter bw = IOUtils.getTextWriter(outputfile); 
             while ((a= br1.readLine()) != null){ 
                 startpos=a.split("\t")[1];
                 chro=a.split("\t")[0];
@@ -810,7 +810,7 @@ public class RNAseq {
         String output="/Users/xujun/Desktop/TEPnew.text";
         RowTable<String> t = new RowTable<>(samFile);
         try{            
-            BufferedWriter bw = pgl.utils.IOUtils.getTextWriter(output);
+            BufferedWriter bw = IOUtils.getTextWriter(output);
             for(int i=17;i<t.getRowNumber();i++){
                 bw.write(t.getCell(i, 2)+"\t"+t.getCell(i, 3)+"\t"+t.getCell(i, 5)+"\t"+t.getCell(i, 9)+"\t"+t.getCell(i, 10));
                 bw.newLine();

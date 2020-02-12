@@ -17,12 +17,12 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import pgl.format.dna.BaseEncoder;
-import pgl.format.dna.FastaByte;
-import pgl.utils.Benchmark;
-import pgl.utils.PArrayUtils;
-import pgl.utils.PStringUtils;
-import pgl.utils.IOUtils;
+import pgl.infra.dna.BaseEncoder;
+import pgl.infra.dna.FastaByte;
+import pgl.infra.utils.Benchmark;
+import pgl.infra.utils.PArrayUtils;
+import pgl.infra.utils.PStringUtils;
+import pgl.infra.utils.IOUtils;
 
 /**
  *
@@ -47,7 +47,7 @@ public class GenomeProfiler {
         File outputDir = new File(outputDirS);
         outputDir.mkdir();
         int fragmentSize = 100000;
-        HashByteByteMap ascIIByteMap = BaseEncoder.getAscIIByteMap();
+        HashByteByteMap ascIIByteMap = BaseEncoder.getAscIIBaseByteMap();
         FastaByte f = new FastaByte(referenceGenomeFileS);
         HashMap<Integer, String> chrSeqMap = new HashMap();
         for (int i = 0; i < f.getSeqNumber(); i++) {
@@ -156,7 +156,7 @@ public class GenomeProfiler {
 //        inputGenomeFileS = "/Users/feilu/Documents/analysisL/pipelineTest/cpScore/maize_chr12.fa";
         FastaByte f = new FastaByte (inputGenomeFileS);
         
-        HashByteByteMap ascIIByteMap = BaseEncoder.getAscIIByteMap();
+        HashByteByteMap ascIIByteMap = BaseEncoder.getAscIIBaseByteMap();
         System.out.println("Start counting kmers in genome " + inputGenomeFileS);
         long start = System.nanoTime();
         if (intMap != null) {

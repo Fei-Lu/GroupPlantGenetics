@@ -5,7 +5,7 @@
  */
 package aoyue.analysis.WheatGeneticLoad;
 
-import pgl.format.table.RowTable;
+import pgl.infra.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,9 +15,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import pgl.utils.IOFileFormat;
-import pgl.utils.IOUtils;
-import pgl.utils.PStringUtils;
+import pgl.infra.utils.IOFileFormat;
+import pgl.infra.utils.IOUtils;
+import pgl.infra.utils.PStringUtils;
 
 /**
  *

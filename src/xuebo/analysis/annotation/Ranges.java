@@ -15,8 +15,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import pgl.utils.IOFileFormat;
-import pgl.utils.IOUtils;
+import pgl.infra.utils.IOFileFormat;
+import pgl.infra.utils.IOUtils;
 
 /**
  * Hold categorical range attributes, non-overlap ranges// 保持分类的范围属性，是非重叠的范围
