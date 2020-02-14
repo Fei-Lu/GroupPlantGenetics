@@ -40,12 +40,12 @@ public class Test {
                 if((A280 > 2.3 || A280 < 1.6) && (A230<2.5 && A230 > 1.6)){
                     System.out.println(Name + "\t" + A280 + "\t" + A230 + "\t" + Concentration);
                 }
-                //A280，A230都不合格
-                if((A280 > 2.3 || A280 < 1.6) && (A230 > 2.5 || A230 < 1.6)){
-                    System.out.println(Name + "\t" + A280 + "\t" + A230 + "\t" + Concentration);
-                }
                 //A280合格，A230不合格
                 if((A280 < 2.3 && A280 > 1.6) && (A230 > 2.5 || A230 < 1.6)){
+                    System.out.println(Name + "\t" + A280 + "\t" + A230 + "\t" + Concentration);
+                }
+                //A280，A230都不合格
+                if((A280 > 2.3 || A280 < 1.6) && (A230 > 2.5 || A230 < 1.6)){
                     System.out.println(Name + "\t" + A280 + "\t" + A230 + "\t" + Concentration);
                 }
                 //浓度不合格
@@ -53,7 +53,7 @@ public class Test {
                     System.out.println(Name + "\t" + A280 + "\t" + A230 + "\t" + Concentration);
                 }
             }
-
+            
         }
         catch (Exception e){
             e.printStackTrace();
