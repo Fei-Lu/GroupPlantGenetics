@@ -2,9 +2,17 @@ package daxing.applets;
 
 import daxing.common.*;
 import gnu.trove.list.array.TDoubleArrayList;
+import gnu.trove.list.array.TIntArrayList;
+import htsjdk.samtools.util.IOUtil;
+import pgl.infra.table.ColumnTable;
+import pgl.infra.table.RowTable;
 import pgl.infra.utils.Benchmark;
+import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
+import smile.stat.Stat;
+import tech.tablesaw.columns.temporal.fillers.TemporalRangeIterable;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -391,6 +399,31 @@ public class Introgression {
             rowTableTool=new RowTableTool<>(files.get(i).getAbsolutePath());
             rowTableTool.removeIf(nan);
             rowTableTool.write(new File(outDir, outNames[i]).getAbsolutePath());
+        }
+    }
+
+    public static void splitP2P3(String removedNanHCgenefdDir, String outDir){
+        List<File> files= IOUtils.getVisibleFileListInDir(removedNanHCgenefdDir);
+        String chr;
+        ColumnTableTool<String> columnTableTool;
+        List<String> header;
+        ColumnTableTool columns;
+        String outFile;
+        for (int i = 0; i < files.size(); i++) {
+            chr=files.get(i).getName().substring(0,5);
+            columnTableTool=new ColumnTableTool<>(files.get(i).getAbsolutePath());
+            header=columnTableTool.getHeader();
+            TIntArrayList index=new TIntArrayList();
+            index.add(IntStream.range(0,6).toArray());
+            for (int j = 6; j < header.size(); j=j+2) {
+                index.add(j);
+                index.add(j+1);
+                columns=columnTableTool.selectColumn(index.toArray());
+                outFile=new File(outDir, chr+"_"+header.get(j).substring(2)+"_geneWindow.txt").getAbsolutePath();
+                columns.writeTextTable(outFile, IOFileFormat.Text);
+                index.remove(j);
+                index.remove(j+1);
+            }
         }
     }
 

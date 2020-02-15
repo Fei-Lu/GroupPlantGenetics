@@ -1,13 +1,21 @@
 package daxing.common;
 
+import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.table.ColumnTable;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ColumnTableTool<T> extends ColumnTable<T> {
 
     public ColumnTableTool(String infileS) {
         super(infileS);
+    }
+
+    public ColumnTableTool(List<String> header, List<List<T>> cells){
+        super(header,cells);
     }
 
     public double[] getColumnAsDoubleArray(String columnName) {
@@ -20,5 +28,19 @@ public class ColumnTableTool<T> extends ColumnTable<T> {
             values[i]=Double.parseDouble((String)ob);
         }
         return values;
+    }
+
+    /**
+     * 选择列组成ColumnTable
+     */
+    public ColumnTableTool<T> selectColumn(int[] columnIndex){
+        Arrays.sort(columnIndex);
+        List<String> header=new ArrayList<>();
+        List<List<T>> data=new ArrayList<>();
+        for (int i = 0; i < columnIndex.length; i++) {
+            data.add(this.getColumn(columnIndex[i]));
+            header.add(this.header.get(columnIndex[i]));
+        }
+        return new ColumnTableTool<>(header, data);
     }
 }
