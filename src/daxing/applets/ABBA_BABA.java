@@ -87,17 +87,16 @@ public class ABBA_BABA {
      * @param inputFdResDir
      * @param outDir
      */
-    public static void prepareData_transform0(String inputFdResDir, String  outDir){
+    public static void prepareData_transform0(String inputFdResDir, String  outDir, int indexOfD, int indexOfFd){
         List<File> files=IOUtils.getVisibleFileListInDir(inputFdResDir);
-        String[] outNames=
-                files.stream().map(File::getName).map(str->str.replaceAll("csv$", "0.txt")).toArray(String[]::new);
+        String[] outNames=files.stream().map(File::getName).map(str->str.replaceAll("txt$", "0.txt")).toArray(String[]::new);
         RowTable<String> rowTable;
         List<String> d_List;
         List<String> fd_List;
         for (int i = 0; i < files.size(); i++) {
-            rowTable=new RowTable<>(files.get(i).getAbsolutePath(),",");
-            d_List=rowTable.getColumn(8);
-            fd_List=rowTable.getColumn(9);
+            rowTable=new RowTable<>(files.get(i).getAbsolutePath());
+            d_List=rowTable.getColumn(indexOfD);
+            fd_List=rowTable.getColumn(indexOfFd);
             for (int j = 0; j < d_List.size(); j++) {
                 if (d_List.get(j).equals("nan")){
                     rowTable.removeRow(j);
@@ -118,14 +117,14 @@ public class ABBA_BABA {
                     fd_List.set(j, "0");
                 }
             }
-            rowTable.setColumn(9, fd_List);
+            rowTable.setColumn(indexOfFd, fd_List);
             rowTable.writeTextTable(new File(outDir, outNames[i]).getAbsolutePath(), IOFileFormat.Text);
         }
     }
 
     private enum P2{
 //        Landrace, Cultivar
-        Landrace_Europe, Landrace_WestAsia, Landrace_EastAsia, Cultivar, OthrerHexaploid
+        Landrace_Europe, Landrace_WestAsia, Landrace_EastAsia, Cultivar
     }
 
     private enum P3{
