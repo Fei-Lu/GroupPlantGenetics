@@ -39,7 +39,7 @@ public class ABBA_BABA {
     private static void convertVCFToGenoFormat(File vcfFile, File ancestralFile, File outFile,
                                                int indexOfAncestralAllele){
         long start=System.nanoTime();
-        Table<String, String, String> outGroupChrPosAllele= RowTableTool.getTable(ancestralFile.getAbsolutePath(), 2);
+        Table<String, String, String> outGroupChrPosAllele= RowTableTool.getTable(ancestralFile.getAbsolutePath(), indexOfAncestralAllele);
         try (BufferedReader br1 = IOTool.getReader(vcfFile);
              BufferedWriter bw= IOUtils.getTextWriter(outFile.getAbsolutePath())) {
             String line;
