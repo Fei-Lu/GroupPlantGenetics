@@ -2,7 +2,6 @@ package daxing.common;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
-import com.mysql.cj.x.protobuf.MysqlxDatatypes;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.lang3.StringUtils;
@@ -12,6 +11,7 @@ import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;
+import pgl.infra.utils.wheat.RefV1Utils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -29,7 +29,6 @@ public class VCF {
     private String meta;
     private List<String> header;
     private List<List<String>> data;
-    public static Map<Integer,String> chrToChrMap =VCF.getchrToChrMap();
 
     public VCF(String inputFile){
         this.initilize(inputFile);
@@ -71,25 +70,6 @@ public class VCF {
         }
     }
 
-    private static Map<Integer, String> getchrToChrMap(){
-        Map<Integer,String> chrToChrMap=new HashMap<>();
-        List<Integer> numOfChr=IntStream.range(1,43).boxed().collect(Collectors.toList());
-        List<Integer> int1_7= IntStream.range(1,8).boxed().collect(Collectors.toList());
-        List<Integer> chrList=new ArrayList<>();
-        for(int i=0;i<6;i++){
-            chrList.addAll(int1_7);
-        }
-        Collections.sort(chrList);
-        String abd=String.join("", Collections.nCopies(7,"AABBDD"));
-        chrToChrMap.put(0, "Un");
-        for(int i=0;i<numOfChr.size();i++){
-            chrToChrMap.put(numOfChr.get(i), String.valueOf(chrList.get(i))+abd.charAt(i));
-        }
-        chrToChrMap.put(43, "Mit");
-        chrToChrMap.put(44, "Chl");
-        return chrToChrMap;
-    }
-
     /**
      * 根据VCF目录和染色体编号，返回对应染色体编号的各个VCF文件输入路径
      * @param vcfInputDir VCF目录
@@ -111,9 +91,8 @@ public class VCF {
      * merge chr001, chr002, chr003, ... to chr.Asubgenome.vcf, chr.Bsubgenome.vcf, chr.Dsubgenome.vcf
      * @param inputVcfDir
      * @param outDir
-     * @param chrConvertionRule
      */
-    public static void mergeVCFtoLineage(String inputVcfDir, String outDir, ChrConvertionRule chrConvertionRule){
+    public static void mergeVCFtoLineage(String inputVcfDir, String outDir){
         File[] files=new File(inputVcfDir).listFiles();
         Predicate<File> hidden=File::isHidden;
         Predicate<File> p= hidden.negate().and(f->f.getName().toLowerCase().startsWith("chr"));
@@ -148,7 +127,7 @@ public class VCF {
         String[] outNames={"chr.Asubgenome.vcf", "chr.Bsubgenome.vcf", "chr.Dsubgenome.vcf"};
         for (int i = 0; i < vcfArray.length; i++) {
             if (vcfArray[i]==null) continue;
-            vcfArray[i].changeToRefChr(chrConvertionRule);
+            vcfArray[i].changeToRefChr();
             vcfArray[i].write(outDir, outNames[i]);
         }
     }
@@ -158,9 +137,8 @@ public class VCF {
      * suitable for small VCF file
      * @param inputVcfDir
      * @param outDir
-     * @param chrConvertionRule
      */
-    public static void mergeVCFtoChr(String inputVcfDir, String outDir, ChrConvertionRule chrConvertionRule){
+    public static void mergeVCFtoChr(String inputVcfDir, String outDir){
         File[] files=new File(inputVcfDir).listFiles();
         Predicate<File> hidden=File::isHidden;
         Predicate<File> p= hidden.negate().and(f->f.getName().toLowerCase().startsWith("chr"));
@@ -182,8 +160,8 @@ public class VCF {
         for (int i = 0; i < indexList.size(); i=i+2) {
             vcf=new VCF(f[indexList.get(i)]);
             vcf.addVCF(new VCF(f[indexList.get(i+1)]));
-            vcf.changeToRefChr(chrConvertionRule);
-            outName=VCF.getchrToChrMap().get(chrIDArray[indexList.get(i)]);
+            vcf.changeToRefChr();
+            outName=vcf.getData().get(0).get(0);
             vcf.write(outDir, "chr"+outName+outNameArray[indexList.get(i)]);
         }
     }
@@ -835,9 +813,8 @@ public class VCF {
 
     /**
      * change vcfChr and vcfPos to refChr and refPos
-     * @param chrConvertionRule
      */
-    public void changeToRefChr(ChrConvertionRule chrConvertionRule){
+    public void changeToRefChr(){
         List<List<String>> data=this.data;
         List<List<String>> res=new ArrayList<>();
         for (int i = 0; i < data.size(); i++) {
@@ -852,8 +829,8 @@ public class VCF {
             line=data.get(i);
             vcfChr=Short.parseShort(line.get(0));
             vcfPos=Integer.parseInt(line.get(1));
-            refChr= chrConvertionRule.getRefChrFromVCFChr(vcfChr);
-            refPos= chrConvertionRule.getRefPosFromVCFChrPos(vcfChr, vcfPos);
+            refChr= RefV1Utils.getChromosome(vcfChr, vcfPos);
+            refPos= RefV1Utils.getPosOnChromosome(vcfChr,vcfPos);
             line.set(0, refChr);
             line.set(1, String.valueOf(refPos));
             res.get(i).addAll(line);
@@ -863,9 +840,8 @@ public class VCF {
 
     /**
      * change refChr and reffPos to vcfChr and vcfPos
-     * @param chrConvertionRule
      */
-    public void changeToVCFChr(ChrConvertionRule chrConvertionRule){
+    public void changeToVCFChr(){
         List<List<String>> data=this.data;
         List<List<String>> res=new ArrayList<>();
         for (int i = 0; i < data.size(); i++) {
@@ -880,8 +856,8 @@ public class VCF {
             line=data.get(i);
             refChr=line.get(0);
             refPos=Integer.parseInt(line.get(1));
-            vcfChr= chrConvertionRule.getVCFChrFromRefChrPos(refChr, refPos);
-            vcfPos= chrConvertionRule.getVCFPosFromRefChrPos(refChr, refPos);
+            vcfChr=RefV1Utils.getChrID(refChr, refPos);
+            vcfPos=RefV1Utils.getPosOnChrID(refChr, refPos);
             line.set(0, String.valueOf(vcfChr));
             line.set(1, String.valueOf(vcfPos));
             res.get(i).addAll(line);
@@ -961,6 +937,7 @@ public class VCF {
      * @param outputDir 输出目录
      */
     public void writeVcfToSplitedChrID(String outputDir){
+        this.changeToVCFChr();
         this.sort();
         List<Integer> chrList=data.stream().flatMap(e->e.stream().limit(1)).mapToInt(Integer::valueOf).boxed()
                               .distinct().sorted().collect(Collectors.toCollection(ArrayList::new));
@@ -1001,7 +978,12 @@ public class VCF {
         }
     }
 
+    /**
+     * 将VCF按照"chr1A, chr1B.vcf"的形式进行输出
+     * @param outputDir
+     */
     public void writeVcfToSplitedChr(String outputDir){
+        this.changeToRefChr();
         this.sort();
         List<String> chrList=data.stream().flatMap(e->e.stream().limit(1)).distinct().sorted().collect(Collectors.toList());
         Map<String, BufferedWriter> strToBufferedWriterMap=new HashMap<>();

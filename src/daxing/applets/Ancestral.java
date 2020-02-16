@@ -25,10 +25,10 @@ public class Ancestral {
         chrID.mkdir();
         if (outgroupNum==2){
             IntStream.range(0, files.size()).forEach(e->getAncestral_twoOutgroup(files.get(e), refChr, thresh));
-            split(refChr.getAbsolutePath(), chrID.getAbsolutePath(), chrConvertionRule);
+            split(refChr.getAbsolutePath(), chrID.getAbsolutePath());
         }else if (outgroupNum==3){
             IntStream.range(0, files.size()).forEach(e->getAncestral_threeOutgroup(files.get(e), refChr, thresh));
-            split(refChr.getAbsolutePath(), chrID.getAbsolutePath(), chrConvertionRule);
+            split(refChr.getAbsolutePath(), chrID.getAbsolutePath());
         }
     }
 
@@ -148,13 +148,12 @@ public class Ancestral {
         }
     }
 
-    public static void split(String inputDir, String outDir, String chrConvertionRule){
+    public static void split(String inputDir, String outDir){
         List<File> files= IOUtils.getVisibleFileListInDir(inputDir);
         VCF vcf;
-        ChrConvertionRule c=new ChrConvertionRule(chrConvertionRule);
         for (int i = 0; i < files.size(); i++) {
             vcf=new VCF(files.get(i));
-            vcf.changeToVCFChr(c);
+            vcf.changeToVCFChr();
             vcf.writeVcfToSplitedChrID(outDir);
         }
     }
