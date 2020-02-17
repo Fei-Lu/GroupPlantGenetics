@@ -276,8 +276,8 @@ public class VCF {
             String refChr;
             int refPos;
             for (int i = 0; i < f.length; i=i+2) {
-                br1=IOUtils.getTextReader(f[i].getAbsolutePath());
-                br2=IOUtils.getTextReader(f[i+1].getAbsolutePath());
+                br1=IOTool.getReader(f[i].getAbsolutePath());
+                br2=IOTool.getReader(f[i+1].getAbsolutePath());
                 bw=IOUtils.getTextWriter(new File(outDir, "chr"+outChrs.get(i/2)+".vcf").getAbsolutePath());
                 while ((line=br1.readLine()).startsWith("##")){
                     bw.write(line);

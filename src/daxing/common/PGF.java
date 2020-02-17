@@ -411,6 +411,25 @@ public class PGF {
     }
 
     /**
+     *
+     * @param geneIndex
+     * @param chr
+     * @param pos
+     * @return negative value if the position is not in the range of any gene's longest transcript
+     */
+    public boolean isWithinThisGeneExon(int geneIndex, int chr, int pos){
+        int longestTranscriptIndex=this.getLongestTranscriptIndex(geneIndex);
+        int cdsIndex=this.getCDSIndex(geneIndex, longestTranscriptIndex, chr, pos);
+        int utr5Index=this.get5UTRIndex(geneIndex, longestTranscriptIndex, chr, pos);
+        int utr3Index=this.get3UTRIndex(geneIndex, longestTranscriptIndex, chr, pos);
+        if (cdsIndex < 0 && utr5Index < 0 && utr3Index < 0){
+            return false;
+        }else {
+            return true;
+        }
+    }
+
+    /**
      * Return gene index from of a position, make sure the genes are sorted by position
      * @param chr
      * @param pos
