@@ -239,7 +239,7 @@ public class FilterSNPGo {
                         }
                     }
 
-                    int[] indices = PArrayUtils.getIndexByDescendingValue(fre);
+                    int[] indices = PArrayUtils.getIndicesByDescendingValue(fre);
                     sb.append(chr1).append("\t").append(posList1.get(index1)).append("\t").append(referList1.get(index1)).append("\t");
                     for (int j = 0; j < 2; j++) {
                         if (fre[indices[j]] > 0) {
