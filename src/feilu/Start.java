@@ -5,13 +5,6 @@
  */
 package feilu;
 
-import com.koloboke.collect.map.hash.HashByteByteMap;
-import pgl.infra.dna.BaseEncoder;
-import pgl.infra.table.RowTable;
-import java.io.BufferedWriter;
-import java.util.HashMap;
-import zhouyao.analysis.wheatHapMap.YaoIOUtils;
-
 /**
  *
  * @author feilu
@@ -19,9 +12,19 @@ import zhouyao.analysis.wheatHapMap.YaoIOUtils;
 public class Start {
     
     public Start () {
-        this.testCallableFuture();
+//        this.testCallableFuture();
+//        this.bitSet();
+        this.listAndArray();
     }
-    
+
+    public void listAndArray() {
+        new ListAndArray();
+    }
+
+    public void bitSet () {
+        new BitSetTest();
+    }
+
     public void testCallableFuture () {
         new CallableFuture();
     }
