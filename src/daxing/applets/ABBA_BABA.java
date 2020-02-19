@@ -1,9 +1,9 @@
 package daxing.applets;
 
 import com.google.common.collect.Table;
-import daxing.common.DateTime;
-import daxing.common.IOTool;
-import daxing.common.RowTableTool;
+import daxing.common.*;
+import gnu.trove.list.array.TDoubleArrayList;
+import org.apache.commons.lang.math.NumberUtils;
 import pgl.infra.table.RowTable;
 import org.apache.commons.lang.StringUtils;
 import pgl.infra.utils.Benchmark;
@@ -82,30 +82,28 @@ public class ABBA_BABA {
     }
 
     /**
-     * remove row which has nan or its D value is negative
-     * if windows of D > 0 and (fd > 1 or fd < 0), transform fd to zero
+     * remove rows which has nan or its D value is negative
+     * remove rows which fd < 0
+     * if fd > 1 && ABBA+BABA < 1 , fd value will be set 1, other rows will be removed
      * @param inputFdResDir
      * @param outDir
+     * @param minSumABBA_BABA thresh
      */
-    public static void prepareData_transform0(String inputFdResDir, String  outDir, int indexOfD, int indexOfFd){
+    public static void prepareData_transform0(String inputFdResDir, String outDir, int minSumABBA_BABA){
         List<File> files=IOUtils.getVisibleFileListInDir(inputFdResDir);
-        String[] outNames=files.stream().map(File::getName).map(str->str.replaceAll("txt$", "0.txt")).toArray(String[]::new);
+        String[] outNames= files.stream().map(File::getName).map(str->str.replaceAll("csv$", ".txt")).toArray(String[]::new);
         RowTable<String> rowTable;
         List<String> d_List;
         List<String> fd_List;
+        List<String> abba, baba;
         for (int i = 0; i < files.size(); i++) {
-            rowTable=new RowTable<>(files.get(i).getAbsolutePath());
-            d_List=rowTable.getColumn(indexOfD);
-            fd_List=rowTable.getColumn(indexOfFd);
+            rowTable=new RowTable<>(files.get(i).getAbsolutePath(), ",");
+            d_List=rowTable.getColumn(8);
+            fd_List=rowTable.getColumn(9);
+            abba=rowTable.getColumn(6);
+            baba=rowTable.getColumn(7);
             for (int j = 0; j < d_List.size(); j++) {
-                if (d_List.get(j).equals("nan")){
-                    rowTable.removeRow(j);
-                    d_List.remove(j);
-                    fd_List.remove(j);
-                    j--;
-                    continue;
-                }
-                if (Double.parseDouble(d_List.get(j))<0){
+                if (!(NumberUtils.isNumber(d_List.get(j)) && NumberUtils.isNumber(fd_List.get(j)))){
                     rowTable.removeRow(j);
                     d_List.remove(j);
                     fd_List.remove(j);
@@ -113,11 +111,30 @@ public class ABBA_BABA {
                     continue;
                 }
                 double fd=Double.parseDouble(fd_List.get(j));
-                if ( fd >1 || fd < 0){
-                    fd_List.set(j, "0");
+                double d=Double.parseDouble(d_List.get(j));
+                if (d<0 || fd<0){
+                    rowTable.removeRow(j);
+                    d_List.remove(j);
+                    fd_List.remove(j);
+                    j--;
+                    continue;
+                }
+                double abbaDouble=Double.parseDouble(abba.get(j));
+                double babaDouble=Double.parseDouble(baba.get(j));
+                if ( fd > 1){
+                    if ((abbaDouble+babaDouble)<minSumABBA_BABA){
+                        fd_List.set(j, "1");
+                    }
+                    else {
+                        rowTable.removeRow(j);
+                        d_List.remove(j);
+                        fd_List.remove(j);
+                        j--;
+                        continue;
+                    }
                 }
             }
-            rowTable.setColumn(indexOfFd, fd_List);
+            rowTable.setColumn(9, fd_List);
             rowTable.writeTextTable(new File(outDir, outNames[i]).getAbsolutePath(), IOFileFormat.Text);
         }
     }

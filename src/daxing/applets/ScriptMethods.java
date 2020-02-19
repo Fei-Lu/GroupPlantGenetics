@@ -5,9 +5,12 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
+import pgl.infra.utils.wheat.RefV1Utils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
@@ -165,5 +168,82 @@ public class ScriptMethods {
             e.printStackTrace();
         }
 
+    }
+
+    public static void getAncestral(String inputDir, String ancestralDir){
+        List<File> files= IOUtils.getVisibleFileListInDir(inputDir);
+        String[] outNames=files.stream().map(File::getName).map(str->str.replaceAll("\\.txt",".ancestral.txt"))
+                .toArray(String[]::new);
+        String[] subgenome=files.stream().map(File::getName).map(str->str.substring(0,1)).toArray(String[]::new);
+        IntStream.range(0, files.size()).forEach(e->getAncestral(files.get(e),new File(ancestralDir, outNames[e]),
+                subgenome[e]));
+    }
+
+    public static void getAncestral(File inputFile, File ancestralFile, String subgenome){
+        String[] acgt={"A","C","G","T"};
+        try (BufferedReader bufferedReader = IOTool.getReader(inputFile);
+             BufferedWriter bufferedWriter=IOTool.getTextWriter(ancestralFile)) {
+            String line;
+            List<String> temp, secer, hv;
+            int chrID, pos, indexOfSecer, indexOfHv;
+            bufferedWriter.write("chr\tpos\tancestral\n");
+            StringBuilder sb;
+            while ((line=bufferedReader.readLine())!=null){
+                temp= PStringUtils.fastSplit(line);
+                chrID= RefV1Utils.getChrID(temp.get(0).substring(3,4)+subgenome, Integer.parseInt(temp.get(2)));
+                pos=RefV1Utils.getPosOnChrID(temp.get(0).substring(3,4)+subgenome, Integer.parseInt(temp.get(2)));
+                secer=PStringUtils.fastSplit(temp.get(4),",");
+                hv=PStringUtils.fastSplit(temp.get(5), ",");
+                indexOfSecer=secer.indexOf("1");
+                indexOfHv=hv.indexOf("1");
+                if (indexOfHv!=indexOfSecer) continue;
+                sb=new StringBuilder();
+                sb.append(chrID).append("\t").append(pos).append("\t").append(acgt[indexOfHv]);
+                bufferedWriter.write(sb.toString());
+                bufferedWriter.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void retainVmapIExonGeno(String pgfFile, String geneHCFile, String genoInputDir, String outDir){
+        PGF pgf=new PGF(pgfFile);
+        System.out.println(pgf.getGeneNumber());
+        Set<String> hcGenes=RowTableTool.getColumnSet(geneHCFile,0);
+        Predicate<PGF.Gene> hcGenePredict=gene -> hcGenes.contains(gene.getGeneName());
+        pgf.removeIf(hcGenePredict.negate());
+        System.out.println(pgf.getGeneNumber());
+        List<File> genoFiles=IOUtils.getVisibleFileListInDir(genoInputDir);
+        try {
+            BufferedReader bufferedReader;
+            BufferedWriter bufferedWriter;
+            String line, outFileName, header;
+            List<String> temp;
+            int chrID, vcfPos, geneIndex;
+            for (int i = 0; i < genoFiles.size(); i++) {
+                outFileName=genoFiles.get(i).getName().replaceAll("geno","exon.geon");
+                bufferedReader=IOTool.getReader(genoFiles.get(i));
+                bufferedWriter=IOTool.getTextGzipWriter(new File(outDir, outFileName));
+                header=bufferedReader.readLine();
+                bufferedWriter.write(header);
+                bufferedWriter.newLine();
+                while ((line=bufferedReader.readLine())!=null){
+                    temp=PStringUtils.fastSplit(line);
+                    chrID= RefV1Utils.getChrID(temp.get(0), Integer.parseInt(temp.get(1)));
+                    vcfPos=RefV1Utils.getPosOnChrID(temp.get(0), Integer.parseInt(temp.get(1)));
+                    geneIndex=pgf.getGeneIndex(chrID, vcfPos);
+                    if (geneIndex<0) continue;
+                    if (!pgf.isWithinThisGeneExon(geneIndex, chrID, vcfPos)) continue;
+                    bufferedWriter.write(line);
+                    bufferedWriter.newLine();
+                }
+                bufferedReader.close();
+                bufferedWriter.flush();
+                bufferedWriter.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

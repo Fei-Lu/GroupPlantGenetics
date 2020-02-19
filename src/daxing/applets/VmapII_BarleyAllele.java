@@ -44,8 +44,8 @@ public class VmapII_BarleyAllele {
                 br2.readLine();
                 while ((line=br1.readLine())!=null){
                     temp= PStringUtils.fastSplit(line);
-                    if (!AlleleEncoder.alleleBaseByteMap.containsKey(temp.get(5).charAt(0))) continue;
-                    byte allele= AlleleEncoder.alleleBaseByteMap.get(temp.get(5).charAt(0));
+                    if (!AlleleEncoder.alleleBaseToByteMap.containsKey(temp.get(5).charAt(0))) continue;
+                    byte allele= AlleleEncoder.alleleBaseToByteMap.get(temp.get(5).charAt(0));
                     chrSet.add(Integer.parseInt(temp.get(0)));
                     posList.add(Integer.parseInt(temp.get(1)));
                     barleyAlleleList.add(allele);
