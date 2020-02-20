@@ -27,7 +27,7 @@ public class ScriptMethods {
             }else {
                 br=IOUtils.getTextReader(inputFile.getAbsolutePath());
             }
-            if (inputFile.getName().endsWith(".gz")){
+            if (outputFile.getName().endsWith(".gz")){
                 bw=IOUtils.getTextGzipWriter(outputFile.getAbsolutePath());
             }
             else {
