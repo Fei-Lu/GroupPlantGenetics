@@ -1,17 +1,80 @@
 package xiaohan.rareallele;
 
+import com.koloboke.collect.map.hash.HashIntIntMap;
+import com.koloboke.collect.map.hash.HashIntIntMaps;
+import pgl.infra.range.Range;
+import pgl.infra.range.RangeValStr;
+import pgl.infra.utils.PStringUtils;
+import xujun.analysis.rnaseq.GeneFeature;
+
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 
 public class Test {
 
     public Test() throws IOException {
         //this.findTaxon();
         //this.findSNPnumber();
-        this.findFalseSample();
+        //this.findFalseSample();
+        this.callposition();
     }
+
+    public void callposition(){
+        String infileS = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/origin/wheat_v1.1_Lulab.gtf";
+        String geneNameS = null;
+        int gfIndex=0;
+        try {
+            BufferedReader br = IOUtils.getTextReader(infileS);
+            String temp = null;
+            Set<String> geneSet = new HashSet<String>();
+            Set<Integer> chrSet = new HashSet<>();
+            String[] tem = null;
+            String geneName = null;
+            String[] geneNames = null;
+            HashMap<String, Integer> geneChrMap = new HashMap();
+            HashMap<String, Integer> geneMinMap = new HashMap();
+            HashMap<String, Integer> geneMaxMap = new HashMap();
+            HashMap<String, Byte> geneStrandMap = new HashMap();
+            while ((temp = br.readLine()) != null) {
+                tem = temp.split("\t");
+                if (!tem[2].startsWith("exon")) continue;
+                String[] te = tem[8].split(";");
+                geneName = te[1].split("\"")[1].toString();
+                if (!geneSet.contains(geneName)) {
+                    geneMinMap.put(geneName, Integer.MAX_VALUE);
+                    geneMaxMap.put(geneName, Integer.MIN_VALUE);
+                    geneSet.add(geneName);
+                }
+                //geneSet.add(geneName);
+                int min = Integer.parseInt(tem[3]);
+                int max = Integer.parseInt(tem[4]);
+                if (geneMinMap.get(geneName) > min) {
+                    geneMinMap.put(geneName, min);
+                }
+                if (geneMaxMap.get(geneName) < max) {
+                    geneMaxMap.put(geneName, max);
+                }
+                int chr = Integer.parseInt(tem[0]);
+                chrSet.add(chr);
+                geneChrMap.put(geneName, chr);
+                if (tem[6].startsWith("-")) geneStrandMap.put(geneName, (byte) 1);
+                else geneStrandMap.put(geneName, (byte) 0);
+            }
+            geneNames = geneSet.toArray(new String[geneSet.size()]);
+            Arrays.sort(geneNames);
+            for (int i =0 ; i< geneNames.length;i++) {
+                String geneS = geneNames[i];
+                System.out.println(geneChrMap.get(geneS)+"\t"+geneMinMap.get(geneS)+"\t"+geneMaxMap.get(geneS)+"\t"+geneS);
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+            System.out.println(geneNameS+"\t"+gfIndex);
+        }
+    }
+
 
     public void findFalseSample(){
         String infileS = "/Users/yxh/Documents/eQTL/003experiment/浓度汇总/RNAconcentration.txt";
@@ -52,9 +115,13 @@ public class Test {
                 /*if(Concentration < 30){
                 System.out.println(Name + "\t" + A280 + "\t" + A230 + "\t" + Concentration);
                 }*/
+                /*if((A280 > 2.3 || A280 < 1.6) || (A230 > 2.5 || A230 < 1.6) || (Concentration < 30)){
+                System.out.println(Name + "\t" + A280 + "\t" + A230 + "\t" + Concentration);
+                }*/
                 if((A280 > 2.3 || A280 < 1.6) || (A230 > 2.5 || A230 < 1.6) || (Concentration < 30)){
-                    System.out.println(Name + "\t" + A280 + "\t" + A230 + "\t" + Concentration);
+                System.out.println(Name + "\t" + A280 + "\t" + A230 + "\t" + Concentration);
                 }
+                
             }
             
         }
@@ -62,6 +129,7 @@ public class Test {
             e.printStackTrace();
         }
     }
+    
     public void findTaxon(){
     }
 
