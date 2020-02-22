@@ -5,9 +5,11 @@ import com.koloboke.collect.map.hash.HashIntIntMaps;
 import pgl.infra.range.Range;
 import pgl.infra.range.RangeValStr;
 import pgl.infra.utils.PStringUtils;
+import smile.stat.Stat;
 import xujun.analysis.rnaseq.GeneFeature;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -17,7 +19,20 @@ public class Test {
         //this.findTaxon();
         //this.findSNPnumber();
         //this.findFalseSample();
-        this.callposition();
+        //this.callposition();
+        this.findDifference();
+    }
+    
+    public static void mkshell(File file){
+        File[] fl = file.listFiles();
+        for(File f:fl) {
+            if(f.isDirectory()){
+                mkshell(f);
+            }
+            if(f.isFile()){
+                System.out.println(f);
+            }
+        }
     }
 
     public void callposition(){
@@ -75,6 +90,33 @@ public class Test {
         }
     }
 
+    public void findDifference() {
+        String infileS = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/phenotype.txt";
+        BufferedReader br = IOUtils.getTextReader(infileS);
+        BufferedReader br1 = IOUtils.getTextReader(infileS);
+        try {
+            String temp = br.readLine();
+            String temp1 = br1.readLine();
+            temp = br.readLine();
+            temp1 =br1.readLine();
+            while((temp = br.readLine()) != null) {
+                String[] temps = temp.split("\t");
+                String[] temps1 =temp1.split("\t");
+                String chr =temps[0];
+                String chr1 =temps1[0];
+                String largerNumber = temps[1];
+                String smallNumber = temps1[1];
+                int larger = Integer.parseInt(largerNumber);
+                int small = Integer.parseInt(smallNumber);
+                if (chr.equals(chr1) && larger < small){
+                    System.out.println(temps1[0]+"\t"+temps1[1]);
+                }
+                temp1 = br1.readLine();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public void findFalseSample(){
         String infileS = "/Users/yxh/Documents/eQTL/003experiment/浓度汇总/RNAconcentration.txt";
@@ -155,6 +197,9 @@ public class Test {
 
     public static void main (String[] args) throws IOException {
         new Test();
+        //String path = "/Users/yxh/Desktop/ANNO_ANCBJ170529_PM-ANCBJ170529-14_2020-02-19";
+        //File file = new File(path);
+        //mkshell(file);
     }
 }
 
