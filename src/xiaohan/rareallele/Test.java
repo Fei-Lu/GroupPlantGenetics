@@ -20,9 +20,9 @@ public class Test {
         //this.findSNPnumber();
         //this.findFalseSample();
         //this.callposition();
-        this.findDifference();
+        //this.findDifference();
     }
-    
+
     public static void mkshell(File file){
         File[] fl = file.listFiles();
         for(File f:fl) {
