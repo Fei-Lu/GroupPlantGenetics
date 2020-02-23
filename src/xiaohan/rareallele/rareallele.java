@@ -1,7 +1,8 @@
 package xiaohan.rareallele;
 
-import java.io.BufferedReader;
-import java.io.IOException;
+import smile.stat.Stat;
+
+import java.io.*;
 import java.lang.reflect.Array;
 import java.util.*;
 
@@ -10,7 +11,139 @@ public class rareallele {
         //this.getExampleVCF();
         //this.rankGenes();
         //this.getTransNumber();
-        this.getVCFposition();
+        //this.getVCFposition();
+        this.getsubVCF();
+    }
+
+    public void getsubVCF(){
+        String infileS = "/data2/junxu/geneSNP/all.vcf.gz";
+        String outputDir = "/data1/home/xiaohan/rareallele/subvcf";
+        String index ="12\n" +
+                "17\n" +
+                "18\n" +
+                "20\n" +
+                "21\n" +
+                "24\n" +
+                "26\n" +
+                "28\n" +
+                "33\n" +
+                "34\n" +
+                "38\n" +
+                "41\n" +
+                "44\n" +
+                "47\n" +
+                "52\n" +
+                "54\n" +
+                "55\n" +
+                "58\n" +
+                "59\n" +
+                "70\n" +
+                "73\n" +
+                "78\n" +
+                "80\n" +
+                "82\n" +
+                "88\n" +
+                "89\n" +
+                "94\n" +
+                "96\n" +
+                "104\n" +
+                "106\n" +
+                "119\n" +
+                "335\n" +
+                "126\n" +
+                "128\n" +
+                "134\n" +
+                "138\n" +
+                "139\n" +
+                "141\n" +
+                "149\n" +
+                "163\n" +
+                "166\n" +
+                "173\n" +
+                "177\n" +
+                "178\n" +
+                "181\n" +
+                "192\n" +
+                "195\n" +
+                "196\n" +
+                "197\n" +
+                "201\n" +
+                "205\n" +
+                "206\n" +
+                "209\n" +
+                "351\n" +
+                "328\n" +
+                "221\n" +
+                "224\n" +
+                "225\n" +
+                "229\n" +
+                "231\n" +
+                "342\n" +
+                "236\n" +
+                "237\n" +
+                "238\n" +
+                "241\n" +
+                "352\n" +
+                "249\n" +
+                "251\n" +
+                "254\n" +
+                "255\n" +
+                "257\n" +
+                "259\n" +
+                "9\n" +
+                "266\n" +
+                "329\n" +
+                "330\n" +
+                "268\n" +
+                "276\n" +
+                "277\n" +
+                "281\n" +
+                "282\n" +
+                "288\n" +
+                "292\n" +
+                "294\n" +
+                "296\n" +
+                "300\n" +
+                "357\n" +
+                "306\n" +
+                "309\n" +
+                "311\n" +
+                "317\n" +
+                "318\n" +
+                "331\n" +
+                "332\n" +
+                "322\n" +
+                "323\n";
+        String[] indexes = null;
+        indexes = index.split("\n");
+        BufferedReader br = IOUtils.getTextGzipReader(infileS);
+        String temp = null;
+        String[] temps = null;
+        BufferedWriter bw = IOUtils.getTextGzipWriter(new File(outputDir,"colVCF.vcf.gz").getAbsolutePath());
+        try{
+            while ((temp = br.readLine()) != null){
+                if(temp.startsWith("##")){
+                    bw.write(temp);bw.newLine();
+                    continue;
+                }
+                else {
+                    temps = temp.split("\t");
+                    bw.write(temps[0] + "\t" + temps[1] + "\t" + temps[2] + "\t" + temps[3] + "\t" + temps[4] + "\t" + temps[5] + "\t" +
+                            temps[6] + "\t" + temps[7] + "\t" + temps[8] + "\t");
+                    for (int i = 0; i < indexes.length; i++) {
+                        bw.write(temps[Integer.parseInt(indexes[i])]+"\t");
+                    }
+                    bw.newLine();
+                }
+            }
+            bw.flush();
+            bw.close();
+        }
+
+        catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 
     public void getVCFposition(){
