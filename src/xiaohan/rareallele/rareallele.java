@@ -13,11 +13,93 @@ public class rareallele {
         //this.getTransNumber();
         //this.getVCFposition();
         this.getsubVCF();
+        //this.checklines();
+        //this.countlines();
+        //this.test();
+
+    }
+    public void test(){
+        for(int i = 0; i<43; i++){
+            System.out.print(i+".snp.vcf.gz"+"\t");
+        }
+    }
+
+    public void countlines(){
+        String infileS1 = "/data2/junxu/geneSNP/all.vcf.gz";
+        String outfileDir = "/data2/xiaohan/test";
+        BufferedReader br1 = IOUtils.getTextGzipReader(infileS1);
+        int count1 = 0;
+        String temp1 = null;
+        try {
+            while ((temp1 = br1.readLine()) != null) {
+                count1++;
+                System.out.println(count1);
+            }
+                br1.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+
+//    public void countlines(){
+//        String infileS1 = "/data2/junxu/geneSNP/0002.N349.snp.vcf.gz";
+//        String outfileDir = "/data2/xiaohan/test";
+//        BufferedReader br1 = IOUtils.getTextGzipReader(infileS1);
+//        BufferedWriter bw = IOUtils.getTextWriter(new File(outfileDir,"result1.txt").getAbsolutePath());
+//        int count1 = 0;
+//        String temp1 = null;
+//        try {
+//            if ((temp1 = br1.readLine()) != null) {
+//                count1++;
+//                bw.write(count1);
+//                bw.newLine();
+//            }
+//            else {
+//            bw.flush();bw.close();
+//            br1.close();
+//            }
+//        }
+//        catch (Exception e){
+//                e.printStackTrace();
+//            }
+//    }
+
+    public void checklines(){
+        String infileS1 = "/data2/junxu/geneSNP/all.vcf.gz";
+        String infileS2 = "/data1/home/xiaohan/rareallele/subvcf/colVCF.vcf";
+        BufferedReader br1 = IOUtils.getTextGzipReader(infileS1);
+        BufferedReader br2 = IOUtils.getTextReader(infileS2);
+        BufferedWriter bw = IOUtils.getTextWriter(new File(infileS2,"ifTrue.txt").getAbsolutePath());
+        int count1 = 0;
+        int count2 = 0;
+        String temp1 = null;
+        String temp2 = null;
+        try{
+            while((temp1 = br1.readLine())!=null){
+                count1 ++;
+            }
+            while((temp2 = br2.readLine())!= null) {
+                count2 ++;
+            }
+            if(count1 == count2){
+                System.out.println("True");
+            }
+            else {
+                System.out.println("False");
+            }
+            bw.flush();bw.close();
+            br1.close();br2.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public void getsubVCF(){
-        String infileS = "/data2/junxu/geneSNP/all.vcf.gz";
-        String outputDir = "/data1/home/xiaohan/rareallele/subvcf";
+        String infileS = "/Users/yxh/Documents/RareAllele/003rawdata/36.snp.vcf";
+        String outputDir = "/Users/yxh/Documents/RareAllele/003rawdata";
         String index ="12\n" +
                 "17\n" +
                 "18\n" +
@@ -116,10 +198,10 @@ public class rareallele {
                 "323\n";
         String[] indexes = null;
         indexes = index.split("\n");
-        BufferedReader br = IOUtils.getTextGzipReader(infileS);
+        BufferedReader br = IOUtils.getTextReader(infileS);
         String temp = null;
         String[] temps = null;
-        BufferedWriter bw = IOUtils.getTextGzipWriter(new File(outputDir,"colVCF.vcf.gz").getAbsolutePath());
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir,"colVCF36.vcf").getAbsolutePath());
         try{
             while ((temp = br.readLine()) != null){
                 if(temp.startsWith("##")){
@@ -138,8 +220,8 @@ public class rareallele {
             }
             bw.flush();
             bw.close();
+            br.close();
         }
-
         catch (Exception e){
             e.printStackTrace();
         }
@@ -246,10 +328,11 @@ public class rareallele {
         String[] Sample = null;
         Sample = SampleName.split("\n");
         Set<String> tempS = new HashSet<>();
-        String infileS = "/Users/yxh/Documents/RareAllele/003rawdata/header.vcf";
-        BufferedReader br =IOUtils.getTextReader(infileS);
+        String infileS = "/Users/yxh/Documents/RareAllele/003rawdata/36.snp.vcf.gz";
+        BufferedReader br =IOUtils.getTextGzipReader(infileS);
         String temp =null;
         String[] temps = null;
+        String[] tempsOrigin = null;
         ArrayList<String> NameList = new ArrayList<>();
         try{
 
@@ -257,18 +340,23 @@ public class rareallele {
                 if (temp.startsWith("##")) continue;
                 if (temp.startsWith("#")) {
                     temps = temp.split("\t");
+                    tempsOrigin = temp.split("\t");
                     for (int i = 0; i < temps.length; i++) {
                         if (temps[i].startsWith("AT")) {
-                            temps[i] = temps[i].toString().substring(0,7);
+                            temps[i] = temps[i].toString().substring(0, 7);
+                        }
+                    }
+                    for (int j = 0; j < Sample.length; j++) {
+                        for (int i = 0; i < temps.length; i++) {
+                            if (temps[i].equals(Sample[j])) {
+                                //System.out.println(i);
+                                System.out.println(tempsOrigin[i]+"\t");
+                            }
                         }
                     }
                 }
-                for (int j = 0; j < Sample.length; j++) {
-                    for (int i = 0; i < temps.length; i++) {
-                        if (temps[i].equals(Sample[j])) {
-                            System.out.println(i);
-                        }
-                    }
+                if(!temp.startsWith("#")){
+                    break;
                 }
             }
         }
