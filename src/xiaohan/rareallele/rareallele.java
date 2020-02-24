@@ -12,12 +12,44 @@ public class rareallele {
         //this.rankGenes();
         //this.getTransNumber();
         //this.getVCFposition();
-        this.getsubVCF();
+        //this.getsubVCF();
         //this.checklines();
         //this.countlines();
         //this.test();
-
+        this.changeSampleName();
     }
+
+    public void changeSampleName(){
+        String infileS ="/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/colVCF36.vcf";
+        String outputDir ="/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/";
+        BufferedReader br = IOUtils.getTextReader(infileS);
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir,"new.vcf").getAbsolutePath());
+        String temp = null;
+        String[] temps = null;
+        try{
+            while((temp = br.readLine()) != null){
+                if(temp.startsWith("#")){
+                    bw.write(temp);
+                    bw.newLine();
+                    continue;
+                }
+                else {
+                    temps = temp.split("\t");
+                    temps[0] = "chr36";
+                    for(int i = 0;i<temps.length;i++){
+                        bw.write(temps[i]+"\t");
+                    }
+                    bw.newLine();
+                }
+            }
+            bw.flush();bw.close();
+            br.close();
+        }
+        catch (Exception e ){
+            e.printStackTrace();
+        }
+    }
+
     public void test(){
         for(int i = 0; i<43; i++){
             System.out.print(i+".snp.vcf.gz"+"\t");
@@ -350,7 +382,7 @@ public class rareallele {
                         for (int i = 0; i < temps.length; i++) {
                             if (temps[i].equals(Sample[j])) {
                                 //System.out.println(i);
-                                System.out.println(tempsOrigin[i]+"\t");
+                                System.out.println(tempsOrigin[i]+"\t"+Sample[j]);
                             }
                         }
                     }
@@ -397,7 +429,7 @@ public class rareallele {
             String[] SampleS = Sample.toArray(new String[Sample.size()]);
             Arrays.sort(SampleS);
             for(int i = 0; i<SampleS.length;i++){
-                System.out.print(transMap.get(SampleS[i])+"\t");
+                System.out.println(SampleS[i]+"\t"+transMap.get(SampleS[i])+"\t");
             }
         }
         catch (Exception e){
