@@ -16,14 +16,52 @@ public class rareallele {
         //this.checklines();
         //this.countlines();
         //this.test();
-        this.changeSampleName();
+        //this.changeSampleName();
+        this.getGTvcf();
     }
 
-    public void changeSampleName(){
-        String infileS ="/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/colVCF36.vcf";
-        String outputDir ="/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/";
+    public void getGTvcf(){
+        String infileS ="/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/genotypes.vcf";
+        String outputDir ="/Users/yxh/Documents/RareAllele/004test/SiPASpipeline";
         BufferedReader br = IOUtils.getTextReader(infileS);
-        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir,"new.vcf").getAbsolutePath());
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir,"genotypes36.vcf").getAbsolutePath());
+        String temp = null;
+        String[] temps = null;
+        String[] tems = null;
+        try{
+            while((temp = br.readLine()) != null){
+                if(temp.startsWith("#")){
+                    bw.write(temp);
+                    bw.newLine();
+                    continue;
+                }
+                else {
+                    temps = temp.split("\t");
+                    for(int j = 0;j<9;j++) {
+                        bw.write(temps[j]+"\t");
+                    }
+                    for(int i = 9;i<temps.length;i++){
+                        tems = temps[i].split("/");
+                        //bw.write(tems[0]+tems[1]+"\t");
+                        bw.write(tems[0]+tems[1]+"\t");
+                    }
+                    bw.newLine();
+                }
+            }
+            bw.flush();bw.close();
+            br.close();
+        }
+        catch (Exception e ){
+            e.printStackTrace();
+        }
+    }
+
+
+    public void changeSampleName(){
+        String infileS ="/data1/home/xiaohan/rareallele/fastQTL/genotypes.vcf.gz";
+        String outputDir ="/data1/home/xiaohan/rareallele/fastQTL/";
+        BufferedReader br = IOUtils.getTextGzipReader(infileS);
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir,"genotypes36.vcf").getAbsolutePath());
         String temp = null;
         String[] temps = null;
         try{
@@ -35,7 +73,7 @@ public class rareallele {
                 }
                 else {
                     temps = temp.split("\t");
-                    temps[0] = "chr36";
+                    temps[0] = "36";
                     for(int i = 0;i<temps.length;i++){
                         bw.write(temps[i]+"\t");
                     }
