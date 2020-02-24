@@ -18,13 +18,52 @@ public class rareallele {
         //this.test();
         //this.changeSampleName();
         this.getGTvcf();
+        //this.changeName();
+    }
+    public void  changeName(){
+        String infileS = "/data1/home/xiaohan/rareallele/fastQTL/chr36.vcf";
+        String outputDir = "/data1/home/xiaohan/rareallele/fastQTL";
+        BufferedReader br = IOUtils.getTextReader(infileS);
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir,"Chr36.vcf").getAbsolutePath());
+        String temp = null;
+        String[] temps = null;
+        String[] tems = null;
+        try{
+            while((temp = br.readLine()) != null){
+                if(temp.startsWith("#")){
+                    temps = temp.split("\t");
+                    for(int i = 0;i<1;i++){
+                        tems = temps[i].split("]");
+                        bw.write("#"+tems[1]+"\t");
+                    }
+                    for(int i =1; i<temps.length;i++){
+                        tems = temps[i].split("]");
+                        bw.write(tems[1]+"\t");
+
+                    }
+                    bw.newLine();
+                }
+                else {
+                    bw.write(temp);
+                    bw.newLine();
+
+                }
+
+            }
+            bw.flush();
+            bw.close();
+            br.close();
+        }
+        catch (Exception e ){
+            e.printStackTrace();
+        }
     }
 
     public void getGTvcf(){
-        String infileS ="/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/genotypes.vcf";
+        String infileS ="/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/genotypes36.vcf";
         String outputDir ="/Users/yxh/Documents/RareAllele/004test/SiPASpipeline";
         BufferedReader br = IOUtils.getTextReader(infileS);
-        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir,"genotypes36.vcf").getAbsolutePath());
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir,"genotypes361.vcf").getAbsolutePath());
         String temp = null;
         String[] temps = null;
         String[] tems = null;
@@ -37,14 +76,21 @@ public class rareallele {
                 }
                 else {
                     temps = temp.split("\t");
-                    for(int j = 0;j<9;j++) {
+                    for(int j = 0;j<8;j++) {
                         bw.write(temps[j]+"\t");
                     }
-                    for(int i = 9;i<temps.length;i++){
-                        tems = temps[i].split("/");
-                        //bw.write(tems[0]+tems[1]+"\t");
-                        bw.write(tems[0]+tems[1]+"\t");
+                    for(int i = 8;i<9;i++){
+                        tems = temps[i].split(":");
+                        bw.write(tems[0]+"\t");
                     }
+                    for(int m = 9;m<temps.length;m++) {
+                        bw.write(temps[m]+"\t");
+                    }
+//                    for(int i = 9;i<temps.length;i++){
+//                        tems = temps[i].split(":");
+//                        //bw.write(tems[0]+tems[1]+"\t");
+//                        bw.write(tems[0]+"\t");
+//                    }
                     bw.newLine();
                 }
             }
