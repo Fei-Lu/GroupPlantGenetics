@@ -1,49 +1,50 @@
 package xiaohan.rareallele;
 
-import smile.stat.Stat;
-
 import java.io.*;
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class rareallele {
-    public rareallele(){
+    public rareallele() {
+        String infileS = "36.snp";
+        String inputDir ="/Users/yxh/Documents/RareAllele/003rawdata/";
+        String outputDir = "/Users/yxh/Documents/RareAllele/003rawdata/output/";
+
         //this.getExampleVCF();
         //this.rankGenes();
         //this.getTransNumber();
-        //this.getVCFposition();
-        //this.getsubVCF();
+        this.getVCFposition(infileS, inputDir);
+        //this.getsubVCF(infileS,inputDir,outputDir);
         //this.checklines();
         //this.countlines();
         //this.test();
         //this.changeSampleName();
-        this.getGTvcf();
+        this.getGTvcf(infileS,outputDir);
         //this.changeName();
     }
-    public void  changeName(){
+
+    public void changeName() {
         String infileS = "/data1/home/xiaohan/rareallele/fastQTL/chr36.vcf";
         String outputDir = "/data1/home/xiaohan/rareallele/fastQTL";
         BufferedReader br = IOUtils.getTextReader(infileS);
-        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir,"Chr36.vcf").getAbsolutePath());
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, "Chr36.vcf").getAbsolutePath());
         String temp = null;
         String[] temps = null;
         String[] tems = null;
-        try{
-            while((temp = br.readLine()) != null){
-                if(temp.startsWith("#")){
+        try {
+            while ((temp = br.readLine()) != null) {
+                if (temp.startsWith("#")) {
                     temps = temp.split("\t");
-                    for(int i = 0;i<1;i++){
+                    for (int i = 0; i < 1; i++) {
                         tems = temps[i].split("]");
-                        bw.write("#"+tems[1]+"\t");
+                        bw.write("#" + tems[1] + "\t");
                     }
-                    for(int i =1; i<temps.length;i++){
+                    for (int i = 1; i < temps.length; i++) {
                         tems = temps[i].split("]");
-                        bw.write(tems[1]+"\t");
+                        bw.write(tems[1] + "\t");
 
                     }
                     bw.newLine();
-                }
-                else {
+                } else {
                     bw.write(temp);
                     bw.newLine();
 
@@ -53,39 +54,46 @@ public class rareallele {
             bw.flush();
             bw.close();
             br.close();
-        }
-        catch (Exception e ){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void getGTvcf(){
-        String infileS ="/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/genotypes36.vcf";
-        String outputDir ="/Users/yxh/Documents/RareAllele/004test/SiPASpipeline";
-        BufferedReader br = IOUtils.getTextReader(infileS);
-        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir,"genotypes361.vcf").getAbsolutePath());
+    public void getGTvcf(String infileS,String outputDir) {
+        BufferedReader br = IOUtils.getTextReader(outputDir + infileS+".new.vcf");
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, "genotypes"+infileS+".vcf").getAbsolutePath());
         String temp = null;
         String[] temps = null;
         String[] tems = null;
-        try{
-            while((temp = br.readLine()) != null){
-                if(temp.startsWith("#")){
+        String tem = null;
+        try {
+            while ((temp = br.readLine()) != null) {
+                if (temp.startsWith("#")) {
                     bw.write(temp);
                     bw.newLine();
                     continue;
-                }
-                else {
+                } else {
                     temps = temp.split("\t");
-                    for(int j = 0;j<8;j++) {
-                        bw.write(temps[j]+"\t");
+                    for (int j = 0; j < 8; j++) {
+                        bw.write(temps[j] + "\t");
                     }
-                    for(int i = 8;i<9;i++){
+                    for (int i = 8; i < temps.length; i++) {
                         tems = temps[i].split(":");
+                        if (tems[0].startsWith("0/2") || tems[0].startsWith("0/3")) {
+                            tems[0] = "0/1";
+                        }
+                        if (tems[0].startsWith("1/2") || tems[0].startsWith("1/3") || tems[0].startsWith("2/2") || tems[0].startsWith("2/3") || tems[0].startsWith("3/3")) {
+                            tems[0] = "1/1";
+                        }
                         bw.write(tems[0]+"\t");
                     }
-                    for(int m = 9;m<temps.length;m++) {
-                        bw.write(temps[m]+"\t");
-                    }
+//                    for(int i = 8;i<9;i++){
+//                        tems = temps[i].split(":");
+//                        bw.write(tems[0]+"\t");
+//                    }
+//                    for(int m = 9;m<temps.length;m++) {
+//                        bw.write(temps[m]+"\t");
+//                    }
 //                    for(int i = 9;i<temps.length;i++){
 //                        tems = temps[i].split(":");
 //                        //bw.write(tems[0]+tems[1]+"\t");
@@ -94,53 +102,52 @@ public class rareallele {
                     bw.newLine();
                 }
             }
-            bw.flush();bw.close();
+            bw.flush();
+            bw.close();
             br.close();
-        }
-        catch (Exception e ){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
 
-    public void changeSampleName(){
-        String infileS ="/data1/home/xiaohan/rareallele/fastQTL/genotypes.vcf.gz";
-        String outputDir ="/data1/home/xiaohan/rareallele/fastQTL/";
+    public void changeSampleName() {
+        String infileS = "/data1/home/xiaohan/rareallele/fastQTL/genotypes.vcf.gz";
+        String outputDir = "/data1/home/xiaohan/rareallele/fastQTL/";
         BufferedReader br = IOUtils.getTextGzipReader(infileS);
-        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir,"genotypes36.vcf").getAbsolutePath());
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, "genotypes36.vcf").getAbsolutePath());
         String temp = null;
         String[] temps = null;
-        try{
-            while((temp = br.readLine()) != null){
-                if(temp.startsWith("#")){
+        try {
+            while ((temp = br.readLine()) != null) {
+                if (temp.startsWith("#")) {
                     bw.write(temp);
                     bw.newLine();
                     continue;
-                }
-                else {
+                } else {
                     temps = temp.split("\t");
                     temps[0] = "36";
-                    for(int i = 0;i<temps.length;i++){
-                        bw.write(temps[i]+"\t");
+                    for (int i = 0; i < temps.length; i++) {
+                        bw.write(temps[i] + "\t");
                     }
                     bw.newLine();
                 }
             }
-            bw.flush();bw.close();
+            bw.flush();
+            bw.close();
             br.close();
-        }
-        catch (Exception e ){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void test(){
-        for(int i = 0; i<43; i++){
-            System.out.print(i+".snp.vcf.gz"+"\t");
+    public void test() {
+        for (int i = 0; i < 43; i++) {
+            System.out.print(i + ".snp.vcf.gz" + "\t");
         }
     }
 
-    public void countlines(){
+    public void countlines() {
         String infileS1 = "/data2/junxu/geneSNP/all.vcf.gz";
         String outfileDir = "/data2/xiaohan/test";
         BufferedReader br1 = IOUtils.getTextGzipReader(infileS1);
@@ -151,9 +158,8 @@ public class rareallele {
                 count1++;
                 System.out.println(count1);
             }
-                br1.close();
-        }
-        catch (Exception e){
+            br1.close();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -182,154 +188,154 @@ public class rareallele {
 //            }
 //    }
 
-    public void checklines(){
+    public void checklines() {
         String infileS1 = "/data2/junxu/geneSNP/all.vcf.gz";
         String infileS2 = "/data1/home/xiaohan/rareallele/subvcf/colVCF.vcf";
         BufferedReader br1 = IOUtils.getTextGzipReader(infileS1);
         BufferedReader br2 = IOUtils.getTextReader(infileS2);
-        BufferedWriter bw = IOUtils.getTextWriter(new File(infileS2,"ifTrue.txt").getAbsolutePath());
+        BufferedWriter bw = IOUtils.getTextWriter(new File(infileS2, "ifTrue.txt").getAbsolutePath());
         int count1 = 0;
         int count2 = 0;
         String temp1 = null;
         String temp2 = null;
-        try{
-            while((temp1 = br1.readLine())!=null){
-                count1 ++;
+        try {
+            while ((temp1 = br1.readLine()) != null) {
+                count1++;
             }
-            while((temp2 = br2.readLine())!= null) {
-                count2 ++;
+            while ((temp2 = br2.readLine()) != null) {
+                count2++;
             }
-            if(count1 == count2){
+            if (count1 == count2) {
                 System.out.println("True");
-            }
-            else {
+            } else {
                 System.out.println("False");
             }
-            bw.flush();bw.close();
-            br1.close();br2.close();
-        }
-        catch (Exception e){
+            bw.flush();
+            bw.close();
+            br1.close();
+            br2.close();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void getsubVCF(){
-        String infileS = "/Users/yxh/Documents/RareAllele/003rawdata/36.snp.vcf";
-        String outputDir = "/Users/yxh/Documents/RareAllele/003rawdata";
-        String index ="12\n" +
-                "17\n" +
-                "18\n" +
-                "20\n" +
-                "21\n" +
-                "24\n" +
-                "26\n" +
-                "28\n" +
-                "33\n" +
-                "34\n" +
-                "38\n" +
-                "41\n" +
-                "44\n" +
-                "47\n" +
-                "52\n" +
-                "54\n" +
-                "55\n" +
-                "58\n" +
-                "59\n" +
-                "70\n" +
-                "73\n" +
-                "78\n" +
-                "80\n" +
-                "82\n" +
-                "88\n" +
-                "89\n" +
-                "94\n" +
-                "96\n" +
-                "104\n" +
-                "106\n" +
-                "119\n" +
-                "335\n" +
-                "126\n" +
-                "128\n" +
-                "134\n" +
-                "138\n" +
-                "139\n" +
-                "141\n" +
-                "149\n" +
-                "163\n" +
-                "166\n" +
-                "173\n" +
-                "177\n" +
-                "178\n" +
-                "181\n" +
-                "192\n" +
-                "195\n" +
-                "196\n" +
-                "197\n" +
-                "201\n" +
-                "205\n" +
-                "206\n" +
-                "209\n" +
-                "351\n" +
-                "328\n" +
-                "221\n" +
-                "224\n" +
-                "225\n" +
-                "229\n" +
-                "231\n" +
-                "342\n" +
-                "236\n" +
-                "237\n" +
-                "238\n" +
-                "241\n" +
-                "352\n" +
-                "249\n" +
-                "251\n" +
-                "254\n" +
-                "255\n" +
-                "257\n" +
-                "259\n" +
-                "9\n" +
-                "266\n" +
-                "329\n" +
-                "330\n" +
-                "268\n" +
-                "276\n" +
-                "277\n" +
-                "281\n" +
-                "282\n" +
-                "288\n" +
-                "292\n" +
-                "294\n" +
-                "296\n" +
-                "300\n" +
-                "357\n" +
-                "306\n" +
-                "309\n" +
-                "311\n" +
-                "317\n" +
-                "318\n" +
-                "331\n" +
-                "332\n" +
-                "322\n" +
-                "323\n";
+    public void getsubVCF(String infileS, String inputDir,String outputDir) {
+        String index = getVCFposition(infileS, inputDir);
+//        String index ="12\n" +
+//                "17\n" +
+//                "18\n" +
+//                "20\n" +
+//                "21\n" +
+//                "24\n" +
+//                "26\n" +
+//                "28\n" +
+//                "33\n" +
+//                "34\n" +
+//                "38\n" +
+//                "41\n" +
+//                "44\n" +
+//                "47\n" +
+//                "52\n" +
+//                "54\n" +
+//                "55\n" +
+//                "58\n" +
+//                "59\n" +
+//                "70\n" +
+//                "73\n" +
+//                "78\n" +
+//                "80\n" +
+//                "82\n" +
+//                "88\n" +
+//                "89\n" +
+//                "94\n" +
+//                "96\n" +
+//                "104\n" +
+//                "106\n" +
+//                "119\n" +
+//                "335\n" +
+//                "126\n" +
+//                "128\n" +
+//                "134\n" +
+//                "138\n" +
+//                "139\n" +
+//                "141\n" +
+//                "149\n" +
+//                "163\n" +
+//                "166\n" +
+//                "173\n" +
+//                "177\n" +
+//                "178\n" +
+//                "181\n" +
+//                "192\n" +
+//                "195\n" +
+//                "196\n" +
+//                "197\n" +
+//                "201\n" +
+//                "205\n" +
+//                "206\n" +
+//                "209\n" +
+//                "351\n" +
+//                "328\n" +
+//                "221\n" +
+//                "224\n" +
+//                "225\n" +
+//                "229\n" +
+//                "231\n" +
+//                "342\n" +
+//                "236\n" +
+//                "237\n" +
+//                "238\n" +
+//                "241\n" +
+//                "352\n" +
+//                "249\n" +
+//                "251\n" +
+//                "254\n" +
+//                "255\n" +
+//                "257\n" +
+//                "259\n" +
+//                "9\n" +
+//                "266\n" +
+//                "329\n" +
+//                "330\n" +
+//                "268\n" +
+//                "276\n" +
+//                "277\n" +
+//                "281\n" +
+//                "282\n" +
+//                "288\n" +
+//                "292\n" +
+//                "294\n" +
+//                "296\n" +
+//                "300\n" +
+//                "357\n" +
+//                "306\n" +
+//                "309\n" +
+//                "311\n" +
+//                "317\n" +
+//                "318\n" +
+//                "331\n" +
+//                "332\n" +
+//                "322\n" +
+//                "323\n";
         String[] indexes = null;
-        indexes = index.split("\n");
-        BufferedReader br = IOUtils.getTextReader(infileS);
+        indexes = index.split("\t");
+        BufferedReader br = IOUtils.getTextReader(inputDir + infileS + ".vcf");
         String temp = null;
         String[] temps = null;
-        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir,"colVCF36.vcf").getAbsolutePath());
-        try{
-            while ((temp = br.readLine()) != null){
-                if(temp.startsWith("##")){
-                    bw.write(temp);bw.newLine();
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, infileS + ".new.vcf").getAbsolutePath());
+        try {
+            while ((temp = br.readLine()) != null) {
+                if (temp.startsWith("##")) {
+                    bw.write(temp);
+                    bw.newLine();
                     continue;
-                }
-                else {
+                } else {
                     temps = temp.split("\t");
-                    bw.write(temps[0] + "\t" + temps[1] + "\t" + temps[2] + "\t" + temps[3] + "\t" + temps[4] + "\t" + temps[5] + "\t" +
-                            temps[6] + "\t" + temps[7] + "\t" + temps[8] + "\t");
+                    for (int j = 0; j < 9; j++) {
+                        bw.write(temps[j] + "\t");
+                    }
                     for (int i = 0; i < indexes.length; i++) {
-                        bw.write(temps[Integer.parseInt(indexes[i])]+"\t");
+                        bw.write(temps[Integer.parseInt(indexes[i])] + "\t");
                     }
                     bw.newLine();
                 }
@@ -337,14 +343,13 @@ public class rareallele {
             bw.flush();
             bw.close();
             br.close();
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
 
-    public void getVCFposition(){
+    public String getVCFposition(String infileS, String inputDir) {
         String SampleName = "AT18488\n" +
                 "AT18493\n" +
                 "AT18494\n" +
@@ -444,41 +449,42 @@ public class rareallele {
         String[] Sample = null;
         Sample = SampleName.split("\n");
         Set<String> tempS = new HashSet<>();
-        String infileS = "/Users/yxh/Documents/RareAllele/003rawdata/36.snp.vcf.gz";
-        BufferedReader br =IOUtils.getTextGzipReader(infileS);
-        String temp =null;
+        BufferedReader br = IOUtils.getTextReader(inputDir + infileS + ".vcf");
+        String temp = null;
         String[] temps = null;
         String[] tempsOrigin = null;
+        StringBuilder sb = new StringBuilder();
         ArrayList<String> NameList = new ArrayList<>();
-        try{
+        try {
 
-            while((temp = br.readLine())!=null) {
+            while ((temp = br.readLine()) != null) {
                 if (temp.startsWith("##")) continue;
                 if (temp.startsWith("#")) {
                     temps = temp.split("\t");
                     tempsOrigin = temp.split("\t");
                     for (int i = 0; i < temps.length; i++) {
                         if (temps[i].startsWith("AT")) {
-                            temps[i] = temps[i].toString().substring(0, 7);
+                            temps[i] = temps[i].substring(0, 7);
                         }
                     }
                     for (int j = 0; j < Sample.length; j++) {
                         for (int i = 0; i < temps.length; i++) {
                             if (temps[i].equals(Sample[j])) {
+                                sb.append(i+"\t");
                                 //System.out.println(i);
-                                System.out.println(tempsOrigin[i]+"\t"+Sample[j]);
+                                //System.out.println(tempsOrigin[i]+"\t"+Sample[j]);
                             }
                         }
                     }
                 }
-                if(!temp.startsWith("#")){
+                if (!temp.startsWith("#")) {
                     break;
                 }
             }
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
+        return sb.toString();
     }
 
 
