@@ -91,13 +91,15 @@ public class ABBA_BABA {
      */
     public static void prepareData_transform0(String inputFdResDir, String outDir, int minSumABBA_BABA){
         List<File> files=IOUtils.getVisibleFileListInDir(inputFdResDir);
-        String[] outNames= files.stream().map(File::getName).map(str->str.replaceAll("csv$", ".txt")).toArray(String[]::new);
-        RowTable<String> rowTable;
+        String[] outNames= files.stream().map(File::getName).map(str->str.replaceAll("csv$", "txt")).toArray(String[]::new);
+        RowTableTool<String> rowTable;
         List<String> d_List;
         List<String> fd_List;
         List<String> abba, baba;
+        Predicate<List<String>> p=l->l.contains("nan");
         for (int i = 0; i < files.size(); i++) {
-            rowTable=new RowTable<>(files.get(i).getAbsolutePath(), ",");
+            rowTable=new RowTableTool<>(files.get(i).getAbsolutePath(), ",");
+            rowTable.removeIf(p);
             d_List=rowTable.getColumn(8);
             fd_List=rowTable.getColumn(9);
             abba=rowTable.getColumn(6);

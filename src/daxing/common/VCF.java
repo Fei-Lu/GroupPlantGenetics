@@ -323,6 +323,50 @@ public class VCF {
     }
 
     /**
+     * split A.vcf B.vcf D.vcf to chr001.vcf chr002.vcf et.al.
+     * @param subgenomeDir
+     * @param outDir
+     */
+    public static void splitSubgenome(String subgenomeDir, String outDir){
+        List<File> files=IOUtils.getVisibleFileListInDir(subgenomeDir);
+        IntStream.range(0, files.size()).forEach(e->splitSubgenome(files.get(e), outDir));
+    }
+
+    public static void splitSubgenome(File subgenomeFile, String outDir){
+        Set<String> set=RowTableTool.getColumnSet(subgenomeFile.getAbsolutePath(), 0);
+        List<String> chrs=new ArrayList<>(set);
+        Collections.sort(chrs, Comparator.comparing(str->Integer.parseInt(str)));
+        Map<String, BufferedWriter> chrBufferedWriter=new HashMap<>();
+        BufferedWriter bw;
+        for (int i = 0; i < chrs.size(); i++) {
+            int chr=Integer.parseInt(chrs.get(i));
+            bw=IOTool.getTextWriter(new File(outDir, "chr"+PStringUtils.getNDigitNumber(3, chr)+".txt"));
+            chrBufferedWriter.put(chrs.get(i), bw);
+        }
+        try (BufferedReader bufferedReader = IOTool.getReader(subgenomeFile)) {
+            String line;
+            List<String> temp;
+            String header=bufferedReader.readLine();
+            for(Map.Entry<String, BufferedWriter> entry: chrBufferedWriter.entrySet()){
+                entry.getValue().write(header);
+                entry.getValue().newLine();
+            }
+            while ((line=bufferedReader.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                bw=chrBufferedWriter.get(temp.get(0));
+                bw.write(line);
+                bw.newLine();
+            }
+            for(Map.Entry<String, BufferedWriter> entry: chrBufferedWriter.entrySet()){
+                entry.getValue().flush();
+                entry.getValue().close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Genotype for 0/0, 0/1, 1/1, or 0/0, 0/1, 0/2, 1/1, 1/2, 2/2 if 2 alt alleles
      * @param vcfLine
      * @return maf or -1, if 3 or more alt alleles exist

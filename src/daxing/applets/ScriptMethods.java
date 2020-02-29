@@ -52,11 +52,9 @@ public class ScriptMethods {
     }
 
     public static void getTopRowsFromDir(String inputDir, int n, String outputDir){
-        File[] files=IOUtils.listRecursiveFiles(new File(inputDir));
-        String[] names= Arrays.stream(files).map(File::getName).toArray(String[]::new);
-        IntStream.range(0, files.length).parallel().forEach(e->{
-            ScriptMethods.getTopRows(files[e], n, new File(outputDir, names[e]));
-        });
+        List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
+        String[] names= files.stream().map(File::getName).toArray(String[]::new);
+        IntStream.range(0, files.size()).parallel().forEach(e-> ScriptMethods.getTopRows(files.get(e), n, new File(outputDir, names[e])));
     }
 
     /**
