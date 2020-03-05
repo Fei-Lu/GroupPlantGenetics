@@ -30,7 +30,7 @@ public class ABBA_BABA {
         List<File> files1= IOUtils.getVisibleFileListInDir(vcfDir);
         List<File> files2= IOUtils.getVisibleFileListInDir(ancestralVCFDir);
         String[] outNames=files1.stream().map(File::getName).map(str->str.replaceAll("vcf", "geno")).toArray(String[]::new);
-        IntStream.range(0, files1.size()).parallel().forEach(e-> convertVCFToGenoFormat(files1.get(e), files2.get(e),
+        IntStream.range(0, files1.size()).forEach(e-> convertVCFToGenoFormat(files1.get(e), files2.get(e),
                 new File(genoOutDir, outNames[e]), indexOfAncestralAllele));
         System.out.println("completed in "+Benchmark.getTimeSpanHours(start)+" hours");
         System.out.println(DateTime.getDateTimeOfNow()+" end");
@@ -83,27 +83,22 @@ public class ABBA_BABA {
 
     /**
      * remove rows which has nan or its D value is negative
-     * remove rows which fd < 0
-     * if fd > 1 && ABBA+BABA < 1 , fd value will be set 1, other rows will be removed
+     * remove rows which fd < 0 or fd > 1
      * @param inputFdResDir
      * @param outDir
-     * @param minSumABBA_BABA thresh
      */
-    public static void prepareData_transform0(String inputFdResDir, String outDir, int minSumABBA_BABA){
+    public static void prepareData_transform0(String inputFdResDir, String outDir){
         List<File> files=IOUtils.getVisibleFileListInDir(inputFdResDir);
         String[] outNames= files.stream().map(File::getName).map(str->str.replaceAll("csv$", "txt")).toArray(String[]::new);
         RowTableTool<String> rowTable;
         List<String> d_List;
         List<String> fd_List;
-        List<String> abba, baba;
         Predicate<List<String>> p=l->l.contains("nan");
         for (int i = 0; i < files.size(); i++) {
             rowTable=new RowTableTool<>(files.get(i).getAbsolutePath(), ",");
             rowTable.removeIf(p);
             d_List=rowTable.getColumn(8);
             fd_List=rowTable.getColumn(9);
-            abba=rowTable.getColumn(6);
-            baba=rowTable.getColumn(7);
             for (int j = 0; j < d_List.size(); j++) {
                 if (!(NumberUtils.isNumber(d_List.get(j)) && NumberUtils.isNumber(fd_List.get(j)))){
                     rowTable.removeRow(j);
@@ -121,19 +116,12 @@ public class ABBA_BABA {
                     j--;
                     continue;
                 }
-                double abbaDouble=Double.parseDouble(abba.get(j));
-                double babaDouble=Double.parseDouble(baba.get(j));
                 if ( fd > 1){
-                    if ((abbaDouble+babaDouble)<minSumABBA_BABA){
-                        fd_List.set(j, "1");
-                    }
-                    else {
-                        rowTable.removeRow(j);
-                        d_List.remove(j);
-                        fd_List.remove(j);
-                        j--;
-                        continue;
-                    }
+                    rowTable.removeRow(j);
+                    d_List.remove(j);
+                    fd_List.remove(j);
+                    j--;
+                    continue;
                 }
             }
             rowTable.setColumn(9, fd_List);

@@ -1,18 +1,21 @@
 package daxing.applets;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import daxing.common.*;
+import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class ScriptMethods {
@@ -243,5 +246,156 @@ public class ScriptMethods {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     *
+     * @param vcfDir
+     * @param vcfComplementBedDir
+     * @param subgenome "AB" or "D"
+     * @param groupFile
+     * DomesticatedEmmer	CItr14822
+     * DomesticatedEmmer	CItr14824
+     * DomesticatedEmmer	CItr14916
+     * FreeThreshTetraploid	CItr14892
+     * FreeThreshTetraploid	CItr7798
+     * @param group
+     * @param shOutFile
+     */
+    public static void smc(String vcfDir, String vcfComplementBedDir, String outDir, String subgenome, String groupFile,
+                           String[] group, String shOutFile, String genomeFile){
+        List<File> vcfFiles=IOUtils.getFileListInDirEndsWith(vcfDir, "gz");
+        List<File> vcfComplementBedFiles=IOUtils.getFileListInDirEndsWith(vcfComplementBedDir, "gz");
+        Predicate<File> subgenomeP = null;
+        TIntArrayList subgenomeChrs = null;
+        if (subgenome.equals("AB")){
+            TIntArrayList ab=new TIntArrayList(WheatLineage.ablineage());
+            subgenomeP=f->ab.contains(StringTool.getNumFromString(f.getName()));
+            subgenomeChrs=new TIntArrayList(WheatLineage.ablineage());
+        }else if (subgenome.equals("D")){
+            TIntArrayList d=new TIntArrayList(WheatLineage.valueOf("D").getChrID());
+            subgenomeP=f->d.contains(StringTool.getNumFromString(f.getName()));
+            subgenomeChrs=new TIntArrayList(WheatLineage.valueOf("D").getChrID());
+        }else {
+            System.out.println("error your parameter subgenome");
+            System.exit(1);
+        }
+        List<File> subgenomeVcfFiles=vcfFiles.stream().filter(subgenomeP).collect(Collectors.toList());
+        List<File> subgenomeVcfComplementBedFiles=vcfComplementBedFiles.stream().filter(subgenomeP).collect(Collectors.toList());
+        Multimap<String, String> map= ArrayListMultimap.create();
+        Map<Integer, Integer> chrSizeMap=new HashMap<>();
+        try (BufferedReader bufferedReader = IOTool.getReader(groupFile);
+             BufferedReader bufferedReader1=IOTool.getReader(genomeFile);
+             BufferedWriter bufferedWriter =IOTool.getTextWriter(shOutFile)) {
+            String line;
+            List<String> temp;
+            while ((line=bufferedReader.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                map.put(temp.get(0), temp.get(1));
+            }
+            while ((line=bufferedReader1.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                chrSizeMap.put(Integer.parseInt(temp.get(0)), Integer.parseInt(temp.get(1)));
+            }
+            StringBuilder sb;
+            List<String> individuals;
+            File outFile = null;
+            String logDir="/data4/home/aoyue/vmap2/daxing/analysis/016_demographic/log";
+            for (int i = 0; i < subgenomeVcfFiles.size(); i++) {
+                for (int j = 0; j < group.length; j++) {
+                    individuals=new ArrayList<>(map.get(group[j]));
+                    Collections.sort(individuals);
+                    for (int k = 0; k < individuals.size(); k++) {
+                        sb=new StringBuilder();
+                        sb.append("nohup smc++ vcf2smc -m ").append(subgenomeVcfComplementBedFiles.get(i)).append(" ");
+                        sb.append(subgenomeVcfFiles.get(i)).append(" -l ").append(chrSizeMap.get(subgenomeChrs.get(i))).append(" -d ");
+                        sb.append(individuals.get(k)).append(" ").append(individuals.get(k)).append(" ");
+                        outFile=new File(outDir, subgenomeVcfFiles.get(i).getName().substring(0,6)+"."+group[j]+"."+individuals.get(k)+".smc.txt");
+                        sb.append(outFile.getAbsolutePath()).append(" ").append(subgenomeChrs.get(i)).append(" ");
+                        sb.append(group[j]).append(":");
+                        sb.append(String.join(",", individuals));
+                        sb.append(" >"+logDir+"/"+subgenomeVcfFiles.get(i).getName().substring(0,6)+"_"+group[j]+"_"+individuals.get(k)+".log");
+                        sb.append(" ").append("2>&1");
+                        bufferedWriter.write(sb.toString());
+                        bufferedWriter.newLine();
+                    }
+                }
+            }
+            bufferedWriter.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void bulidSMC(){
+        String vcfDir="/Users/xudaxing/Desktop/vcf";
+        String bedDir="/Users/xudaxing/Desktop/bed";
+        String outDir="/Users/xudaxing/Desktop/ww";
+        String subgenome="AB";
+        String groupFile="/Users/xudaxing/Desktop/Ne.txt";
+        String outFile="/Users/xudaxing/Desktop/resAB.sh";
+        String genomeFile="/Users/xudaxing/Desktop/genome.txt";
+        String[] group_AB={"WildEmmer_N","DomesticatedEmmer","FreeThreshTetraploid","Landrace_Europe", "Cultivar"};
+        String[] group_D={"Ae.tauschii"};
+        if (subgenome.equals("AB")){
+            ScriptMethods.smc(vcfDir, bedDir, outDir,subgenome, groupFile, group_AB, outFile, genomeFile);
+        }else if (subgenome.equals("D")){
+            ScriptMethods.smc(vcfDir, bedDir, outDir,subgenome, groupFile, group_D, outFile, genomeFile);
+        }else {
+            System.out.println("error, check your subgenome parameter");
+            System.exit(1);
+        }
+    }
+
+    /**
+     * 拆分sh命令
+     * @param inputSH
+     * @param outDir
+     * @param numThreads
+     * @param numCommands
+     */
+    public static void splitSh(String inputSH, String outDir, int numThreads, int numCommands){
+        String[] subDir={"scriptAll", "scriptOne"};
+        File[] files=new File[subDir.length];
+        for (int i = 0; i < subDir.length; i++) {
+            files[i]=new File(outDir, subDir[i]);
+            files[i].mkdir();
+        }
+        BufferedWriter[] bws=new BufferedWriter[numThreads];
+        for (int i = 0; i < bws.length; i++) {
+            bws[i]=IOTool.getTextWriter(new File(files[0], "a"+PStringUtils.getNDigitNumber(3,i)+".sh"));
+        }
+        try (BufferedReader br = IOTool.getReader(inputSH);
+             BufferedWriter bw =IOTool.getTextWriter(new File(files[1], "oneScript.sh"))) {
+            String line;
+            int count=0;
+            int index=0;
+            while ((line=br.readLine())!=null){
+                count++;
+                if (count > numCommands){
+                    bws[index].flush();
+                    index++;
+                    count=1;
+                    bws[index].write(line);
+                    bws[index].newLine();
+                    continue;
+                }
+                bws[index].write(line);
+                bws[index].newLine();
+            }
+            bws[index].flush();
+            List<File> files1=IOUtils.getFileListInDirEndsWith(files[0].getAbsolutePath(), "sh");
+            StringBuilder sb;
+            for (int i = 0; i < files1.size(); i++) {
+                sb=new StringBuilder();
+                sb.append("nohup sh ../").append("scriptAll/").append(files1.get(i).getName()).append(" &");
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }
