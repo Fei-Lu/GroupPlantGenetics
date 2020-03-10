@@ -9,6 +9,7 @@ import smile.stat.Stat;
 import xujun.analysis.rnaseq.GeneFeature;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -21,6 +22,96 @@ public class Test {
         //this.findFalseSample();
         //this.callposition();
         //this.findDifference();
+        //this.vcffiltering();
+        //this.vcfmerge();
+        this.addinfo();
+    }
+    public void addinfo(){
+        String infile = "/data2/xiaohan/nonfiltering/getsub/all.nonfilterDS.vcf";
+        String output = "/data2/xiaohan/nonfiltering/getsub";
+        String infor = "/data2/xiaohan/nonfiltering/getsub/all.nonfilter.vcf";
+        BufferedReader br = IOUtils.getTextReader(infile);
+        BufferedReader br1 = IOUtils.getTextReader(infor);
+        BufferedWriter bw = IOUtils.getTextWriter(new File(output,"all.non-DS.vcf").getAbsolutePath());
+        String[] temps = null;
+        String temp = null;
+        String[] tems = null;
+        String[] temps1 = null;
+        String temp1 = null;
+//        String name = "B18-E002,B18-E007,B18-E008,B18-E010,B18-E011,B18-E014,B18-E016,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E035,B18-E038,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E087,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E134,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E251,B18-E252,B18-E253,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E348,B18-E355,B18-E356,B18-E357";
+//        String[] names = name.split(",");
+        try{
+            for(int i =0;i<42;i++){
+                temp1 = br1.readLine();
+            }
+            while ((temp = br.readLine()) != null) {
+                temp1 = br1.readLine();
+                temps1 = temp1.split("\t");
+                if (temp.startsWith("#")) {
+                    temps = temp.split("\t");
+                    bw.write("#");
+                    for (int i = 0; i < 2; i++) {
+                        tems = temps[i].split("]");
+                        bw.write(tems[1] + "\t");
+                    }
+                    bw.write("ID"+ "\t");
+                    for (int i = 2; i < 4; i++) {
+                        tems = temps[i].split("]");
+                        bw.write(tems[1] + "\t");
+                    }
+                    bw.write(temps1[5]+"\t"+temps1[6]+"\t"+temps1[7]+"\t"+temps1[8]+"\t");
+                    for (int i = 4; i < 100; i++) {
+                        bw.write(temps[i] + "\t");
+                    }
+                    bw.newLine();
+                    continue;
+                } else {
+                    temps = temp.split("\t");
+                    temps1 = temp1.split("\t");
+                    for (int i = 0; i < 2; i++) {
+                        bw.write(temps[i] + "\t");
+                    }
+                    bw.write("snp_" + temps[1] + "\t");
+                    for (int i = 2; i < 4; i++) {
+                        bw.write(temps[i] + "\t");
+                    }
+                    bw.write(temps1[5]+"\t"+temps1[6]+"\t"+temps1[7]+"\t"+"DS"+"\t");
+                    for (int i = 4; i < 100; i++) {
+                        bw.write(temps[i] + "\t");
+                    }
+                    bw.newLine();
+                    continue;
+                }
+            }
+            bw.flush();bw.close();
+            br.close();
+        }
+        catch (Exception e ){
+            e.printStackTrace();
+        }
+    }
+
+    public void vcfmerge(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("nohup vcf-concat ");
+        for( int i = 0;i<45;i++){
+            sb.append("/data3/wgs/vcf/GATK/vmap3/1.SNP/"+i+".snp.vcf.gz ");
+        }
+        sb.append("| bgzip -c > all.non-filtering.vcf.gz &");
+        System.out.println(sb.toString());
+    }
+    public void vcffiltering(){
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0 ; i < 45;i++){
+//            sb.append("nohup vcftools --gzvcf /data3/wgs/vcf/GATK/vmap3/1.SNP/");
+//            sb.append(i+".snp.vcf.gz --maf 0 --max-maf 0.05 --out ");
+//            sb.append("/data2/xiaohan/SNP/");
+//            sb.append(i+".snp.maf005 --recode "+" || ");
+            sb.append("bgzip "+i+".snp.maf005.recode.vcf"+"\n");
+//            sb.append("log"+i+".txt 2>&1 &"+"\n");
+        }
+        String words = sb.toString();
+        System.out.println(words);
     }
 
     public static void mkshell(File file){
@@ -197,9 +288,9 @@ public class Test {
 
     public static void main (String[] args) throws IOException {
         new Test();
-        //String path = "/Users/yxh/Desktop/ANNO_ANCBJ170529_PM-ANCBJ170529-14_2020-02-19";
-        //File file = new File(path);
-        //mkshell(file);
+//        String path = "/data2/junxu/SiPASData/data_P101SC18112845-01-F004-B4-21/1.rawdata";
+//        File file = new File(path);
+//        mkshell(file);
     }
 }
 
