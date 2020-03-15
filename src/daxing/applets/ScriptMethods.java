@@ -14,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -407,6 +408,11 @@ public class ScriptMethods {
 
     }
 
+    public static void mergeSMC(String inputDir, String outDir, int binNumAB, int binNumD){
+        mergeSMC_AB(inputDir, outDir, binNumAB);
+        mergeSMC_D(inputDir, outDir, binNumD);
+    }
+
     public static void mergeSMC_D(String inputDir, String outDir, int binNum){
         List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
         TIntArrayList dindex=new TIntArrayList(WheatLineage.valueOf("D").getChrID());
@@ -430,23 +436,51 @@ public class ScriptMethods {
         IntStream.range(0, num[0].size()).forEach(e->mergeSMC(dFiles.get(num[0].get(e)), dFiles.get(num[1].get(e)), outDir));
     }
 
+    public static void mergeSMC_AB(String inputDir, String outDir, int binNum){
+        List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
+        TIntArrayList dindex=new TIntArrayList(WheatLineage.valueOf("D").getChrID());
+        Predicate<File> d=f->dindex.contains(StringTool.getNumFromString(f.getName()));
+        List<File> dFiles=files.stream().filter(d.negate()).collect(Collectors.toList());
+        TIntArrayList[] num=new TIntArrayList[2];
+        num[0]=new TIntArrayList();
+        num[1]=new TIntArrayList();
+        int count=0;
+        int index=0;
+        boolean flag=false;
+        for (int i = 0; i < dFiles.size(); i++) {
+            count++;
+            if (count>binNum){
+                flag=!flag;
+                index=flag ? 1 : 0;
+                count=1;
+            }
+            num[index].add(i);
+        }
+        IntStream.range(0, num[0].size()).forEach(e->mergeSMC(dFiles.get(num[0].get(e)), dFiles.get(num[1].get(e)), outDir));
+    }
+
     public static void mergeSMC(File file1, File file2, String outDir){
         int chrID=StringTool.getNumFromString(file1.getName().substring(0,6));
         String filename=file1.getName().substring(6);
         String chr=RefV1Utils.getChromosome(chrID, 1);
-        try (BufferedWriter bw = IOTool.getTextWriter(new File(outDir, "chr" + chr + filename));
-             BufferedReader br1=IOTool.getReader(file1);
-             BufferedReader br2=IOTool.getReader(file2)) {
+        try (BufferedWriter bw = IOTool.getTextWriter(new File(outDir, "chr" + chr + filename))) {
+            long numLine1=Files.lines(file1.toPath()).count();
+            int num1=0;
+            BufferedReader br1=IOTool.getReader(file1);
+            BufferedReader br2=IOTool.getReader(file2);
             String header=br1.readLine();
+            num1++;
             bw.write(header);
             bw.newLine();
             String line;
             List<String> temp1 = null, temp2=null;
-            while ((line=br1.readLine())!=null){
-                temp1=PStringUtils.fastSplit(line, " ");
+            while ((line=br1.readLine())!=null && num1 < numLine1-1){
+                num1++;
                 bw.write(line);
                 bw.newLine();
             }
+            temp1=PStringUtils.fastSplit(line, " ");
+            br1.close();
             br2.readLine();
             line=br2.readLine();
             temp2=PStringUtils.fastSplit(line, " ");
@@ -463,6 +497,7 @@ public class ScriptMethods {
                 bw.write(line);
                 bw.newLine();
             }
+            br2.close();
             bw.flush();
         } catch (IOException e) {
             e.printStackTrace();
