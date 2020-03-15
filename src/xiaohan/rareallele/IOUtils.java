@@ -14,7 +14,7 @@ import java.util.zip.GZIPOutputStream;
 
     public class IOUtils {
 
-        public static BufferedReader getTextGzipReader (String infileS) {
+        public static BufferedReader getTextGzipReader(String infileS) {
             BufferedReader br = null;
             try {
                 //br = new BufferedReader(new InputStreamReader(new MultiMemberGZIPInputStream(new FileInputStream(infileS))));
@@ -37,6 +37,7 @@ import java.util.zip.GZIPOutputStream;
             }
             return br;
         }
+
 
         public static BufferedWriter getTextGzipWriter (String outfileS) {
             BufferedWriter bw = null;
