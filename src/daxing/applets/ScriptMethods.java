@@ -2,6 +2,7 @@ package daxing.applets;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.TreeMultimap;
 import daxing.common.*;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -263,7 +264,7 @@ public class ScriptMethods {
      * @param shOutFile
      */
     public static void smc(String vcfDir, String vcfComplementBedDir, String outDir, String subgenome, String groupFile,
-                           String[] group, String shOutFile, String genomeFile){
+                           String distTaxonFile, String[] group, String shOutFile, String genomeFile, String logDir){
         List<File> vcfFiles=IOUtils.getFileListInDirEndsWith(vcfDir, "gz");
         List<File> vcfComplementBedFiles=IOUtils.getFileListInDirEndsWith(vcfComplementBedDir, "gz");
         Predicate<File> subgenomeP = null;
@@ -282,16 +283,24 @@ public class ScriptMethods {
         }
         List<File> subgenomeVcfFiles=vcfFiles.stream().filter(subgenomeP).collect(Collectors.toList());
         List<File> subgenomeVcfComplementBedFiles=vcfComplementBedFiles.stream().filter(subgenomeP).collect(Collectors.toList());
-        Multimap<String, String> map= ArrayListMultimap.create();
+        Multimap<String, String> map= TreeMultimap.create();
+        Map<String, String> popDistTaxon=new HashMap<>();
         Map<Integer, Integer> chrSizeMap=new HashMap<>();
         try (BufferedReader bufferedReader = IOTool.getReader(groupFile);
+             BufferedReader brDistTaxon=IOTool.getReader(distTaxonFile);
              BufferedReader bufferedReader1=IOTool.getReader(genomeFile);
              BufferedWriter bufferedWriter =IOTool.getTextWriter(shOutFile)) {
             String line;
             List<String> temp;
+            bufferedReader.readLine();
             while ((line=bufferedReader.readLine())!=null){
                 temp=PStringUtils.fastSplit(line);
                 map.put(temp.get(0), temp.get(1));
+            }
+            brDistTaxon.readLine();
+            while ((line=brDistTaxon.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                popDistTaxon.put(temp.get(0), temp.get(1));
             }
             while ((line=bufferedReader1.readLine())!=null){
                 temp=PStringUtils.fastSplit(line);
@@ -299,26 +308,27 @@ public class ScriptMethods {
             }
             StringBuilder sb;
             List<String> individuals;
+            String distTaxon;
             File outFile = null;
-            String logDir="/data4/home/aoyue/vmap2/daxing/analysis/016_demographic/log";
             for (int i = 0; i < subgenomeVcfFiles.size(); i++) {
                 for (int j = 0; j < group.length; j++) {
                     individuals=new ArrayList<>(map.get(group[j]));
-                    Collections.sort(individuals);
+                    distTaxon=popDistTaxon.get(group[j]);
+                    sb=new StringBuilder();
+                    sb.append("nohup smc++ vcf2smc --cores 1 -m ").append(subgenomeVcfComplementBedFiles.get(i)).append(" ");
+                    sb.append(subgenomeVcfFiles.get(i)).append(" -l ").append(chrSizeMap.get(subgenomeChrs.get(i))).append(" -d ");
+                    sb.append(distTaxon).append(" ").append(distTaxon).append(" ");
+                    outFile=new File(outDir, subgenomeVcfFiles.get(i).getName().substring(0,6)+"."+group[j]+".smc.txt");
+                    sb.append(outFile.getAbsolutePath()).append(" ").append(subgenomeChrs.get(i)).append(" ");
+                    sb.append(group[j]).append(":");
                     for (int k = 0; k < individuals.size(); k++) {
-                        sb=new StringBuilder();
-                        sb.append("nohup smc++ vcf2smc -m ").append(subgenomeVcfComplementBedFiles.get(i)).append(" ");
-                        sb.append(subgenomeVcfFiles.get(i)).append(" -l ").append(chrSizeMap.get(subgenomeChrs.get(i))).append(" -d ");
-                        sb.append(individuals.get(k)).append(" ").append(individuals.get(k)).append(" ");
-                        outFile=new File(outDir, subgenomeVcfFiles.get(i).getName().substring(0,6)+"."+group[j]+"."+individuals.get(k)+".smc.txt");
-                        sb.append(outFile.getAbsolutePath()).append(" ").append(subgenomeChrs.get(i)).append(" ");
-                        sb.append(group[j]).append(":");
-                        sb.append(String.join(",", individuals));
-                        sb.append(" >"+logDir+"/"+subgenomeVcfFiles.get(i).getName().substring(0,6)+"_"+group[j]+"_"+individuals.get(k)+".log");
-                        sb.append(" ").append("2>&1");
-                        bufferedWriter.write(sb.toString());
-                        bufferedWriter.newLine();
+                        sb.append(individuals.get(k)).append(",");
                     }
+                    sb.deleteCharAt(sb.length()-1);
+                    sb.append(" >"+logDir+"/"+subgenomeVcfFiles.get(i).getName().substring(0,6)+"_"+group[j]+".log");
+                    sb.append(" ").append("2>&1");
+                    bufferedWriter.write(sb.toString());
+                    bufferedWriter.newLine();
                 }
             }
             bufferedWriter.flush();
@@ -328,23 +338,21 @@ public class ScriptMethods {
     }
 
     public static void bulidSMC(){
-        String vcfDir="/Users/xudaxing/Desktop/vcf";
-        String bedDir="/Users/xudaxing/Desktop/bed";
-        String outDir="/Users/xudaxing/Desktop/ww";
-        String subgenome="AB";
-        String groupFile="/Users/xudaxing/Desktop/Ne.txt";
-        String outFile="/Users/xudaxing/Desktop/resAB.sh";
-        String genomeFile="/Users/xudaxing/Desktop/genome.txt";
-        String[] group_AB={"WildEmmer_N","DomesticatedEmmer","FreeThreshTetraploid","Landrace_Europe", "Cultivar"};
-        String[] group_D={"Ae.tauschii"};
-        if (subgenome.equals("AB")){
-            ScriptMethods.smc(vcfDir, bedDir, outDir,subgenome, groupFile, group_AB, outFile, genomeFile);
-        }else if (subgenome.equals("D")){
-            ScriptMethods.smc(vcfDir, bedDir, outDir,subgenome, groupFile, group_D, outFile, genomeFile);
-        }else {
-            System.out.println("error, check your subgenome parameter");
-            System.exit(1);
-        }
+        String vcfDir="/data4/home/aoyue/vmap2/daxing/vmap2.1.ancestral/002_vmap2.1RefToAncestral";
+        String bedDir="/data4/home/aoyue/vmap2/daxing/analysis/016_demographic/002_refToAncestral/001_vmap2.1_complementChr";
+        String outDir="/data4/home/aoyue/vmap2/daxing/analysis/016_demographic/002_refToAncestral/002_smc";
+        String groupFile="/data4/home/aoyue/vmap2/daxing/analysis/016_demographic/002_refToAncestral/groupSMC.txt";
+        String distTaxon="/data4/home/aoyue/vmap2/daxing/analysis/016_demographic/002_refToAncestral/popDistTaxon.txt";
+        String outFileAB="/data4/home/aoyue/vmap2/daxing/analysis/016_demographic/002_refToAncestral/resAB.sh";
+        String outFileD="/data4/home/aoyue/vmap2/daxing/analysis/016_demographic/002_refToAncestral/resdDsh";
+        String genomeFile="/data4/home/aoyue/vmap2/daxing/analysis/016_demographic/002_refToAncestral/genome.txt";
+        String[] group_AB={"WildEmmer","DomesticatedEmmer","FreeThreshTetraploid","Landrace", "Landrace_Europe",
+                "Landrace_WestAsia", "Landrace_EastAsia", "Cultivar"};
+        String[] group_D={"Ae.tauschii","Landrace", "Landrace_Europe",
+                "Landrace_WestAsia", "Landrace_EastAsia", "Cultivar"};
+        String logDir="/data4/home/aoyue/vmap2/daxing/analysis/016_demographic/002_refToAncestral/log";
+        ScriptMethods.smc(vcfDir, bedDir, outDir,"AB", groupFile, distTaxon, group_AB, outFileAB, genomeFile, logDir);
+        ScriptMethods.smc(vcfDir, bedDir, outDir,"D", groupFile, distTaxon, group_D, outFileD, genomeFile, logDir);
     }
 
     /**
@@ -397,5 +405,67 @@ public class ScriptMethods {
             e.printStackTrace();
         }
 
+    }
+
+    public static void mergeSMC_D(String inputDir, String outDir, int binNum){
+        List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
+        TIntArrayList dindex=new TIntArrayList(WheatLineage.valueOf("D").getChrID());
+        Predicate<File> d=f->dindex.contains(StringTool.getNumFromString(f.getName()));
+        List<File> dFiles=files.stream().filter(d).collect(Collectors.toList());
+        TIntArrayList[] num=new TIntArrayList[2];
+        num[0]=new TIntArrayList();
+        num[1]=new TIntArrayList();
+        int count=0;
+        int index=0;
+        boolean flag=false;
+        for (int i = 0; i < dFiles.size(); i++) {
+            count++;
+            if (count>binNum){
+                flag=!flag;
+                index=flag ? 1 : 0;
+                count=1;
+            }
+            num[index].add(i);
+        }
+        IntStream.range(0, num[0].size()).forEach(e->mergeSMC(dFiles.get(num[0].get(e)), dFiles.get(num[1].get(e)), outDir));
+    }
+
+    public static void mergeSMC(File file1, File file2, String outDir){
+        int chrID=StringTool.getNumFromString(file1.getName().substring(0,6));
+        String filename=file1.getName().substring(6);
+        String chr=RefV1Utils.getChromosome(chrID, 1);
+        try (BufferedWriter bw = IOTool.getTextWriter(new File(outDir, "chr" + chr + filename));
+             BufferedReader br1=IOTool.getReader(file1);
+             BufferedReader br2=IOTool.getReader(file2)) {
+            String header=br1.readLine();
+            bw.write(header);
+            bw.newLine();
+            String line;
+            List<String> temp1 = null, temp2=null;
+            while ((line=br1.readLine())!=null){
+                temp1=PStringUtils.fastSplit(line, " ");
+                bw.write(line);
+                bw.newLine();
+            }
+            br2.readLine();
+            line=br2.readLine();
+            temp2=PStringUtils.fastSplit(line, " ");
+            int count=0;
+            if (temp1.subList(1,4).equals(temp2.subList(1,4))){
+                count=Integer.parseInt(temp1.get(0))+Integer.parseInt(temp2.get(0));
+                bw.write(count+" "+String.join(" ", temp1.subList(1,4)));
+                bw.newLine();
+            }else {
+                bw.write(line);
+                bw.newLine();
+            }
+            while ((line=br2.readLine())!=null){
+                bw.write(line);
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
