@@ -12,9 +12,16 @@ import static java.lang.Integer.parseInt;
 
 public class rareallele {
     public rareallele() {
-        String infileS = "all.non-filtering";
-        String inputDir ="/data2/xiaohan/nonfiltering/";
-        String outputDir = "/data1/home/xiaohan/rareallele/fastQTL/eGenes/nonfiltering-col/";
+        String infileS = "36.snp.maf005.recode";
+        String inputDir = "/data2/xiaohan/SNP/";
+        String outputDir = "/data1/home/xiaohan/rareallele/fastQTL/";
+//        String infileS = "36.snp.maf005.recode";
+//        String inputDir = "/Users/yxh/Documents/RareAllele/004test/";
+//        String outputDir = "/Users/yxh/Documents/RareAllele/004test/";
+//        this.parseFqByIndex();
+//        this.read10lines();
+//        this.ifanyindex();
+//        this.parseFqByIndexAndBarcode();
         //this.getExampleVCF();
         //this.rankGenes();
         //this.getTransNumber();
@@ -30,6 +37,230 @@ public class rareallele {
 //        this.SNPcount();
 //        this.SNPTable();
 //        this.rankcorrelation();
+    }
+
+    public void ifanyindex(){
+        String inputfileS = "/data1/home/xiaohan/rareallele/SiPASpipeline/ampmtest/input/6/L006_R1_001.fastq.gz";
+        BufferedReader br = IOUtils.getTextGzipReader(inputfileS);
+        String temp = null;
+        String index = "ATTATA";
+        String currentindex = null;
+        try{
+            while((temp = br.readLine())!=null){
+                currentindex = temp.split(":")[9].substring(1, 6);
+                if(currentindex.equals(index)){
+                    System.out.println("TRUE");
+                    br.readLine();
+                    br.readLine();
+                    br.readLine();
+                }
+            }
+            br.close();
+        }
+        catch (Exception e ){
+            e.printStackTrace();
+        }
+
+    }
+    public void read10lines(){
+        String infileS = "L006_R2_001";
+        String inputDir = "/data1/home/xiaohan/rareallele/SiPASpipeline/ampmtest/input/6/";
+        String outputDir = "/data1/home/xiaohan/rareallele/SiPASpipeline/ampmtest/input/6";
+        BufferedReader br = IOUtils.getTextGzipReader(inputDir+infileS+".fastq.gz");
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir,infileS+"-10lines.fq").getAbsolutePath());
+        String temp = null;
+        int count = 0;
+        try{
+            while((temp = br.readLine())!=null){
+                if(count <10 ){
+                    bw.write(temp);
+                    bw.newLine();
+                    continue;
+                }
+                count++;
+                if(count >10){
+                    break;
+                }
+            }
+        }
+        catch (Exception e ){
+            e.printStackTrace();
+        }
+    }
+
+    private void parseFqByIndexAndBarcode () {
+        HashMap barcodeStrain = new HashMap();
+        HashMap indexStrain = new HashMap();
+        long startTimePoint = System.nanoTime();
+//        RowTable<String> t = new RowTable<>("/data1/home/xiaohan/rnaseq/RNA-seq-coleoptile-20180315-1.txt");
+        RowTable<String> t = new RowTable<>("/data1/home/xiaohan/rareallele/SiPASpipeline/ampmtest/Book1.txt");
+
+        List<String> barcodeList = new ArrayList<String>();
+        for (int i = 0; i < t.getRowNumber(); i++) {
+            indexStrain.put(t.getCell(i, 1).substring(1), t.getCell(i, 0));
+            barcodeStrain.put(t.getCell(i, 2).substring(1), t.getCell(i, 0));
+            barcodeList.add(t.getCell(i, 2).substring(1));
+        }
+        String inputDirS = "/data1/home/xiaohan/rareallele/SiPASpipeline/ampmtest/input/6/";
+//        String inputDirS = "/data1/home/xiaohan/coleoptile/unsplitedtest";
+        String outputDirS = "/data1/home/xiaohan/rareallele/SiPASpipeline/ampmtest/output/";
+//        String outputDirS = "/data1/home/xiaohan/coleoptile/splitedtest";
+        File[] fs = new File(inputDirS).listFiles();
+        fs = pgl.infra.utils.IOUtils.listFilesEndsWith(fs, ".fastq.gz");
+        HashSet<String> nameSet = new HashSet<String>();
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) continue;
+            nameSet.add(fs[i].getName().split("_")[0]);
+        }
+        nameSet.stream().forEach((String p) -> {
+            try {
+                String infile1 = new File(inputDirS, p + "_R1_001.fastq.gz").getAbsolutePath();
+                String infile2 = new File(inputDirS, p + "_R2_001.fastq.gz").getAbsolutePath();
+                BufferedWriter[] bw = new BufferedWriter[barcodeList.size()];
+                BufferedWriter[] bw1 = new BufferedWriter[barcodeList.size()];
+                for (int i = 0; i < barcodeList.size(); i++) {
+                    bw[i] = pgl.infra.utils.IOUtils.getTextWriter(new File(outputDirS, barcodeStrain.get(barcodeList.get(i)) + "_R1.fq").getAbsolutePath());
+                    bw1[i] = pgl.infra.utils.IOUtils.getTextWriter(new File(outputDirS, barcodeStrain.get(barcodeList.get(i)) + "_R2.fq").getAbsolutePath());
+                }
+                BufferedReader br = pgl.infra.utils.IOUtils.getTextGzipReader(infile1);
+                BufferedReader br1 = pgl.infra.utils.IOUtils.getTextGzipReader(infile2);
+                int pos = -1;
+                String temp = null;
+                String seq = null;
+                String index = null;
+                String currentBarcode = null;
+                while ((temp = br.readLine()) != null) {
+                    index = temp.split(":")[9].substring(1, 6);
+                    if (indexStrain.get(index) != null) {
+                        seq = br.readLine();
+                        currentBarcode = seq.substring(1, 8);
+                        if (barcodeStrain.get(currentBarcode) != null) {
+                            pos = barcodeList.indexOf(currentBarcode);
+                            bw[pos].write(temp);
+                            bw[pos].newLine();
+                            bw[pos].write(seq);
+                            bw[pos].newLine();
+                            bw[pos].write(br.readLine());
+                            bw[pos].newLine();
+                            bw[pos].write(br.readLine());
+                            bw[pos].newLine();
+                            bw1[pos].write(br1.readLine());
+                            bw1[pos].newLine();
+                            bw1[pos].write(br1.readLine());
+                            bw1[pos].newLine();
+                            bw1[pos].write(br1.readLine());
+                            bw1[pos].newLine();
+                            bw1[pos].write(br1.readLine());
+                            bw1[pos].newLine();
+                        } else {
+                            br.readLine();
+                            br.readLine();
+                            br1.readLine();
+                            br1.readLine();
+                            br1.readLine();
+                            br1.readLine();
+                        }
+                    } else {
+                        br.readLine();
+                        br.readLine();
+                        br.readLine();
+                        br1.readLine();
+                        br1.readLine();
+                        br1.readLine();
+                        br1.readLine();
+                    }
+
+                }
+                for (int i = 0; i < barcodeList.size(); i++) {
+                    bw[i].flush();
+                    bw[i].close();
+                    bw1[i].flush();
+                    bw1[i].close();
+                }
+                br.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+        });
+    }
+    private void parseFqByIndex () {
+        HashMap barcodeStrain = new HashMap();
+        HashMap indexStrain = new HashMap();
+        long startTimePoint = System.nanoTime();
+//        RowTable<String> t = new RowTable<>("/data1/home/xiaohan/rnaseq/RNA-seq-coleoptile-20180315-1.txt");
+        RowTable<String> t = new RowTable<>("/data1/home/xiaohan/rareallele/SiPASpipeline/ampmtest/Book1.txt");
+
+        List<String> IndexList = new ArrayList<String>() ;
+        for (int i = 0; i < t.getRowNumber(); i++) {
+            indexStrain.put(t.getCell(i, 1).substring(1), t.getCell(i, 0));
+            //barcodeStrain.put(t.getCell(i, 2).substring(1), t.getCell(i, 0));
+            IndexList.add(t.getCell(i, 1).substring(1));
+        }
+        String inputDirS = "/data2/junxu/SiPASData/three-lanes-firsttime-copydata0129/P101SC18112845-01-F004-WSW50-0129-weifen";
+//        String inputDirS = "/data1/home/xiaohan/coleoptile/unsplitedtest";
+        String outputDirS = "/data1/home/xiaohan/rareallele/SiPASpipeline/ampmtest";
+//        String outputDirS = "/data1/home/xiaohan/coleoptile/splitedtest";
+        File[] fs = new File(inputDirS).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, ".fastq.gz");
+        HashSet<String> nameSet = new HashSet<String>();
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) continue;
+            String name = fs[i].getName().split("_")[0]+"_"+ fs[i].getName().split("_")[1]+"_"+ fs[i].getName().split("_")[2];
+            nameSet.add(name);
+        }
+        nameSet.stream().forEach((String p) -> {
+            try {
+                String infile1 = new File (inputDirS, p+"_R1_001.fastq.gz").getAbsolutePath();
+                String infile2 = new File (inputDirS, p+"_R2_001.fastq.gz").getAbsolutePath();
+                BufferedWriter[] bw = new BufferedWriter[IndexList.size()];
+                BufferedWriter [] bw1 = new BufferedWriter[IndexList.size()];
+                for (int i = 0; i < IndexList.size(); i++) {
+                    bw[i]=IOUtils.getTextWriter(new File(outputDirS, IndexList.get(i)+"_R1.fastq.fq").getAbsolutePath());
+                    bw1[i]=IOUtils.getTextWriter(new File(outputDirS, IndexList.get(i)+"_R2.fastq.fq").getAbsolutePath());
+                }
+                BufferedReader br = IOUtils.getTextGzipReader(infile1);
+                BufferedReader br1 = IOUtils.getTextGzipReader(infile2);
+                int pos = -1 ;
+                String temp = null;
+                String seq = null;String index = null;
+                String currentindex = null;
+                //String currentBarcode = null;
+                while((temp = br.readLine())!=null){
+                    index=temp.split(":")[9].substring(1,6);
+                    if(indexStrain.get(index)!=null){
+                        currentindex = index;
+                        if(barcodeStrain.get(currentindex)!=null){
+                            pos=IndexList.indexOf(currentindex);
+                            bw[pos].write(temp);bw[pos].newLine();
+                            bw[pos].write(seq);bw[pos].newLine();
+                            bw[pos].write(br.readLine());bw[pos].newLine();
+                            bw[pos].write(br.readLine());bw[pos].newLine();
+                            bw1[pos].write(br1.readLine());bw1[pos].newLine();
+                            bw1[pos].write(br1.readLine());bw1[pos].newLine();
+                            bw1[pos].write(br1.readLine());bw1[pos].newLine();
+                            bw1[pos].write(br1.readLine());bw1[pos].newLine();
+                        }else{
+                            br.readLine();br.readLine();
+                            br1.readLine();br1.readLine();br1.readLine();br1.readLine();
+                        }
+                    }else{
+                        br.readLine();br.readLine();br.readLine();
+                        br1.readLine();br1.readLine();br1.readLine();br1.readLine();
+                    }
+
+                }
+                for(int i=0;i<IndexList.size();i++){
+                    bw[i].flush();bw[i].close();
+                    bw1[i].flush();bw1[i].close();
+                }
+                br.close();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+        });
     }
 
     public void rankcorrelation(){
@@ -543,51 +774,47 @@ public class rareallele {
 //                "323\n";
         String[] indexes = null;
         indexes = index.split("\t");
-        BufferedReader br = IOUtils.getTextGzipReader(inputDir + infileS + ".vcf.gz");
+        BufferedReader br = IOUtils.getTextGzipReader(inputDir + infileS+ ".vcf");
         String temp = null;
         String[] temps = null;
         String name = "B18-E002,B18-E007,B18-E008,B18-E010,B18-E011,B18-E014,B18-E016,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E035,B18-E038,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E087,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E134,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E251,B18-E252,B18-E253,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E348,B18-E355,B18-E356,B18-E357";
         String[] names = name.split(",");
-        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, infileS + ".new.vcf").getAbsolutePath());
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, infileS + "-new.vcf").getAbsolutePath());
         try {
-            while ((temp = br.readLine()) != null) {
-                if (temp.startsWith("##")) {
-                    continue;
-                   
-                } else if(temp.startsWith("#C")) {
-                     temps = temp.split("\t");
-                    bw.write(temps[0]);
-                    for (int j = 1; j < 9; j++) {
-                        bw.write("\t"+temps[j]);
+                    while((temp = br.readLine())!=null){
+                    if (temp.startsWith("##")) {
+                        continue;}
+                    if(temp.startsWith("#C")) {
+                        temps = temp.split("\t");
+                        bw.write(temps[0]);
+                        for (int j = 1; j < 9; j++) {
+                            bw.write("\t"+temps[j]);
+                        }
+                        for(int j = 0;j<names.length;j++){
+                            bw.write("\t"+names[j] );
+                        }
+                        bw.newLine();
+                        continue;}
+                    if(!temp.startsWith("#")){
+                        temps = temp.split("\t");
+                        bw.write(temps[0]+"\t"+temps[1]);
+                        bw.write("\t"+"snp_"+temps[1]+"\t");
+                        for(int i = 3;i<9;i++){
+                            bw.write("\t"+temps[i]);
+                        }
+                        for (int i = 0; i < indexes.length; i++) {
+                            bw.write("\t"+ temps [parseInt(indexes[i])]);
+                        }
+                        bw.newLine();
+                        continue;
                     }
-                    for(int j = 0;j<names.length;j++){
-                        bw.write("\t"+names[j] );
-                    }
-                    bw.newLine();
-                    continue;
-                }
-                else {
-                    temps = temp.split("\t");
-                    bw.write(temps[0]+"\t"+temps[1]);
-                    bw.write("\t"+"snp_"+temps[1]+"\t");
-                    for(int i = 3;i<9;i++){
-                        bw.write("\t"+temps[i]);
-                    }
-                    for (int i = 0; i < indexes.length; i++) {
-                        bw.write("\t"+temps[parseInt(indexes[i])]);
-                    }
-                    bw.newLine();
-                    continue;
-                }
             }
             bw.flush();
             bw.close();
             br.close();
         } catch (Exception e) {
             e.printStackTrace();
-        }
-
-    }
+        }}
 
     public String getVCFposition(String infileS, String inputDir) {
         String SampleName = "AT18488\n" +
@@ -689,14 +916,14 @@ public class rareallele {
         String[] Sample = null;
         Sample = SampleName.split("\n");
         Set<String> tempS = new HashSet<>();
-        BufferedReader br = IOUtils.getTextGzipReader(inputDir + infileS + ".vcf.gz");
+        BufferedReader br = IOUtils.getTextGzipReader(inputDir + infileS + ".vcf");
         String temp = null;
         String[] temps = null;
         String[] tempsOrigin = null;
         StringBuilder sb = new StringBuilder();
         ArrayList<String> NameList = new ArrayList<>();
+        HashMap<String, String> NameMap = new HashMap();
         try {
-
             while ((temp = br.readLine()) != null) {
                 if (temp.startsWith("##")) continue;
                 if (temp.startsWith("#")) {
@@ -704,6 +931,7 @@ public class rareallele {
                     tempsOrigin = temp.split("\t");
                     for (int i = 0; i < temps.length; i++) {
                         if (temps[i].startsWith("AT")) {
+                            NameMap.put(temps[i].substring(0,7),temps[i]);
                             temps[i] = temps[i].substring(0, 7);
                         }
                     }
@@ -711,6 +939,7 @@ public class rareallele {
                         for (int i = 0; i < temps.length; i++) {
                             if (temps[i].equals(Sample[j])) {
                                 sb.append(i+"\t");
+                                System.out.println(NameMap.get(temps[i]));
                                 //System.out.println(i);
                                 //System.out.println(tempsOrigin[i]+"\t"+Sample[j]);
                             }

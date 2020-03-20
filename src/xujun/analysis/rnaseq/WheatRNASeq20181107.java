@@ -433,6 +433,8 @@ public class WheatRNASeq20181107 {
             System.out.println(KPool.get(i));
         }
      }
+
+
      public void countTPM(){
         RCaller caller = new RCaller();
         caller.setRscriptExecutable("/usr/local/bin/R");
