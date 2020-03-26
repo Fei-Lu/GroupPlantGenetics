@@ -80,7 +80,7 @@ public class WheatRNASeq20181107 {
 //        this.highDiverganceGene();
 //        this.isSame();
 //        this.geneNumber();
-//        this.overlapSNP();
+        this.overlapSNP();
 //        this.NPos();
 //        this.changPos();
         

@@ -1,43 +1,183 @@
 package xiaohan.rareallele;
 
+import com.fasterxml.jackson.core.util.BufferRecycler;
 import org.biojava.nbio.genome.parsers.gff.FeatureI;
 import pgl.infra.table.RowTable;
 import smile.sort.Sort;
 
 import java.io.*;
 import java.lang.reflect.Array;
+import java.nio.Buffer;
 import java.util.*;
 
 import static java.lang.Integer.parseInt;
 
 public class rareallele {
     public rareallele() {
-        String infileS = "36.snp.maf005.recode";
-        String inputDir = "/data2/xiaohan/SNP/";
-        String outputDir = "/data1/home/xiaohan/rareallele/fastQTL/";
+//        String infileS ="snp1";
+//        String inputDir = "/data2/xiaohan/sub/";
+//        String outputDir = "/data2/xiaohan/GT/";
 //        String infileS = "36.snp.maf005.recode";
-//        String inputDir = "/Users/yxh/Documents/RareAllele/004test/";
+//        String inputDir = "/data2/xiaohan/SNP/";
+//        String outputDir = "/data1/home/xiaohan/rareallele/fastQTL/";
+//        String infileS = "vcf";
+//        String inputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/table/";
 //        String outputDir = "/Users/yxh/Documents/RareAllele/004test/";
+//        this.GetCandidateVariants();
 //        this.parseFqByIndex();
 //        this.read10lines();
 //        this.ifanyindex();
 //        this.parseFqByIndexAndBarcode();
         //this.getExampleVCF();
         //this.rankGenes();
-        //this.getTransNumber();
-        this.getVCFposition(infileS, inputDir);
-        this.getsubVCF(infileS,inputDir,outputDir);
+//        this.getTransNumber();
+//        this.getVCFposition(infileS, inputDir);
+//        this.getsubVCF(infileS,inputDir,outputDir);
         //this.checklines();
         //this.countlines();
         //this.test();
-        //this.changeSampleName();
-        //this.getGTvcf(infileS,outputDir);
+//        this.changeSampleName();
+//        this.getGTvcf2(infileS,inputDir,outputDir);
+//        this.getGTvcf(infileS,outputDir);
         //this.changeName();
         //this.get5kSNPcount();
 //        this.SNPcount();
 //        this.SNPTable();
 //        this.rankcorrelation();
+//        this.CalculateeGenes();
+        this.SplitPhenoBychr();
+
     }
+
+    public void GetCandidateVariants(){
+        //information = nominal results;
+        String information = "";
+        //infilesS GT vcf
+        String infileVCF = "";
+        String outputDir = "";
+        HashSet<String> VariantSet = new HashSet<>();
+        BufferedReader br1 = IOUtils.getTextReader(information);
+        String temp = null;
+        String[] temps = null;
+        BufferedReader br2 = IOUtils.getTextReader(infileVCF);
+        String temp2 = null;
+        String[] temps2 = null;
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir , "candidate.vcf").getAbsolutePath());
+        try{
+            while((temp = br1.readLine())!=null){
+                temps = temp.split("\\s");
+                if(!VariantSet.contains(temps[1])){
+                    VariantSet.add(temps[1]);
+                }
+            }
+            String title = br2.readLine();
+            bw.write(title);
+            while((temp2 = br2.readLine())!=null){
+                temps2 = temp2.split("\t");
+                if(VariantSet.contains(temps2[2])){
+                    bw.write(temp2);
+                }
+            }
+        }catch(Exception e ){
+            e.printStackTrace();
+        }
+    }
+
+    public void SplitPhenoBychr(){
+        String infileS = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S3/expressionboxcox3.txt";
+        String outputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S3/splitexpression";
+        try {
+            BufferedReader br = pgl.infra.utils.IOUtils.getTextReader(infileS);
+            BufferedWriter[] bw = new BufferedWriter[43];
+            for (int i = 0; i < 43; i++) {
+                bw[i] = pgl.infra.utils.IOUtils.getTextWriter(new File(outputDir, "S3expression" + i + ".bed").getAbsolutePath());
+            }
+            String temp = null;
+            String[] temps = null;
+            temp = br.readLine();
+            for(int i = 0;i<43;i++){
+                bw[i].write(temp);
+                bw[i].newLine();
+            }
+            while ((temp = br.readLine()) != null) {
+                temps = temp.split("\t");
+                int count = Integer.parseInt(temps[0]);
+                bw[count].write(temp);
+                bw[count].newLine();
+            }
+            for (int i = 0; i < 43; i++) {
+                bw[i].flush();
+                bw[i].close();
+            }
+            br.close();
+        }
+        catch (Exception e ){
+            e.printStackTrace();
+        }
+
+    }
+
+    public void CalculateeGenes() {
+        String inputDirS = "/data1/home/xiaohan/rareallele/fastQTL/nominal/S7/chr6";
+        String outputDirS = "/data1/home/xiaohan/rareallele/fastQTL/nominal/S7/chr6/candidate";
+//        String inputDirS = "/Users/yxh/Documents/RareAllele/004test/eGene/nominals1/test/";
+//        String outputDirS = "/Users/yxh/Documents/RareAllele/004test/eGene/nominals1/candidate";
+            File[] fs = new File(inputDirS).listFiles();
+            List<File> fList = new ArrayList(Arrays.asList());
+            fs = IOUtils.listFilesEndsWith(fs, ".txt.gz");
+            HashSet<String> nameSet = new HashSet();
+            for (int i = 0; i < fs.length; i++) {
+                if (fs[i].isHidden()) continue;
+                nameSet.add(fs[i].getName());
+                System.out.println(fs[i].getName());
+            }
+            nameSet.stream().forEach(f -> {
+                BufferedWriter[] bw = new BufferedWriter[5];
+                for(int i = 1 ; i <5 ;i ++) {
+                    bw[i] = IOUtils.getTextGzipWriter(new File(outputDirS, "candidateGenes" + i + ".txt.gz").getAbsolutePath());
+                }
+                String infile1 = new File(inputDirS, f).getAbsolutePath();
+                BufferedReader br = IOUtils.getTextGzipReader(infile1);
+                String temp = null;
+                String[] temps = null;
+                int count = 0;
+                try {
+                    while ((temp = br.readLine()) != null) {
+                        temps = temp.split("\\s");
+//                System.out.println(temps[10]);
+                        Float p = Float.parseFloat(temps[4]);
+                        if (p <= 0.00001) {
+                            bw[1].write(temp);
+                            bw[1].newLine();
+                            count++;
+                        }
+                        if (p <= 0.0001) {
+                            bw[2].write(temp);
+                            bw[2].newLine();
+                            count++;
+                        }
+                        if (p <= 0.001) {
+                            bw[3].write(temp);
+                            bw[3].newLine();
+                            count++;
+                        }
+                        if (p <= 0.01) {
+                            bw[4].write(temp);
+                            bw[4].newLine();
+                            count++;
+                        }
+                    }
+                    for(int i = 1;i<5;i++) {
+                        bw[i].flush();
+                        bw[i].close();
+                    }
+                    br.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
 
     public void ifanyindex(){
         String inputfileS = "/data1/home/xiaohan/rareallele/SiPASpipeline/ampmtest/input/6/L006_R1_001.fastq.gz";
@@ -556,12 +696,74 @@ public class rareallele {
         }
     }
 
+    public void getGTvcf2(String infileS,String inputDir,String outputDir) {
+        BufferedReader br = IOUtils.getTextReader(inputDir + infileS+".vcf");
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, infileS+"GT.vcf").getAbsolutePath());
+        String temp = null;
+        String[] temps = null;
+        String[] tems = null;
+        String tem = null;
+        String name = "B18-E002,B18-E007,B18-E008,B18-E010,B18-E011,B18-E014,B18-E016,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E035,B18-E038,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E087,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E134,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E251,B18-E252,B18-E253,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E348,B18-E355,B18-E356,B18-E357";
+        String[] names = name.split(",");
+        try {
+            while ((temp = br.readLine()) != null) {
+                if (temp.startsWith("##")) {
+                    continue;
+                } else if(temp.startsWith("#C")){
+                    temps = temp.split("\t");
+                    for(int i =0;i<9;i++) {
+                        bw.write(temps[i]+"\t");
+                    }
+                    for(int j = 0;j<names.length-1;j++){
+                        bw.write(names[j] + "\t");
+                    }
+                    bw.write(names[names.length-1]);
+                    bw.newLine();
+                    continue;
+                } else {
+                    temps = temp.split("\t");
+                    for(int i = 0; i<2;i++){
+                        bw.write(temps[i]+"\t");
+                    }
+                    bw.write("snp_"+temps[0]+"_"+temps[1]+"\t");
+                    for (int j = 3; j < 5; j++) {
+                        bw.write(temps[j] + "\t");
+                    }
+                    for(int i = 5;i<7;i++){
+                        bw.write("."+"\t");
+                    }
+                    for (int i = 7; i < temps.length; i++) {
+                        tems = temps[i].split(":");
+                        bw.write(tems[0]+"\t");
+                    }
+//                    for(int i = 8;i<9;i++){
+//                        tems = temps[i].split(":");
+//                        bw.write(tems[0]+"\t");
+//                    }
+//                    for(int m = 9;m<temps.length;m++) {
+//                        bw.write(temps[m]+"\t");
+//                    }
+//                    for(int i = 9;i<temps.length;i++){
+//                        tems = temps[i].split(":");
+//                        //bw.write(tems[0]+tems[1]+"\t");
+//                        bw.write(tems[0]+"\t");
+//                    }
+                    bw.newLine();
+                }
+            }
+            bw.flush();
+            bw.close();
+            br.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public void changeSampleName() {
-        String infileS = "/data2/xiaohan/nonfiltering/getsub/all.non-filtering.new.vcf";
-        String outputDir = "/data2/xiaohan/nonfiltering/getsub/";
+        String infileS = "/data2/xiaohan/sub3/snp1.vcf";
+        String outputDir = "/data2/xiaohan/sub3/";
         BufferedReader br = IOUtils.getTextReader(infileS);
-        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, "all.nonfilter.vcf").getAbsolutePath());
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, "genotypes1.vcf").getAbsolutePath());
         String temp = null;
         String[] temps = null;
         String name = "B18-E002,B18-E007,B18-E008,B18-E010,B18-E011,B18-E014,B18-E016,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E035,B18-E038,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E087,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E134,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E251,B18-E252,B18-E253,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E348,B18-E355,B18-E356,B18-E357";
@@ -817,110 +1019,124 @@ public class rareallele {
         }}
 
     public String getVCFposition(String infileS, String inputDir) {
-        String SampleName = "AT18488\n" +
-                "AT18493\n" +
-                "AT18494\n" +
-                "AT18496\n" +
-                "AT18497\n" +
-                "AT18500\n" +
-                "AT18502\n" +
-                "AT18504\n" +
-                "AT18509\n" +
-                "AT18510\n" +
-                "AT18514\n" +
-                "AT18517\n" +
-                "AT18520\n" +
-                "AT18523\n" +
-                "AT18528\n" +
-                "AT18530\n" +
-                "AT18531\n" +
-                "AT18534\n" +
-                "AT18535\n" +
-                "AT18546\n" +
-                "AT18549\n" +
-                "AT18554\n" +
-                "AT18556\n" +
-                "AT18558\n" +
-                "AT18564\n" +
-                "AT18565\n" +
-                "AT18570\n" +
-                "AT18572\n" +
-                "AT18580\n" +
-                "AT18582\n" +
-                "AT18597\n" +
-                "AT18984\n" +
-                "AT18606\n" +
-                "AT18608\n" +
-                "AT18615\n" +
-                "AT18619\n" +
-                "AT18620\n" +
-                "AT18622\n" +
-                "AT18632\n" +
-                "AT18646\n" +
-                "AT18650\n" +
-                "AT18659\n" +
-                "AT18663\n" +
-                "AT18664\n" +
-                "AT18667\n" +
-                "AT18678\n" +
-                "AT18681\n" +
-                "AT18682\n" +
-                "AT18683\n" +
-                "AT18688\n" +
-                "AT18692\n" +
-                "AT18693\n" +
-                "AT18696\n" +
-                "SYR-L1\n" +
-                "AT18837\n" +
-                "AT18710\n" +
-                "AT18713\n" +
-                "AT18714\n" +
-                "AT18719\n" +
-                "AT18721\n" +
-                "IRN-L2\n" +
-                "AT18727\n" +
-                "AT18728\n" +
-                "AT18729\n" +
-                "AT18732\n" +
-                "TJK-L1\n" +
-                "AT18741\n" +
-                "AT18743\n" +
-                "AT18746\n" +
-                "AT18747\n" +
-                "AT18749\n" +
-                "AT18752\n" +
-                "AFG-L1\n" +
-                "AT18761\n" +
-                "AT18838\n" +
-                "AT18839\n" +
-                "AT18765\n" +
-                "AT18773\n" +
-                "AT18774\n" +
-                "AT18779\n" +
-                "AT18780\n" +
-                "AT18786\n" +
-                "AT18790\n" +
-                "AT18792\n" +
-                "AT18794\n" +
-                "AT18798\n" +
-                "UZB-L1\n" +
-                "AT18805\n" +
-                "AT18808\n" +
-                "AT18810\n" +
-                "AT18819\n" +
-                "AT18820\n" +
-                "AT18842\n" +
-                "AT18843\n" +
-                "AT18828\n" +
-                "AT18829\n";
+        String infor = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/table/info.txt";
+        BufferedReader info = IOUtils.getTextReader(infor);
+        String sample = null;
+        StringBuilder sb = new StringBuilder();
+        try{
+            while ((sample = info.readLine())!= null){
+                sb.append(sample + "\n");
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        String SampleName = sb.toString();
+//        String SampleName = "AT18488\n" +
+//                "AT18493\n" +
+//                "AT18494\n" +
+//                "AT18496\n" +
+//                "AT18497\n" +
+//                "AT18500\n" +
+//                "AT18502\n" +
+//                "AT18504\n" +
+//                "AT18509\n" +
+//                "AT18510\n" +
+//                "AT18514\n" +
+//                "AT18517\n" +
+//                "AT18520\n" +
+//                "AT18523\n" +
+//                "AT18528\n" +
+//                "AT18530\n" +
+//                "AT18531\n" +
+//                "AT18534\n" +
+//                "AT18535\n" +
+//                "AT18546\n" +
+//                "AT18549\n" +
+//                "AT18554\n" +
+//                "AT18556\n" +
+//                "AT18558\n" +
+//                "AT18564\n" +
+//                "AT18565\n" +
+//                "AT18570\n" +
+//                "AT18572\n" +
+//                "AT18580\n" +
+//                "AT18582\n" +
+//                "AT18597\n" +
+//                "AT18984\n" +
+//                "AT18606\n" +
+//                "AT18608\n" +
+//                "AT18615\n" +
+//                "AT18619\n" +
+//                "AT18620\n" +
+//                "AT18622\n" +
+//                "AT18632\n" +
+//                "AT18646\n" +
+//                "AT18650\n" +
+//                "AT18659\n" +
+//                "AT18663\n" +
+//                "AT18664\n" +
+//                "AT18667\n" +
+//                "AT18678\n" +
+//                "AT18681\n" +
+//                "AT18682\n" +
+//                "AT18683\n" +
+//                "AT18688\n" +
+//                "AT18692\n" +
+//                "AT18693\n" +
+//                "AT18696\n" +
+//                "SYR-L1\n" +
+//                "AT18837\n" +
+//                "AT18710\n" +
+//                "AT18713\n" +
+//                "AT18714\n" +
+//                "AT18719\n" +
+//                "AT18721\n" +
+//                "IRN-L2\n" +
+//                "AT18727\n" +
+//                "AT18728\n" +
+//                "AT18729\n" +
+//                "AT18732\n" +
+//                "TJK-L1\n" +
+//                "AT18741\n" +
+//                "AT18743\n" +
+//                "AT18746\n" +
+//                "AT18747\n" +
+//                "AT18749\n" +
+//                "AT18752\n" +
+//                "AFG-L1\n" +
+//                "AT18761\n" +
+//                "AT18838\n" +
+//                "AT18839\n" +
+//                "AT18765\n" +
+//                "AT18773\n" +
+//                "AT18774\n" +
+//                "AT18779\n" +
+//                "AT18780\n" +
+//                "AT18786\n" +
+//                "AT18790\n" +
+//                "AT18792\n" +
+//                "AT18794\n" +
+//                "AT18798\n" +
+//                "UZB-L1\n" +
+//                "AT18805\n" +
+//                "AT18808\n" +
+//                "AT18810\n" +
+//                "AT18819\n" +
+//                "AT18820\n" +
+//                "AT18842\n" +
+//                "AT18843\n" +
+//                "AT18828\n" +
+//                "AT18829\n";
         String[] Sample = null;
         Sample = SampleName.split("\n");
+        System.out.println(Sample[1]);
         Set<String> tempS = new HashSet<>();
-        BufferedReader br = IOUtils.getTextGzipReader(inputDir + infileS + ".vcf");
+        BufferedReader br = IOUtils.getTextReader(inputDir + infileS + ".vcf");
         String temp = null;
         String[] temps = null;
         String[] tempsOrigin = null;
-        StringBuilder sb = new StringBuilder();
+//        StringBuilder sb = new StringBuilder();
         ArrayList<String> NameList = new ArrayList<>();
         HashMap<String, String> NameMap = new HashMap();
         try {
@@ -932,7 +1148,7 @@ public class rareallele {
                     for (int i = 0; i < temps.length; i++) {
                         if (temps[i].startsWith("AT")) {
                             NameMap.put(temps[i].substring(0,7),temps[i]);
-                            temps[i] = temps[i].substring(0, 7);
+                            temps[i] = temps[i].substring(0,7);
                         }
                     }
                     for (int j = 0; j < Sample.length; j++) {
@@ -958,10 +1174,10 @@ public class rareallele {
 
 
     public void getTransNumber(){
-        String infileS = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/origin/genotypetrans.txt";
-        String infor ="/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/origin/genotype1.txt";
-        BufferedReader br = IOUtils.getTextReader(infileS);
-        BufferedReader br1 =IOUtils.getTextReader(infor);
+        String infileS = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/table/S7_ZX-B18.txt";
+        String infor ="/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/table/B18-AT.txt";
+        BufferedReader br = IOUtils.getTextReader(infor);
+        BufferedReader br1 =IOUtils.getTextReader(infileS);
         String temp1 =null;
         String temp =null;
         String[] temps =null;
