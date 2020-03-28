@@ -1,16 +1,17 @@
 package daxing.applets;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.TreeMultimap;
+import com.google.common.collect.*;
 import daxing.common.*;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.util.CombinatoricsUtils;
+import pgl.infra.table.RowTable;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
+import sun.tools.jconsole.Tab;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -320,7 +321,7 @@ public class ScriptMethods {
                     sb.append("nohup smc++ vcf2smc --cores 1 -m ").append(subgenomeVcfComplementBedFiles.get(i)).append(" ");
                     sb.append(subgenomeVcfFiles.get(i)).append(" -l ").append(chrSizeMap.get(subgenomeChrs.get(i))).append(" -d ");
                     sb.append(distTaxon).append(" ").append(distTaxon).append(" ");
-                    outFile=new File(outDir, subgenomeVcfFiles.get(i).getName().substring(0,6)+"."+group[j]+".smc.txt");
+                    outFile=new File(outDir, subgenomeVcfFiles.get(i).getName().substring(0,6)+"."+group[j]+".smc.gz");
                     sb.append(outFile.getAbsolutePath()).append(" ").append(subgenomeChrs.get(i)).append(" ");
                     sb.append(group[j]).append(":");
                     for (int k = 0; k < individuals.size(); k++) {
@@ -438,38 +439,36 @@ public class ScriptMethods {
         }
     }
 
-    public static void bulidSMC(){
-        String vcfDir="/data4/home/aoyue/vmap2/daxing/vmap2.1.ancestral/002_vmap2.1RefToAncestral";
-        String bedDir="/data4/home/aoyue/vmap2/daxing/analysis/016_demographic/002_refToAncestral/001_vmap2.1_complementChr";
-        String outDir="/data4/home/aoyue/vmap2/daxing/analysis/016_demographic/002_refToAncestral/002_smc";
-        String groupFile="/data4/home/aoyue/vmap2/daxing/analysis/016_demographic/002_refToAncestral/groupSMC.txt";
-        String distTaxon="/data4/home/aoyue/vmap2/daxing/analysis/016_demographic/002_refToAncestral/popDistTaxon.txt";
-        String outFileAB="/data4/home/aoyue/vmap2/daxing/analysis/016_demographic/002_refToAncestral/resAB.sh";
-        String outFileD="/data4/home/aoyue/vmap2/daxing/analysis/016_demographic/002_refToAncestral/resdDsh";
-        String genomeFile="/data4/home/aoyue/vmap2/daxing/analysis/016_demographic/002_refToAncestral/genome.txt";
-        String[] group_AB={"WildEmmer","DomesticatedEmmer","FreeThreshTetraploid","Landrace", "Landrace_Europe",
-                "Landrace_WestAsia", "Landrace_EastAsia", "Cultivar"};
-        String[] group_D={"Ae.tauschii","Landrace", "Landrace_Europe",
-                "Landrace_WestAsia", "Landrace_EastAsia", "Cultivar"};
-        String logDir="/data4/home/aoyue/vmap2/daxing/analysis/016_demographic/002_refToAncestral/log";
+    public static void bulidSMC(String vcfDir, String bedDir, String outDir, String groupFile, String distTaxon,
+                                String outFileAB, String outFileD, String genomeFile, String logDir){
+//        vcfDir="/data1/home/daxing/vmap2.1Data/002_vmap2.1RefToAncestral";
+//        bedDir="/data1/home/daxing/vmap2.1Data/001_vmap2.1_complementChr";
+//        outDir="/Users/xudaxing/Desktop/out";
+//        groupFile="/Users/xudaxing/Desktop/groupSMC_R1.txt";
+//        distTaxon="/Users/xudaxing/Desktop/popDistTaxonR1.txt";
+//        outFileAB="/Users/xudaxing/Desktop/resAB.sh";
+//        outFileD="/Users/xudaxing/Desktop/resD.sh";
+//        genomeFile="/Users/xudaxing/Desktop/genome.txt";
+        String[] group_AB={"WildEmmer","DomesticatedEmmer","FreeThreshTetraploid","Landrace", "Cultivar"};
+        String[] group_D={"Ae.tauschii","Landrace", "Cultivar"};
+//        logDir="/Users/xudaxing/Desktop/log";
         ScriptMethods.smc(vcfDir, bedDir, outDir,"AB", groupFile, distTaxon, group_AB, outFileAB, genomeFile, logDir);
         ScriptMethods.smc(vcfDir, bedDir, outDir,"D", groupFile, distTaxon, group_D, outFileD, genomeFile, logDir);
     }
 
-    public static void bulidSMC_split(){
-        String vcfDir="/data1/home/daxing/analysis/002_vmap2.1RefToAncestral";
-        String bedDir="/data1/home/daxing/analysis/001_vmap2.1_complementChr";
-        String outDir="/data1/home/daxing/analysis/006_split/001_pop1221_smc";
-        String groupFile="/data1/home/daxing/analysis/groupSMC.txt";
-        String distTaxon="/data1/home/daxing/analysis/popDistTaxon.txt";
-        String outDirAB="/data1/home/daxing/analysis/006_split/ab_sh";
-        String outDirD="/data1/home/daxing/analysis/006_split/d_sh";
-        String genomeFile="/data1/home/daxing/analysis/genome.txt";
-        String[] group_AB={"WildEmmer","DomesticatedEmmer","FreeThreshTetraploid","Landrace", "Landrace_Europe",
-                "Landrace_WestAsia", "Landrace_EastAsia", "Cultivar"};
-        String[] group_D={"Ae.tauschii","Landrace", "Landrace_Europe",
-                "Landrace_WestAsia", "Landrace_EastAsia", "Cultivar"};
-        String logDir="/data1/home/daxing/analysis/log/003_split_vcf2smc_pop1221";
+    public static void bulidSMC_split(String vcfDir, String bedDir, String outDir, String groupFile, String distTaxon,
+                                      String outDirAB, String outDirD, String genomeFile, String logDir){
+//        vcfDir="/Users/xudaxing/Desktop/vcf";
+//        bedDir="/Users/xudaxing/Desktop/bed";
+//        outDir="/Users/xudaxing/Desktop/out";
+//        groupFile="/Users/xudaxing/Desktop/groupSMC_R1.txt";
+//        distTaxon="/Users/xudaxing/Desktop/popDistTaxonR1.txt";
+//        outDirAB="/Users/xudaxing/Desktop/resAB";
+//        outDirD="/Users/xudaxing/Desktop/resD";
+//        genomeFile="/Users/xudaxing/Desktop/genome.txt";
+        String[] group_AB={"WildEmmer","DomesticatedEmmer","FreeThreshTetraploid","Landrace", "Cultivar"};
+        String[] group_D={"Ae.tauschii","Landrace", "Cultivar"};
+//        logDir="/Users/xudaxing/Desktop/log";
         String groupA, groupB;
         Iterator<int[]> abIterator= CombinatoricsUtils.combinationsIterator(group_AB.length, 2);
         Iterator<int[]> dIterator= CombinatoricsUtils.combinationsIterator(group_D.length, 2);
@@ -636,6 +635,141 @@ public class ScriptMethods {
             }
             br2.close();
             bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void vmap2_exon_ML_Parsimony(String exonSNP_annoFile, String outEst, String outpasimony){
+        try (BufferedReader bufferedReader = IOTool.getReader(exonSNP_annoFile);
+             BufferedWriter bufferedWriter= IOTool.getTextWriter(outEst);
+             BufferedWriter bufferedWriter1 =IOTool.getTextWriter(outpasimony)) {
+            bufferedReader.readLine();
+            String line, estAncestral, pasimonyAncestral;
+            List<String> temp;
+            StringBuilder sb;
+            bufferedWriter.write("Chr-Pos-Ancestral-est");
+            bufferedWriter1.write("Chr-Pos-Ancestral-pasimony");
+            bufferedWriter.newLine();
+            bufferedWriter1.newLine();
+            while ((line=bufferedReader.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                estAncestral=temp.get(22);
+                pasimonyAncestral=temp.get(31);
+                if (estAncestral.equals("NA") && pasimonyAncestral.equals("NA")) continue;
+                sb=new StringBuilder();
+                if (!estAncestral.equals("NA")){
+                    sb.append(temp.get(1)).append("-").append(temp.get(2)).append("-").append(estAncestral);
+                    bufferedWriter.write(sb.toString());
+                    bufferedWriter.newLine();
+                }
+                if (!pasimonyAncestral.equals("NA")){
+                    sb=new StringBuilder();
+                    sb.append(temp.get(1)).append("-").append(temp.get(2)).append("-").append(pasimonyAncestral);
+                    bufferedWriter1.write(sb.toString());
+                    bufferedWriter1.newLine();
+                }
+            }
+            bufferedWriter.flush();
+            bufferedWriter1.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void split_est_to_RefChr(String inputDir, String outDir){
+        List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
+        BufferedWriter[] bws;
+        Map<String, BufferedWriter> chrBRmaps;
+        String[] abd={"A","B","D"};
+        BufferedReader br;
+        BufferedWriter bw;
+        for (int i = 0; i < abd.length; i++) {
+            chrBRmaps=new HashMap<>();
+            bws=new BufferedWriter[7];
+            for (int j = 0; j < bws.length; j++) {
+                int chr=j+1;
+                bws[j]=IOTool.getTextWriter(new File(outDir, "chr"+chr+abd[i]+".est.txt"));
+                chrBRmaps.put(chr+abd[i], bws[j]);
+            }
+            br=IOTool.getReader(files.get(i));
+            try {
+                String line, refChr;
+                List<String> temp;
+                while ((line=br.readLine())!=null){
+                    temp=PStringUtils.fastSplit(line);
+                    refChr=temp.get(0).substring(3)+abd[i];
+                    bw=chrBRmaps.get(refChr);
+                    temp.set(0, refChr);
+                    bw.write(String.join("\t", temp));
+                    bw.newLine();
+                }
+                br.close();
+                for(Map.Entry<String, BufferedWriter> entry: chrBRmaps.entrySet()){
+                    entry.getValue().flush();
+                    entry.getValue().close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static Table<String, Integer, String> getTable(String inputFile){
+        Table<String, Integer, String> table = HashBasedTable.create();
+        try (BufferedReader bufferedReader = IOTool.getReader(inputFile)) {
+            String line;
+            List<String> temp;
+            int chr, pos, refPos;
+            String refChr;
+            bufferedReader.readLine();
+            while ((line=bufferedReader.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                if (temp.get(2).equals(temp.get(3))) continue;
+                chr=Integer.parseInt(temp.get(0));
+                pos=Integer.parseInt(temp.get(1));
+                refChr=RefV1Utils.getChromosome(chr, pos);
+                refPos=RefV1Utils.getPosOnChromosome(chr, pos);
+                table.put(refChr, refPos, temp.get(2)+"-"+temp.get(3));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return table;
+    }
+
+    public static void test(String estByRefChrDir, String inputFile, String outFileML, String outFile){
+        Table<String, Integer, String> table=getTable(inputFile);
+        List<File> files=IOUtils.getVisibleFileListInDir(estByRefChrDir);
+        BufferedReader br;
+        BufferedWriter bw=IOTool.getTextWriter(outFileML);
+        BufferedWriter bw1=IOTool.getTextWriter(outFile);
+        try {
+            String line, chr;
+            List<String> temp;
+            int pos;
+            StringBuilder sb;
+            bw.write("Chr\tPos\tAncestral-est_Ancestral-pasimony");
+            bw.newLine();
+            for (int i = 0; i < files.size(); i++) {
+                br=IOTool.getReader(files.get(i));
+                br.readLine();
+                while ((line=br.readLine())!=null){
+                    temp=PStringUtils.fastSplit(line);
+                    chr=temp.get(0);
+                    pos=Integer.parseInt(temp.get(2));
+                    if (!table.contains(chr, pos)) continue;
+                    sb=new StringBuilder();
+                    sb.append(chr).append("\t").append(pos).append("\t").append(table.get(chr, pos));
+                    bw.write(sb.toString());
+                    bw.newLine();
+                    bw1.write(line);
+                    bw1.newLine();
+                }
+                br.close();
+            }
+            bw.flush();
+            bw.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
