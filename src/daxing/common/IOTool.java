@@ -1,9 +1,11 @@
 package daxing.common;
 
 import pgl.infra.utils.IOUtils;
+import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
@@ -42,6 +44,11 @@ public class IOTool extends IOUtils {
         return IOUtils.getTextGzipWriter(file.getAbsolutePath());
     }
 
+    /**
+     * 递归获取当前目录下的所有非隐藏文件
+     * @param dir
+     * @return
+     */
     public static List<File> getVisibleFileRecursiveDir(String dir){
         File[] files= IOUtils.listRecursiveFiles(new File(dir));
         Predicate<File> hidden=File::isHidden;
@@ -49,9 +56,35 @@ public class IOTool extends IOUtils {
         return res;
     }
 
+    /**
+     * 获取当前目录下的所有非隐藏文件，不递归
+     * @param dir
+     * @return
+     */
     public static List<File> getVisibleDir(String dir){
         File[] files=new File(dir).listFiles();
         Predicate<File> hidden=File::isHidden;
         return Arrays.stream(files).filter(hidden.negate()).sorted().collect(Collectors.toList());
+    }
+
+    /**
+     * 查看文件header
+     * @param file
+     * @param delimiter
+     */
+    public static void viewHeader(String file, String delimiter){
+        try (BufferedReader br = IOTool.getReader(file)) {
+            String line=br.readLine();
+            List<String> header= PStringUtils.fastSplit(line, delimiter);
+            for (int i = 0; i < header.size(); i++) {
+                System.out.println(i+" "+header.get(i));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void viewHeader(String file){
+        viewHeader(file,"\t");
     }
 }

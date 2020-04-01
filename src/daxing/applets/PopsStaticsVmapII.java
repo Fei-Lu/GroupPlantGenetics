@@ -1,6 +1,8 @@
 package daxing.applets;
 
+import com.google.common.io.Files;
 import daxing.common.IOTool;
+import daxing.common.RowTableTool;
 import daxing.common.WheatLineage;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
@@ -24,7 +26,7 @@ public class PopsStaticsVmapII {
         List<File> fdFiles= IOTool.getVisibleFileRecursiveDir(fdInputDir).stream().filter(getFdPredict()).collect(Collectors.toList());
         List<File> fstFiles=IOTool.getVisibleFileRecursiveDir(fstInputDir).stream().filter(getFstPredict()).collect(Collectors.toList());
         List<File> piFiles=IOTool.getVisibleFileRecursiveDir(piInputDir).stream().filter(getPiPredict()).collect(Collectors.toList());
-        String[] subdir={"001_fd","002_fst","003_pi", "004_all"};
+        String[] subdir={"001_fd","002_fst","003_pi", "004_all", "005_merge"};
         for (int i = 0; i < subdir.length; i++) {
             new File(outDir, subdir[i]).mkdir();
         }
@@ -34,6 +36,37 @@ public class PopsStaticsVmapII {
         transformPiToPlotFormat(piFiles, dirs.get(2).getAbsolutePath());
         mergeFdFstPi(dirs.get(0).getAbsolutePath(),dirs.get(1).getAbsolutePath(), dirs.get(2).getAbsolutePath(),
                 dirs.get(3).getAbsolutePath());
+        mergeFdFstPi(dirs.get(3), dirs.get(4));
+    }
+
+    private static void mergeFdFstPi(File inputDir, File outDir){
+        List<File> files=IOUtils.getVisibleFileListInDir(inputDir.getAbsolutePath());
+        Predicate<File> d=f->f.getName().substring(4,5).equals("D");
+        List<File> abFiles=files.stream().filter(d.negate()).collect(Collectors.toList());
+        List<File> dFiles=files.stream().filter(d).collect(Collectors.toList());
+        String[] subdir={"001_ab","002_d"};
+        for (int i = 0; i < subdir.length; i++) {
+            new File(outDir, subdir[i]).mkdir();
+        }
+        List<File> subDirs=IOTool.getVisibleDir(outDir.getAbsolutePath());
+        String outName;
+        List<File> temp;
+        for (int i = 0; i < abFiles.size(); i=i+3) {
+            outName=abFiles.get(i).getName().substring(0,5)+".txt";
+            temp=new ArrayList<>();
+            for (int j = 0; j < 3; j++) {
+                temp.add(abFiles.get(i+j));
+            }
+            RowTableTool.mergeRowTables(temp, new File(subDirs.get(0), outName).getAbsolutePath());
+        }
+        try {
+            for (int i = 0; i < dFiles.size(); i++) {
+                outName=dFiles.get(i).getName().substring(0,5)+".txt";
+                Files.copy(dFiles.get(i), new File(subDirs.get(1), outName));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void mergeFdFstPi(String fdDir, String fstDir, String piDir, String outDir){
@@ -150,8 +183,8 @@ public class PopsStaticsVmapII {
                 line=br.readLine();
                 temp=PStringUtils.fastSplit(line);
                 pi=Double.parseDouble(temp.get(4));
-                piRatio1=piHexaploid1/pi;
-                piRatio2=piHexaploid2/pi;
+                piRatio1=pi/piHexaploid1;
+                piRatio2=pi/piHexaploid2;
                 binMiddle=(Integer.parseInt(temp.get(1))+Integer.parseInt(temp.get(2)))/2;
                 sb=new StringBuilder();
                 sb.append(temp.get(0)).append("\t").append(binMiddle).append("\t").append("piRatio").append("\t");
