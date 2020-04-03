@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * @author Daxing Xu
@@ -27,6 +28,14 @@ public class RowTableTool<T> extends RowTable<T> {
 
     public RowTableTool(String infileS, String delimiter){
         super(infileS, delimiter);
+    }
+
+    public RowTableTool(List<String> header, List<List<T>> cells){
+        super(header, cells);
+    }
+
+    public List<List<T>> getCells(){
+        return this.cells;
     }
 
     /**
@@ -48,6 +57,13 @@ public class RowTableTool<T> extends RowTable<T> {
     public void forEach(Consumer<List<T>> consumer){
         List<List<T>> cells=this.cells;
         cells.forEach(consumer);
+    }
+
+    public RowTableTool<T> filter(Predicate<List<T>> p){
+        List<List<T>> cells=this.cells;
+        List<List<T>> newCells=cells.stream().filter(p).collect(Collectors.toList());
+        List<String> header=this.header;
+        return new RowTableTool<>(header, newCells);
     }
 
     /**

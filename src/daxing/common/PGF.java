@@ -713,6 +713,16 @@ public class PGF {
     }
 
     /**
+     * 获取指定转录本的exon总长度
+     * @param i
+     * @param j
+     * @return
+     */
+    public int getTranscriptExonLen(int i, int j){
+        return genes[i].ts.get(j).getExonLen();
+    }
+
+    /**
      * Return if there is 5UTR
      * @param i
      * @param j
@@ -1244,6 +1254,20 @@ public class PGF {
                 Range nr = cdsList.get(i+1);
                 intronList.add(new Range(r.chr, r.end, nr.start ));
             }
+        }
+
+        public int getExonLen(){
+            int len=0;
+            for (int i = 0; i < utr5List.size(); i++) {
+                len+=utr5List.get(i).getRangeSize();
+            }
+            for (int i = 0; i < utr3List.size(); i++) {
+                len+=utr3List.get(i).getRangeSize();
+            }
+            for (int i = 0; i < cdsList.size(); i++) {
+                len+=cdsList.get(i).getRangeSize();
+            }
+            return len;
         }
 
         @Override
