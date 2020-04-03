@@ -252,4 +252,9 @@ public class SeqByte implements SequenceInterface {
         return allIndex.binarySearch(indexInDashSeq);
     }
 
+    @Override
+    public SequenceInterface getSequenceInterface(int startIndex, int endIndex) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }
