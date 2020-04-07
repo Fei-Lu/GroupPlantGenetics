@@ -13,11 +13,24 @@ public class SNPAnnotation {
     String transcriptName;
 
     public enum Region{
-        UTR_5, CDS, UTR_3;
+        UTR_5((byte)0), CDS((byte)1), UTR_3((byte)2);
+
+        private byte region;
+
+        Region(byte region){
+            this.region=region;
+        }
     }
 
     public enum Variant_type{
-        NONCODING, NONSYNONYMOUS, START_LOST, STOP_GAIN, STOP_LOSS, SYNONYMOUS;
+        NONCODING((byte)0), NONSYNONYMOUS((byte)0), START_LOST((byte)0),
+        STOP_GAIN((byte)0), STOP_LOSS((byte)0), SYNONYMOUS((byte)0);
+
+        private byte variant_type;
+
+        Variant_type(byte variant_type) {
+            this.variant_type=variant_type;
+        }
     }
 
     Region region;

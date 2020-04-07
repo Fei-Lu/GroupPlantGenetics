@@ -1,6 +1,7 @@
 package daxing.load;
 
 import daxing.common.IOTool;
+import daxing.common.WheatLineage;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
@@ -11,32 +12,35 @@ import java.util.List;
 
 public class Triad {
 
-    List<String>[] triad;
+    List<String> triadID;
+    List<String[]> triad;
     TIntArrayList ifSyntenic;  //0 is non-syntenic and 1 is syntenic
     TIntArrayList ifExpressed;  // 0 is false and 1 is true
 
     public Triad(String triadFile){
-        triad=new List[3];
+        triadID=new ArrayList<>(19000);
+        triad=new ArrayList<>(19000);
         ifSyntenic=new TIntArrayList();
         ifExpressed=new TIntArrayList();
-        for (int i = 0; i < triad.length; i++) {
-            triad[i]=new ArrayList<>(19000);
-        }
         try (BufferedReader br = IOTool.getReader(triadFile)) {
             String line;
             List<String> temp;
             br.readLine();
+            String[] abdGenes;
             while ((line=br.readLine())!=null){
                 temp= PStringUtils.fastSplit(line);
-                triad[0].add(temp.get(0).replaceFirst("01", "02"));
-                triad[1].add(temp.get(1).replaceFirst("01","02"));
-                triad[2].add(temp.get(2).replaceFirst("01", "02"));
-                if (temp.get(3).equals("syntenic")){
+                triadID.add(temp.get(0));
+                abdGenes=new String[3];
+                abdGenes[0]=temp.get(1);
+                abdGenes[1]=temp.get(2);
+                abdGenes[2]=temp.get(3);
+                triad.add(abdGenes);
+                if (temp.get(4).equals("syntenic")){
                     ifSyntenic.add(1);
                 }else {
                     ifSyntenic.add(0);
                 }
-                if (temp.get(4).equals("TRUE")){
+                if (temp.get(5).equals("TRUE")){
                     ifExpressed.add(1);
                 }else {
                     ifExpressed.add(0);
@@ -47,17 +51,7 @@ public class Triad {
         }
     }
 
-    public Triad(List<String> aTriad, List<String> bTriad, List<String> dTriad){
-        triad=new List[3];
-        for (int i = 0; i < triad.length; i++) {
-            triad[i]=new ArrayList<>();
-        }
-        triad[0]=aTriad;
-        triad[1]=bTriad;
-        triad[2]=dTriad;
-    }
-
-    public List<String>[] getTriad() {
+    public List<String[]> getTriad() {
         return triad;
     }
 
@@ -69,23 +63,49 @@ public class Triad {
         return ifSyntenic;
     }
 
-    public List<String> getSubgenomeGenes(String subgenome){
+    public List<String> getTriadID() {
+        return triadID;
+    }
+
+    public WheatLineage getSubgenome(String geneName){
+        List<String> temp=PStringUtils.fastSplit(geneName, "G");
+        String subgenome=temp.get(0).substring(8,9);
+        return WheatLineage.valueOf(subgenome);
+    }
+
+    public List<String> getSubgenomeGenes(WheatLineage subgenome){
         String[] subgenomes={"A","B","D"};
-        int index= Arrays.binarySearch(subgenomes, subgenome);
+        int index= Arrays.binarySearch(subgenomes, subgenome.name());
         if (index < 0) {
             System.out.println("subgenome must be A or B or D");
             System.exit(1);
         }
-        return this.getTriad()[index];
+        List<String[]> genes=this.getTriad();
+        List<String> subgenomeGenes=new ArrayList<>();
+        for (int i = 0; i < genes.size(); i++) {
+            subgenomeGenes.add(genes.get(i)[index]);
+        }
+        return subgenomeGenes;
+    }
+
+    public List<String> getSubgenomeGens(String geneName){
+        WheatLineage subgenome=this.getSubgenome(geneName);
+        return this.getSubgenomeGenes(subgenome);
+    }
+
+    public List<String> getAllGenes(){
+        List<String> genes=new ArrayList<>(57000);
+        List<String[]> data=this.getTriad();
+        for (int i = 0; i < data.size(); i++) {
+            for (int j = 0; j < data.get(i).length; j++) {
+                genes.add(data.get(i)[j]);
+            }
+        }
+        return genes;
     }
 
     public String[] getTriad(int geneIndex){
-        List<String>[] triad=this.getTriad();
-        String[] res=new String[3];
-        res[0]=triad[0].get(geneIndex);
-        res[1]=triad[1].get(geneIndex);
-        res[2]=triad[2].get(geneIndex);
-        return res;
+        return this.getTriad().get(geneIndex);
     }
 
     public String[] getTriad(String geneName){
@@ -93,22 +113,27 @@ public class Triad {
         return getTriad(geneIndex);
     }
 
+    public String[] getTraidGenes(String triadID){
+        List<String> triadNames=this.triadID;
+        int index=triadNames.indexOf(triadID);
+        return this.getTriad().get(index);
+    }
+
+    public String getTraidID(String geneName){
+        int geneIndex=this.getGeneIndex(geneName);
+        return this.getTriadID().get(geneIndex);
+    }
+
     public int getGeneIndex(String geneName){
-        String[] subgenomes={"A","B","D"};
-        List<String> temp=PStringUtils.fastSplit(geneName, "G");
-        String subgenome=temp.get(0).substring(8,9);
-        int subgenomeIndex=Arrays.binarySearch(subgenomes, subgenome);
-        int geneIndex=this.getTriad()[subgenomeIndex].indexOf(geneName);
-        return geneIndex;
+        String subgenome=this.getSubgenome(geneName).name();
+        List<String> subgenomeGenes=this.getSubgenomeGenes(WheatLineage.valueOf(subgenome));
+        return subgenomeGenes.indexOf(geneName);
     }
 
     public boolean contain(String geneName){
-        String[] subgenomes={"A","B","D"};
-        List<String> temp=PStringUtils.fastSplit(geneName, "G");
-        String subgenome=temp.get(0).substring(8,9);
-        int index=Arrays.binarySearch(subgenomes, subgenome);
-        List<String> subgenomeTriad=this.triad[index];
-        return subgenomeTriad.contains(geneName);
+        String subgenome=this.getSubgenome(geneName).name();
+        List<String> subgenomeGenes=this.getSubgenomeGenes(WheatLineage.valueOf(subgenome));
+        return subgenomeGenes.contains(geneName);
     }
 
 }

@@ -78,6 +78,18 @@ public class RowTableTool<T> extends RowTable<T> {
         this.writeTextTable(outfile, IOFileFormat.Text);
     }
 
+    public void write(File outFile){
+        write(outFile.getAbsolutePath());
+    }
+
+    public void write(String outFile, IOFileFormat ioFileFormat){
+        writeTextTable(outFile, ioFileFormat);
+    }
+
+    public void write(File outFile, IOFileFormat ioFileFormat){
+        write(outFile.getAbsolutePath(), ioFileFormat);
+    }
+
     /**
      * 表格合并
      * @param rowTable
