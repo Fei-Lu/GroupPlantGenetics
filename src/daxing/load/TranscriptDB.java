@@ -1,6 +1,5 @@
 package daxing.load;
 
-
 import daxing.common.IOTool;
 import daxing.common.PGF;
 import daxing.common.RowTableTool;
@@ -112,10 +111,6 @@ public class TranscriptDB {
         return transcriptSNPAnno;
     }
 
-    public String[] getTranscriptNames(int chr){
-        return this.transcriptNames[chr-1];
-    }
-
     public String[] getGeneName(int chr){
         String[] transcriptNames=this.transcriptNames[chr-1];
         return Arrays.stream(transcriptNames).map(s->s.substring(0,18)).toArray(String[]::new);
@@ -162,10 +157,6 @@ public class TranscriptDB {
         List<SNPAnnotation>[] snpAnnoList=this.getTranscriptSNPAnno()[chr-1];
         int[] index=getGeneIndexSNPIndex(chr, pos);
         return snpAnnoList[index[0]].get(index[1]);
-    }
-
-    public int getGeneNum(int chr){
-        return this.getGeneName(chr).length;
     }
 
     public boolean contain(int chr, int pos){

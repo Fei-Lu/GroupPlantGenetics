@@ -68,32 +68,12 @@ public class SNPAnnotation {
         return maf;
     }
 
-    public double[] getAaf() {
-        return aaf;
-    }
-
-    public String getRecombinationRate() {
-        return recombinationRate;
-    }
-
-    public Region getRegion() {
-        return region;
-    }
-
     public String getAlt_SIFT() {
         return alt_SIFT;
     }
 
-    public String getDaf() {
-        return daf;
-    }
-
     public String getGerp() {
         return gerp;
-    }
-
-    public String[] getDafs() {
-        return dafs;
     }
 
     public String getVariant_type() {
