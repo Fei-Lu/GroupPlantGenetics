@@ -332,6 +332,15 @@ public class PGF {
         return cdsPosListOnGene;
     }
 
+    public int getCDSLen(int geneIndex, int transcriptIndex){
+        List<Range> cdsList=this.getCDSList(geneIndex, transcriptIndex);
+        int len=0;
+        for (int i = 0; i < cdsList.size(); i++) {
+            len+=cdsList.get(i).getRangeSize();
+        }
+        return len;
+    }
+
     /**
      * Return transcription start site (TSS) of a gene, null if 5'UTR does not exist.
      * @param geneIndex

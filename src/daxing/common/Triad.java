@@ -1,4 +1,4 @@
-package daxing.load;
+package daxing.common;
 
 import daxing.common.IOTool;
 import daxing.common.WheatLineage;
