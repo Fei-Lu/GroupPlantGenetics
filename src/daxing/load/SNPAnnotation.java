@@ -11,10 +11,10 @@ public class SNPAnnotation {
     String daf;
     String[] dafs;
     Region region;
-    Variant_type variant_type;
+    String variant_type;
     String alt_SIFT;
     String gerp;
-    float recombinationRate;
+    String recombinationRate;
 
     public enum Region{
         UTR_5((byte)0), CDS((byte)1), UTR_3((byte)2);
@@ -26,20 +26,9 @@ public class SNPAnnotation {
         }
     }
 
-    public enum Variant_type{
-        NONCODING((byte)0), NONSYNONYMOUS((byte)1), START_LOST((byte)2),
-        STOP_GAIN((byte)3), STOP_LOSS((byte)4), SYNONYMOUS((byte)5);
-
-        private byte variant_type;
-
-        Variant_type(byte variant_type) {
-            this.variant_type=variant_type;
-        }
-    }
-
     SNPAnnotation(short chr, int pos, char refBase, char altBase, String transcriptName, char majorBase,
                   String ancestral, double maf, double[] aaf, String daf, String[] dafs, Region region,
-                  Variant_type variant_type, String alt_SIFT, String gerp, float recombinationRate){
+                  String variant_type, String alt_SIFT, String gerp, String recombinationRate){
         BiSNP biSNP=new BiSNP(chr, pos, refBase, altBase, transcriptName);
         if (biSNP.getReferenceAlleleBase()==majorBase){
             biSNP.setReferenceAlleleType(AlleleType.Major);
@@ -83,7 +72,7 @@ public class SNPAnnotation {
         return aaf;
     }
 
-    public float getRecombinationRate() {
+    public String getRecombinationRate() {
         return recombinationRate;
     }
 
@@ -107,7 +96,7 @@ public class SNPAnnotation {
         return dafs;
     }
 
-    public Variant_type getVariant_type() {
+    public String getVariant_type() {
         return variant_type;
     }
 
@@ -122,12 +111,12 @@ public class SNPAnnotation {
     }
 
     public boolean isNonSyn(){
-        if (!this.getVariant_type().equals(Variant_type.NONSYNONYMOUS)) return false;
+        if (!this.getVariant_type().equals("NONSYNONYMOUS")) return false;
         return true;
     }
 
     public boolean isSyn(){
-        if (!this.getVariant_type().equals(Variant_type.SYNONYMOUS)) return false;
+        if (!this.getVariant_type().equals("SYNONYMOUS")) return false;
         return true;
     }
 

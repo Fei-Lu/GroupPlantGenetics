@@ -94,7 +94,7 @@ public class TranscriptDB {
         aaf[1]=Double.parseDouble(temp.get(9));
         String transcriptName=temp.get(10);
         SNPAnnotation.Region region=SNPAnnotation.Region.valueOf(temp.get(11));
-        SNPAnnotation.Variant_type variant_type=SNPAnnotation.Variant_type.valueOf(temp.get(12));
+        String variant_type=temp.get(12);
         String alt_SIFT=temp.get(13);
         String gerp=temp.get(20);
         String daf=temp.get(32);
@@ -103,7 +103,7 @@ public class TranscriptDB {
         dafs[0]=temp.get(33);
         dafs[1]=temp.get(34);
         String ancestral=temp.get(31);
-        float recombinationRate=Float.parseFloat(temp.get(21));
+        String recombinationRate=temp.get(21);
         return new SNPAnnotation(chr, pos, refBase, altBase, transcriptName, majorBase, ancestral, maf
                 , aaf, daf, dafs, region, variant_type, alt_SIFT, gerp, recombinationRate);
     }

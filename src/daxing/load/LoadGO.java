@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class LoadGO {
 
@@ -16,9 +17,8 @@ public class LoadGO {
         TranscriptDB transcriptDB=new TranscriptDB(pgfFile, exonSNPAnnoDir);
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
         Map<String, File> taxonOutDirMap=getTaxonOutDirMap(taxaListFile, outDir);
-        for (int i = 0; i < exonVCFFiles.size(); i++) {
-            go(transcriptDB, exonVCFFiles.get(i), taxonOutDirMap, i+1);
-        }
+        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(transcriptDB, exonVCFFiles.get(e),
+                taxonOutDirMap, e+1));
     }
 
     private static void go(TranscriptDB transcriptDB, File exonVCFFile,

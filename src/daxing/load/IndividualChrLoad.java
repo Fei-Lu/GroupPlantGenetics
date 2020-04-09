@@ -32,7 +32,11 @@ public class IndividualChrLoad {
     public TIntArrayList getNumHGDeleterious() {
         TIntArrayList res=new TIntArrayList();
         for (int i = 0; i < geneLoads.length; i++) {
-            res.add(geneLoads[i].getHGDeleteriousNum());
+            if (geneLoads[i]==null){
+                res.add(-1);
+            }else {
+                res.add(geneLoads[i].getHGDeleteriousNum());
+            }
         }
         return res;
     }
@@ -48,7 +52,11 @@ public class IndividualChrLoad {
     public TIntArrayList getNumDerivedInHGDeleterious() {
         TIntArrayList res=new TIntArrayList();
         for (int i = 0; i < geneLoads.length; i++) {
-            res.add(geneLoads[i].getHGDeleteriousDerivedNum());
+            if (geneLoads[i]==null){
+                res.add(-1);
+            }else {
+                res.add(geneLoads[i].getHGDeleteriousDerivedNum());
+            }
         }
         return res;
     }
@@ -56,7 +64,11 @@ public class IndividualChrLoad {
     public TIntArrayList getNumDerivedInNonsyn() {
         TIntArrayList res=new TIntArrayList();
         for (int i = 0; i < geneLoads.length; i++) {
-            res.add(geneLoads[i].getNonsynDerivedNum());
+            if (geneLoads[i]==null){
+                res.add(-1);
+            }else {
+                res.add(geneLoads[i].getNonsynDerivedNum());
+            }
         }
         return res;
     }
@@ -64,7 +76,11 @@ public class IndividualChrLoad {
     public TIntArrayList getNumDerivedInSyn() {
         TIntArrayList res=new TIntArrayList();
         for (int i = 0; i < geneLoads.length; i++) {
-            res.add(geneLoads[i].getSynDerivedNum());
+            if (geneLoads[i]==null){
+                res.add(-1);
+            }else {
+                res.add(geneLoads[i].getSynDerivedNum());
+            }
         }
         return res;
     }
@@ -72,7 +88,11 @@ public class IndividualChrLoad {
     public TIntArrayList getNumNonsyn() {
         TIntArrayList res=new TIntArrayList();
         for (int i = 0; i < geneLoads.length; i++) {
-            res.add(geneLoads[i].getNonsynNum());
+            if (geneLoads[i]==null){
+                res.add(-1);
+            }else {
+                res.add(geneLoads[i].getNonsynNum());
+            }
         }
         return res;
     }
@@ -80,7 +100,11 @@ public class IndividualChrLoad {
     public TIntArrayList getNumSyn() {
         TIntArrayList res=new TIntArrayList();
         for (int i = 0; i < geneLoads.length; i++) {
-            res.add(geneLoads[i].getSynNum());
+            if (geneLoads[i]==null){
+                res.add(-1);
+            }else {
+                res.add(geneLoads[i].getSynNum());
+            }
         }
         return res;
     }
