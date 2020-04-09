@@ -1,16 +1,20 @@
 package daxing.load;
 
-import java.util.Arrays;
+import pgl.infra.dna.allele.AlleleType;
+import pgl.infra.dna.snp.BiSNP;
 
 public class SNPAnnotation {
-    int chr;
-    int pos;
-    String[] allels=new String[2];
-    int refAlleleIndex;
-    int majorAlleleIndex;
-    //-1 表示ancestral为NA或vmapII bialleles不包含ancestra allele, O为alleles[0], 1为alleles[1]
-    int ancestralIndex;
-    String transcriptName;
+
+    BiSNP snp;
+    double maf;
+    double[] aaf;
+    String daf;
+    String[] dafs;
+    Region region;
+    Variant_type variant_type;
+    String alt_SIFT;
+    String gerp;
+    float recombinationRate;
 
     public enum Region{
         UTR_5((byte)0), CDS((byte)1), UTR_3((byte)2);
@@ -23,8 +27,8 @@ public class SNPAnnotation {
     }
 
     public enum Variant_type{
-        NONCODING((byte)0), NONSYNONYMOUS((byte)0), START_LOST((byte)0),
-        STOP_GAIN((byte)0), STOP_LOSS((byte)0), SYNONYMOUS((byte)0);
+        NONCODING((byte)0), NONSYNONYMOUS((byte)1), START_LOST((byte)2),
+        STOP_GAIN((byte)3), STOP_LOSS((byte)4), SYNONYMOUS((byte)5);
 
         private byte variant_type;
 
@@ -33,70 +37,122 @@ public class SNPAnnotation {
         }
     }
 
-    Region region;
-    Variant_type variant_type;
-
-    // -1表示NA
-    double alt_SIFT;
-    double ref_SIFT;
-    double derived_SIFT;
-    double gerp;
-    double recombinationRate;
-
-    SNPAnnotation(int chr, int pos, String[] allels, String refAllele, String majorAllele, String ancestral,
-                  String transcriptName, String region, String variant_type, String alt_SIFT, String ref_SIFT,
-                  String derived_SIFT, String gerp, String recombinationRate){
-        this.chr=chr;
-        this.pos=pos;
-        Arrays.sort(allels);
-        this.allels=allels;
-        refAlleleIndex=Arrays.binarySearch(allels, refAllele);
-        majorAlleleIndex=Arrays.binarySearch(allels, majorAllele);
-        if (ancestral.equals("NA")){
-            ancestralIndex=-1;
+    SNPAnnotation(short chr, int pos, char refBase, char altBase, String transcriptName, char majorBase,
+                  String ancestral, double maf, double[] aaf, String daf, String[] dafs, Region region,
+                  Variant_type variant_type, String alt_SIFT, String gerp, float recombinationRate){
+        BiSNP biSNP=new BiSNP(chr, pos, refBase, altBase, transcriptName);
+        if (biSNP.getReferenceAlleleBase()==majorBase){
+            biSNP.setReferenceAlleleType(AlleleType.Major);
+            biSNP.setAlternativeAlleleType(AlleleType.Minor);
         }else {
-            int index=Arrays.binarySearch(allels, ancestral);
-            ancestralIndex=index < 0 ? -1 : index;
+            biSNP.setAlternativeAlleleType(AlleleType.Major);
+            biSNP.setReferenceAlleleType(AlleleType.Minor);
         }
-        this.transcriptName=transcriptName;
-        this.region=Region.valueOf(region);
-        this.variant_type=Variant_type.valueOf(variant_type);
-        this.alt_SIFT=alt_SIFT.equals("NA") ? -1 : Double.parseDouble(alt_SIFT);
-        this.ref_SIFT=ref_SIFT.equals("NA") ? -1 : Double.parseDouble(ref_SIFT);
-        this.derived_SIFT=derived_SIFT.equals("NA") ? -1 : Double.parseDouble(derived_SIFT);
-        this.gerp=gerp.equals("NA") ? Double.NaN : Double.parseDouble(gerp);
-        this.recombinationRate=recombinationRate.equals("NA") ? -1 : Double.parseDouble(recombinationRate);
+        if (!ancestral.equals("NA")){
+            char ancestralAllele=ancestral.charAt(0);
+            if (biSNP.getReferenceAlleleBase()==ancestralAllele){
+                biSNP.setReferenceAlleleType(AlleleType.Ancestral);
+                biSNP.setAlternativeAlleleType(AlleleType.Derived);
+            }else if (biSNP.getAlternativeAlleleBase()==ancestralAllele){
+                biSNP.setAlternativeAlleleType(AlleleType.Ancestral);
+                biSNP.setReferenceAlleleType(AlleleType.Derived);
+            }
+        }
+        this.snp=biSNP;
+        this.maf=maf;
+        this.aaf=aaf;
+        this.daf=daf;
+        this.dafs=dafs;
+        this.region=region;
+        this.variant_type=variant_type;
+        this.alt_SIFT=alt_SIFT;
+        this.recombinationRate=recombinationRate;
+        this.gerp=gerp;
+        this.recombinationRate=recombinationRate;
     }
 
-    public String getID(){
-        StringBuilder sb=new StringBuilder();
-        sb.append(chr).append("-").append(pos);
-        return sb.toString();
+    public BiSNP getSnp() {
+        return snp;
     }
 
-    public String getRefAllele(){
-        return allels[refAlleleIndex];
+    public double getMaf() {
+        return maf;
     }
 
-    public String getAltAllele(){
-        int altAlleleIndex=refAlleleIndex==0 ? 1 : 0;
-        return allels[altAlleleIndex];
+    public double[] getAaf() {
+        return aaf;
     }
 
-    public String getRegion(){
-        return region.name();
+    public float getRecombinationRate() {
+        return recombinationRate;
     }
 
-    public String getVariant_type(){
-        return variant_type.name();
+    public Region getRegion() {
+        return region;
     }
 
-    public boolean hasGerp(){
-        return Double.isNaN(gerp) ? false : true;
+    public String getAlt_SIFT() {
+        return alt_SIFT;
     }
 
-    public double getGerp(){
+    public String getDaf() {
+        return daf;
+    }
+
+    public String getGerp() {
         return gerp;
     }
 
+    public String[] getDafs() {
+        return dafs;
+    }
+
+    public Variant_type getVariant_type() {
+        return variant_type;
+    }
+
+    public boolean isDeleterious(){
+        if(this.getAlt_SIFT().equals("NA")) return false;
+        float sift=Float.parseFloat(this.getAlt_SIFT());
+        if (sift > 0.05) return false;
+        if(this.getGerp().equals("NA")) return false;
+        float gerp=Float.parseFloat(this.getGerp());
+        if (gerp < 1) return false;
+        return true;
+    }
+
+    public boolean isNonSyn(){
+        if (!this.getVariant_type().equals(Variant_type.NONSYNONYMOUS)) return false;
+        return true;
+    }
+
+    public boolean isSyn(){
+        if (!this.getVariant_type().equals(Variant_type.SYNONYMOUS)) return false;
+        return true;
+    }
+
+    public boolean hasAncestral(){
+        BiSNP snp=this.getSnp();
+        if(snp.isReferenceAlleleTypeOf(AlleleType.Ancestral) || snp.isAlternativeAlleleTypeOf(AlleleType.Ancestral)) return true;
+        return false;
+    }
+
+    public boolean isRefAlleleAncestral(){
+        if (!hasAncestral()){
+            System.out.println("error, program quit");
+            System.exit(1);
+        }
+        if (this.snp.isReferenceAlleleTypeOf(AlleleType.Ancestral)) return true;
+        return false;
+    }
+
+    public boolean check(short chr, int pos){
+        BiSNP snp=this.getSnp();
+        if (snp.getChromosome()==chr && snp.getPosition()==pos) return true;
+        return false;
+    }
+
+    public int getPos(){
+        return this.snp.getPosition();
+    }
 }
