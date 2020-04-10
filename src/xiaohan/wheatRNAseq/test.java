@@ -18,7 +18,7 @@ import pgl.infra.utils.IOUtils;
 public class test {
 
     public test() throws IOException {
-//        this.mkPosGeneMap();
+        this.mkPosGeneMap();
         //this.wordList();
 
     }

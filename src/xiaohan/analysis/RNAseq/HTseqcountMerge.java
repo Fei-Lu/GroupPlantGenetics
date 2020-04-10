@@ -31,7 +31,7 @@ public class HTseqcountMerge {
     }
 //  
     public void CountMerge() {//顺序是HTSeq里面的顺序
-        String DirS = "/Users/yxh/Documents/RNA-seq/006test/HTseqcount/coleoptile";
+        String DirS = "/Users/yxh/Documents/eQTL/009ERCC test/SiPAS-Truseq_1M/SiPAS1M/geneCount";
 //        String inputDirS = "/Users/yxh/Documents/RNA-seq/006test/HTseqcount/coleoptile";
 //        String outputDirS = "/Users/yxh/Documents/RNA-seq/006test/DEseq2";
 //        String inputDirS = "/data1/home/xiaohan/rnaseq/root/HTseqcount";
@@ -42,7 +42,7 @@ public class HTseqcountMerge {
         File[] fs = new File(subFqDirS).listFiles();
         Arrays.sort(fs);
         final List<File> fList = Arrays.asList(fs);
-        int[][] count = new int[107891][fList.size()];
+        int[][] count = new int[92][fList.size()];
         
         List<Integer> indexList = new ArrayList<>();
         for (int i = 0; i < fList.size(); i++) {
@@ -58,7 +58,7 @@ public class HTseqcountMerge {
                 while ((temp = br.readLine()) != null) {
                     List<String> tList = PStringUtils.fastSplit(temp);
                     tem = tList.toArray(new String[tList.size()]);
-                    if (tem[0].startsWith("TraesCS")) {
+                    if (tem[0].startsWith("ERCC")) {
                         nameList.add(tem[0]);
                         int index1 = counter;
                         count[index1][index] = Integer.parseInt(tem[1]);
@@ -81,7 +81,7 @@ public class HTseqcountMerge {
             BufferedWriter bw = IOUtils.getTextWriter(outputFileS);
             sb.append("Gene" + "\t");
             for (int i = 0; i < fList.size(); i++) {
-                sb.append(fList.get(i).getName().replace(".count.txt", "") + "\t");
+                sb.append(fList.get(i).getName().replace("_Count.txt", "") + "\t");
             }
             bw.write(sb.toString());
             bw.newLine();
