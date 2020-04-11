@@ -12,16 +12,27 @@ import java.util.stream.IntStream;
 
 public class LoadGO {
 
-    public static void go(String pgfFile, String exonSNPAnnoDir, String exonVCFDir, String taxaListFile,
+    public static void go(String exonSNPAnnoDir, String exonVCFDir, String vmapIIGroupFile, String triadFile,
                           String outDir){
-        TranscriptDB transcriptDB=new TranscriptDB(pgfFile, exonSNPAnnoDir);
+        String[] subdir={"001_count","002_countMerge","003_retainTriad","004_model","005_modelMerge"};
+        for (int i = 0; i < subdir.length; i++) {
+            new File(outDir, subdir[i]).mkdir();
+        }
+        List<File> exonAnnoFiles=IOUtils.getVisibleFileListInDir(exonSNPAnnoDir);
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
-        Map<String, File> taxonOutDirMap=getTaxonOutDirMap(taxaListFile, outDir);
-        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(transcriptDB, exonVCFFiles.get(e),
+        Map<String, File> taxonOutDirMap=getTaxonOutDirMap(vmapIIGroupFile, new File(outDir, subdir[0]).getAbsolutePath());
+        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
                 taxonOutDirMap, e+1));
+        EightModelUtils.merge(new File(outDir, subdir[0]).getAbsolutePath(), vmapIIGroupFile, new File(outDir,
+                subdir[1]).getAbsolutePath());
+        EightModelUtils.retainTriad(triadFile, new File(outDir, subdir[1]).getAbsolutePath(), new File(outDir,
+                subdir[2]).getAbsolutePath());
+        EightModelUtils.countEightModel(new File(outDir, subdir[2]).getAbsolutePath(), vmapIIGroupFile,
+                new File(outDir, subdir[3]).getAbsolutePath());
+        EightModelUtils.mergeModel(new File(outDir, subdir[3]).getAbsolutePath(), new File(outDir, subdir[4]).getAbsolutePath());
     }
 
-    private static void go(TranscriptDB transcriptDB, File exonVCFFile,
+    private static void go(File exonSNPAnnoFile, File exonVCFFile,
                            Map<String, File> taxonOutDirMap, int chr){
         try (BufferedReader br = IOTool.getReader(exonVCFFile)) {
             String line;
@@ -29,7 +40,8 @@ public class LoadGO {
             while ((line=br.readLine()).startsWith("##")){}
             temp= PStringUtils.fastSplit(line);
             List<String> taxonNames=temp.subList(9, temp.size());
-            String[] geneNames=transcriptDB.getGeneName(chr);
+            TranscriptDB transcriptDB=new TranscriptDB(exonSNPAnnoFile.getAbsolutePath());
+            String[] geneNames=transcriptDB.getGeneName();
             IndividualChrLoad[] taxonLoads=new IndividualChrLoad[taxonNames.size()];
             for (int i = 0; i < taxonLoads.length; i++) {
                 taxonLoads[i]=new IndividualChrLoad(taxonNames.get(i), geneNames, chr);
@@ -81,9 +93,9 @@ public class LoadGO {
         }
     }
 
-    private static Map<String, File> getTaxonOutDirMap(String taxaListFile, String outDir){
+    private static Map<String, File> getTaxonOutDirMap(String vmapIIGroupFile, String outDir){
         Map<String,File> taxonOutDirMap=new HashMap<>();
-        RowTable<String> taxonTable=new RowTable<>(taxaListFile);
+        RowTable<String> taxonTable=new RowTable<>(vmapIIGroupFile);
         List<String> taxonNames=taxonTable.getColumn(0);
         File taxonDir;
         for (int i = 0; i < taxonNames.size(); i++) {
