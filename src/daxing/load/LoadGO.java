@@ -1,10 +1,12 @@
 package daxing.load;
 
 import daxing.common.IOTool;
+import daxing.common.RowTableTool;
 import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -27,6 +29,7 @@ public class LoadGO {
                 subdir[1]).getAbsolutePath());
         EightModelUtils.retainTriad(triadFile, new File(outDir, subdir[1]).getAbsolutePath(), new File(outDir,
                 subdir[2]).getAbsolutePath());
+        countGeneNum(new File(outDir, subdir[2]), new File(outDir, subdir[4]));
         EightModelUtils.countEightModel(new File(outDir, subdir[2]).getAbsolutePath(), vmapIIGroupFile,
                 new File(outDir, subdir[3]).getAbsolutePath());
         EightModelUtils.mergeModel(new File(outDir, subdir[3]).getAbsolutePath(), new File(outDir, subdir[4]).getAbsolutePath());
@@ -104,5 +107,29 @@ public class LoadGO {
             taxonOutDirMap.put(taxonNames.get(i), taxonDir);
         }
         return taxonOutDirMap;
+    }
+
+    private static void countGeneNum(File inputDir,File outDir){
+        List<File> files=IOUtils.getVisibleFileListInDir(inputDir.getAbsolutePath());
+        RowTable<String> rowTable;
+        try {
+            BufferedWriter bw=IOTool.getTextGzipWriter(new File(outDir, "geneNum.txt.gz"));
+            bw.write("taxon\tgeneNum");
+            bw.newLine();
+            String taxondName;
+            StringBuilder sb;
+            for (int i = 0; i < files.size(); i++) {
+                rowTable=new RowTableTool<>(files.get(i).getAbsolutePath());
+                taxondName=PStringUtils.fastSplit(files.get(i).getName(), ".").get(0);
+                sb=new StringBuilder();
+                sb.append(taxondName).append("\t").append(rowTable.getRowNumber());
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
