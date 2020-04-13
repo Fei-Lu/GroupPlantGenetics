@@ -1,13 +1,12 @@
 package daxing.load;
 
 import gnu.trove.list.array.TByteArrayList;
-
 import java.util.HashMap;
 import java.util.Map;
 
-public class GeneLoad{
+public class GeneLoad implements Comparable<GeneLoad>{
 
-    //0: 0/0 1: 1/1
+    //0: 0/0 1: 1/1  0为ancestral, 1为derived
     String geneName;
     TByteArrayList synGenotype;
     TByteArrayList nonsynGenotype;
@@ -45,10 +44,12 @@ public class GeneLoad{
     public void addGenotype(byte[] indexGenotype){
         if (indexGenotype[0]==0){
             this.synGenotype.add(indexGenotype[1]);
-        }else if(indexGenotype[0]==1){
-            this.nonsynGenotype.add(indexGenotype[1]);
-        }else if (indexGenotype[0]==2){
+        }else if(indexGenotype[0]==2){
             this.hgDeleteriousGenop.add(indexGenotype[1]);
+            this.nonsynGenotype.add(indexGenotype[1]);
+        }else if (indexGenotype[0]==1){
+            this.nonsynGenotype.add(indexGenotype[1]);
+
         }
     }
 
@@ -93,5 +94,10 @@ public class GeneLoad{
             return genotypeToByteMap1.get(genotype);
         }
         return genotypeToByteMap2.get(genotype);
+    }
+
+    @Override
+    public int compareTo(GeneLoad o) {
+        return this.getGeneName().compareTo(o.geneName);
     }
 }

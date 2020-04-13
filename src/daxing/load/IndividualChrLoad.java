@@ -6,30 +6,43 @@ import pgl.infra.utils.PStringUtils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.util.*;
 
-public class IndividualChrLoad {
+public class IndividualChrLoad{
 
     String taxonName;
-    String[] geneNames;
     int chr;
     GeneLoad[] geneLoads;
 
     public IndividualChrLoad(String taxonName, String[] geneNames, int chr){
         this.taxonName=taxonName;
-        this.geneNames=geneNames;
         this.chr=chr;
-        this.geneLoads=new GeneLoad[geneNames.length];
-        for (int i = 0; i < geneLoads.length; i++) {
-            geneLoads[i]=new GeneLoad(geneNames[i]);
+        List<GeneLoad> geneLoads=new ArrayList<>(2000);
+        for (int i = 0; i < geneNames.length; i++) {
+            geneLoads.add(new GeneLoad(geneNames[i]));
+        }
+        Collections.sort(geneLoads);
+        this.geneLoads=new GeneLoad[geneLoads.size()];
+        for (int i = 0; i < this.geneLoads.length; i++) {
+            this.geneLoads[i]=geneLoads.get(i);
         }
     }
 
-    public void addGenotype(int geneIndex, byte[] indexGenotype){
-        geneLoads[geneIndex].addGenotype(indexGenotype);
+    public int getGeneIndex(String geneName){
+        return Arrays.binarySearch(geneLoads, new GeneLoad(geneName));
+    }
+
+    public void addGenotype(String geneName, byte[] siteGenotype){
+        int geneIndex=getGeneIndex(geneName);
+        geneLoads[geneIndex].addGenotype(siteGenotype);
     }
 
     public String[] getGeneNames() {
-        return geneNames;
+        String[] geneName=new String[this.geneLoads.length];
+        for (int i = 0; i < this.geneLoads.length; i++) {
+            geneName[i]=this.geneLoads[i].getGeneName();
+        }
+        return geneName;
     }
 
     public TIntArrayList getNumHGDeleterious() {
@@ -59,11 +72,7 @@ public class IndividualChrLoad {
     public TIntArrayList getNumDerivedInNonsyn() {
         TIntArrayList res=new TIntArrayList();
         for (int i = 0; i < geneLoads.length; i++) {
-            if (geneLoads[i]==null){
-                res.add(-1);
-            }else {
-                res.add(geneLoads[i].getNonsynDerivedNum());
-            }
+            res.add(geneLoads[i].getNonsynDerivedNum());
         }
         return res;
     }
@@ -71,11 +80,7 @@ public class IndividualChrLoad {
     public TIntArrayList getNumDerivedInSyn() {
         TIntArrayList res=new TIntArrayList();
         for (int i = 0; i < geneLoads.length; i++) {
-            if (geneLoads[i]==null){
-                res.add(-1);
-            }else {
-                res.add(geneLoads[i].getSynDerivedNum());
-            }
+            res.add(geneLoads[i].getSynDerivedNum());
         }
         return res;
     }
@@ -83,11 +88,7 @@ public class IndividualChrLoad {
     public TIntArrayList getNumNonsyn() {
         TIntArrayList res=new TIntArrayList();
         for (int i = 0; i < geneLoads.length; i++) {
-            if (geneLoads[i]==null){
-                res.add(-1);
-            }else {
-                res.add(geneLoads[i].getNonsynNum());
-            }
+            res.add(geneLoads[i].getNonsynNum());
         }
         return res;
     }
@@ -95,11 +96,7 @@ public class IndividualChrLoad {
     public TIntArrayList getNumSyn() {
         TIntArrayList res=new TIntArrayList();
         for (int i = 0; i < geneLoads.length; i++) {
-            if (geneLoads[i]==null){
-                res.add(-1);
-            }else {
-                res.add(geneLoads[i].getSynNum());
-            }
+            res.add(geneLoads[i].getSynNum());
         }
         return res;
     }
@@ -109,7 +106,7 @@ public class IndividualChrLoad {
         String taxonName=this.getTaxonName();
         File outFile=new File(outDir, "chr"+ PStringUtils.getNDigitNumber(3, chr)+"."+taxonName+".txt.gz");
         try (BufferedWriter bw = IOTool.getTextGzipWriter(outFile)) {
-            bw.write("transcriptName\tnumSyn\tnumDerivedInSyn\tnumNonsyn\tnumDerivedInNonsyn" +
+            bw.write("geneName\tnumSyn\tnumDerivedInSyn\tnumNonsyn\tnumDerivedInNonsyn" +
                     "\tnumHGDeleterious\tnumDerivedInHGDeleterious");
             bw.newLine();
             StringBuilder sb;

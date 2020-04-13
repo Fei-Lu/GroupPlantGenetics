@@ -1,5 +1,6 @@
 package daxing.load;
 
+import daxing.common.DateTime;
 import daxing.common.IOTool;
 import daxing.common.RowTableTool;
 import pgl.infra.table.RowTable;
@@ -17,6 +18,7 @@ public class LoadGO {
 
     public static void go(String exonSNPAnnoDir, String exonVCFDir, String vmapIIGroupFile, String triadFile,
                           String outDir){
+        DateTime.getDateTimeOfNow();
         String[] subdir={"001_count","002_countMerge","003_retainTriad","004_model","005_modelMerge"};
         for (int i = 0; i < subdir.length; i++) {
             new File(outDir, subdir[i]).mkdir();
@@ -24,22 +26,23 @@ public class LoadGO {
         List<File> exonAnnoFiles=IOUtils.getVisibleFileListInDir(exonSNPAnnoDir);
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
         Map<String, File> taxonOutDirMap=getTaxonOutDirMap(vmapIIGroupFile, new File(outDir, subdir[0]).getAbsolutePath());
-        IntStream.range(0, exonVCFFiles.size()).forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
+        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
                 taxonOutDirMap, e+1));
         EightModelUtils.merge(new File(outDir, subdir[0]).getAbsolutePath(), vmapIIGroupFile, new File(outDir,
                 subdir[1]).getAbsolutePath());
         EightModelUtils.retainTriad(triadFile, new File(outDir, subdir[1]).getAbsolutePath(), new File(outDir,
                 subdir[2]).getAbsolutePath());
         countGeneNum(new File(outDir, subdir[2]), new File(outDir, subdir[4]));
-        EightModelUtils.countEightModel(new File(outDir, subdir[2]).getAbsolutePath(), vmapIIGroupFile,
-                new File(outDir, subdir[3]).getAbsolutePath());
-        EightModelUtils.mergeModel(new File(outDir, subdir[3]).getAbsolutePath(), new File(outDir, subdir[4]).getAbsolutePath());
-        addGeneNumToModelMergedFile(new File(outDir, subdir[4]+"/geneNum.txt.gz"),
-                new File(outDir, subdir[4]+"/modelMerged.txt.gz"),
-                new File(outDir, subdir[4]+"/modelMergedGeneNum.txt.gz"));
+//        EightModelUtils.countEightModel(new File(outDir, subdir[2]).getAbsolutePath(), vmapIIGroupFile,
+//                new File(outDir, subdir[3]).getAbsolutePath());
+//        EightModelUtils.mergeModel(new File(outDir, subdir[3]).getAbsolutePath(), new File(outDir, subdir[4]).getAbsolutePath());
+//        addGeneNumToModelMergedFile(new File(outDir, subdir[4]+"/geneNum.txt.gz"),
+//                new File(outDir, subdir[4]+"/modelMerged.txt.gz"),
+//                new File(outDir, subdir[4]+"/modelMergedGeneNum.txt.gz"));
+        DateTime.getDateTimeOfNow();
     }
 
-    private static void go(File exonSNPAnnoFile, File exonVCFFile,
+    public static void go(File exonSNPAnnoFile, File exonVCFFile,
                            Map<String, File> taxonOutDirMap, int chr){
         try (BufferedReader br = IOTool.getReader(exonVCFFile)) {
             String line;
@@ -53,7 +56,7 @@ public class LoadGO {
             for (int i = 0; i < taxonLoads.length; i++) {
                 taxonLoads[i]=new IndividualChrLoad(taxonNames.get(i), geneNames, chr);
             }
-            int pos, geneNameIndex;
+            int pos;
             String geneName, genotype;
             List<String> genotypeList;
             boolean isRefAlleleAncestral=true;
@@ -71,7 +74,6 @@ public class LoadGO {
                 isDeleterious=transcriptDB.isDeleterious(chr, pos);
                 isRefAlleleAncestral=transcriptDB.isRefAlleleAncestral(chr, pos);
                 geneName=transcriptDB.getGeneName(chr, pos);
-                geneNameIndex=Arrays.binarySearch(geneNames, geneName);
                 for (int i = 0; i < taxonNames.size(); i++) {
                     genotypeList=PStringUtils.fastSplit(temp.get(i+9), ":");
                     genotype=genotypeList.get(0);
@@ -89,7 +91,7 @@ public class LoadGO {
                         indexGenotype[0]=1;
                         indexGenotype[1]=genotypeByte;
                     }
-                    taxonLoads[i].addGenotype(geneNameIndex, indexGenotype);
+                    taxonLoads[i].addGenotype(geneName, indexGenotype);
                 }
             }
             File outDir;
@@ -139,7 +141,7 @@ public class LoadGO {
         }
     }
 
-    public static void addGeneNumToModelMergedFile(File geneNumFile, File modelMergedFile, File outFile){
+    private static void addGeneNumToModelMergedFile(File geneNumFile, File modelMergedFile, File outFile){
         RowTableTool<String> geneNumTable=new RowTableTool<>(geneNumFile.getAbsolutePath());
         Map<String, String> taxonGeneNumMap=geneNumTable.getHashMap(0,1);
         RowTable<String> modelTable=new RowTableTool<>(modelMergedFile.getAbsolutePath());

@@ -99,6 +99,14 @@ public class SNPAnnotation extends BiSNP{
         return false;
     }
 
+    public char getAncestral(){
+        if (this.isRefAlleleAncestral()){
+            return this.reference.getAlleleBase();
+        }else {
+            return this.alternative.getAlleleBase();
+        }
+    }
+
     public boolean isRefAlleleAncestral(){
         if (!hasAncestral()){
             System.out.println("error, program quit");
