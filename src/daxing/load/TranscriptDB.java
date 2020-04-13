@@ -14,7 +14,7 @@ public class TranscriptDB {
 
     public TranscriptDB(String exonSNPAnnoFile){
         File exonAnnoFile=new File(exonSNPAnnoFile);
-        this.geneSNPAnno =this.getGeneSNPAnno(exonAnnoFile);;
+        this.geneSNPAnno =this.getGeneSNPAnno(exonAnnoFile);
     }
 
     private List<SNPAnnotation> getGeneSNPAnno(File exonSNPAnnoFile){

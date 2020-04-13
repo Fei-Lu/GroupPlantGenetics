@@ -3,6 +3,7 @@ package daxing.load;
 import daxing.common.IOTool;
 import daxing.common.RowTableTool;
 import pgl.infra.table.RowTable;
+import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
@@ -23,7 +24,7 @@ public class LoadGO {
         List<File> exonAnnoFiles=IOUtils.getVisibleFileListInDir(exonSNPAnnoDir);
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
         Map<String, File> taxonOutDirMap=getTaxonOutDirMap(vmapIIGroupFile, new File(outDir, subdir[0]).getAbsolutePath());
-        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
+        IntStream.range(0, exonVCFFiles.size()).forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
                 taxonOutDirMap, e+1));
         EightModelUtils.merge(new File(outDir, subdir[0]).getAbsolutePath(), vmapIIGroupFile, new File(outDir,
                 subdir[1]).getAbsolutePath());
@@ -33,6 +34,9 @@ public class LoadGO {
         EightModelUtils.countEightModel(new File(outDir, subdir[2]).getAbsolutePath(), vmapIIGroupFile,
                 new File(outDir, subdir[3]).getAbsolutePath());
         EightModelUtils.mergeModel(new File(outDir, subdir[3]).getAbsolutePath(), new File(outDir, subdir[4]).getAbsolutePath());
+        addGeneNumToModelMergedFile(new File(outDir, subdir[4]+"/geneNum.txt.gz"),
+                new File(outDir, subdir[4]+"/modelMerged.txt.gz"),
+                new File(outDir, subdir[4]+"/modelMergedGeneNum.txt.gz"));
     }
 
     private static void go(File exonSNPAnnoFile, File exonVCFFile,
@@ -54,8 +58,8 @@ public class LoadGO {
             List<String> genotypeList;
             boolean isRefAlleleAncestral=true;
             boolean isSyn, isNonsyn, isDeleterious;
-            GeneLoad geneLoad;
             byte genotypeByte;
+            byte[] indexGenotype; // syn nonsyn del
             while ((line=br.readLine())!=null){
                 temp=PStringUtils.fastSplit(line);
                 pos=Integer.parseInt(temp.get(1));
@@ -73,17 +77,19 @@ public class LoadGO {
                     genotype=genotypeList.get(0);
                     if (genotype.equals("./.")) continue;
                     if (genotype.equals("0/1")) continue;
-                    geneLoad=new GeneLoad(geneName);
                     genotypeByte=GeneLoad.caculateGenotype(genotype, isRefAlleleAncestral);
+                    indexGenotype=new byte[2];
                     if (isSyn){
-                        geneLoad.addSyn(genotypeByte);
+                        indexGenotype[0]=0;
+                        indexGenotype[1]=genotypeByte;
                     }else if (isDeleterious){
-                        geneLoad.addHGDeleterious(genotypeByte);
-                        geneLoad.addNonsyn(genotypeByte);
+                        indexGenotype[0]=2;
+                        indexGenotype[1]=genotypeByte;
                     } else {
-                        geneLoad.addNonsyn(genotypeByte);
+                        indexGenotype[0]=1;
+                        indexGenotype[1]=genotypeByte;
                     }
-                    taxonLoads[i].addGeneLoad(geneNameIndex, geneLoad);
+                    taxonLoads[i].addGenotype(geneNameIndex, indexGenotype);
                 }
             }
             File outDir;
@@ -131,5 +137,20 @@ public class LoadGO {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static void addGeneNumToModelMergedFile(File geneNumFile, File modelMergedFile, File outFile){
+        RowTableTool<String> geneNumTable=new RowTableTool<>(geneNumFile.getAbsolutePath());
+        Map<String, String> taxonGeneNumMap=geneNumTable.getHashMap(0,1);
+        RowTable<String> modelTable=new RowTableTool<>(modelMergedFile.getAbsolutePath());
+        List<String> taxonNameList=modelTable.getColumn(4);
+        List<String> geneNumList=new ArrayList<>();
+        int geneNum;
+        for (int i = 0; i < taxonNameList.size(); i++) {
+            geneNum=Integer.parseInt(taxonGeneNumMap.get(taxonNameList.get(i)));
+            geneNumList.add(String.valueOf(geneNum/3));
+        }
+        modelTable.addColumn("triadNum", geneNumList);
+        modelTable.writeTextTable(outFile.getAbsolutePath(), IOFileFormat.TextGzip);
     }
 }

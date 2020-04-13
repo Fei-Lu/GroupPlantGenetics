@@ -19,10 +19,13 @@ public class IndividualChrLoad {
         this.geneNames=geneNames;
         this.chr=chr;
         this.geneLoads=new GeneLoad[geneNames.length];
+        for (int i = 0; i < geneLoads.length; i++) {
+            geneLoads[i]=new GeneLoad(geneNames[i]);
+        }
     }
 
-    public void addGeneLoad(int geneIndex, GeneLoad geneLoad){
-        geneLoads[geneIndex]=geneLoad;
+    public void addGenotype(int geneIndex, byte[] indexGenotype){
+        geneLoads[geneIndex].addGenotype(indexGenotype);
     }
 
     public String[] getGeneNames() {
@@ -32,11 +35,7 @@ public class IndividualChrLoad {
     public TIntArrayList getNumHGDeleterious() {
         TIntArrayList res=new TIntArrayList();
         for (int i = 0; i < geneLoads.length; i++) {
-            if (geneLoads[i]==null){
-                res.add(-1);
-            }else {
-                res.add(geneLoads[i].getHGDeleteriousNum());
-            }
+            res.add(geneLoads[i].getHGDeleteriousNum());
         }
         return res;
     }
@@ -52,11 +51,7 @@ public class IndividualChrLoad {
     public TIntArrayList getNumDerivedInHGDeleterious() {
         TIntArrayList res=new TIntArrayList();
         for (int i = 0; i < geneLoads.length; i++) {
-            if (geneLoads[i]==null){
-                res.add(-1);
-            }else {
-                res.add(geneLoads[i].getHGDeleteriousDerivedNum());
-            }
+            res.add(geneLoads[i].getHGDeleteriousDerivedNum());
         }
         return res;
     }

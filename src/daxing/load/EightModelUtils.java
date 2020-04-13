@@ -52,7 +52,6 @@ public class EightModelUtils {
         String[] threeName;
         int indexABD[]=new int[3];
         String triadID, taxon, temp;
-        List<String> lineA, lineB, lineD;
         taxon=PStringUtils.fastSplit(inputFile.getName(), ".").get(0);
         StringBuilder sb;
         BufferedWriter bw;
@@ -69,12 +68,6 @@ public class EightModelUtils {
                 if (indexABD[0] < 0) continue;
                 if (indexABD[1] < 0) continue;
                 if (indexABD[2] < 0) continue;
-                lineA=table.getRow(indexABD[0]);
-                lineB=table.getRow(indexABD[1]);
-                lineD=table.getRow(indexABD[2]);
-                if (lineA.get(1).equals("-1")) continue;
-                if (lineB.get(1).equals("-1")) continue;
-                if (lineD.get(1).equals("-1")) continue;
                 triadID=triad.getTraidID(i);
                 for (int j = 0; j < indexABD.length; j++) {
                     temp=String.join("\t", table.getRow(indexABD[j]));
