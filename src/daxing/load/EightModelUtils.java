@@ -55,10 +55,11 @@ public class EightModelUtils {
         taxon=PStringUtils.fastSplit(inputFile.getName(), ".").get(0);
         StringBuilder sb;
         BufferedWriter bw;
+        int[] cdsLen;
         try {
             bw=IOTool.getTextGzipWriter(new File(outDir, taxon + ".triad.txt.gz"));
-            bw.write("TriadID\tGeneName\tnumSyn\tnumDerivedInSyn\tnumNonsyn\tnumDerivedInNonsyn\tnumHGDeleterious" +
-                    "\tnumDerivedInHGDeleterious");
+            bw.write("TriadID\tcdsLen\tGeneName\tnumSyn\tnumDerivedInSyn\tnumNonsyn\tnumDerivedInNonsyn" +
+                    "\tnumHGDeleterious\tnumDerivedInHGDeleterious");
             bw.newLine();
             for (int i = 0; i < triad.getRowNum(); i++) {
                 threeName=triad.getTriad(i);
@@ -69,10 +70,11 @@ public class EightModelUtils {
                 if (indexABD[1] < 0) continue;
                 if (indexABD[2] < 0) continue;
                 triadID=triad.getTraidID(i);
+                cdsLen=triad.getCDSLen(i);
                 for (int j = 0; j < indexABD.length; j++) {
                     temp=String.join("\t", table.getRow(indexABD[j]));
                     sb=new StringBuilder();
-                    sb.append(triadID).append("\t");
+                    sb.append(triadID).append("\t").append(cdsLen[j]).append("\t");
                     sb.append(temp);
                     bw.write(sb.toString());
                     bw.newLine();
