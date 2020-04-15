@@ -42,16 +42,14 @@ public class GeneLoad{
         return geneName;
     }
 
-    public void addSyn(byte synGenotype){
-        this.synGenotype.add(synGenotype);
-    }
-
-    public void addNonsyn(byte nonsynGenotype){
-        this.nonsynGenotype.add(nonsynGenotype);
-    }
-
-    public void addHGDeleterious(byte hgDeleteriousGenotype){
-        this.hgDeleteriousGenop.add(hgDeleteriousGenotype);
+    public void addGenotype(byte[] indexGenotype){
+        if (indexGenotype[0]==0){
+            this.synGenotype.add(indexGenotype[1]);
+        }else if(indexGenotype[0]==1){
+            this.nonsynGenotype.add(indexGenotype[1]);
+        }else if (indexGenotype[0]==2){
+            this.hgDeleteriousGenop.add(indexGenotype[1]);
+        }
     }
 
     public int getSynNum(){

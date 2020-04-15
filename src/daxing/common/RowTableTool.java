@@ -74,6 +74,21 @@ public class RowTableTool<T> extends RowTable<T> {
         this.cells.sort(comparator);
     }
 
+    public Map<T, T> getHashMap(int columnIndexA, int columnIndexB){
+        List<T> columnA=this.getColumn(columnIndexA);
+        List<T> columnB=this.getColumn(columnIndexB);
+        Map<T, T> map=new HashMap<>();
+        for (int i = 0; i < columnA.size(); i++) {
+            map.put(columnA.get(i), columnB.get(i));
+        }
+        return map;
+    }
+
+    public boolean contain(String str, int columnIndex){
+        List<String> column= (List<String>) this.getColumn(columnIndex);
+        return column.contains(str);
+    }
+
     public void write(String outfile){
         this.writeTextTable(outfile, IOFileFormat.Text);
     }

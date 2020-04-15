@@ -3,9 +3,8 @@ package daxing.load;
 import pgl.infra.dna.allele.AlleleType;
 import pgl.infra.dna.snp.BiSNP;
 
-public class SNPAnnotation {
+public class SNPAnnotation extends BiSNP{
 
-    BiSNP snp;
     double maf;
     double[] aaf;
     String daf;
@@ -29,25 +28,24 @@ public class SNPAnnotation {
     SNPAnnotation(short chr, int pos, char refBase, char altBase, String transcriptName, char majorBase,
                   String ancestral, double maf, double[] aaf, String daf, String[] dafs, Region region,
                   String variant_type, String alt_SIFT, String gerp, String recombinationRate){
-        BiSNP biSNP=new BiSNP(chr, pos, refBase, altBase, transcriptName);
-        if (biSNP.getReferenceAlleleBase()==majorBase){
-            biSNP.setReferenceAlleleType(AlleleType.Major);
-            biSNP.setAlternativeAlleleType(AlleleType.Minor);
+        super(chr, pos, refBase, altBase, transcriptName);
+        if (this.getReferenceAlleleBase()==majorBase){
+            this.setReferenceAlleleType(AlleleType.Major);
+            this.setAlternativeAlleleType(AlleleType.Minor);
         }else {
-            biSNP.setAlternativeAlleleType(AlleleType.Major);
-            biSNP.setReferenceAlleleType(AlleleType.Minor);
+            this.setAlternativeAlleleType(AlleleType.Major);
+            this.setReferenceAlleleType(AlleleType.Minor);
         }
         if (!ancestral.equals("NA")){
             char ancestralAllele=ancestral.charAt(0);
-            if (biSNP.getReferenceAlleleBase()==ancestralAllele){
-                biSNP.setReferenceAlleleType(AlleleType.Ancestral);
-                biSNP.setAlternativeAlleleType(AlleleType.Derived);
-            }else if (biSNP.getAlternativeAlleleBase()==ancestralAllele){
-                biSNP.setAlternativeAlleleType(AlleleType.Ancestral);
-                biSNP.setReferenceAlleleType(AlleleType.Derived);
+            if (this.getReferenceAlleleBase()==ancestralAllele){
+                this.setReferenceAlleleType(AlleleType.Ancestral);
+                this.setAlternativeAlleleType(AlleleType.Derived);
+            }else if (this.getAlternativeAlleleBase()==ancestralAllele){
+                this.setAlternativeAlleleType(AlleleType.Ancestral);
+                this.setReferenceAlleleType(AlleleType.Derived);
             }
         }
-        this.snp=biSNP;
         this.maf=maf;
         this.aaf=aaf;
         this.daf=daf;
@@ -58,10 +56,6 @@ public class SNPAnnotation {
         this.recombinationRate=recombinationRate;
         this.gerp=gerp;
         this.recombinationRate=recombinationRate;
-    }
-
-    public BiSNP getSnp() {
-        return snp;
     }
 
     public double getMaf() {
@@ -101,8 +95,7 @@ public class SNPAnnotation {
     }
 
     public boolean hasAncestral(){
-        BiSNP snp=this.getSnp();
-        if(snp.isReferenceAlleleTypeOf(AlleleType.Ancestral) || snp.isAlternativeAlleleTypeOf(AlleleType.Ancestral)) return true;
+        if(this.isReferenceAlleleTypeOf(AlleleType.Ancestral) || this.isAlternativeAlleleTypeOf(AlleleType.Ancestral)) return true;
         return false;
     }
 
@@ -111,17 +104,16 @@ public class SNPAnnotation {
             System.out.println("error, program quit");
             System.exit(1);
         }
-        if (this.snp.isReferenceAlleleTypeOf(AlleleType.Ancestral)) return true;
+        if (this.isReferenceAlleleTypeOf(AlleleType.Ancestral)) return true;
         return false;
     }
 
     public boolean check(short chr, int pos){
-        BiSNP snp=this.getSnp();
-        if (snp.getChromosome()==chr && snp.getPosition()==pos) return true;
+        if (this.getChromosome()==chr && this.getPosition()==pos) return true;
         return false;
     }
 
     public int getPos(){
-        return this.snp.getPosition();
+        return this.getPosition();
     }
 }

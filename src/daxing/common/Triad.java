@@ -1,7 +1,5 @@
 package daxing.common;
 
-import daxing.common.IOTool;
-import daxing.common.WheatLineage;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
@@ -124,6 +122,10 @@ public class Triad {
         return this.getTriadID().get(geneIndex);
     }
 
+    public String getTraidID(int index){
+        return this.getTriadID().get(index);
+    }
+
     public int getGeneIndex(String geneName){
         String subgenome=this.getSubgenome(geneName).name();
         List<String> subgenomeGenes=this.getSubgenomeGenes(WheatLineage.valueOf(subgenome));
@@ -134,6 +136,10 @@ public class Triad {
         String subgenome=this.getSubgenome(geneName).name();
         List<String> subgenomeGenes=this.getSubgenomeGenes(WheatLineage.valueOf(subgenome));
         return subgenomeGenes.contains(geneName);
+    }
+
+    public int getRowNum(){
+        return this.getTriadID().size();
     }
 
 }
