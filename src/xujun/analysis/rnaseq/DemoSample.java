@@ -33,7 +33,7 @@ public class DemoSample{
 //           this.mappedread();
 //            this.phred();
 //            this.getgenename();
-//            this.geneposition();
+            this.geneposition();
 //            this.sort();="
 //           this.genenumber();
 //          this.merge();
@@ -42,7 +42,7 @@ public class DemoSample{
 //            this.CompareTwoCountMethod();
 //            this.LibraryCompare();
 //            this.HTSeqCount();
-//            this.countCompare();
+            this.countCompare();
 //            this.TPMHTSeq();
 //            this.CoDectededGene();
 //            this.testLexo();

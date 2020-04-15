@@ -18,14 +18,26 @@ import pgl.infra.utils.IOUtils;
 public class test {
 
     public test() throws IOException {
-        this.mkPosGeneMap();
+//        this.mkPosGeneMap();
         //this.wordList();
+        this.writecode();
+
 
     }
 
     /**
      * @throws IOException
      */
+
+
+    public void writecode(){
+        for(int i = 18;i<45;i++){
+            System.out.print("nohup vcftools --gzvcf /data3/wgs/vcf/GATK/vmap3/1.SNP/");
+            System.out.print(i);
+            System.out.print(".snp.vcf.gz --maf 0 --max-maf 0.05 --out ");
+            System.out.print(i+".snp.maf005 --recode && tabix -p "+i+".snp.maf005.recode.vcf.gz >log1.txt 2>&1 &");
+        }
+    }
 
     public void mkPosGeneMap() {
         String geneNameS = null;

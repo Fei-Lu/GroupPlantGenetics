@@ -111,7 +111,7 @@ public class WheatTEP {
         this.HTSeqCountDouble();
         this.MergeHTSeq();
 //        this.countTPM();
-//        this.expGene();
+        this.expGene();
     }
     public void expGene(){
 //        RowTable rt = new RowTable(new File (this.outputDirS,subDirS[3]).getAbsolutePath()+"/countResult.txt");
