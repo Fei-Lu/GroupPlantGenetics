@@ -72,17 +72,19 @@ public class Test {
 //        this.ExtractDistanceandEffect();
 //        this.homologychr1();
 //        this.candidate();
-        this.writecode1();
+//        this.writecode1();
 
     }
-    public void writecode1(){
-        for(int i = 18;i<45;i++){
+
+    public void writecode1() {
+        for (int i = 18; i < 45; i++) {
             System.out.print("nohup vcftools --gzvcf /data3/wgs/vcf/GATK/vmap3/1.SNP/");
             System.out.print(i);
             System.out.print(".snp.vcf.gz --maf 0 --max-maf 0.05 --out ");
-            System.out.print(i+".snp.maf005 --recode && tabix -p "+i+".snp.maf005.recode.vcf.gz >log1.txt 2>&1 &");
+            System.out.print(i + ".snp.maf005 --recode && tabix -p " + i + ".snp.maf005.recode.vcf.gz >log1.txt 2>&1 &");
         }
     }
+
     public void CalculateByeffect() {
         String inputDirS = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7/chr6/candidate1";
         String outputDirS = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7/chr6/effect_correlation1/";
@@ -901,7 +903,7 @@ public class Test {
         nameSet.stream().forEach(f -> {
             try {
                 BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, "setFile" + f).getAbsolutePath());
-                BufferedReader br = IOUtils.getTextReader(new File(inputDir, "S7expression"+f+".bed").getAbsolutePath());
+                BufferedReader br = IOUtils.getTextReader(new File(inputDir, "S7expression" + f + ".bed").getAbsolutePath());
                 String temp = null;
                 String[] temps = null;
                 ArrayList<Integer> startList = new ArrayList<>();
@@ -937,7 +939,7 @@ public class Test {
                     while (start < end) {
                         int latter = start + 10000;
                         count++;
-                        bw.write(set + "_" + count + " "+ f + ":" + start + "-" + latter);
+                        bw.write(set + "_" + count + " " + f + ":" + start + "-" + latter);
                         bw.newLine();
                         start = start + 10000;
                     }
@@ -955,131 +957,119 @@ public class Test {
         });
     }
 
-        public String getTPM (String f){
-            StringBuilder sb = new StringBuilder();
-            sb.append("x=read.table(\"" + f + "\",sep = \"\\t\")" + "\n");
-            sb.append("countToTpm <- function(counts, effLen)" + "\n").append("{" + "\n");
-            sb.append("\t" + "rate <- log(counts) - log(effLen)" + "\n");
-            sb.append("\t" + "denom <- log(sum(exp(rate)))" + "\n");
-            sb.append("\t" + "exp(rate - denom + log(1e6))" + "\n");
-            sb.append("}" + "\n");
-            sb.append("countTable<-data.frame(count=x[,6:101],length=x$End-x$Start)" + "\n");
-            sb.append("for(i in 1:95){" + "\n");
-            sb.append("\t" + "countTable[,i]<-with(countTable,countToTpm(countTable[,i],length))" + "\n");
-            sb.append("}" + "\n");
-            sb.append("write.table(countTable,file=\"" + f.replace(".txt", "TPM.txt") + "\",append = F,quote = F,sep = \"\\t\",eol = \"\\n\",row.names = F,col.names = T)");
-            String statement = sb.toString();
-            System.out.println(statement);
-            return statement;
-        }
+    public String getTPM(String f) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("x=read.table(\"" + f + "\",sep = \"\\t\")" + "\n");
+        sb.append("countToTpm <- function(counts, effLen)" + "\n").append("{" + "\n");
+        sb.append("\t" + "rate <- log(counts) - log(effLen)" + "\n");
+        sb.append("\t" + "denom <- log(sum(exp(rate)))" + "\n");
+        sb.append("\t" + "exp(rate - denom + log(1e6))" + "\n");
+        sb.append("}" + "\n");
+        sb.append("countTable<-data.frame(count=x[,6:101],length=x$End-x$Start)" + "\n");
+        sb.append("for(i in 1:95){" + "\n");
+        sb.append("\t" + "countTable[,i]<-with(countTable,countToTpm(countTable[,i],length))" + "\n");
+        sb.append("}" + "\n");
+        sb.append("write.table(countTable,file=\"" + f.replace(".txt", "TPM.txt") + "\",append = F,quote = F,sep = \"\\t\",eol = \"\\n\",row.names = F,col.names = T)");
+        String statement = sb.toString();
+        System.out.println(statement);
+        return statement;
+    }
 
-        public void charDemo () {
-            char a = 'A';
-            char b = (char) (a + 1);
-            int c = a + b;
-            System.out.println(c);
-            System.out.println(b);
-            System.out.println(a + b);
-            System.out.println("a + b is " + a + b);
-        }
+    public void charDemo() {
+        char a = 'A';
+        char b = (char) (a + 1);
+        int c = a + b;
+        System.out.println(c);
+        System.out.println(b);
+        System.out.println(a + b);
+        System.out.println("a + b is " + a + b);
+    }
 
-        public void addinfo () {
-//        String DSdir = "/data1/home/xiaohan/rareallele/fastQTL/analysis/DS";
-//        String genoDir = "/data1/home/xiaohan/rareallele/fastQTL/analysis/sub";
-//        String outputDir = "/data1/home/xiaohan/rareallele/fastQTL/analysis/addinfo";
-            String DSdir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/test/DS/";
-            String genoDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/test/sub";
-            String outputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/test/addinfo/";
-            HashSet<String> nameSet = new HashSet<String>();
-            //S3
-            String name = "B18-E002,B18-E007,B18-E008,B18-E010,B18-E011,B18-E014,B18-E016,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E035,B18-E038,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E087,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E134,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E251,B18-E252,B18-E253,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E348,B18-E355,B18-E356,B18-E357";
-            //S7
-//            String name = "B18-E002,B18-E007,B18-E008,B18-E011,B18-E014,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E035,B18-E038,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E052,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E083,B18-E087,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E134,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E227,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E251,B18-E252,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E348,B18-E355,B18-E356,B18-E357";
-            String[] names = name.split(",");
-            File[] fs = new File(genoDir).listFiles();
-            fs = IOUtils.listFilesEndsWith(fs, "vcf");
-            for (int i = 0; i < fs.length; i++) {
-                if (fs[i].isHidden()) continue;
-                String[] SampleName = fs[i].getName().split("\\.");
-                String Name = SampleName[0].replace(SampleName[0].substring(0, 3), "");
-                nameSet.add(Name);
-            }
-            nameSet.stream().sorted(Comparator.reverseOrder());
-            int count = fs.length;
-//        nameSet.stream().forEach((String p) -> {
+    public void addinfo() {
+        String DSdir = "/data1/home/xiaohan/rareallele/fastQTL/analysis/DS/S7";
+        String genoDir = "/data1/home/xiaohan/rareallele/fastQTL/analysis/sub7";
+        String outputDir = "/data1/home/xiaohan/rareallele/fastQTL/analysis/addinfo/S7";
+//        String DSdir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/test/DS/S7";
+//        String genoDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/test/sub7";
+//        String outputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/test/addinfo/S7";
+        HashSet<String> nameSet = new HashSet<String>();
+        //S3
+//            String name = "B18-E002,B18-E007,B18-E008,B18-E010,B18-E011,B18-E014,B18-E016,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E035,B18-E038,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E087,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E134,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E251,B18-E252,B18-E253,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E348,B18-E355,B18-E356,B18-E357";
+        //S7
+        String name = "B18-E002,B18-E007,B18-E008,B18-E011,B18-E014,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E035,B18-E038,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E052,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E083,B18-E087,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E134,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E227,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E251,B18-E252,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E348,B18-E355,B18-E356,B18-E357";
+        String[] names = name.split(",");
+        File[] fs = new File(genoDir).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, "vcf");
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) continue;
+            String[] SampleName = fs[i].getName().split("\\.");
+            String Name = SampleName[0].replace(SampleName[0].substring(0, 3), "");
+            nameSet.add(Name);
+        }
+        nameSet.stream().forEach((String p) -> {
             try {
                 String[] temps = null;
                 String temp = null;
                 String[] tems = null;
                 String[] temps1 = null;
                 String temp1 = null;
-                BufferedReader[] br = new BufferedReader[count];
-                BufferedReader[] br1 = new BufferedReader[count];
-                BufferedWriter[] bw = new BufferedWriter[count];
-                for (int j = 1; j < count + 1; j++) {
-                    bw[j] = IOUtils.getTextWriter(new File(outputDir, j + ".vcf").getAbsolutePath());
-                    br[j] = IOUtils.getTextReader(new File(DSdir, "col" + j + "DS.vcf").getAbsolutePath());
-                    br1[j] = IOUtils.getTextReader(new File(genoDir, "snp" + j + ".vcf").getAbsolutePath());
-                    for (int m = 0; m < 45; m++) {
-                        temp1 = br1[j].readLine();
-                    }
-                    while ((temp = br[j].readLine()) != null) {
-                        temp1 = br1[j].readLine();
-                        temps1 = temp1.split("\t");
-                        if (temp.startsWith("#")) {
-                            temps = temp.split("\t");
-                            bw[j].write("#");
-                            //1.Chrom+2.position
-                            for (int i = 0; i < 2; i++) {
-                                tems = temps[i].split("]");
-                                bw[j].write(tems[1] + "\t");
-                            }
-                            //3.ID
-                            bw[j].write("ID" + "\t");
-                            //4.REF+5.ALT
-                            for (int i = 2; i < 4; i++) {
-                                tems = temps[i].split("]");
-                                bw[j].write(tems[1] + "\t");
-                            }
-                            //6.QUAL+7.FILTER+8.INFO+9.FORMAT
-                            bw[j].write(temps1[5] + "\t" + temps1[6] + "\t" + temps1[7] + "\t" + temps1[8] + "\t");
-                            //96Sample
-                            for (int i = 0; i < 95; i++) {
-                                bw[j].write(names[i] + "\t");
-                            }
-                            bw[j].write(names[95]);
-                            //                    for (int i = 4; i < 179; i++) {
-                            //                        bw.write(temps[i] + "\t");
-                            //                    }
-                            bw[j].newLine();
-                        } else {
-                            temps = temp.split("\t");
-                            temps1 = temp1.split("\t");
-                            for (int i = 0; i < 2; i++) {
-                                bw[j].write(temps[i] + "\t");
-                            }
-                            bw[j].write("snp_" + temps[1] + "\t");
-                            for (int i = 2; i < 4; i++) {
-                                bw[j].write(temps[i] + "\t");
-                            }
-                            bw[j].write(temps1[5] + "\t" + temps1[6] + "\t" + "INFO" + "\t" + "DS" + "\t");
-                            for (int i = 4; i < 99; i++) {
-                                bw[j].write(temps[i] + "\t");
-                            }
-                            bw[j].write(temps[99]);
-                            bw[j].newLine();
-                        }
-                    }
+                BufferedReader br = IOUtils.getTextReader(new File(DSdir, "col" + p + "DS.vcf").getAbsolutePath());
+                BufferedReader br1 = IOUtils.getTextReader(new File(genoDir, "snp" + p + ".vcf").getAbsolutePath());
+                BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, p + ".vcf").getAbsolutePath());
+                for (int m = 0; m < 45; m++) {
+                    temp1 = br1.readLine();
                 }
-                for (int j = 1; j < count + 1; j++) {
-                    bw[j].flush();
-                    bw[j].close();
-                    br[j].close();
+                while ((temp = br.readLine()) != null) {
+                    temp1 = br1.readLine();
+                    temps1 = temp1.split("\t");
+                    if (temp.startsWith("#")) {
+                        temps = temp.split("\t");
+                        bw.write("#");
+                        //1.Chrom+2.position
+                        for (int i = 0; i < 2; i++) {
+                            tems = temps[i].split("]");
+                            bw.write(tems[1] + "\t");
+                        }
+                        //3.ID
+                        bw.write("ID" + "\t");
+                        //4.REF+5.ALT
+                        for (int i = 2; i < 4; i++) {
+                            tems = temps[i].split("]");
+                            bw.write(tems[1] + "\t");
+                        }
+                        //6.QUAL+7.FILTER+8.INFO+9.FORMAT
+                        bw.write(temps1[5] + "\t" + temps1[6] + "\t" + temps1[7] + "\t" + temps1[8] + "\t");
+                        //96Sample
+                        for (int i = 0; i < 95; i++) {
+                            bw.write(names[i] + "\t");
+                        }
+                        bw.write(names[95]);
+                        //                    for (int i = 4; i < 179; i++) {
+                        //                        bw.write(temps[i] + "\t");
+                        //                    }
+                        bw.newLine();
+                    } else {
+                        temps = temp.split("\t");
+                        temps1 = temp1.split("\t");
+                        for (int i = 0; i < 2; i++) {
+                            bw.write(temps[i] + "\t");
+                        }
+                        bw.write("snp_" + temps[1] + "\t");
+                        for (int i = 2; i < 4; i++) {
+                            bw.write(temps[i] + "\t");
+                        }
+                        bw.write(temps1[5] + "\t" + temps1[6] + "\t" + "INFO" + "\t" + "DS" + "\t");
+                        for (int i = 4; i < 99; i++) {
+                            bw.write(temps[i] + "\t");
+                        }
+                        bw.write(temps[99]);
+                        bw.newLine();
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
-//            });
+            });
         }
 
         public void addinfobySample () {
