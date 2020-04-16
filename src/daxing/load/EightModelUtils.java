@@ -1,6 +1,7 @@
 package daxing.load;
 
 import daxing.common.IOTool;
+import daxing.common.NumberTool;
 import daxing.common.RowTableTool;
 import daxing.common.Triad;
 import pgl.infra.utils.IOFileFormat;
@@ -10,10 +11,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -59,8 +57,9 @@ public class EightModelUtils {
         try {
             bw=IOTool.getTextGzipWriter(new File(outDir, taxon + ".triad.txt.gz"));
             bw.write("TriadID\tcdsLen\tGeneName\tnumSyn\tnumDerivedInSyn\tnumNonsyn\tnumDerivedInNonsyn" +
-                    "\tnumHGDeleterious\tnumDerivedInHGDeleterious");
+                    "\tnumHGDeleterious\tnumDerivedInHGDeleterious\tsubgenome");
             bw.newLine();
+            String subgenome, geneName;
             for (int i = 0; i < triad.getRowNum(); i++) {
                 threeName=triad.getTriad(i);
                 for (int j = 0; j < indexABD.length; j++) {
@@ -75,7 +74,10 @@ public class EightModelUtils {
                     temp=String.join("\t", table.getRow(indexABD[j]));
                     sb=new StringBuilder();
                     sb.append(triadID).append("\t").append(cdsLen[j]).append("\t");
-                    sb.append(temp);
+                    sb.append(temp).append("\t");
+                    geneName=table.getRow(indexABD[j]).get(0);
+                    subgenome=geneName.substring(8,9);
+                    sb.append(subgenome);
                     bw.write(sb.toString());
                     bw.newLine();
                 }
@@ -87,14 +89,60 @@ public class EightModelUtils {
         }
     }
 
-    public static void countEightModel(String inputDir, String vmapIIGroupFile, String outDir){
+    public static void filter(String triadFileInputDir, String outDir){
+        List<File> files=IOUtils.getVisibleFileListInDir(triadFileInputDir);
+        files.stream().parallel().forEach(e->filter(e, outDir));
+    }
+
+    private static void filter(File triadFile, String outDir){
+        String fileName=triadFile.getName();
+        try (BufferedReader br = IOTool.getReader(triadFile);
+             BufferedWriter bw=IOTool.getTextGzipWriter(new File(outDir, fileName))) {
+            String header=br.readLine();
+            bw.write(header);
+            bw.newLine();
+            String line;
+            String[] lineABD;
+            int[] snpNum;
+            List<String> temp;
+            int triadNum=0;
+            int retainedNum=0;
+            while ((line=br.readLine())!=null){
+                lineABD=new String[3];
+                lineABD[0]=line;
+                lineABD[1]=br.readLine();
+                lineABD[2]=br.readLine();
+                triadNum++;
+                snpNum=new int[3];
+                for (int i = 0; i < lineABD.length; i++) {
+                    temp=PStringUtils.fastSplit(lineABD[i]);
+                    snpNum[i]=Integer.parseInt(temp.get(3))+Integer.parseInt(temp.get(5));
+                }
+                if (snpNum[0]==0) continue;
+                if (snpNum[1]==0) continue;
+                if (snpNum[2]==0) continue;
+                retainedNum++;
+                for (int i = 0; i < lineABD.length; i++) {
+                    bw.write(lineABD[i]);
+                    bw.newLine();
+                }
+            }
+            System.out.println(triadFile.getName()+": "+triadNum+" "+retainedNum+" "+(double)retainedNum/triadNum);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void countEightModel(String inputDir, String vmapIIGroupFile, int derivedCountThresh, String outDir){
         List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
         RowTableTool<String> vmapIIGroupTable=new RowTableTool<>(vmapIIGroupFile);
         Map<String, String> taxonGroupMap=vmapIIGroupTable.getHashMap(0, 15);
-        IntStream.range(0, files.size()).parallel().forEach(e->countEightModel(files.get(e), taxonGroupMap, outDir));
+        IntStream.range(0, files.size()).parallel().forEach(e->countEightModel(files.get(e), taxonGroupMap,
+                derivedCountThresh, outDir));
     }
 
-    private static void countEightModel(File inputFile, Map<String,String> taxonGroupMap, String outDir){
+    public static void countEightModel(File inputFile, Map<String,String> taxonGroupMap, int derivedCountThresh,
+                                       String outDir){
         String taxonName=PStringUtils.fastSplit(inputFile.getName(), ".").get(0);
         try (BufferedReader br = IOTool.getReader(inputFile);
              BufferedWriter bw =IOTool.getTextGzipWriter(new File(outDir, taxonName+".triad.eightModel.txt.gz"))) {
@@ -107,6 +155,9 @@ public class EightModelUtils {
             List<String>[] temp;
             StringBuilder sbDel, sbNonsyn, sbSyn;
             int modelIndexSyn, modelIndexNonsyn, modelIndexDel;
+            double derivedCount;
+            int cdsLen, snpNum;
+            double geneLoad;
             while ((line=br.readLine())!=null){
                 temp=new List[3];
                 temp[0]=PStringUtils.fastSplit(line);
@@ -120,9 +171,29 @@ public class EightModelUtils {
                 sbNonsyn.append("M");
                 sbDel.append("M");
                 for (int i = 0; i < temp.length; i++) {
-                    sbSyn.append(temp[i].get(3));
-                    sbNonsyn.append(temp[i].get(5));
-                    sbDel.append(temp[i].get(7));
+                    derivedCount=Double.parseDouble(temp[i].get(4));
+                    cdsLen=Integer.parseInt(temp[i].get(1));
+                    snpNum=Integer.parseInt(temp[i].get(3))+Integer.parseInt(temp[i].get(5));
+                    geneLoad=(1000*10*derivedCount)/(cdsLen*snpNum);
+                    if (geneLoad < derivedCountThresh) {
+                        sbSyn.append(0);
+                    } else {
+                        sbSyn.append(1);
+                    }
+                    derivedCount=Double.parseDouble(temp[i].get(6));
+                    geneLoad=(1000*10*derivedCount)/(cdsLen*snpNum);
+                    if (geneLoad < derivedCountThresh) {
+                        sbNonsyn.append(0);
+                    } else {
+                        sbNonsyn.append(1);
+                    }
+                    derivedCount=Double.parseDouble(temp[i].get(8));
+                    geneLoad=(1000*10*derivedCount)/(cdsLen*snpNum);
+                    if (geneLoad < derivedCountThresh){
+                        sbDel.append(0);
+                    }else {
+                        sbDel.append(1);
+                    }
                 }
                 modelIndexSyn=Arrays.binarySearch(models, sbSyn.toString());
                 modelIndexNonsyn=Arrays.binarySearch(models, sbNonsyn.toString());
@@ -151,10 +222,91 @@ public class EightModelUtils {
 
     public static void mergeModel(String inputDir, String outDir){
         List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
-        RowTableTool<String> table=new RowTableTool<>(files.get(0).getAbsolutePath());
-        for (int i = 1; i < files.size(); i++) {
-            table.add(new RowTableTool<>(files.get(i).getAbsolutePath()));
+        Predicate<File> isDir=File::isDirectory;
+        List<File> files1=files.stream().filter(isDir.negate()).collect(Collectors.toList());
+        RowTableTool<String> table=new RowTableTool<>(files1.get(0).getAbsolutePath());
+        for (int i = 1; i < files1.size(); i++) {
+            table.add(new RowTableTool<>(files1.get(i).getAbsolutePath()));
         }
         table.write(new File(outDir, "modelMerged.txt.gz"), IOFileFormat.TextGzip);
+    }
+
+    public static void normalizedTriad(String inputDir,String outDir){
+        List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
+        IntStream.range(0, files.size()).parallel().forEach(f->normalizedTriad(files.get(f), outDir));
+    }
+
+    public static void normalizedTriad(File inputFile, String outDir){
+        String fileName=inputFile.getName().replaceAll("triad", "triad.normalized");
+        try (BufferedReader br = IOTool.getReader(inputFile);
+             BufferedWriter bw =IOTool.getTextGzipWriter(new File(outDir, fileName))) {
+            bw.write("TriadID\tnormalizedNumDerivedInSynA" +
+                    "\tnormalizedNumDerivedInSynB\tnormalizedNumDerivedInSynD\tsynRegion" +
+                    "\tnormalizedNumDerivedInNonsynA" +
+                    "\tnormalizedNumDerivedInNonsynB\tnormalizedNumDerivedInNonsynD\tnonsynRegion" +
+                    "\tnormalizedNumDerivedInHGDeleteriousA\tnormalizedNumDerivedInHGDeleteriousB" +
+                    "\tnormalizedNumDerivedInHGDeleteriousD\tdelRegion");
+            bw.newLine();
+            br.readLine();
+            String line, triadID, region;
+            List<String>[] temp;
+            int[] cdsLen;
+            int[] snpNum;
+            double[] derivedSyn;
+            double[] derivedNonsyn;
+            double[] deleterious;
+            StringBuilder sb;
+            double[] normalizedDerivedSyn;
+            double[] normalizedDerivedNonSyn;
+            double[] normalizedDerivedDel;
+            while ((line=br.readLine())!=null){
+                temp=new List[3];
+                temp[0]=PStringUtils.fastSplit(line);
+                temp[1]=PStringUtils.fastSplit(br.readLine());
+                temp[2]=PStringUtils.fastSplit(br.readLine());
+                cdsLen=new int[3];
+                snpNum=new int[3];
+                derivedSyn=new double[3];
+                derivedNonsyn=new double[3];
+                deleterious=new double[3];
+                normalizedDerivedSyn=new double[3];
+                normalizedDerivedNonSyn=new double[3];
+                normalizedDerivedDel=new double[3];
+                triadID=temp[0].get(0);
+                for (int i = 0; i < cdsLen.length; i++) {
+                    cdsLen[i]=Integer.parseInt(temp[i].get(1));
+                    snpNum[i]=Integer.parseInt(temp[i].get(3))+Integer.parseInt(temp[i].get(5));
+                    derivedSyn[i]=Double.parseDouble(temp[i].get(4));
+                    derivedNonsyn[i]=Double.parseDouble(temp[i].get(6));
+                    deleterious[i]=Double.parseDouble(temp[i].get(8));
+                }
+                for (int i = 0; i < 3; i++) {
+                    normalizedDerivedSyn[i]=10000*derivedSyn[i]/(cdsLen[i]*snpNum[i]);
+                    normalizedDerivedNonSyn[i]=10000*derivedNonsyn[i]/(cdsLen[i]*snpNum[i]);
+                    normalizedDerivedDel[i]=10000*deleterious[i]/(cdsLen[i]*snpNum[i]);
+                }
+                sb=new StringBuilder();
+                sb.append(triadID).append("\t");
+                for (int i = 0; i < 3; i++) {
+                    sb.append(NumberTool.format(normalizedDerivedSyn[i], 5)).append("\t");
+                }
+                region=Standardization.getNearestPointIndex(normalizedDerivedSyn).getRegion();
+                sb.append(region).append("\t");
+                for (int i = 0; i < 3; i++) {
+                    sb.append(NumberTool.format(normalizedDerivedNonSyn[i], 5)).append("\t");
+                }
+                region=Standardization.getNearestPointIndex(normalizedDerivedNonSyn).getRegion();
+                sb.append(region).append("\t");
+                for (int i = 0; i < 3; i++) {
+                    sb.append(NumberTool.format(normalizedDerivedDel[i], 5)).append("\t");
+                }
+                region=Standardization.getNearestPointIndex(normalizedDerivedDel).getRegion();
+                sb.append(region);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
