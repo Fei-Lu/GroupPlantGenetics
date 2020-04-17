@@ -14,17 +14,20 @@ public class Triad {
     List<String[]> triad;
     TIntArrayList ifSyntenic;  //0 is non-syntenic and 1 is syntenic
     TIntArrayList ifExpressed;  // 0 is false and 1 is true
+    List<int[]> cdsList;
 
     public Triad(String triadFile){
         triadID=new ArrayList<>(19000);
         triad=new ArrayList<>(19000);
         ifSyntenic=new TIntArrayList();
         ifExpressed=new TIntArrayList();
+        cdsList=new ArrayList<>();
         try (BufferedReader br = IOTool.getReader(triadFile)) {
             String line;
             List<String> temp;
             br.readLine();
             String[] abdGenes;
+            int[] cdsLenABD;
             while ((line=br.readLine())!=null){
                 temp= PStringUtils.fastSplit(line);
                 triadID.add(temp.get(0));
@@ -43,6 +46,11 @@ public class Triad {
                 }else {
                     ifExpressed.add(0);
                 }
+                cdsLenABD=new int[3];
+                cdsLenABD[0]=Integer.parseInt(temp.get(6));
+                cdsLenABD[1]=Integer.parseInt(temp.get(7));
+                cdsLenABD[2]=Integer.parseInt(temp.get(8));
+                cdsList.add(cdsLenABD);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -59,6 +67,10 @@ public class Triad {
 
     public TIntArrayList getIfSyntenic() {
         return ifSyntenic;
+    }
+
+    public List<int[]> getCdsList() {
+        return cdsList;
     }
 
     public List<String> getTriadID() {
@@ -104,6 +116,10 @@ public class Triad {
 
     public String[] getTriad(int geneIndex){
         return this.getTriad().get(geneIndex);
+    }
+
+    public int[] getCDSLen(int geneIndex){
+        return this.cdsList.get(geneIndex);
     }
 
     public String[] getTriad(String geneName){

@@ -215,7 +215,7 @@ public class RowTableTool<T> extends RowTable<T> {
         boolean first=true;
         try {
             for (int i = 0; i < f1.length; i++) {
-                br=IOTool.getTextReader(f1[i].getAbsolutePath());
+                br=IOTool.getReader(f1[i].getAbsolutePath());
                 header=br.readLine();
                 if (first){
                     bw.write(header+"\t"+newColumnName+"\n");
