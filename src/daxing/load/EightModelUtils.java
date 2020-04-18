@@ -133,18 +133,18 @@ public class EightModelUtils {
         }
     }
 
-    public static void countEightModel(String inputDir, String vmapIIGroupFile, int derivedCountThresh, String outDir){
-        List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
+    public static void countEightModel(String triadInputDir, String vmapIIGroupFile, int derivedCountThresh, String outDir){
+        List<File> files=IOUtils.getVisibleFileListInDir(triadInputDir);
         RowTableTool<String> vmapIIGroupTable=new RowTableTool<>(vmapIIGroupFile);
         Map<String, String> taxonGroupMap=vmapIIGroupTable.getHashMap(0, 15);
         IntStream.range(0, files.size()).parallel().forEach(e->countEightModel(files.get(e), taxonGroupMap,
                 derivedCountThresh, outDir));
     }
 
-    public static void countEightModel(File inputFile, Map<String,String> taxonGroupMap, int derivedCountThresh,
+    public static void countEightModel(File triadInputFile, Map<String,String> taxonGroupMap, int derivedCountThresh,
                                        String outDir){
-        String taxonName=PStringUtils.fastSplit(inputFile.getName(), ".").get(0);
-        try (BufferedReader br = IOTool.getReader(inputFile);
+        String taxonName=PStringUtils.fastSplit(triadInputFile.getName(), ".").get(0);
+        try (BufferedReader br = IOTool.getReader(triadInputFile);
              BufferedWriter bw =IOTool.getTextGzipWriter(new File(outDir, taxonName+".triad.eightModel.txt.gz"))) {
             br.readLine();
             String line;
@@ -210,6 +210,55 @@ public class EightModelUtils {
                 sb.append(models[i]).append("\t");
                 for (int j = 0; j < eightModel.length; j++) {
                     sb.append(eightModel[j][i]).append("\t");
+                }
+                sb.append(taxonName).append("\t").append(taxonGroupMap.get(taxonName));
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void countEightModel(String triadNormalizedInputDir, String vmapIIGroupFile, String outDir){
+        List<File> files=IOUtils.getVisibleFileListInDir(triadNormalizedInputDir);
+        RowTableTool<String> vmapIIGroupTable=new RowTableTool<>(vmapIIGroupFile);
+        Map<String,String> map=vmapIIGroupTable.getHashMap(0,15);
+        IntStream.range(0, files.size()).parallel().forEach(e->countEightModel(files.get(e),map, outDir));
+    }
+
+    public static void countEightModel(File triadNormalizedInputFile, Map<String,String> taxonGroupMap, String outDir){
+        String outFileName=triadNormalizedInputFile.getName().replaceAll("\\.txt\\.gz$","eightModel.txt.gz");
+        String taxonName=PStringUtils.fastSplit(triadNormalizedInputFile.getName(), ".").get(0);
+        try (BufferedReader br = IOTool.getReader(triadNormalizedInputFile);
+             BufferedWriter bw =IOTool.getTextGzipWriter(new File(outDir, outFileName))) {
+            br.readLine();
+            //Bluesky.triad.normalized.txt.gz
+            //BeiJing8.triad.eightModel.txt.gz
+            String line;
+            List<String> temp;
+            StringBuilder sb;
+            String[] models={"M000","M100","M010","M001","M110","M101","M011","M111"};
+            Arrays.sort(models);
+            int[][] modelCount=new int[3][8];
+            int[] index;
+            while((line=br.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                index=new int[3];
+                index[0]=Arrays.binarySearch(models, temp.get(4));
+                index[1]=Arrays.binarySearch(models, temp.get(8));
+                index[2]=Arrays.binarySearch(models, temp.get(12));
+                modelCount[0][index[0]]+=1;
+                modelCount[1][index[1]]+=1;
+                modelCount[2][index[2]]+=1;
+            }
+            bw.write("model\tsynDerivedCount\tnonsynDerivedCount\tdelDerivedCount\ttaxon\tgroup");
+            bw.newLine();
+            for (int i = 0; i < models.length; i++) {
+                sb=new StringBuilder();
+                sb.append(models[i]).append("\t");
+                for (int j = 0; j < modelCount.length; j++) {
+                    sb.append(modelCount[j][i]).append("\t");
                 }
                 sb.append(taxonName).append("\t").append(taxonGroupMap.get(taxonName));
                 bw.write(sb.toString());
@@ -308,5 +357,9 @@ public class EightModelUtils {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void mergeNormalizedTriad(String triadListFile,String inputDir, String outDir){
+        List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
     }
 }
