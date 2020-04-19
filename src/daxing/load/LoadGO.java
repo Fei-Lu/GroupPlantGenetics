@@ -12,6 +12,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class LoadGO {
 
@@ -22,16 +23,16 @@ public class LoadGO {
         for (int i = 0; i < subdir.length; i++) {
             new File(outDir, subdir[i]).mkdir();
         }
-//        List<File> exonAnnoFiles=IOUtils.getVisibleFileListInDir(exonSNPAnnoDir);
-//        List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
-//        Map<String, File> taxonOutDirMap=getTaxonOutDirMap(vmapIIGroupFile, new File(outDir, subdir[0]).getAbsolutePath());
-//        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
-//                taxonOutDirMap, e+1));
-//        EightModelUtils.merge(new File(outDir, subdir[0]).getAbsolutePath(), vmapIIGroupFile, new File(outDir,
-//                subdir[1]).getAbsolutePath());
-//        EightModelUtils.retainTriad(triadFile, new File(outDir, subdir[1]).getAbsolutePath(), new File(outDir,
-//                subdir[2]).getAbsolutePath());
-//        EightModelUtils.filter(new File(outDir, subdir[2]).getAbsolutePath(), new File(outDir, subdir[3]).getAbsolutePath());
+        List<File> exonAnnoFiles=IOUtils.getVisibleFileListInDir(exonSNPAnnoDir);
+        List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
+        Map<String, File> taxonOutDirMap=getTaxonOutDirMap(vmapIIGroupFile, new File(outDir, subdir[0]).getAbsolutePath());
+        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
+                taxonOutDirMap, e+1));
+        EightModelUtils.merge(new File(outDir, subdir[0]).getAbsolutePath(), vmapIIGroupFile, new File(outDir,
+                subdir[1]).getAbsolutePath());
+        EightModelUtils.retainTriad(triadFile, new File(outDir, subdir[1]).getAbsolutePath(), new File(outDir,
+                subdir[2]).getAbsolutePath());
+        EightModelUtils.filter(new File(outDir, subdir[2]).getAbsolutePath(), new File(outDir, subdir[3]).getAbsolutePath());
         countGeneNum(new File(outDir, subdir[3]), new File(vmapIIGroupFile), new File(outDir, subdir[5]));
         EightModelUtils.countEightModel(new File(outDir, subdir[3]).getAbsolutePath(), vmapIIGroupFile, derivedCountThresh,
                 new File(outDir, subdir[4]).getAbsolutePath());
