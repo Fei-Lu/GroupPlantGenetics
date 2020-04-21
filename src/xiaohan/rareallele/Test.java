@@ -61,7 +61,7 @@ public class Test {
 //        this.findDifference();
         //this.vcffiltering();
 //        this.vcfmerge();
-        this.addinfo();
+//        this.addinfo();
 //        this.charDemo();
 //         this.getTPM(f);
 //        this.addinfobySample();
@@ -72,16 +72,21 @@ public class Test {
 //        this.ExtractDistanceandEffect();
 //        this.homologychr1();
 //        this.candidate();
-//        this.writecode1();
+        this.writecode1();
 
     }
 
     public void writecode1() {
-        for (int i = 18; i < 45; i++) {
-            System.out.print("nohup vcftools --gzvcf /data3/wgs/vcf/GATK/vmap3/1.SNP/");
-            System.out.print(i);
-            System.out.print(".snp.vcf.gz --maf 0 --max-maf 0.05 --out ");
-            System.out.print(i + ".snp.maf005 --recode && tabix -p " + i + ".snp.maf005.recode.vcf.gz >log1.txt 2>&1 &");
+        for (int i = 0; i < 45; i++) {
+//            System.out.print("nohup vcftools --gzvcf /data3/wgs/vcf/GATK/vmap3/1.SNP/");
+//            System.out.print(i);
+//            System.out.print(".snp.vcf.gz --maf 0 --max-maf 0.05 --out ");
+//            System.out.print(i + ".snp.maf005 --recode && tabix -p " + i + ".snp.maf005.recode.vcf.gz >log1.txt 2>&1 &");
+//            System.out.println("nohup bcftools view -S S7SampleName.txt /data2/xiaohan/SNP/"+i+".snp.maf005.recode.vcf.gz -Ov > /data2/xiaohan/sub7/snp"+i+".vcf &");
+//            System.out.println("nohup bcftools +dosage /data2/xiaohan/sub7/snp"+i+".vcf -- -t GT >/data2/xiaohan/DS/S7/col"+i+"DS.vcf &");
+            System.out.println("nohup bcftools view -S SampleName.txt /data2/xiaohan/SNP/"+i+".snp.maf005.recode.vcf.gz -Ov > /data2/xiaohan/sub3/snp"+i+".vcf && bgzip /data2/xiaohan/sub3/snp"+i+".vcf &");
+//            System.out.println("nohup bcftools +dosage /data2/xiaohan/sub3/snp"+i+".vcf -- -t GT >/data2/xiaohan/DS/S3/col"+i+"DS.vcf &");
+
         }
     }
 
@@ -986,25 +991,30 @@ public class Test {
     }
 
     public void addinfo() {
-        String DSdir = "/data1/home/xiaohan/rareallele/fastQTL/analysis/DS/S7";
-        String genoDir = "/data1/home/xiaohan/rareallele/fastQTL/analysis/sub7";
-        String outputDir = "/data1/home/xiaohan/rareallele/fastQTL/analysis/addinfo/S7";
+        String DSdir = "/data2/xiaohan/DS/S7";
+        String genoDir = "/data2/xiaohan/sub7";
+        String outputDir = "/data2/xiaohan/addinfo/S7";
+//        String DSdir = "/data2/xiaohan/DS/S3";
+//        String genoDir = "/data2/xiaohan/sub3";
+//        String outputDir = "/data2/xiaohan/addinfo/S3";
 //        String DSdir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/test/DS/S7";
 //        String genoDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/test/sub7";
 //        String outputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/test/addinfo/S7";
         HashSet<String> nameSet = new HashSet<String>();
         //S3
-//            String name = "B18-E002,B18-E007,B18-E008,B18-E010,B18-E011,B18-E014,B18-E016,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E035,B18-E038,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E087,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E134,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E251,B18-E252,B18-E253,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E348,B18-E355,B18-E356,B18-E357";
+//          String name = "B18-E002,B18-E007,B18-E008,B18-E010,B18-E011,B18-E014,B18-E016,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E035,B18-E038,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E087,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E134,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E251,B18-E252,B18-E253,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E348,B18-E355,B18-E356,B18-E357";
         //S7
         String name = "B18-E002,B18-E007,B18-E008,B18-E011,B18-E014,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E035,B18-E038,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E052,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E083,B18-E087,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E134,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E227,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E251,B18-E252,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E348,B18-E355,B18-E356,B18-E357";
         String[] names = name.split(",");
-        File[] fs = new File(genoDir).listFiles();
+        File[] fs = new File(DSdir).listFiles();
         fs = IOUtils.listFilesEndsWith(fs, "vcf");
         for (int i = 0; i < fs.length; i++) {
             if (fs[i].isHidden()) continue;
-            String[] SampleName = fs[i].getName().split("\\.");
-            String Name = SampleName[0].replace(SampleName[0].substring(0, 3), "");
+//            String[] SampleName = fs[i].getName().split("\\.");
+//            String Name = SampleName[0].replace(SampleName[0].substring(0, 3), "");
+            String Name = fs[i].getName().split("\\.")[0].split("l")[1].split("D")[0];
             nameSet.add(Name);
+            System.out.print(Name);
         }
         nameSet.stream().forEach((String p) -> {
             try {
@@ -1015,7 +1025,7 @@ public class Test {
                 String temp1 = null;
                 BufferedReader br = IOUtils.getTextReader(new File(DSdir, "col" + p + "DS.vcf").getAbsolutePath());
                 BufferedReader br1 = IOUtils.getTextReader(new File(genoDir, "snp" + p + ".vcf").getAbsolutePath());
-                BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, p + ".vcf").getAbsolutePath());
+                BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, "genotypes"+ p + ".vcf").getAbsolutePath());
                 for (int m = 0; m < 45; m++) {
                     temp1 = br1.readLine();
                 }
