@@ -41,13 +41,13 @@ public class rareallele {
 //        this.getGTvcf2();
 //        this.getGTvcf(infileS, outputDir);
 //        this.changeName();
-        this.get5kSNPcount();
+//        this.get5kSNPcount();
 //        this.expressionRank();
 //        this.SNPcount();
 //        this.SNPTable();
 //        this.rankcorrelation();
 //        this.CalculateeGenes();
-//        this.SplitPhenoBychr();
+        this.SplitPhenoBychr();
 //        this.code();
 //        this.countTable();
 //        this.is3M();
@@ -431,13 +431,13 @@ public class rareallele {
     }
 
     public void SplitPhenoBychr() {
-        String infileS = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S3/expressionboxcox3.txt";
-        String outputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S3/splitexpression";
+        String infileS = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7/expressionboxcox7.txt";
+        String outputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7/splitexpression";
         try {
             BufferedReader br = pgl.infra.utils.IOUtils.getTextReader(infileS);
             BufferedWriter[] bw = new BufferedWriter[43];
             for (int i = 0; i < 43; i++) {
-                bw[i] = pgl.infra.utils.IOUtils.getTextWriter(new File(outputDir, "S3expression" + i + ".bed").getAbsolutePath());
+                bw[i] = pgl.infra.utils.IOUtils.getTextWriter(new File(outputDir, "S7expression" + i + ".txt").getAbsolutePath());
             }
             String temp = null;
             String[] temps = null;
@@ -956,12 +956,14 @@ public class rareallele {
         //GT
         String VCFfileDir = "/data2/xiaohan/GT/S3";
         String expressionfileDir = "/data1/home/xiaohan/rareallele/fastQTL/expression/S3";
-        File[] fs = new File(expressionfileDir).listFiles();
-        fs = pgl.infra.utils.IOUtils.listFilesEndsWith(fs, ".bed.gz");
+//        String VCFfileDir = "/data2/xiaohan/GT/S7";
+//        String expressionfileDir = "/data1/home/xiaohan/rareallele/fastQTL/expression/S7";
+        File[] fs = new File(VCFfileDir).listFiles();
+        fs = pgl.infra.utils.IOUtils.listFilesEndsWith(fs, ".vcf.gz");
         HashSet<String> nameSet = new HashSet<String>();
         for (int i = 0; i < fs.length; i++) {
             if (fs[i].isHidden()) continue;
-            String name = fs[i].getName().split("\\.")[0].split("n")[1];
+            String name = fs[i].getName().split("\\.")[0].split("r")[1].split("G")[0];
             nameSet.add(name);
         }
         nameSet.stream().forEach((String p) -> {
@@ -971,7 +973,8 @@ public class rareallele {
                 BufferedReader brVCF = IOUtils.getTextGzipReader(new File(VCFfileDir, "chr" + p + "GT.vcf.gz").getAbsolutePath());
 //                BufferedReader brVCF = IOUtils.getTextGzipReader(new File(VCFfileDir, "genotypes" + p + ".vcf.gz").getAbsolutePath());
                 BufferedReader brexpr = IOUtils.getTextGzipReader(new File(expressionfileDir, "S3expression" + p + ".bed.gz").getAbsolutePath());
-                String outputDir = "/data1/home/xiaohan/rareallele/rankcorrelation";
+//                BufferedReader brexpr = IOUtils.getTextGzipReader(new File(expressionfileDir, "S7expression" + p + ".bed.gz").getAbsolutePath());
+                String outputDir = "/data1/home/xiaohan/rareallele/rankcorrelation/S7";
                 BufferedWriter[] bwS = new BufferedWriter[6];
                 bwS[0] = IOUtils.getTextWriter(new File(outputDir, p + "_5k_all_count.txt").getAbsolutePath());
                 for (int i = 1; i < 6; i++) {
@@ -988,8 +991,8 @@ public class rareallele {
                 while ((tempexpr = brexpr.readLine()) != null) {
                     if (tempexpr.startsWith("#")) continue;
                     expr = tempexpr.split("\t");
-                    TSSMap.put(expr[1], expr[3]);
-                    TSSset.add(expr[1]);
+                    TSSMap.put(expr[3], expr[1]);
+                    TSSset.add(expr[3]);
                 }
                 TSS = TSSset.toArray(new String[TSSset.size()]);
                 Arrays.sort(TSS);
@@ -1045,7 +1048,7 @@ public class rareallele {
                     VCF = tempVCF.split("\t");
                     int snpsite = parseInt(VCF[1]);
                     for (int i = 0; i < TSS.length; i++) {
-                        int startsite = Integer.parseInt(TSS[i]);
+                        int startsite = Integer.parseInt(TSSMap.get(TSS[i]));
                         int distance = (int) (startsite - snpsite);
                         if (distance > 0 && distance < 5000) {
                             for (int m = 9; m < 105; m++) {
@@ -1077,12 +1080,12 @@ public class rareallele {
                             for (int m = 9; m < 105; m++) {
                                 //if (VCF[m].equals("1.0") || VCF[m].equals("-1.0")) {
                                 if (VCF[m].equals("0/1") || VCF[m].equals("0/2") || VCF[m].equals("0/3") ) {
-                                    count0_1k[i][m - 9]++;
+                                    count1_2k[i][m - 9]++;
                                 }
                                 //if (VCF[m].equals("2.0")) {
                                 if ( !VCF[m].equals("0/1") && !VCF[m].equals("0/2") && !VCF[m].equals("0/3") && !VCF[m].equals("0/0")) {
-                                    count0_1k[i][m - 9]++;
-                                    count0_1k[i][m - 9]++;
+                                    count1_2k[i][m - 9]++;
+                                    count1_2k[i][m - 9]++;
                                 }
                             }
                         }
@@ -1090,12 +1093,12 @@ public class rareallele {
                             for (int m = 9; m < 105; m++) {
                                 //if (VCF[m].equals("1.0") || VCF[m].equals("-1.0")) {
                                 if (VCF[m].equals("0/1") || VCF[m].equals("0/2") || VCF[m].equals("0/3") ) {
-                                    count0_1k[i][m - 9]++;
+                                    count2_3k[i][m - 9]++;
                                 }
                                 //if (VCF[m].equals("2.0")) {
                                 if ( !VCF[m].equals("0/1") && !VCF[m].equals("0/2") && !VCF[m].equals("0/3") && !VCF[m].equals("0/0")) {
-                                    count0_1k[i][m - 9]++;
-                                    count0_1k[i][m - 9]++;
+                                    count2_3k[i][m - 9]++;
+                                    count2_3k[i][m - 9]++;
                                 }
                             }
                         }
@@ -1103,12 +1106,12 @@ public class rareallele {
                             for (int m = 9; m < 105; m++) {
                                 //if (VCF[m].equals("1.0") || VCF[m].equals("-1.0")) {
                                 if (VCF[m].equals("0/1") || VCF[m].equals("0/2") || VCF[m].equals("0/3") ) {
-                                    count0_1k[i][m - 9]++;
+                                    count3_4k[i][m - 9]++;
                                 }
                                 //if (VCF[m].equals("2.0")) {
                                 if ( !VCF[m].equals("0/1") && !VCF[m].equals("0/2") && !VCF[m].equals("0/3") && !VCF[m].equals("0/0")) {
-                                    count0_1k[i][m - 9]++;
-                                    count0_1k[i][m - 9]++;
+                                    count3_4k[i][m - 9]++;
+                                    count3_4k[i][m - 9]++;
                                 }
                             }
                         }
@@ -1116,12 +1119,12 @@ public class rareallele {
                             for (int m = 9; m < 105; m++) {
                                 //if (VCF[m].equals("1.0") || VCF[m].equals("-1.0")) {
                                 if (VCF[m].equals("0/1") || VCF[m].equals("0/2") || VCF[m].equals("0/3") ) {
-                                    count0_1k[i][m - 9]++;
+                                    count4_5k[i][m - 9]++;
                                 }
                                 //if (VCF[m].equals("2.0")) {
                                 if ( !VCF[m].equals("0/1") && !VCF[m].equals("0/2") && !VCF[m].equals("0/3") && !VCF[m].equals("0/0")) {
-                                    count0_1k[i][m - 9]++;
-                                    count0_1k[i][m - 9]++;
+                                    count4_5k[i][m - 9]++;
+                                    count4_5k[i][m - 9]++;
                                 }
                             }
                         }
@@ -1130,47 +1133,54 @@ public class rareallele {
                 }
                 System.out.println("complete making int array : " + p);
                 for (int i = 0; i < TSS.length; i++) {
-                    bwS[0].write(TSSMap.get(TSS[i]) + "\t");
+                    bwS[0].write(TSS[i] + "\t");
                     for (int j = 0; j < 96; j++) {
                         bwS[0].write(count5k[i][j] + "\t");
                     }
                     bwS[0].newLine();
                 }
+                System.out.println("complete writing file : "+p+"_5k_all_count.txt");
                 for (int i = 0; i < TSS.length; i++) {
-                    bwS[1].write(TSSMap.get(TSS[i]) + "\t");
+                    bwS[1].write(TSS[i] + "\t");
                     for (int j = 0; j < 96; j++) {
                         bwS[1].write(count0_1k[i][j] + "\t");
                     }
                     bwS[1].newLine();
+                    
                 }
+                System.out.println("complete writing file : "+p+"_0k_1k_count.txt");
                 for (int i = 0; i < TSS.length; i++) {
-                    bwS[2].write(TSSMap.get(TSS[i]) + "\t");
+                    bwS[2].write(TSS[i] + "\t");
                     for (int j = 0; j < 96; j++) {
                         bwS[2].write(count1_2k[i][j] + "\t");
                     }
                     bwS[2].newLine();
                 }
+                System.out.println("complete writing file : "+p+"_1k_2k_count.txt");
                 for (int i = 0; i < TSS.length; i++) {
-                    bwS[3].write(TSSMap.get(TSS[i]) + "\t");
+                    bwS[3].write(TSS[i] + "\t");
                     for (int j = 0; j < 96; j++) {
                         bwS[3].write(count2_3k[i][j] + "\t");
                     }
                     bwS[3].newLine();
                 }
+                System.out.println("complete writing file : "+p+"_2k_3k_count.txt");
                 for (int i = 0; i < TSS.length; i++) {
-                    bwS[4].write(TSSMap.get(TSS[i]) + "\t");
+                    bwS[4].write(TSS[i] + "\t");
                     for (int j = 0; j < 96; j++) {
                         bwS[4].write(count3_4k[i][j] + "\t");
                     }
                     bwS[4].newLine();
                 }
+                System.out.println("complete writing file : "+p+"_3k_4k_count.txt");
                 for (int i = 0; i < TSS.length; i++) {
-                    bwS[5].write(TSSMap.get(TSS[i]) + "\t");
+                    bwS[5].write(TSS[i] + "\t");
                     for (int j = 0; j < 96; j++) {
                         bwS[5].write(count4_5k[i][j] + "\t");
                     }
                     bwS[5].newLine();
                 }
+                System.out.println("complete writing file : "+p+"_4k_5k_count.txt");
                 System.out.println("complete writing file : " + p);
                 for (int i = 0; i < 6; i++) {
                     bwS[i].flush();
@@ -1274,8 +1284,8 @@ public class rareallele {
     }
 
     public void getGTvcf2() {
-        String inputDir = "/data2/xiaohan/sub3/";
-        String outputDir = "/data2/xiaohan/GT/S3";
+        String inputDir = "/data2/xiaohan/sub7/";
+        String outputDir = "/data2/xiaohan/GT/S7";
         HashSet<String> nameSet = new HashSet<String>();
         File[] fs = new File(inputDir).listFiles();
         fs = IOUtils.listFilesEndsWith(fs, "vcf.gz");
@@ -1296,9 +1306,9 @@ public class rareallele {
                 String[] temps = null;
                 String[] tems = null;
                 //S3
-                String name = "B18-E002,B18-E007,B18-E008,B18-E010,B18-E011,B18-E014,B18-E016,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E035,B18-E038,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E087,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E134,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E251,B18-E252,B18-E253,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E348,B18-E355,B18-E356,B18-E357";
+//                String name = "B18-E002,B18-E007,B18-E008,B18-E010,B18-E011,B18-E014,B18-E016,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E035,B18-E038,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E087,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E134,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E251,B18-E252,B18-E253,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E348,B18-E355,B18-E356,B18-E357";
                 //S7
-//                String name = "B18-E002,B18-E007,B18-E008,B18-E011,B18-E014,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E035,B18-E038,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E052,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E083,B18-E087,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E134,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E227,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E251,B18-E252,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E348,B18-E355,B18-E356,B18-E357";
+                String name = "B18-E002,B18-E007,B18-E008,B18-E011,B18-E014,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E035,B18-E038,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E052,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E083,B18-E087,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E134,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E227,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E251,B18-E252,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E348,B18-E355,B18-E356,B18-E357";
                 String[] names = name.split(",");
                 while ((temp = br.readLine()) != null) {
                     if (temp.startsWith("##"))
