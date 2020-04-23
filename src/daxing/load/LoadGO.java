@@ -31,7 +31,7 @@ public class LoadGO {
 //                taxonOutDirMap, e+1));
 //        EightModelUtils.merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir,
 //                subdir[1]).getAbsolutePath());
-        EightModelUtils.retainTriad(triadFile, vmapIIGroupFile, new File(outDir, subdir[1]).getAbsolutePath(),
+        EightModelUtils.retainTriad(triadFile, new File(outDir, subdir[1]).getAbsolutePath(),
                 new File(outDir,subdir[2]).getAbsolutePath());
 //        EightModelUtils.filter(new File(outDir, subdir[2]).getAbsolutePath(), new File(outDir, subdir[3]).getAbsolutePath());
 //        countGeneNum(new File(outDir, subdir[3]), new File(vmapIIGroupFile), new File(outDir, subdir[5]));
