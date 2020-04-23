@@ -358,8 +358,4 @@ public class EightModelUtils {
             e.printStackTrace();
         }
     }
-
-    public static void mergeNormalizedTriad(String triadListFile,String inputDir, String outDir){
-        List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
-    }
 }

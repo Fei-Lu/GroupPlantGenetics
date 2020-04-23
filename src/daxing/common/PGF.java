@@ -45,6 +45,10 @@ public class PGF {
         this.genes=genes;
     }
 
+    public Gene[] getGenes() {
+        return genes;
+    }
+
     /**
      * Read from pgf file of gene annotation
      * @param infileS
@@ -1273,6 +1277,14 @@ public class PGF {
             for (int i = 0; i < utr3List.size(); i++) {
                 len+=utr3List.get(i).getRangeSize();
             }
+            for (int i = 0; i < cdsList.size(); i++) {
+                len+=cdsList.get(i).getRangeSize();
+            }
+            return len;
+        }
+
+        public int getCDSLen(){
+            int len=0;
             for (int i = 0; i < cdsList.size(); i++) {
                 len+=cdsList.get(i).getRangeSize();
             }

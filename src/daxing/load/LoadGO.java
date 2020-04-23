@@ -11,13 +11,14 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import java.util.stream.IntStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class LoadGO {
 
-    public static void go(String exonSNPAnnoDir, String exonVCFDir, String vmapIIGroupFile, String triadFile,
-                          int derivedCountThresh, String outDir){
+    public static void go(String exonSNPAnnoDir, String exonVCFDir, String vmapIIGroupFile, String triadFile, String outDir){
         System.out.println(DateTime.getDateTimeOfNow());
         String[] subdir={"001_count","002_countMerge","003_retainTriad","004_filterTriad","005_model","006_modelMerge"};
         for (int i = 0; i < subdir.length; i++) {
@@ -26,21 +27,21 @@ public class LoadGO {
         List<File> exonAnnoFiles=IOUtils.getVisibleFileListInDir(exonSNPAnnoDir);
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
         Map<String, File> taxonOutDirMap=getTaxonOutDirMap(vmapIIGroupFile, new File(outDir, subdir[0]).getAbsolutePath());
-        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
-                taxonOutDirMap, e+1));
-        EightModelUtils.merge(new File(outDir, subdir[0]).getAbsolutePath(), vmapIIGroupFile, new File(outDir,
-                subdir[1]).getAbsolutePath());
-        EightModelUtils.retainTriad(triadFile, new File(outDir, subdir[1]).getAbsolutePath(), new File(outDir,
-                subdir[2]).getAbsolutePath());
-        EightModelUtils.filter(new File(outDir, subdir[2]).getAbsolutePath(), new File(outDir, subdir[3]).getAbsolutePath());
-        countGeneNum(new File(outDir, subdir[3]), new File(vmapIIGroupFile), new File(outDir, subdir[5]));
-        EightModelUtils.countEightModel(new File(outDir, subdir[3]).getAbsolutePath(), vmapIIGroupFile, derivedCountThresh,
-                new File(outDir, subdir[4]).getAbsolutePath());
-        EightModelUtils.mergeModel(new File(outDir, subdir[4]).getAbsolutePath(),
-                new File(outDir, subdir[5]).getAbsolutePath());
-        addGeneNumToModelMergedFile(new File(outDir, subdir[5]+"/geneNum.txt.gz"),
-                new File(outDir, subdir[5]+"/modelMerged.txt.gz"),
-                new File(outDir, subdir[5]+"/modelMergedGeneNum.txt.gz"));
+//        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
+//                taxonOutDirMap, e+1));
+//        EightModelUtils.merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir,
+//                subdir[1]).getAbsolutePath());
+        EightModelUtils.retainTriad(triadFile, vmapIIGroupFile, new File(outDir, subdir[1]).getAbsolutePath(),
+                new File(outDir,subdir[2]).getAbsolutePath());
+//        EightModelUtils.filter(new File(outDir, subdir[2]).getAbsolutePath(), new File(outDir, subdir[3]).getAbsolutePath());
+//        countGeneNum(new File(outDir, subdir[3]), new File(vmapIIGroupFile), new File(outDir, subdir[5]));
+//        EightModelUtils.countEightModel(new File(outDir, subdir[3]).getAbsolutePath(), vmapIIGroupFile, derivedCountThresh,
+//                new File(outDir, subdir[4]).getAbsolutePath());
+//        EightModelUtils.mergeModel(new File(outDir, subdir[4]).getAbsolutePath(),
+//                new File(outDir, subdir[5]).getAbsolutePath());
+//        addGeneNumToModelMergedFile(new File(outDir, subdir[5]+"/geneNum.txt.gz"),
+//                new File(outDir, subdir[5]+"/modelMerged.txt.gz"),
+//                new File(outDir, subdir[5]+"/modelMergedGeneNum.txt.gz"));
         System.out.println(DateTime.getDateTimeOfNow());
     }
 
