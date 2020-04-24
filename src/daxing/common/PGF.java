@@ -459,6 +459,9 @@ public class PGF {
         if (index < -1) {
             index = -index-2;
             if (this.isWithinThisGene(index, chr, pos)) return index;
+            if (this.genes[index+1].geneRange.chr==chr && this.genes[index+1].geneRange.start==pos) return index+1;
+        }else if (index == -1){
+            if (this.genes[0].geneRange.chr==chr && this.genes[0].geneRange.start==pos) return 0;
         }
         return hit;
     }
