@@ -42,13 +42,19 @@ public class DynamicSNPGenotypeDB {
         return taoxnGenotype;
     }
 
-    public int[] countAllTaxonDerived(){
+    public int[][] countAllTaxonDerived(){
         TIntArrayList[] taoxnGenotype=this.getAllTaxonGenotype();
-        int[] taxonDerivedCount=new int[taoxnGenotype.length];
+        int[][] taxonDerivedCount=new int[taoxnGenotype.length][];
+        for (int i = 0; i < taxonDerivedCount.length; i++) {
+            taxonDerivedCount[i]=new int[2];
+        }
         for (int i = 0; i < taoxnGenotype.length; i++) {
             for (int j = 0; j < taoxnGenotype[i].size(); j++) {
-                if (taoxnGenotype[i].get(j)!=1) continue;
-                taxonDerivedCount[i]=taxonDerivedCount[i]+1;
+                if (taoxnGenotype[i].get(j)==2 || taoxnGenotype[i].get(j) == 3) continue; //0: 0/0 1: 1/1 2: 0/1 3 ./.
+                taxonDerivedCount[i][0]=taxonDerivedCount[i][0]+1;
+                if (taoxnGenotype[i].get(j)==1){
+                    taxonDerivedCount[i][1]=taxonDerivedCount[i][1]+1;
+                }
             }
         }
         return taxonDerivedCount;

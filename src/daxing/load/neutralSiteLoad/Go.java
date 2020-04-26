@@ -40,7 +40,7 @@ public class Go {
         }
     }
 
-    public static void getDerivedCount(File vcfFile, File ancestralFile, GenesDB.GeneRange[] geneRanges
+    private static void getDerivedCount(File vcfFile, File ancestralFile, GenesDB.GeneRange[] geneRanges
             , Map<String,File> taxonOutDirMap){
         long start=System.nanoTime();
         Table<Integer,Integer, Character> ancestralTable=getAncestral(ancestralFile);
@@ -62,7 +62,7 @@ public class Go {
             char refBase, altBase, ancestralBase;
             DynamicSNPGenotypeDB dynamicSNPGenotypeDB=new DynamicSNPGenotypeDB();
             SNPGenotype snpGenotype=null;
-            int[] derivedCount;
+            int[][] derivedCount;
             String outFileName=null;
             for (int i = 0; i < geneRanges.length; i++) {
                 while ((line=br.readLine())!=null){
