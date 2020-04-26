@@ -163,13 +163,27 @@ public class Go {
         }
         tableTool.insertColumn("TriadID", 0, triadIDList);
         Comparator<List<String>> c=Comparator.comparing(l->l.get(0));
-        Comparator<List<String>> cc=c.thenComparing(l->l.get(1));
+        Comparator<List<String>> cc=c.thenComparing(l->l.get(1).substring(8,9));
         tableTool.sortBy(cc);
         tableTool.write(new File(outDir, outName+".txt.gz"), IOFileFormat.TextGzip);
     }
 
+    public static void start(){
+        String retainTriadDir="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/004_analysis/002_geneLoadIndividual/003_retainTriad";
+        String neutralSiteLoad="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/004_analysis/002_geneLoadIndividual/neutralSiteLoad/test/001_neutralSiteLoad";
+        String vmapIIGroupFile="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/vmapGroup.txt";
+        String[] dirs={"002_addNeutralSiteLoad","003_filterTriadAddNeutralLoad","004_standization"};
+        String parentDir=new File(neutralSiteLoad).getParent();
+        for (int i = 0; i < dirs.length; i++) {
+            new File(parentDir, dirs[i]).mkdir();
+        }
+        Go.insertColumnNeutralSiteLoad(retainTriadDir, neutralSiteLoad, vmapIIGroupFile, new File(parentDir, dirs[0]));
+        Go.filter(new File(parentDir, dirs[0]).getAbsolutePath(), new File(parentDir, dirs[1]).getAbsolutePath(), 1,5);
+        Go.normalized(new File(parentDir, dirs[1]).getAbsolutePath(), new File(parentDir, dirs[2]).getAbsolutePath());
+    }
+
     public static void insertColumnNeutralSiteLoad(String retainTriadDir, String neutralSiteLoadDir,
-                                                   String vmapIIGroupFile, String outDir){
+                                                   String vmapIIGroupFile, File outDir){
         List<File> neutralFiles=IOUtils.getVisibleFileListInDir(neutralSiteLoadDir);
         RowTableTool<String> vmapIITable=new RowTableTool<>(vmapIIGroupFile);
         Map<String,String> taxonGroupMap=vmapIITable.getHashMap(0,15);
@@ -194,8 +208,10 @@ public class Go {
             System.out.println("neutral geneNameList not equal retainTriadFileList name");
             System.exit(1);
         }
-        List<String> neutralLoad=neutralTable.getColumn(2);
-        retainTable.addColumn("DerivedCountInGeneLocal", neutralLoad);
+        List<String> numGeneLocal=neutralTable.getColumn(2);
+        List<String> numDerivedInGeneLocal=neutralTable.getColumn(3);
+        retainTable.addColumn("numGeneLocal", numGeneLocal);
+        retainTable.addColumn("numDerivedInGeneLocal", numDerivedInGeneLocal);
         retainTable.write(outFile,IOFileFormat.TextGzip);
     }
 
@@ -229,7 +245,7 @@ public class Go {
                 for (int i = 0; i < lineABD.length; i++) {
                     temp = PStringUtils.fastSplit(lineABD[i]);
                     snpNum[i] = Integer.parseInt(temp.get(3)) + Integer.parseInt(temp.get(5));
-                    neutralNum[i] = Integer.parseInt(temp.get(10)) - Integer.parseInt(temp.get(6));
+                    neutralNum[i] = Integer.parseInt(temp.get(11)) - Integer.parseInt(temp.get(6));
                 }
                 if (snpNum[0] < snpNumThresh) continue;
                 if (snpNum[1] < snpNumThresh) continue;
@@ -287,7 +303,7 @@ public class Go {
                 triadID=temp[0].get(0);
                 for (int i = 0; i < cdsLen.length; i++) {
                     cdsLen[i]=Integer.parseInt(temp[i].get(1));
-                    neutralNum[i]=Integer.parseInt(temp[i].get(10))-Integer.parseInt(temp[i].get(6));
+                    neutralNum[i]=Integer.parseInt(temp[i].get(11))-Integer.parseInt(temp[i].get(6));
                     derivedNonsyn[i]=Double.parseDouble(temp[i].get(6));
                     deleterious[i]=Double.parseDouble(temp[i].get(8));
                 }
