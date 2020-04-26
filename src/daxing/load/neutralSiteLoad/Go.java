@@ -182,7 +182,7 @@ public class Go {
         Go.normalized(new File(parentDir, dirs[1]).getAbsolutePath(), new File(parentDir, dirs[2]).getAbsolutePath());
     }
 
-    public static void insertColumnNeutralSiteLoad(String retainTriadDir, String neutralSiteLoadDir,
+    private static void insertColumnNeutralSiteLoad(String retainTriadDir, String neutralSiteLoadDir,
                                                    String vmapIIGroupFile, File outDir){
         List<File> neutralFiles=IOUtils.getVisibleFileListInDir(neutralSiteLoadDir);
         RowTableTool<String> vmapIITable=new RowTableTool<>(vmapIIGroupFile);
@@ -215,7 +215,7 @@ public class Go {
         retainTable.write(outFile,IOFileFormat.TextGzip);
     }
 
-    public static void filter(String triadNeutralLoadFileInputDir, String outDir, int snpNumThresh, int neutralNumThresh){
+    private static void filter(String triadNeutralLoadFileInputDir, String outDir, int snpNumThresh, int neutralNumThresh){
         List<File> files=IOUtils.getVisibleFileListInDir(triadNeutralLoadFileInputDir);
         String[] outFileName= files.stream().map(File::getName).map(s->s.replaceAll(".txt.gz",".filtered.txt.gz")).toArray(String[]::new);
         IntStream.range(0, files.size()).parallel().forEach(e->filter(files.get(e),new File(outDir, outFileName[e]), snpNumThresh, neutralNumThresh));
@@ -265,7 +265,7 @@ public class Go {
         }
     }
 
-    public static void normalized(String inputDir, String outDir){
+    private static void normalized(String inputDir, String outDir){
         List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
         String[] outNames= files.stream().map(File::getName).map(s->s.replaceAll(".txt.gz",".normalized.txt.gz")).toArray(String[]::new);
         IntStream.range(0, files.size()).parallel().forEach(e->normalized(files.get(e), new File(outDir, outNames[e])));
