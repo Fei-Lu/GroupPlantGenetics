@@ -16,6 +16,15 @@ public class Standardization {
 
     public enum PointIndex{
 
+//        POINTA(0, "A_dominant"),
+//        POINTB(1, "B_dominant"),
+//        POINTD(2, "D_dominant"),
+//        POINTE(3, "D_suppressed"),
+//        POINTF(4, "A_suppressed"),
+//        POINTG(5, "B_suppressed"),
+//        POINTO(6, "Balanced"),
+//        POINTM000(7, "M000");
+
         POINTA(0, "M100"),
         POINTB(1, "M010"),
         POINTD(2, "M001"),
@@ -68,9 +77,9 @@ public class Standardization {
         for (int i = 0; i < transform100.length; i++) {
             ifZero[i] = transform100[i]==0 ? true : false;
         }
-        if (ifZero[1]==true && ifZero[2]==true) return PointIndex.POINTA;
-        if (ifZero[0]==true && ifZero[2]==true) return PointIndex.POINTB;
-        if (ifZero[0]==true && ifZero[1]==true) return PointIndex.POINTD;
+        if (ifZero[1] && ifZero[2]) return PointIndex.POINTA;
+        if (ifZero[0] && ifZero[2]) return PointIndex.POINTB;
+        if (ifZero[0] && ifZero[1]) return PointIndex.POINTD;
         if (transform100[0]==transform100[1] && transform100[1]==transform100[2]) return PointIndex.POINTO;
         double[] coordinate=getCoordinate(transform100);
         double[] nearestDistance=new double[7];
@@ -116,6 +125,20 @@ public class Standardization {
         coordinate[0]=0.5*transform100[1]+transform100[2];
         coordinate[1]=Math.sqrt(0.75)*transform100[1];
         return coordinate;
+    }
+
+    /**
+     *
+     * @param point1 double[3] 为transform100前对应的值
+     * @param point2 double[3] 为transform100前对应的值
+     * @return
+     */
+    public static double getDistance(double[] point1, double[] point2){
+        double[] transform100_point1=transform100(point1);
+        double[] transform100_point2=transform100(point2);
+        double[] pointA=getCoordinate(transform100_point1);
+        double[] pointB=getCoordinate(transform100_point2);
+        return calculateDistance(pointA, pointB);
     }
 
 
