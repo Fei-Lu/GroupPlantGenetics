@@ -7,7 +7,10 @@ import daxing.load.Standardization;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -184,5 +187,52 @@ public class Utils {
             table1.addColumn(columnName[i],columnList.get(i));
         }
         return table1;
+    }
+
+    public static void calculateDistance(String inputFile, String outFile){
+        try (BufferedReader br = IOTool.getReader(inputFile);
+             BufferedWriter bw =IOTool.getTextGzipWriter(outFile)) {
+            String header=br.readLine();
+            List<String> newHeader=PStringUtils.fastSplit(header);
+            newHeader.add(9, "CultivarDist");
+            newHeader.add("Landrace_EUDistance");
+            bw.write(String.join("\t", newHeader));
+            bw.newLine();
+            String line;
+            List<String> temp;
+            double[] globalABD, landraceABD, cultivarABD;
+            double cultivarDistance, landraceDistance;
+            while ((line=br.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                if (temp.contains("NA") || temp.contains("M000")){
+                    temp.add(9, "NA");
+                    temp.add("NA");
+                    bw.write(String.join("\t",temp));
+                    bw.newLine();
+                    continue;
+                }
+                globalABD=new double[3];
+                cultivarABD=new double[3];
+                landraceABD=new double[3];
+                globalABD[0]=Double.parseDouble(temp.get(1));
+                globalABD[1]=Double.parseDouble(temp.get(2));
+                globalABD[2]=Double.parseDouble(temp.get(3));
+                cultivarABD[0]=Double.parseDouble(temp.get(5));
+                cultivarABD[1]=Double.parseDouble(temp.get(6));
+                cultivarABD[2]=Double.parseDouble(temp.get(7));
+                landraceABD[0]=Double.parseDouble(temp.get(9));
+                landraceABD[1]=Double.parseDouble(temp.get(10));
+                landraceABD[2]=Double.parseDouble(temp.get(11));
+                cultivarDistance=Standardization.getDistance(globalABD, cultivarABD);
+                landraceDistance=Standardization.getDistance(globalABD, landraceABD);
+                temp.add(9, String.valueOf(NumberTool.format(cultivarDistance,5)));
+                temp.add(String.valueOf(NumberTool.format(landraceDistance,5)));
+                bw.write(String.join("\t", temp));
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

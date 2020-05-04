@@ -1,5 +1,6 @@
 package daxing.load.neutralSiteLoad;
 
+import daxing.load.slidingWindow.GeneWindowDB;
 import gnu.trove.list.array.TIntArrayList;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +65,14 @@ public class DynamicSNPGenotypeDB {
         List<SNPGenotype> snpGenotypeList=this.snpList;
         Predicate<SNPGenotype> p=snp->snp.getPosition() < geneRange.start;
         boolean res=snpGenotypeList.removeIf(p);
+        this.snpList=snpGenotypeList;
+        return res;
+    }
+
+    public boolean retainAll(GeneWindowDB.GeneWindow geneWindow){
+        List<SNPGenotype> snpGenotypeList=this.snpList;
+        Predicate<SNPGenotype> inGeneWindow=snp->geneWindow.containCDSPos(snp.getChromosome(), snp.getPosition());
+        boolean res=snpGenotypeList.removeIf(inGeneWindow.negate());
         this.snpList=snpGenotypeList;
         return res;
     }

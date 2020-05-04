@@ -1,8 +1,6 @@
 package daxing.load;
 
-import daxing.common.DateTime;
-import daxing.common.IOTool;
-import daxing.common.RowTableTool;
+import daxing.common.*;
 import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
@@ -11,16 +9,28 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class LoadGO {
 
+    public static void start(){
+        String exonSNPAnnoDir="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/003_exonSNPAnno/001_byChrID";
+        String exonVCFDir="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/002_exonSNPVCF";
+        String vmapIIGroupFile="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/vmapGroup.txt";
+        String triadFile="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/triadGenes1.1_cdsLen_geneHC.txt";
+        String outDir="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/004_analysis/003_geneLoadIndividual_GeneHC";
+        go(exonSNPAnnoDir, exonVCFDir, vmapIIGroupFile, triadFile, outDir);
+    }
+
     public static void go(String exonSNPAnnoDir, String exonVCFDir, String vmapIIGroupFile, String triadFile, String outDir){
         System.out.println(DateTime.getDateTimeOfNow());
-        String[] subdir={"001_count","002_countMerge","003_retainTriad","004_filterTriad","005_model","006_modelMerge"};
+        String[] subdir={"001_count","002_countMerge","003_retainTriad","004_standardization"};
         for (int i = 0; i < subdir.length; i++) {
             new File(outDir, subdir[i]).mkdir();
         }
@@ -29,20 +39,9 @@ public class LoadGO {
         Map<String, File> taxonOutDirMap=getTaxonOutDirMap(vmapIIGroupFile, new File(outDir, subdir[0]).getAbsolutePath());
 //        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
 //                taxonOutDirMap, e+1));
-//        EightModelUtils.merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir,
-//                subdir[1]).getAbsolutePath());
-        EightModelUtils.retainTriad(triadFile, new File(outDir, subdir[1]).getAbsolutePath(),
-                new File(outDir,subdir[2]).getAbsolutePath());
-//        EightModelUtils.filter(new File(outDir, subdir[2]).getAbsolutePath(), new File(outDir, subdir[3]).getAbsolutePath());
-//        countGeneNum(new File(outDir, subdir[3]), new File(vmapIIGroupFile), new File(outDir, subdir[5]));
-//        EightModelUtils.countEightModel(new File(outDir, subdir[3]).getAbsolutePath(), vmapIIGroupFile, derivedCountThresh,
-//                new File(outDir, subdir[4]).getAbsolutePath());
-//        EightModelUtils.mergeModel(new File(outDir, subdir[4]).getAbsolutePath(),
-//                new File(outDir, subdir[5]).getAbsolutePath());
-//        addGeneNumToModelMergedFile(new File(outDir, subdir[5]+"/geneNum.txt.gz"),
-//                new File(outDir, subdir[5]+"/modelMerged.txt.gz"),
-//                new File(outDir, subdir[5]+"/modelMergedGeneNum.txt.gz"));
-        System.out.println(DateTime.getDateTimeOfNow());
+//        merge(new File(outDir, subdir[0]).getAbsolutePath(), vmapIIGroupFile, new File(outDir, subdir[1]).getAbsolutePath());
+//        retainTriad(triadFile, new File(outDir, subdir[1]).getAbsolutePath(), new File(outDir, subdir[2]).getAbsolutePath());
+        normalizedTriadByAncestralNum(new File(outDir, subdir[2]).getAbsolutePath(), new File(outDir, subdir[3]).getAbsolutePath());
     }
 
     private static void go(File exonSNPAnnoFile, File exonVCFFile,
@@ -120,47 +119,180 @@ public class LoadGO {
         return taxonOutDirMap;
     }
 
-    private static void countGeneNum(File inputDir, File vmapGroupFile, File outDir){
-        List<File> files=IOUtils.getVisibleFileListInDir(inputDir.getAbsolutePath());
-        RowTable<String> rowTable;
-        RowTableTool<String> vmapGroupTable=new RowTableTool<>(vmapGroupFile.getAbsolutePath());
-        Map<String,String> map=vmapGroupTable.getHashMap(0,15);
+    public static void merge(String inputDir, String vmapIIGroupFile, String outDir){
+        List<File> dirs=IOTool.getVisibleDir(inputDir);
+        RowTableTool<String> table=new RowTableTool<>(vmapIIGroupFile);
+        Map<String,String> taxonGroupMap=table.getHashMap(0, 15);
+        Predicate<File> p= f->taxonGroupMap.get(f.getName()).equals("Landrace_Europe") || taxonGroupMap.get(f.getName()).equals("Cultivar");
+        List<File> ldCl=dirs.stream().filter(p).collect(Collectors.toList());
+        List<File> temp;
+        RowTableTool<String> tableTool;
+        String outName;
+        for (int i = 0; i < ldCl.size(); i++) {
+            temp= IOUtils.getVisibleFileListInDir(ldCl.get(i).getAbsolutePath());
+            tableTool=new RowTableTool<>(temp.get(0).getAbsolutePath());
+            outName= PStringUtils.fastSplit(temp.get(0).getName(), ".").get(1);
+            for (int j = 1; j < temp.size(); j++) {
+                tableTool.add(new RowTableTool<>(temp.get(j).getAbsolutePath()));
+            }
+            tableTool.write(new File(outDir, outName+".txt.gz"), IOFileFormat.TextGzip);
+        }
+    }
+
+    public static void retainTriad(String triadFile, String inputDir, String outDir){
+        List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
+        IntStream.range(0, files.size()).parallel().forEach(e->retainTriad(triadFile, files.get(e), outDir));
+    }
+
+    private static void retainTriad(String triadFile, File inputFile, String outDir){
+        Triad triad=new Triad(triadFile);
+        RowTableTool<String> table=new RowTableTool<>(inputFile.getAbsolutePath());
+        List<String> geneNames=table.getColumn(0);
+        Collections.sort(geneNames);
+        String[] threeName;
+        int indexABD[]=new int[3];
+        String triadID, taxon, temp;
+        taxon=PStringUtils.fastSplit(inputFile.getName(), ".").get(0);
+        StringBuilder sb;
+        BufferedWriter bw;
+        int[] cdsLen;
         try {
-            BufferedWriter bw=IOTool.getTextGzipWriter(new File(outDir, "geneNum.txt.gz"));
-            bw.write("taxon\tgeneNum\tgroup");
+            bw=IOTool.getTextGzipWriter(new File(outDir, taxon + ".triad.txt.gz"));
+            bw.write("TriadID\tcdsLen\tGeneName\tnumSyn\tnumDerivedInSyn\tnumNonsyn\tnumDerivedInNonsyn" +
+                    "\tnumHGDeleterious\tnumDerivedInHGDeleterious\tsubgenome");
             bw.newLine();
-            String taxondName, group;
-            StringBuilder sb;
-            for (int i = 0; i < files.size(); i++) {
-                rowTable=new RowTableTool<>(files.get(i).getAbsolutePath());
-                taxondName=PStringUtils.fastSplit(files.get(i).getName(), ".").get(0);
-                group=map.get(taxondName);
-                sb=new StringBuilder();
-                sb.append(taxondName).append("\t").append(rowTable.getRowNumber()).append("\t").append(group);
-                bw.write(sb.toString());
-                bw.newLine();
+            String subgenome, geneName;
+            for (int i = 0; i < triad.getRowNum(); i++) {
+                threeName=triad.getTriad(i);
+                for (int j = 0; j < indexABD.length; j++) {
+                    indexABD[j]= Collections.binarySearch(geneNames, threeName[j]);
+                }
+                if (indexABD[0] < 0) continue;
+                if (indexABD[1] < 0) continue;
+                if (indexABD[2] < 0) continue;
+                triadID=triad.getTraidID(i);
+                cdsLen=triad.getCDSLen(i);
+                for (int j = 0; j < indexABD.length; j++) {
+                    temp=String.join("\t", table.getRow(indexABD[j]));
+                    sb=new StringBuilder();
+                    sb.append(triadID).append("\t").append(cdsLen[j]).append("\t");
+                    sb.append(temp).append("\t");
+                    geneName=table.getRow(indexABD[j]).get(0);
+                    subgenome=geneName.substring(8,9);
+                    sb.append(subgenome);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
             }
             bw.flush();
             bw.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private static void addGeneNumToModelMergedFile(File geneNumFile, File modelMergedFile, File outFile){
-        RowTableTool<String> geneNumTable=new RowTableTool<>(geneNumFile.getAbsolutePath());
-        Map<String, String> taxonGeneNumMap=geneNumTable.getHashMap(0,1);
-        RowTable<String> modelTable=new RowTableTool<>(modelMergedFile.getAbsolutePath());
-        List<String> taxonNameList=modelTable.getColumn(4);
-        List<String> geneNumList=new ArrayList<>();
-        int geneNum;
-        for (int i = 0; i < taxonNameList.size(); i++) {
-            geneNum=Integer.parseInt(taxonGeneNumMap.get(taxonNameList.get(i)));
-            geneNumList.add(String.valueOf(geneNum/3));
-        }
-        modelTable.addColumn("triadNum", geneNumList);
-        modelTable.writeTextTable(outFile.getAbsolutePath(), IOFileFormat.TextGzip);
-        modelMergedFile.delete();
-        geneNumFile.delete();
+    public static void normalizedTriadByAncestralNum(String inputDir,String outDir){
+        List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
+        IntStream.range(0, files.size()).forEach(f->normalizedTriadByAncestralNum(files.get(f), outDir));
     }
+
+    public static void normalizedTriadByAncestralNum(File inputFile, String outDir){
+        String fileName=inputFile.getName().replaceAll("triad", "triad.normalized");
+        try (BufferedReader br = IOTool.getReader(inputFile);
+             BufferedWriter bw =IOTool.getTextGzipWriter(new File(outDir, fileName))) {
+            bw.write("TriadID\tnormalizedNumDerivedInSynA" +
+                    "\tnormalizedNumDerivedInSynB\tnormalizedNumDerivedInSynD\tsynRegion" +
+                    "\tnormalizedNumDerivedInNonsynA" +
+                    "\tnormalizedNumDerivedInNonsynB\tnormalizedNumDerivedInNonsynD\tnonsynRegion" +
+                    "\tnormalizedNumDerivedInHGDeleteriousA\tnormalizedNumDerivedInHGDeleteriousB" +
+                    "\tnormalizedNumDerivedInHGDeleteriousD\tdelRegion");
+            bw.newLine();
+            br.readLine();
+            String line, triadID, region;
+            List<String>[] temp;
+            int[] cdsLen;
+            int[] snpNum;
+            double[] derivedSyn;
+            double[] derivedNonsyn;
+            double[] deleterious;
+            StringBuilder sb;
+            double[] normalizedDerivedSyn;
+            double[] normalizedDerivedNonSyn;
+            double[] normalizedDerivedDel;
+            int index;
+            while ((line=br.readLine())!=null){
+                temp=new List[3];
+                temp[0]=PStringUtils.fastSplit(line);
+                temp[1]=PStringUtils.fastSplit(br.readLine());
+                temp[2]=PStringUtils.fastSplit(br.readLine());
+                cdsLen=new int[3];
+                snpNum=new int[3];
+                derivedSyn=new double[3];
+                derivedNonsyn=new double[3];
+                deleterious=new double[3];
+                normalizedDerivedSyn=new double[3];
+                normalizedDerivedNonSyn=new double[3];
+                normalizedDerivedDel=new double[3];
+                triadID=temp[0].get(0);
+                for (int i = 0; i < cdsLen.length; i++) {
+                    cdsLen[i]=Integer.parseInt(temp[i].get(1));
+                    snpNum[i]=Integer.parseInt(temp[i].get(3))+Integer.parseInt(temp[i].get(5));
+                    derivedSyn[i]=Double.parseDouble(temp[i].get(4));
+                    derivedNonsyn[i]=Double.parseDouble(temp[i].get(6));
+                    deleterious[i]=Double.parseDouble(temp[i].get(8));
+                }
+                for (int i = 0; i < 3; i++) {
+                    normalizedDerivedSyn[i]=1000*10*derivedSyn[i]/(cdsLen[i]*snpNum[i]);
+                    normalizedDerivedNonSyn[i]=1000*10*derivedNonsyn[i]/(cdsLen[i]*snpNum[i]);
+                    normalizedDerivedDel[i]=1000*10*deleterious[i]/(cdsLen[i]*snpNum[i]);
+                }
+                sb=new StringBuilder();
+                sb.append(triadID).append("\t");
+                for (int i = 0; i < 3; i++) {
+                    if (Double.isNaN(normalizedDerivedSyn[i])){
+                        sb.append("NA").append("\t");
+                    }else {
+                        sb.append(NumberTool.format(normalizedDerivedSyn[i], 5)).append("\t");
+                    }
+                }
+                if (Double.isNaN(normalizedDerivedSyn[0]) || Double.isNaN(normalizedDerivedSyn[1]) || Double.isNaN(normalizedDerivedSyn[2])){
+                    region="NA";
+                }else {
+                    region=Standardization.getNearestPointIndex(normalizedDerivedSyn).getRegion();
+                }
+                sb.append(region).append("\t");
+                for (int i = 0; i < 3; i++) {
+                    if (Double.isNaN(normalizedDerivedNonSyn[i])){
+                        sb.append("NA").append("\t");
+                    }else {
+                        sb.append(NumberTool.format(normalizedDerivedNonSyn[i], 5)).append("\t");
+                    }
+                }
+                if (Double.isNaN(normalizedDerivedNonSyn[0]) || Double.isNaN(normalizedDerivedNonSyn[1]) || Double.isNaN(normalizedDerivedNonSyn[2])){
+                    region="NA";
+                }else {
+                    region=Standardization.getNearestPointIndex(normalizedDerivedNonSyn).getRegion();
+                }
+                sb.append(region).append("\t");
+                for (int i = 0; i < 3; i++) {
+                    if (Double.isNaN(normalizedDerivedDel[i])){
+                        sb.append("NA").append("\t");
+                    }else {
+                        sb.append(NumberTool.format(normalizedDerivedDel[i], 5)).append("\t");
+                    }
+                }
+                if (Double.isNaN(normalizedDerivedDel[0]) || Double.isNaN(normalizedDerivedDel[1]) || Double.isNaN(normalizedDerivedDel[2])){
+                    region="NA";
+                }else {
+                    region=Standardization.getNearestPointIndex(normalizedDerivedDel).getRegion();
+                }
+                sb.append(region);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
