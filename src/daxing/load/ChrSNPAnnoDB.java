@@ -8,13 +8,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public class TranscriptDB {
+public class ChrSNPAnnoDB {
 
-    private List<SNPAnnotation> geneSNPAnno;
+    private List<SNPAnnotation> snpAnnotationList;
 
-    public TranscriptDB(String exonSNPAnnoFile){
-        File exonAnnoFile=new File(exonSNPAnnoFile);
-        this.geneSNPAnno =this.getGeneSNPAnno(exonAnnoFile);
+    public ChrSNPAnnoDB(File exonSNPAnnoFile){
+        this.snpAnnotationList =this.getGeneSNPAnno(exonSNPAnnoFile);
+        Collections.sort(snpAnnotationList);
     }
 
     private List<SNPAnnotation> getGeneSNPAnno(File exonSNPAnnoFile){
@@ -64,11 +64,11 @@ public class TranscriptDB {
      * @return negative value, not in DB
      */
     public int binarySearch(int chr, int pos){
-        return Collections.binarySearch(this.geneSNPAnno, new ChrPos((short) chr, pos));
+        return Collections.binarySearch(this.snpAnnotationList, new ChrPos((short) chr, pos));
     }
 
     public SNPAnnotation getSNPAnnotation(int index){
-        return this.geneSNPAnno.get(index);
+        return this.snpAnnotationList.get(index);
     }
 
     public String getGeneName(int chr, int pos){
@@ -81,7 +81,7 @@ public class TranscriptDB {
     }
 
     public String[] getGeneName(){
-        List<SNPAnnotation> snpAnnotations=this.geneSNPAnno;
+        List<SNPAnnotation> snpAnnotations=this.snpAnnotationList;
         Set<String> geneNames=new HashSet<>();
         String geneName;
         for (int i = 0; i < snpAnnotations.size(); i++) {
@@ -93,7 +93,7 @@ public class TranscriptDB {
 
     public SNPAnnotation getSNP(int chr, int pos){
         int index=this.binarySearch(chr, pos);
-        return this.geneSNPAnno.get(index);
+        return this.snpAnnotationList.get(index);
     }
 
     public boolean contain(int chr, int pos){
@@ -121,5 +121,4 @@ public class TranscriptDB {
     public boolean isDeleterious(int chr, int pos){
         return this.getSNP(chr, pos).isDeleterious();
     }
-
 }

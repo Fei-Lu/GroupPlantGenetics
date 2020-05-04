@@ -3,17 +3,23 @@ package daxing.load.slidingWindow;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import daxing.common.IOTool;
+import daxing.common.NumberTool;
 import daxing.common.RowTableTool;
 import daxing.common.Triad;
+import daxing.load.Standardization;
 import daxing.load.neutralSiteLoad.DynamicSNPGenotypeDB;
 import daxing.load.neutralSiteLoad.IndividualChrLoad;
 import daxing.load.neutralSiteLoad.SNPGenotype;
 import pgl.infra.table.RowTable;
 import pgl.infra.utils.*;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class SlidingWindowGo {
 
@@ -25,7 +31,7 @@ public class SlidingWindowGo {
         List<File> vcfFiles= IOUtils.getVisibleFileListInDir(vcfDir);
         List<File> ancestralFiles=IOUtils.getVisibleFileListInDir(ancestralDir);
         Map<String,File> vmapIITaxonoutDirMap=getTaxonOutDirMap(vmapIIGroupFile, outdir);
-        int[][] indices= PArrayUtils.getSubsetsIndicesBySubsetSize(vcfFiles.size(), 10);
+        int[][] indices= PArrayUtils.getSubsetsIndicesBySubsetSize(vcfFiles.size(), 3);
         for (int i = 0; i < indices.length; i++) {
             Integer[] subLibIndices = new Integer[indices[i][1]-indices[i][0]];
             for (int j = 0; j < subLibIndices.length; j++) {
@@ -163,5 +169,117 @@ public class SlidingWindowGo {
         Comparator<List<String>> cc=c.thenComparing(l->l.get(1).substring(8,9));
         tableTool.sortBy(cc);
         tableTool.write(new File(outDir, outName+".txt.gz"), IOFileFormat.TextGzip);
+    }
+
+    public static void start(){
+        String retainTriadDir="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/004_analysis/003_geneLoadIndividual_GeneHC/003_retainTriad";
+        String neutralSiteLoad="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/004_analysis/003_geneLoadIndividual_GeneHC/004_standardization/003_standizationByGeneLoacal_10Genes/001_individualLoad";
+        String vmapIIGroupFile="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/vmapGroup.txt";
+        String[] dirs={"002_addNeutralSiteLoad","003_standization"};
+        String parentDir=new File(neutralSiteLoad).getParent();
+        for (int i = 0; i < dirs.length; i++) {
+            new File(parentDir, dirs[i]).mkdir();
+        }
+        insertColumnNeutralSiteLoad(retainTriadDir, neutralSiteLoad, vmapIIGroupFile, new File(parentDir, dirs[0]));
+//        normalized(new File(parentDir, dirs[0]).getAbsolutePath(), new File(parentDir, dirs[1]).getAbsolutePath());
+    }
+
+    private static void insertColumnNeutralSiteLoad(String retainTriadDir, String neutralSiteLoadDir,
+                                                    String vmapIIGroupFile, File outDir){
+        List<File> neutralFiles=IOUtils.getVisibleFileListInDir(neutralSiteLoadDir);
+        RowTableTool<String> vmapIITable=new RowTableTool<>(vmapIIGroupFile);
+        Map<String,String> taxonGroupMap=vmapIITable.getHashMap(0,15);
+        Predicate<File> landraceCultivar= f->taxonGroupMap.get(PStringUtils.fastSplit(f.getName(),".").get(0)).equals(
+                "Landrace_Europe") || taxonGroupMap.get(PStringUtils.fastSplit(f.getName(),".").get(0)).equals("Cultivar");
+        List<File> landraceCultivarFiles=neutralFiles.stream().filter(landraceCultivar).sorted().collect(Collectors.toList());
+        List<File> files=IOUtils.getVisibleFileListInDir(retainTriadDir);
+        String[] outNames= files.stream().map(File::getName).map(s->s.replaceAll(".txt.gz", ".neutralLoad.txt.gz")).toArray(String[]::new);
+        (IntStream.range(0, files.size())).parallel().forEach(e->insertColumnNeutralSiteLoad(files.get(e),
+                landraceCultivarFiles.get(e), new File(outDir, outNames[e])));
+    }
+
+    private static void insertColumnNeutralSiteLoad(File retainTriadFile, File neutralSiteLoadFile, File outFile){
+        RowTableTool<String> neutralTable=new RowTableTool<>(neutralSiteLoadFile.getAbsolutePath());
+        RowTableTool<String> retainTable=new RowTableTool<>(retainTriadFile.getAbsolutePath());
+        Comparator<List<String>> c=Comparator.comparing(l->l.get(0));
+        Comparator<List<String>> cc=c.thenComparing(l->l.get(1).substring(8,9));
+        neutralTable.sortBy(cc);
+        List<String> geneNameNeutral=neutralTable.getColumn(1);
+        List<String> geneNameRetain=retainTable.getColumn(2);
+        if (!geneNameNeutral.equals(geneNameRetain)){
+            System.out.println("neutral geneNameList not equal retainTriadFileList name");
+            System.exit(1);
+        }
+        List<String> numGeneLocal=neutralTable.getColumn(2);
+        List<String> numDerivedInGeneLocal=neutralTable.getColumn(3);
+        retainTable.addColumn("numGeneLocal", numGeneLocal);
+        retainTable.addColumn("numDerivedInGeneLocal", numDerivedInGeneLocal);
+        retainTable.write(outFile,IOFileFormat.TextGzip);
+    }
+
+    private static void normalized(String inputDir, String outDir){
+        List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
+        String[] outNames= files.stream().map(File::getName).map(s->s.replaceAll(".txt.gz",".normalized.txt.gz")).toArray(String[]::new);
+        IntStream.range(0, files.size()).parallel().forEach(e->normalized(files.get(e), new File(outDir, outNames[e])));
+    }
+
+    private static void normalized(File inputFile, File outFile){
+        try (BufferedReader br = IOTool.getReader(inputFile);
+             BufferedWriter bw =IOTool.getTextGzipWriter(outFile)) {
+            bw.write("TriadID\tnormalizedNumDerivedInNonsynA" +
+                    "\tnormalizedNumDerivedInNonsynB\tnormalizedNumDerivedInNonsynD\tnonsynRegion" +
+                    "\tnormalizedNumDerivedInHGDeleteriousA\tnormalizedNumDerivedInHGDeleteriousB" +
+                    "\tnormalizedNumDerivedInHGDeleteriousD\tdelRegion");
+            bw.newLine();
+            br.readLine();
+            String line, triadID, region;
+            List<String>[] temp;
+            int[] cdsLen;
+            int[] neutralNum;
+            double[] derivedNonsyn;
+            double[] deleterious;
+            StringBuilder sb;
+            double[] normalizedDerivedNonSyn;
+            double[] normalizedDerivedDel;
+            while ((line=br.readLine())!=null){
+                temp=new List[3];
+                temp[0]=PStringUtils.fastSplit(line);
+                temp[1]=PStringUtils.fastSplit(br.readLine());
+                temp[2]=PStringUtils.fastSplit(br.readLine());
+                cdsLen=new int[3];
+                neutralNum=new int[3];
+                derivedNonsyn=new double[3];
+                deleterious=new double[3];
+                normalizedDerivedNonSyn=new double[3];
+                normalizedDerivedDel=new double[3];
+                triadID=temp[0].get(0);
+                for (int i = 0; i < cdsLen.length; i++) {
+                    cdsLen[i]=Integer.parseInt(temp[i].get(1));
+                    neutralNum[i]=Integer.parseInt(temp[i].get(11))-Integer.parseInt(temp[i].get(6));
+                    derivedNonsyn[i]=Double.parseDouble(temp[i].get(6));
+                    deleterious[i]=Double.parseDouble(temp[i].get(8));
+                }
+                for (int i = 0; i < 3; i++) {
+                    normalizedDerivedNonSyn[i]=1000*100*derivedNonsyn[i]/(cdsLen[i]*neutralNum[i]);
+                    normalizedDerivedDel[i]=1000*100*deleterious[i]/(cdsLen[i]*neutralNum[i]);
+                }
+                sb=new StringBuilder();
+                sb.append(triadID).append("\t");
+                for (int i = 0; i < 3; i++) {
+                    sb.append(NumberTool.format(normalizedDerivedNonSyn[i], 5)).append("\t");
+                }
+                region= Standardization.getNearestPointIndex(normalizedDerivedNonSyn).getRegion();
+                sb.append(region).append("\t");
+                for (int i = 0; i < 3; i++) {
+                    sb.append(NumberTool.format(normalizedDerivedDel[i], 5)).append("\t");
+                }
+                region=Standardization.getNearestPointIndex(normalizedDerivedDel).getRegion();
+                sb.append(region);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

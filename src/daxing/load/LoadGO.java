@@ -52,7 +52,7 @@ public class LoadGO {
             while ((line=br.readLine()).startsWith("##")){}
             temp= PStringUtils.fastSplit(line);
             List<String> taxonNames=temp.subList(9, temp.size());
-            TranscriptDB transcriptDB=new TranscriptDB(exonSNPAnnoFile.getAbsolutePath());
+            ChrSNPAnnoDB transcriptDB=new ChrSNPAnnoDB(exonSNPAnnoFile);
             String[] geneNames=transcriptDB.getGeneName();
             IndividualChrLoad[] taxonLoads=new IndividualChrLoad[taxonNames.size()];
             for (int i = 0; i < taxonLoads.length; i++) {
