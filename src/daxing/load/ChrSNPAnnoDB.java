@@ -102,6 +102,18 @@ public class ChrSNPAnnoDB {
         return true;
     }
 
+    /**
+     *
+     * @param chr
+     * @param pos
+     * @return
+     */
+    public String getVariantType(int chr, int pos){
+        int index=this.binarySearch(chr, pos);
+        if (index < 0) return "INTERGENIC";
+        return this.getSNP(chr, pos).variant_type;
+    }
+
     public boolean hasAncestral(int chr, int pos){
         return this.getSNP(chr, pos).hasAncestral();
     }

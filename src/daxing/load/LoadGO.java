@@ -37,10 +37,10 @@ public class LoadGO {
         List<File> exonAnnoFiles=IOUtils.getVisibleFileListInDir(exonSNPAnnoDir);
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
         Map<String, File> taxonOutDirMap=getTaxonOutDirMap(vmapIIGroupFile, new File(outDir, subdir[0]).getAbsolutePath());
-//        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
-//                taxonOutDirMap, e+1));
-//        merge(new File(outDir, subdir[0]).getAbsolutePath(), vmapIIGroupFile, new File(outDir, subdir[1]).getAbsolutePath());
-//        retainTriad(triadFile, new File(outDir, subdir[1]).getAbsolutePath(), new File(outDir, subdir[2]).getAbsolutePath());
+        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
+                taxonOutDirMap, e+1));
+        merge(new File(outDir, subdir[0]).getAbsolutePath(), vmapIIGroupFile, new File(outDir, subdir[1]).getAbsolutePath());
+        retainTriad(triadFile, new File(outDir, subdir[1]).getAbsolutePath(), new File(outDir, subdir[2]).getAbsolutePath());
         normalizedTriadByAncestralNum(new File(outDir, subdir[2]).getAbsolutePath(), new File(outDir, subdir[3]).getAbsolutePath());
     }
 

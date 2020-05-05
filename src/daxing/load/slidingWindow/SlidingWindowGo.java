@@ -65,7 +65,7 @@ public class SlidingWindowGo {
             char refBase, altBase, ancestralBase;
             DynamicSNPGenotypeDB dynamicSNPGenotypeDB=new DynamicSNPGenotypeDB();
             SNPGenotype snpGenotype=null;
-            int[][] derivedCount;
+            int[][] derivedCount, nonsynDerivedCount;
             String outFileName=null;
             for (int i = 0; i < geneWindows.size(); i++) {
                 while ((line=br.readLine())!=null){
@@ -79,16 +79,17 @@ public class SlidingWindowGo {
                     if ((ancestralBase!=refBase) && (ancestralBase!=altBase)) continue;
                     if (pos < geneWindows.get(i).getStartOfWindowCDSRange()) continue;
                     if (geneWindows.get(i).containCDSPos(chr, pos)){
-                        dynamicSNPGenotypeDB.addSNPGenotype(SNPGenotype.getSNPGenotype(line, ancestralBase, temp.subList(9, temp.size())));
+                        dynamicSNPGenotypeDB.addSNPGenotype(SNPGenotype.getSNPGenotype(line, ancestralBase, "", temp.subList(9, temp.size())));
                     }else {
-                        snpGenotype=SNPGenotype.getSNPGenotype(line, ancestralBase, temp.subList(9, temp.size()));
+                        snpGenotype=SNPGenotype.getSNPGenotype(line, ancestralBase, "", temp.subList(9, temp.size()));
                         break;
                     }
                 }
                 if (dynamicSNPGenotypeDB.size()==0) continue;
                 derivedCount=dynamicSNPGenotypeDB.countAllTaxonDerived();
+                nonsynDerivedCount=dynamicSNPGenotypeDB.countAllTaxonNonsynDerived();
                 for (int j = 0; j < derivedCount.length; j++) {
-                    individualChrLoads[j].addGeneDerivedCount(i, derivedCount[j]);
+                    individualChrLoads[j].addGeneDerivedCount(i, derivedCount[j], nonsynDerivedCount[j]);
                 }
                 if (i<=geneWindows.size()-2){
                     dynamicSNPGenotypeDB.retainAll(geneWindows.get(i+1));
