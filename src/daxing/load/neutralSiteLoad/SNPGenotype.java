@@ -42,7 +42,7 @@ public class SNPGenotype extends BiSNP {
         setAncestral(ancestralBase);
     }
 
-    public static SNPGenotype getSNPGenotype(String vcfLine, char ancestralBase, List<String> genotypeList){
+    public static SNPGenotype getSNPGenotype(String vcfLine, char ancestralBase, String variant_type, List<String> genotypeList){
         List<String> temp= PStringUtils.fastSplit(vcfLine);
         short chr=Short.parseShort(temp.get(0));
         int pos=Integer.parseInt(temp.get(1));
@@ -57,7 +57,7 @@ public class SNPGenotype extends BiSNP {
                 res.add(genotypeToByteMap2.get(genotype.get(i)));
             }
         }
-        return new SNPGenotype(chr, pos, refBase, altBase, "", ancestralBase, res);
+        return new SNPGenotype(chr, pos, refBase, altBase, variant_type, ancestralBase, res);
 
     }
 

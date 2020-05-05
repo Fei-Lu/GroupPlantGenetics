@@ -43,6 +43,20 @@ public class DynamicSNPGenotypeDB {
         return taoxnGenotype;
     }
 
+    public TIntArrayList[] getAllTaxonNonsynGenotype(){
+        TIntArrayList[] taoxnNonsynGenotype=new TIntArrayList[this.getTaxonNum()];
+        for (int i = 0; i < taoxnNonsynGenotype.length; i++) {
+            taoxnNonsynGenotype[i]=new TIntArrayList();
+        }
+        for (int i = 0; i < snpList.size(); i++) {
+            if (!snpList.get(i).getSNPInfo().equals("NONSYNONYMOUS")) continue;
+            for (int j = 0; j < this.getTaxonNum(); j++) {
+                taoxnNonsynGenotype[j].add(this.getGenotype(i, j));
+            }
+        }
+        return taoxnNonsynGenotype;
+    }
+
     public int[][] countAllTaxonDerived(){
         TIntArrayList[] taoxnGenotype=this.getAllTaxonGenotype();
         int[][] taxonDerivedCount=new int[taoxnGenotype.length][];
@@ -59,6 +73,24 @@ public class DynamicSNPGenotypeDB {
             }
         }
         return taxonDerivedCount;
+    }
+
+    public int[][] countAllTaxonNonsynDerived(){
+        TIntArrayList[] taoxnNonsynGenotype=this.getAllTaxonNonsynGenotype();
+        int[][] taxonNonsynDerivedCount=new int[taoxnNonsynGenotype.length][];
+        for (int i = 0; i < taxonNonsynDerivedCount.length; i++) {
+            taxonNonsynDerivedCount[i]=new int[2];
+        }
+        for (int i = 0; i < taoxnNonsynGenotype.length; i++) {
+            for (int j = 0; j < taoxnNonsynGenotype[i].size(); j++) {
+                if (taoxnNonsynGenotype[i].get(j)==2 || taoxnNonsynGenotype[i].get(j) == 3) continue; //0: 0/0 1: 1/1 2: 0/1 3 ./.
+                taxonNonsynDerivedCount[i][0]=taxonNonsynDerivedCount[i][0]+1;
+                if (taoxnNonsynGenotype[i].get(j)==1){
+                    taxonNonsynDerivedCount[i][1]=taxonNonsynDerivedCount[i][1]+1;
+                }
+            }
+        }
+        return taxonNonsynDerivedCount;
     }
 
     public boolean retainAll(GenesDB.GeneRange geneRange){

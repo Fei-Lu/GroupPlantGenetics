@@ -6,6 +6,7 @@ import daxing.common.IOTool;
 import daxing.common.NumberTool;
 import daxing.common.RowTableTool;
 import daxing.common.Triad;
+import daxing.load.ChrSNPAnnoDB;
 import daxing.load.Standardization;
 import pgl.infra.table.RowTable;
 import pgl.infra.utils.*;
@@ -20,11 +21,12 @@ import java.util.stream.IntStream;
 
 public class Go {
 
-    public static void getDerivedCount(String vcfDir, String ancestralDir, String pgfFile, String triadGeneNameFile,
-                                       String outdir, String vmapIIGroupFile){
+    public static void getDerivedCount(String exonAnnoDir, String vcfDir, String ancestralDir, String pgfFile,
+                                       String triadGeneNameFile, String outdir, String vmapIIGroupFile){
         RowTableTool<String> table=new RowTableTool<>(triadGeneNameFile);
         List<String> geneNames=table.getColumn(2);
         GenesDB genesDB =new GenesDB(geneNames, pgfFile);
+        List<File> exonAnnoFiles=IOUtils.getVisibleFileListInDir(exonAnnoDir);
         List<File> vcfFiles= IOUtils.getVisibleFileListInDir(vcfDir);
         List<File> ancestralFiles=IOUtils.getVisibleFileListInDir(ancestralDir);
         Map<String,File> vmapIITaxonoutDirMap=getTaxonOutDirMap(vmapIIGroupFile, outdir);
@@ -35,19 +37,20 @@ public class Go {
                 subLibIndices[j] = indices[i][0]+j;
             }
             List<Integer> integerList=Arrays.asList(subLibIndices);
-            integerList.parallelStream().forEach(e-> getDerivedCount(vcfFiles.get(e), ancestralFiles.get(e),
-                    genesDB.getChrGeneRange(e+1), vmapIITaxonoutDirMap));
+            integerList.parallelStream().forEach(e-> getDerivedCount(exonAnnoFiles.get(e), vcfFiles.get(e),
+                    ancestralFiles.get(e),genesDB.getChrGeneRange(e+1), vmapIITaxonoutDirMap));
         }
     }
 
-    private static void getDerivedCount(File vcfFile, File ancestralFile, GenesDB.GeneRange[] geneRanges
-            , Map<String,File> taxonOutDirMap){
+    private static void getDerivedCount(File exonAnnoFile, File vcfFile, File ancestralFile,
+                                        GenesDB.GeneRange[] geneRanges, Map<String,File> taxonOutDirMap){
         long start=System.nanoTime();
         Table<Integer,Integer, Character> ancestralTable=getAncestral(ancestralFile);
         String[] geneName=new String[geneRanges.length];
         for (int i = 0; i < geneRanges.length; i++) {
             geneName[i]=geneRanges[i].geneName;
         }
+        ChrSNPAnnoDB chrExonSNPAnnoDB=new ChrSNPAnnoDB(exonAnnoFile);
         try (BufferedReader br = IOTool.getReader(vcfFile)) {
             String line;
             List<String> temp, taxonNames;
@@ -62,8 +65,9 @@ public class Go {
             char refBase, altBase, ancestralBase;
             DynamicSNPGenotypeDB dynamicSNPGenotypeDB=new DynamicSNPGenotypeDB();
             SNPGenotype snpGenotype=null;
-            int[][] derivedCount;
+            int[][] derivedCount, nonsynDerivedCount;
             String outFileName=null;
+            String variant_type=null;
             for (int i = 0; i < geneRanges.length; i++) {
                 while ((line=br.readLine())!=null){
                     temp=PStringUtils.fastSplit(line);
@@ -76,16 +80,19 @@ public class Go {
                     if ((ancestralBase!=refBase) && (ancestralBase!=altBase)) continue;
                     if (pos < geneRanges[i].start) continue;
                     if (pos < geneRanges[i].end){
-                        dynamicSNPGenotypeDB.addSNPGenotype(SNPGenotype.getSNPGenotype(line, ancestralBase, temp.subList(9, temp.size())));
+                        variant_type=chrExonSNPAnnoDB.getVariantType(chr, pos);
+                        dynamicSNPGenotypeDB.addSNPGenotype(SNPGenotype.getSNPGenotype(line, ancestralBase,variant_type,temp.subList(9,temp.size())));
                     }else {
-                        snpGenotype=SNPGenotype.getSNPGenotype(line, ancestralBase, temp.subList(9, temp.size()));
+                        variant_type=chrExonSNPAnnoDB.getVariantType(chr, pos);
+                        snpGenotype=SNPGenotype.getSNPGenotype(line, ancestralBase,variant_type, temp.subList(9,temp.size()));
                         break;
                     }
                 }
                 if (dynamicSNPGenotypeDB.size()==0) continue;
                 derivedCount=dynamicSNPGenotypeDB.countAllTaxonDerived();
+                nonsynDerivedCount=dynamicSNPGenotypeDB.countAllTaxonNonsynDerived();
                 for (int j = 0; j < derivedCount.length; j++) {
-                    individualChrLoads[j].addGeneDerivedCount(i, derivedCount[j]);
+                    individualChrLoads[j].addGeneDerivedCount(i, derivedCount[j],nonsynDerivedCount[j]);
                 }
                 if (i<=geneRanges.length-2){
                     dynamicSNPGenotypeDB.retainAll(geneRanges[i+1]);
@@ -95,7 +102,7 @@ public class Go {
                 }
             }
             for (int j = 0; j < individualChrLoads.length; j++) {
-                outFileName="chr"+PStringUtils.getNDigitNumber(3, chr)+"."+taxonNames.get(j)+".txt";
+                outFileName="chr"+PStringUtils.getNDigitNumber(3, chr)+"."+taxonNames.get(j)+".txt.gz";
                 individualChrLoads[j].write(taxonOutDirMap.get(taxonNames.get(j)), outFileName);
             }
             System.out.println("chr"+PStringUtils.getNDigitNumber(3, chr)+" completed in "+ Benchmark.getTimeSpanMinutes(start)+" minutes");
@@ -169,15 +176,15 @@ public class Go {
     }
 
     public static void start(){
-        String retainTriadDir="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/004_analysis/002_geneLoadIndividual/003_retainTriad";
-        String neutralSiteLoad="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/004_analysis/002_geneLoadIndividual/neutralSiteLoad/test/001_neutralSiteLoad";
+        String retainTriadDir="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/004_analysis/003_geneLoadIndividual_GeneHC/003_retainTriad";
+        String neutralSiteLoad="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/004_analysis/003_geneLoadIndividual_GeneHC/004_standardization/002_standizationByGeneLocal_100kb/001_neutralGeneLocalMerged";
         String vmapIIGroupFile="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/vmapGroup.txt";
         String[] dirs={"002_addNeutralSiteLoad","003_filterTriadAddNeutralLoad","004_standization"};
         String parentDir=new File(neutralSiteLoad).getParent();
         for (int i = 0; i < dirs.length; i++) {
             new File(parentDir, dirs[i]).mkdir();
         }
-        Go.insertColumnNeutralSiteLoad(retainTriadDir, neutralSiteLoad, vmapIIGroupFile, new File(parentDir, dirs[0]));
+//        Go.insertColumnNeutralSiteLoad(retainTriadDir, neutralSiteLoad, vmapIIGroupFile, new File(parentDir, dirs[0]));
         Go.filter(new File(parentDir, dirs[0]).getAbsolutePath(), new File(parentDir, dirs[1]).getAbsolutePath(), 1,5);
         Go.normalized(new File(parentDir, dirs[1]).getAbsolutePath(), new File(parentDir, dirs[2]).getAbsolutePath());
     }
@@ -199,9 +206,6 @@ public class Go {
     private static void insertColumnNeutralSiteLoad(File retainTriadFile, File neutralSiteLoadFile, File outFile){
         RowTableTool<String> neutralTable=new RowTableTool<>(neutralSiteLoadFile.getAbsolutePath());
         RowTableTool<String> retainTable=new RowTableTool<>(retainTriadFile.getAbsolutePath());
-        Comparator<List<String>> c=Comparator.comparing(l->l.get(0));
-        Comparator<List<String>> cc=c.thenComparing(l->l.get(1).substring(8,9));
-        neutralTable.sortBy(cc);
         List<String> geneNameNeutral=neutralTable.getColumn(1);
         List<String> geneNameRetain=retainTable.getColumn(2);
         if (!geneNameNeutral.equals(geneNameRetain)){
@@ -210,8 +214,12 @@ public class Go {
         }
         List<String> numGeneLocal=neutralTable.getColumn(2);
         List<String> numDerivedInGeneLocal=neutralTable.getColumn(3);
+        List<String> numNonsynGeneLocal=neutralTable.getColumn(4);
+        List<String> numNonsynDerivedInGeneLocal=neutralTable.getColumn(5);
         retainTable.addColumn("numGeneLocal", numGeneLocal);
         retainTable.addColumn("numDerivedInGeneLocal", numDerivedInGeneLocal);
+        retainTable.addColumn("numNonsynGeneLocal", numNonsynGeneLocal);
+        retainTable.addColumn("numNonsynDerivedInGeneLocal",numNonsynDerivedInGeneLocal);
         retainTable.write(outFile,IOFileFormat.TextGzip);
     }
 
@@ -303,7 +311,7 @@ public class Go {
                 triadID=temp[0].get(0);
                 for (int i = 0; i < cdsLen.length; i++) {
                     cdsLen[i]=Integer.parseInt(temp[i].get(1));
-                    neutralNum[i]=Integer.parseInt(temp[i].get(11))-Integer.parseInt(temp[i].get(6));
+                    neutralNum[i]=Integer.parseInt(temp[i].get(11))-Integer.parseInt(temp[i].get(13));
                     derivedNonsyn[i]=Double.parseDouble(temp[i].get(6));
                     deleterious[i]=Double.parseDouble(temp[i].get(8));
                 }
