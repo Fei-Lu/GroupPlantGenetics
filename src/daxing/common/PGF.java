@@ -6,17 +6,18 @@
 package daxing.common;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.set.hash.TIntHashSet;
+import org.apache.commons.lang3.ArrayUtils;
 import pgl.infra.dna.FastaByte;
 import pgl.infra.dna.SequenceByte;
 import pgl.infra.position.ChrPos;
 import pgl.infra.range.Range;
 import pgl.infra.range.RangeInterface;
-import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.set.hash.TIntHashSet;
-import org.apache.commons.lang3.ArrayUtils;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -47,6 +48,10 @@ public class PGF {
 
     public Gene[] getGenes() {
         return genes;
+    }
+
+    public Gene getGene(int geneIndex){
+        return this.getGenes()[geneIndex];
     }
 
     /**
@@ -459,9 +464,6 @@ public class PGF {
         if (index < -1) {
             index = -index-2;
             if (this.isWithinThisGene(index, chr, pos)) return index;
-            if (this.genes[index+1].geneRange.chr==chr && this.genes[index+1].geneRange.start==pos) return index+1;
-        }else if (index == -1){
-            if (this.genes[0].geneRange.chr==chr && this.genes[0].geneRange.start==pos) return 0;
         }
         return hit;
     }
@@ -1292,6 +1294,10 @@ public class PGF {
                 len+=cdsList.get(i).getRangeSize();
             }
             return len;
+        }
+
+        public List<Range> getCdsList(){
+            return this.cdsList;
         }
 
         @Override

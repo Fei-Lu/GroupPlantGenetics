@@ -253,7 +253,7 @@ public class Go {
                 for (int i = 0; i < lineABD.length; i++) {
                     temp = PStringUtils.fastSplit(lineABD[i]);
                     snpNum[i] = Integer.parseInt(temp.get(3)) + Integer.parseInt(temp.get(5));
-                    neutralNum[i] = Integer.parseInt(temp.get(11)) - Integer.parseInt(temp.get(6));
+                    neutralNum[i] = Integer.parseInt(temp.get(11)) - Integer.parseInt(temp.get(13));
                 }
                 if (snpNum[0] < snpNumThresh) continue;
                 if (snpNum[1] < snpNumThresh) continue;

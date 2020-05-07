@@ -6,6 +6,7 @@ import daxing.common.IOTool;
 import daxing.common.NumberTool;
 import daxing.common.RowTableTool;
 import daxing.common.Triad;
+import daxing.load.ChrSNPAnnoDB;
 import daxing.load.Standardization;
 import daxing.load.neutralSiteLoad.DynamicSNPGenotypeDB;
 import daxing.load.neutralSiteLoad.IndividualChrLoad;
@@ -23,11 +24,12 @@ import java.util.stream.IntStream;
 
 public class SlidingWindowGo {
 
-    public static void getDerivedCount(String vcfDir, String ancestralDir, String pgfFile, String triadGeneNameFile,
-                                       String outdir, String vmapIIGroupFile){
+    public static void getDerivedCount(String exonAnnoDir,String vcfDir, String ancestralDir, String pgfFile,
+                                       String triadGeneNameFile, String outdir, String vmapIIGroupFile){
         RowTableTool<String> table=new RowTableTool<>(triadGeneNameFile);
         List<String> geneNames=table.getColumn(2);
         GeneWindowDB geneWindowDB =new GeneWindowDB(geneNames, pgfFile);
+        List<File> exonAnnoFiles=IOUtils.getVisibleFileListInDir(exonAnnoDir);
         List<File> vcfFiles= IOUtils.getVisibleFileListInDir(vcfDir);
         List<File> ancestralFiles=IOUtils.getVisibleFileListInDir(ancestralDir);
         Map<String,File> vmapIITaxonoutDirMap=getTaxonOutDirMap(vmapIIGroupFile, outdir);
@@ -38,13 +40,13 @@ public class SlidingWindowGo {
                 subLibIndices[j] = indices[i][0]+j;
             }
             List<Integer> integerList= Arrays.asList(subLibIndices);
-            integerList.parallelStream().forEach(e-> getDerivedCount(vcfFiles.get(e), ancestralFiles.get(e),
-                    geneWindowDB.getGeneWindow(e+1), vmapIITaxonoutDirMap));
+            integerList.parallelStream().forEach(e-> getDerivedCount(exonAnnoFiles.get(e),vcfFiles.get(e),
+                    ancestralFiles.get(e), geneWindowDB.getGeneWindow(e+1), vmapIITaxonoutDirMap));
         }
     }
 
-    private static void getDerivedCount(File vcfFile, File ancestralFile, List<GeneWindowDB.GeneWindow> geneWindows,
-                                        Map<String,File> taxonOutDirMap){
+    private static void getDerivedCount(File exonAnnoFile ,File vcfFile, File ancestralFile,
+                                        List<GeneWindowDB.GeneWindow> geneWindows, Map<String,File> taxonOutDirMap){
         long start=System.nanoTime();
         Table<Integer,Integer, Character> ancestralTable=getAncestral(ancestralFile);
         String[] geneName=new String[geneWindows.size()];
@@ -65,8 +67,9 @@ public class SlidingWindowGo {
             char refBase, altBase, ancestralBase;
             DynamicSNPGenotypeDB dynamicSNPGenotypeDB=new DynamicSNPGenotypeDB();
             SNPGenotype snpGenotype=null;
+            ChrSNPAnnoDB chrSNPAnnoDB=new ChrSNPAnnoDB(exonAnnoFile);
             int[][] derivedCount, nonsynDerivedCount;
-            String outFileName=null;
+            String outFileName=null, variantsType;
             for (int i = 0; i < geneWindows.size(); i++) {
                 while ((line=br.readLine())!=null){
                     temp= PStringUtils.fastSplit(line);
@@ -79,9 +82,11 @@ public class SlidingWindowGo {
                     if ((ancestralBase!=refBase) && (ancestralBase!=altBase)) continue;
                     if (pos < geneWindows.get(i).getStartOfWindowCDSRange()) continue;
                     if (geneWindows.get(i).containCDSPos(chr, pos)){
-                        dynamicSNPGenotypeDB.addSNPGenotype(SNPGenotype.getSNPGenotype(line, ancestralBase, "", temp.subList(9, temp.size())));
+                        variantsType=chrSNPAnnoDB.getVariantType(chr, pos);
+                        dynamicSNPGenotypeDB.addSNPGenotype(SNPGenotype.getSNPGenotype(line, ancestralBase, variantsType,temp.subList(9, temp.size())));
                     }else {
-                        snpGenotype=SNPGenotype.getSNPGenotype(line, ancestralBase, "", temp.subList(9, temp.size()));
+                        variantsType=chrSNPAnnoDB.getVariantType(chr, pos);
+                        snpGenotype=SNPGenotype.getSNPGenotype(line, ancestralBase, variantsType, temp.subList(9, temp.size()));
                         break;
                     }
                 }
@@ -173,7 +178,7 @@ public class SlidingWindowGo {
     }
 
     public static void start(){
-        String retainTriadDir="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/004_analysis/003_geneLoadIndividual_GeneHC/003_retainTriad";
+        String retainTriadDir="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/004_analysis/003_geneLoadIndividual_GeneHC/004_standardization/002_standizationByGeneLocal_100kb/002_addNeutralSiteLoad";
         String neutralSiteLoad="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/004_analysis/003_geneLoadIndividual_GeneHC/004_standardization/003_standizationByGeneLoacal_10Genes/001_individualLoad";
         String vmapIIGroupFile="/Users/xudaxing/Documents/deleteriousMutation/002_analysis/014_deleterious/vmapGroup.txt";
         String[] dirs={"002_addNeutralSiteLoad","003_standization"};
@@ -213,9 +218,63 @@ public class SlidingWindowGo {
         }
         List<String> numGeneLocal=neutralTable.getColumn(2);
         List<String> numDerivedInGeneLocal=neutralTable.getColumn(3);
-        retainTable.addColumn("numGeneLocal", numGeneLocal);
-        retainTable.addColumn("numDerivedInGeneLocal", numDerivedInGeneLocal);
+        List<String> numNonsynGeneLocal=neutralTable.getColumn(4);
+        List<String> numNonsynDerivedInGeneLocal=neutralTable.getColumn(5);
+        retainTable.addColumn("numGeneWindow", numGeneLocal);
+        retainTable.addColumn("numDerivedInGeneWindow", numDerivedInGeneLocal);
+        retainTable.addColumn("numNonsynGeneWindow", numNonsynGeneLocal);
+        retainTable.addColumn("numNonsynDerivedInGeneWindow",numNonsynDerivedInGeneLocal);
         retainTable.write(outFile,IOFileFormat.TextGzip);
+    }
+
+    private static void filter(String triadNeutralLoadFileInputDir, String outDir, int snpNumThresh, int neutralNumThresh){
+        List<File> files=IOUtils.getVisibleFileListInDir(triadNeutralLoadFileInputDir);
+        String[] outFileName= files.stream().map(File::getName).map(s->s.replaceAll(".txt.gz",".filtered.txt.gz")).toArray(String[]::new);
+        IntStream.range(0, files.size()).parallel().forEach(e->filter(files.get(e),new File(outDir, outFileName[e]), snpNumThresh, neutralNumThresh));
+    }
+
+    private static void filter(File triadNeutralLoadFileInputFile, File outFile, int snpNumThresh,
+                               int neutralNumThresh) {
+        try (BufferedReader br = IOTool.getReader(triadNeutralLoadFileInputFile);
+             BufferedWriter bw = IOTool.getTextGzipWriter(outFile)) {
+            String header = br.readLine();
+            bw.write(header);
+            bw.newLine();
+            String line;
+            String[] lineABD;
+            int[] snpNum, neutralNum;
+            List<String> temp;
+            int triadNum = 0;
+            int retainedNum = 0;
+            while ((line = br.readLine()) != null) {
+                lineABD = new String[3];
+                lineABD[0] = line;
+                lineABD[1] = br.readLine();
+                lineABD[2] = br.readLine();
+                triadNum++;
+                snpNum = new int[3];
+                neutralNum = new int[3];
+                for (int i = 0; i < lineABD.length; i++) {
+                    temp = PStringUtils.fastSplit(lineABD[i]);
+                    snpNum[i] = Integer.parseInt(temp.get(3)) + Integer.parseInt(temp.get(5));
+                    neutralNum[i] = Integer.parseInt(temp.get(11)) - Integer.parseInt(temp.get(13));
+                }
+                if (snpNum[0] < snpNumThresh) continue;
+                if (snpNum[1] < snpNumThresh) continue;
+                if (snpNum[2] < snpNumThresh) continue;
+                if (neutralNum[0] < neutralNumThresh) continue;
+                if (neutralNum[1] < neutralNumThresh) continue;
+                if (neutralNum[2] < neutralNumThresh) continue;
+                retainedNum++;
+                for (int i = 0; i < lineABD.length; i++) {
+                    bw.write(lineABD[i]);
+                    bw.newLine();
+                }
+            }
+            System.out.println(triadNeutralLoadFileInputFile.getName() + ":\t" + triadNum + "\t" + retainedNum + "\t" + (double) retainedNum / triadNum);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void normalized(String inputDir, String outDir){
@@ -256,7 +315,7 @@ public class SlidingWindowGo {
                 triadID=temp[0].get(0);
                 for (int i = 0; i < cdsLen.length; i++) {
                     cdsLen[i]=Integer.parseInt(temp[i].get(1));
-                    neutralNum[i]=Integer.parseInt(temp[i].get(11))-Integer.parseInt(temp[i].get(6));
+                    neutralNum[i]=Integer.parseInt(temp[i].get(11))-Integer.parseInt(temp[i].get(13));
                     derivedNonsyn[i]=Double.parseDouble(temp[i].get(6));
                     deleterious[i]=Double.parseDouble(temp[i].get(8));
                 }

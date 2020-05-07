@@ -1,9 +1,7 @@
 package daxing.common;
 
-import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.table.ColumnTable;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,6 +14,10 @@ public class ColumnTableTool<T> extends ColumnTable<T> {
 
     public ColumnTableTool(List<String> header, List<List<T>> cells){
         super(header,cells);
+    }
+
+    public List<List<T>> getCells(){
+        return this.cells;
     }
 
     public double[] getColumnAsDoubleArray(String columnName) {
