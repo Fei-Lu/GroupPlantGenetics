@@ -16,6 +16,25 @@ public class ColumnTableTool<T> extends ColumnTable<T> {
         super(header,cells);
     }
 
+    public static <T> ColumnTableTool<T> newInstance(List<String> header, List<T> column){
+        List<List<T>> cells=new ArrayList<>();
+        cells.add(column);
+        return new ColumnTableTool<>(header, cells);
+    }
+
+    public RowTableTool<T> transformToRowTable(){
+        List<List<T>> rowCells=new ArrayList<>();
+        List<T> row;
+        for (int i = 0; i < this.getRowNumber(); i++) {
+            row=new ArrayList<>();
+            for (int j = 0; j < this.getColumnNumber(); j++) {
+                row.add(this.getCell(i, j));
+            }
+            rowCells.add(row);
+        }
+        return new RowTableTool<>(this.header, rowCells);
+    }
+
     public List<List<T>> getCells(){
         return this.cells;
     }

@@ -177,4 +177,49 @@ public class PlotTools {
         }
 
     }
+
+    public static void countHighLoadFrequency(String inputFile, int index, String outFile, int binNum, double binWidth){
+        if (binWidth*binNum!=1){
+            System.out.println("binNum*binWidth must be 1, program quit! ");
+            System.exit(1);
+        }
+        double[] binStart= new double[binNum];
+        double[] binEnd  = new double[binNum];
+        int[] binCount=new int[binNum];
+        double[] binRatio=null;
+        for (int i = 0; i < binNum; i++) {
+            binStart[i]=binWidth*i;
+            binEnd[i]=binWidth*i+binWidth;
+        }
+        try (BufferedReader br = IOTool.getReader(inputFile);
+             BufferedWriter bw =IOTool.getTextWriter(outFile)) {
+            br.readLine();
+            bw.write("BinID\tBinStart\tBinEnd\tBinNum\tBinRatio");
+            bw.newLine();
+            String line;
+            List<String> temp;
+            int binStartIndex=-1;
+            while ((line=br.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                if (temp.get(index).equals("NA")) continue;
+                int hit=Arrays.binarySearch(binStart, Double.parseDouble(temp.get(index)));
+                binStartIndex= hit < 0 ? -hit-2 : hit;
+                binCount[binStartIndex]++;
+            }
+            binRatio=ArrayTool.getElementPercent(binCount);
+            StringBuilder sb;
+            String binID;
+            for (int i = 0; i < binCount.length; i++) {
+                sb=new StringBuilder();
+                binID="B"+PStringUtils.getNDigitNumber(5, i);
+                sb.append(binID).append("\t").append(binStart[i]).append("\t").append(binEnd[i]).append("\t");
+                sb.append(binCount[i]).append("\t").append(binRatio[i]);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
 }
