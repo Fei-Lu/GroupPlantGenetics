@@ -81,7 +81,7 @@ public class HTseqcountMerge {
             BufferedWriter bw = IOUtils.getTextWriter(outputFileS);
             sb.append("Gene" + "\t");
             for (int i = 0; i < fList.size(); i++) {
-                sb.append(fList.get(i).getName().replace("_Count.txt", "") + "\t");
+                sb.append(fList.get(i).getName().replace("Count.txt", "") + "\t");
             }
             bw.write(sb.toString());
             bw.newLine();

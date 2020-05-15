@@ -77,16 +77,37 @@ public class Test {
     }
 
     public void writecode1() {
-        for (int i = 0; i < 45; i++) {
+        for (int i = 14; i < 25; i++) {
+            int count = i;
 //            System.out.print("nohup vcftools --gzvcf /data3/wgs/vcf/GATK/vmap3/1.SNP/");
 //            System.out.print(i);
 //            System.out.print(".snp.vcf.gz --maf 0 --max-maf 0.05 --out ");
 //            System.out.print(i + ".snp.maf005 --recode && tabix -p " + i + ".snp.maf005.recode.vcf.gz >log1.txt 2>&1 &");
 //            System.out.println("nohup bcftools view -S S7SampleName.txt /data2/xiaohan/SNP/"+i+".snp.maf005.recode.vcf.gz -Ov > /data2/xiaohan/sub7/snp"+i+".vcf &");
 //            System.out.println("nohup bcftools +dosage /data2/xiaohan/sub7/snp"+i+".vcf -- -t GT >/data2/xiaohan/DS/S7/col"+i+"DS.vcf &");
-            System.out.println("nohup bcftools view -S SampleName.txt /data2/xiaohan/SNP/"+i+".snp.maf005.recode.vcf.gz -Ov > /data2/xiaohan/sub3/snp"+i+".vcf && bgzip /data2/xiaohan/sub3/snp"+i+".vcf &");
+//            System.out.println("nohup bcftools view -S S3SampleName.txt /data2/xiaohan/SNP/"+i+".snp.maf005.mis01.recode.vcf.gz -Ov > /data2/xiaohan/sub3/snp"+i+".vcf && bgzip /data2/xiaohan/sub3/snp"+i+".vcf &");
 //            System.out.println("nohup bcftools +dosage /data2/xiaohan/sub3/snp"+i+".vcf -- -t GT >/data2/xiaohan/DS/S3/col"+i+"DS.vcf &");
-
+//              System.out.println("snp"+count+" <- snp"+count+"[,-1]\n" +
+//                                "count"+count+"=c(rep(0,85)) \n" +
+//                                "for(i in 1:5000){ \n" +
+//                                "  Rk=rank(exp[i,],ties.method=\"first\") \n" +
+//                                "  for(j in 1:85){ \n" +
+//                                "    zz=as.integer(Rk[j]) \n" +
+//                                "    if(snp"+count+"[i,j]!=0){ \n" +
+//                                "      count"+count+"[zz]=count"+count+"[zz]+snp"+count+"[i,j]}\n" +
+//                                "    j=j+1}\n" +
+//                                "  i=i+1} \n" +
+//                                "perc=1:85\n" +
+//                                "count"+count);
+              int number = count -14;
+              int number1 = number + 1;
+              System.out.println("###############"+number+"_"+number1+"###################\n"+
+                                "x <- data[1,]\n" +
+                                "x <- x[,-1]\n" +
+                                "x <- c(x)\n" +
+                                "y <- data["+count+",]\n" +
+                                "y <- y[,-1]\n" +
+                                "y <- c(y)");
         }
     }
 
