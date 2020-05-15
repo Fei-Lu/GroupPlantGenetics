@@ -4,7 +4,6 @@ import daxing.common.ColumnTableTool;
 import daxing.common.NumberTool;
 import daxing.common.RowTableTool;
 import daxing.load.Standardization;
-import pgl.infra.table.ColumnTable;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
@@ -17,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class Global {
 
-    public static void global(String inputDir, String vmapIIGroupFile, String outDir, String nonsynOrDel){
+    public static void globalPopulation(String inputDir, String vmapIIGroupFile, String outDir, String nonsynOrDel){
         List<File> files= IOUtils.getVisibleFileListInDir(inputDir);
         RowTableTool<String> vmapIIGroupTable=new RowTableTool<>(vmapIIGroupFile);
         Map<String,String> taxonGroupMap=vmapIIGroupTable.getHashMap(0,15);
@@ -25,10 +24,10 @@ public class Global {
         Predicate<File> landraceEUPredict= f->taxonGroupMap.get(PStringUtils.fastSplit(f.getName(),".").get(0)).equals("Landrace_Europe");
         List<File> cultivarFiles=files.stream().filter(cultivarPredict).collect(Collectors.toList());
         List<File> landraceEUFiles=files.stream().filter(landraceEUPredict).collect(Collectors.toList());
-        List<ColumnTable<String>> cultivarTables=new ArrayList<>();
-        List<ColumnTable<String>> landraceEUTables=new ArrayList<>();
+        List<ColumnTableTool<String>> cultivarTables=new ArrayList<>();
+        List<ColumnTableTool<String>> landraceEUTables=new ArrayList<>();
         RowTableTool<String> rowTableTool;
-        ColumnTable<String> columnTable;
+        ColumnTableTool<String> columnTable;
         List<String> triadID, loadA, loadB, loadD;
         List<List<String>> cells;
         String header="TriadID\tloadA\tloadB\tloadD";
@@ -54,7 +53,7 @@ public class Global {
             cells.add(loadA);
             cells.add(loadB);
             cells.add(loadD);
-            columnTable=new ColumnTable<>(PStringUtils.fastSplit(header), cells);
+            columnTable=new ColumnTableTool<>(PStringUtils.fastSplit(header), cells);
             cultivarTables.add(columnTable);
         }
         for (int i = 0; i < landraceEUFiles.size(); i++) {
@@ -68,7 +67,7 @@ public class Global {
             cells.add(loadA);
             cells.add(loadB);
             cells.add(loadD);
-            columnTable=new ColumnTable<>(PStringUtils.fastSplit(header), cells);
+            columnTable=new ColumnTableTool<>(PStringUtils.fastSplit(header), cells);
             landraceEUTables.add(columnTable);
         }
         RowTableTool<String> cultivar=average(cultivarTables);
@@ -80,7 +79,7 @@ public class Global {
         cultivarLandraceFiles.add(new File(outDir, "landraceEU.txt.gz"));
         ColumnTableTool<String> cultivarColumnTable=new ColumnTableTool<>(cultivarLandraceFiles.get(0).getAbsolutePath());
         ColumnTableTool<String> landraceEUColumnTable= new ColumnTableTool<>(cultivarLandraceFiles.get(1).getAbsolutePath());
-        List<ColumnTable<String>> globalColumn=new ArrayList<>();
+        List<ColumnTableTool<String>> globalColumn=new ArrayList<>();
         globalColumn.add(cultivarColumnTable);
         globalColumn.add(landraceEUColumnTable);
         RowTableTool<String> global=average(globalColumn);
@@ -94,19 +93,18 @@ public class Global {
         for (int i = 1; i < landraceEUColumns.size() ; i++) {
             global.addColumn(PStringUtils.fastSplit(landraceEUHeader).get(i-1), landraceEUColumns.get(i));
         }
-        addDistance(global);
-        global.write(new File(outDir, nonsynOrDel+"Global.txt.gz"), IOFileFormat.TextGzip);
+        RowTableTool<String> globalAlledDistance=addDistance(global);
+        globalAlledDistance.write(new File(outDir, nonsynOrDel+"Global.txt.gz"), IOFileFormat.TextGzip);
         new File(outDir, "cultivar.txt.gz").delete();
         new File(outDir, "landraceEU.txt.gz").delete();
     }
 
-    private static RowTableTool<String> average(List<ColumnTable<String>> tableList){
+    private static RowTableTool<String> average(List<ColumnTableTool<String>> tableList){
         List<String> a,b,d;
         String averageA, averageB, averageD, region;
         List<List<String>> cells=new ArrayList<>();
         List<String> cell;
         double[] totalABD;
-        int size= tableList.get(0).getRowNumber();
         for (int i = 0; i < tableList.get(0).getRowNumber(); i++) {
             a=new ArrayList<>();
             b=new ArrayList<>();
@@ -157,42 +155,133 @@ public class Global {
         return new RowTableTool<>(PStringUtils.fastSplit(header), cells);
     }
 
-    private static void addDistance(RowTableTool<String> global){
-        double[] abdGlobal, abdC, abdLR;
-        List<String> distanceCultivar=new ArrayList<>(), distanceLandraceEU=new ArrayList<>();
-        double cDistance, lrDistance;
-        String distanceC, distanceLR;
-        for (int i = 0; i < global.getRowNumber(); i++) {
-            if (global.getCell(i, 4).equals("NA") || global.getCell(i, 8).equals("NA") || global.getCell(i, 12).equals("NA")){
-                distanceCultivar.add("NA");
-                distanceLandraceEU.add("NA");
-                continue;
-            }
-            if (global.getCell(i, 4).equals("M000") || global.getCell(i, 8).equals("M000") || global.getCell(i, 12).equals("M000")){
-                distanceCultivar.add("NA");
-                distanceLandraceEU.add("NA");
-                continue;
-            }
-            abdGlobal=new double[3];
-            abdC=new double[3];
-            abdLR=new double[3];
-            abdGlobal[0]=Double.parseDouble(global.getCell(i, 1));
-            abdGlobal[1]=Double.parseDouble(global.getCell(i, 2));
-            abdGlobal[2]=Double.parseDouble(global.getCell(i, 3));
-            abdC[0]=Double.parseDouble(global.getCell(i, 5));
-            abdC[1]=Double.parseDouble(global.getCell(i, 6));
-            abdC[2]=Double.parseDouble(global.getCell(i, 7));
-            abdLR[0]=Double.parseDouble(global.getCell(i, 9));
-            abdLR[1]=Double.parseDouble(global.getCell(i, 10));
-            abdLR[2]=Double.parseDouble(global.getCell(i, 11));
-            cDistance= Standardization.getDistance(abdGlobal, abdC);
-            lrDistance=Standardization.getDistance(abdGlobal, abdLR);
-            distanceC=String.valueOf(NumberTool.format(cDistance, 5));
-            distanceLR=String.valueOf(NumberTool.format(lrDistance, 5));
-            distanceCultivar.add(distanceC);
-            distanceLandraceEU.add(distanceLR);
+    private static RowTableTool<String> addDistance(RowTableTool<String> global){
+        double[] abdGlobal, abd;
+        double distance;
+        List<List<String>> cells=new ArrayList<>();
+        List<String> newHeader=new ArrayList<>();
+        List<String> header=global.getHeader();
+        StringBuilder headerSB=new StringBuilder();
+        headerSB.append(header.get(0)).append("\t").append(header.get(1)).append("\t");
+        headerSB.append(header.get(2)).append("\t").append(header.get(3)).append("\t");
+        headerSB.append(header.get(4));
+        String taxonName;
+        for (int i = 5; i < header.size(); i=i+4) {
+            headerSB.append(header.get(i)).append("\t");
+            headerSB.append(header.get(i+1)).append("\t");
+            headerSB.append(header.get(i+2)).append("\t");
+            headerSB.append(header.get(i+3)).append("\t");
+            taxonName=header.get(i+3).substring(0, header.get(i+3).length()-1);
+            headerSB.append(taxonName+"Distance").append("\t");
         }
-        global.insertColumn("CultivarDistance", 9, distanceCultivar);
-        global.addColumn("Landrace_EUDistance",  distanceLandraceEU);
+        newHeader=PStringUtils.fastSplit(headerSB.toString());
+        List<String> line;
+        StringBuilder sb;
+        for (int i = 0; i < global.getRowNumber(); i++) {
+            sb=new StringBuilder(1000);
+            sb.append(global.getCell(i, 0)).append("\t");
+            sb.append(global.getCell(i,1)).append("\t");
+            sb.append(global.getCell(i, 2)).append("\t");
+            sb.append(global.getCell(i, 3)).append("\t");
+            sb.append(global.getCell(i, 4)).append("\t");
+            if (global.getCell(i, 4).equals("NA") || global.getCell(i, 4).equals("M000")){
+                for (int j = 5; j < global.getColumnNumber(); j=j+4) {
+                    sb.append(global.getCell(i, j)).append("\t");
+                    sb.append(global.getCell(i, j+1)).append("\t");
+                    sb.append(global.getCell(i, j+2)).append("\t");
+                    sb.append(global.getCell(i, j+3)).append("\t");
+                    sb.append("NA").append("\t");
+                }
+            }else {
+                abdGlobal=new double[3];
+                abd=new double[3];
+                abdGlobal[0]=Double.parseDouble(global.getCell(i, 1));
+                abdGlobal[1]=Double.parseDouble(global.getCell(i, 2));
+                abdGlobal[2]=Double.parseDouble(global.getCell(i, 3));
+                for (int j = 5; j < global.getColumnNumber(); j=j+4) {
+                    sb.append(global.getCell(i, j)).append("\t");
+                    sb.append(global.getCell(i, j+1)).append("\t");
+                    sb.append(global.getCell(i, j+2)).append("\t");
+                    sb.append(global.getCell(i, j+3)).append("\t");
+                    if (global.getCell(i, j+3).equals("NA")){
+                        sb.append("NA").append("\t");
+                    }else {
+                        abd[0]=Double.parseDouble(global.getCell(i, j));
+                        abd[1]=Double.parseDouble(global.getCell(i, j+1));
+                        abd[2]=Double.parseDouble(global.getCell(i, j+2));
+                        distance=Standardization.getDistance(abdGlobal, abd);
+                        sb.append(distance).append("\t");
+                    }
+                }
+            }
+            sb.deleteCharAt(sb.length()-1);
+            line=PStringUtils.fastSplit(sb.toString());
+            cells.add(line);
+        }
+        return new RowTableTool<>(newHeader, cells);
+    }
+
+    public static void globalIndividual(String inputDir, String outDir, String nonsynOrDel){
+        List<File> files= IOUtils.getVisibleFileListInDir(inputDir);
+        List<ColumnTableTool<String>> hexaploidTables=new ArrayList<>();
+        List<String> taxonNames=new ArrayList<>();
+        RowTableTool<String> rowTableTool;
+        ColumnTableTool<String> columnTable;
+        List<String> triadID, loadA, loadB, loadD;
+        List<List<String>> cells;
+        String header="TriadID\tloadA\tloadB\tloadD";
+        int[] indexNonsyn={5,6,7};
+        int[] indexDel={9,10,11};
+        int[] indexSyn={1,2,3};
+        int[] index=null;
+        if (nonsynOrDel.equals("nonsyn")){
+            index=indexNonsyn;
+        }else if (nonsynOrDel.equals("del")){
+            index=indexDel;
+        }else if (nonsynOrDel.equals("syn")){
+            index=indexSyn;
+        }
+        String taxon;
+        for (int i = 0; i < files.size(); i++) {
+            taxon=PStringUtils.fastSplit(files.get(i).getName(), ".").get(0);
+            taxonNames.add(taxon);
+            rowTableTool=new RowTableTool<>(files.get(i).getAbsolutePath());
+            triadID=rowTableTool.getColumn(0);
+            loadA=rowTableTool.getColumn(indexNonsyn[0]);
+            loadB=rowTableTool.getColumn(indexNonsyn[1]);
+            loadD=rowTableTool.getColumn(index[2]);
+            cells=new ArrayList<>();
+            cells.add(triadID);
+            cells.add(loadA);
+            cells.add(loadB);
+            cells.add(loadD);
+            columnTable=new ColumnTableTool<>(PStringUtils.fastSplit(header), cells);
+            hexaploidTables.add(columnTable);
+        }
+        RowTableTool<String> global=average(hexaploidTables);
+        List<List<String>> individualColumns;
+        String individualHeader;
+        for (int i = 0; i < hexaploidTables.size(); i++) {
+            individualHeader=getIndividualHeader(taxonNames.get(i));
+            individualColumns=hexaploidTables.get(i).getCells();
+            for (int j = 1; j < individualColumns.size(); j++) {
+                global.addColumn(PStringUtils.fastSplit(individualHeader).get(i-1), individualColumns.get(i));
+            }
+        }
+        RowTableTool<String> globalAddedDistance=addDistance(global);
+        globalAddedDistance.write(new File(outDir, nonsynOrDel+"Global.txt.gz"), IOFileFormat.TextGzip);
+        new File(outDir, "cultivar.txt.gz").delete();
+        new File(outDir, "landraceEU.txt.gz").delete();
+    }
+
+    private static String getIndividualHeader(String taxonName){
+        String header="LoadA\tLoadB\tLoadD\tRegion";
+        List<String> temp=PStringUtils.fastSplit(header);
+        StringBuilder sb=new StringBuilder();
+        for (int i = 0; i < temp.size(); i++) {
+            sb.append(taxonName).append(temp.get(i)).append("\t");
+        }
+        sb.deleteCharAt(sb.length()-1);
+        return sb.toString();
     }
 }
