@@ -1,12 +1,16 @@
-package daxing.load;
+package daxing.load.ancestralSite;
 
 import daxing.common.IOTool;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.PStringUtils;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class IndividualChrLoad{
 

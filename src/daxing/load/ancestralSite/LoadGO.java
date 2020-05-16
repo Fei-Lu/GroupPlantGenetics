@@ -1,4 +1,4 @@
-package daxing.load;
+package daxing.load.ancestralSite;
 
 import daxing.common.*;
 import pgl.infra.table.RowTable;
@@ -81,7 +81,7 @@ public class LoadGO {
                     genotype=genotypeList.get(0);
                     if (genotype.equals("./.")) continue;
                     if (genotype.equals("0/1")) continue;
-                    genotypeByte=GeneLoad.caculateGenotype(genotype, isRefAlleleAncestral);
+                    genotypeByte= GeneLoad.caculateGenotype(genotype, isRefAlleleAncestral);
                     indexGenotype=new byte[2];
                     if (isSyn){
                         indexGenotype[0]=0;
@@ -258,7 +258,7 @@ public class LoadGO {
                 if (Double.isNaN(normalizedDerivedSyn[0]) || Double.isNaN(normalizedDerivedSyn[1]) || Double.isNaN(normalizedDerivedSyn[2])){
                     region="NA";
                 }else {
-                    region=Standardization.getNearestPointIndex(normalizedDerivedSyn).getRegion();
+                    region= Standardization.getNearestPointIndex(normalizedDerivedSyn).getRegion();
                 }
                 sb.append(region).append("\t");
                 for (int i = 0; i < 3; i++) {

@@ -3,7 +3,7 @@ package daxing.load.neutralSiteLoad;
 import daxing.common.IOTool;
 import daxing.common.NumberTool;
 import daxing.common.RowTableTool;
-import daxing.load.Standardization;
+import daxing.load.ancestralSite.Standardization;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;

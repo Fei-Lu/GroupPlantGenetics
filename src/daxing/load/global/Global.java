@@ -3,7 +3,7 @@ package daxing.load.global;
 import daxing.common.ColumnTableTool;
 import daxing.common.NumberTool;
 import daxing.common.RowTableTool;
-import daxing.load.Standardization;
+import daxing.load.ancestralSite.Standardization;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
