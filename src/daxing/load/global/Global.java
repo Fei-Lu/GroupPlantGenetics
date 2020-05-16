@@ -164,7 +164,7 @@ public class Global {
         StringBuilder headerSB=new StringBuilder();
         headerSB.append(header.get(0)).append("\t").append(header.get(1)).append("\t");
         headerSB.append(header.get(2)).append("\t").append(header.get(3)).append("\t");
-        headerSB.append(header.get(4));
+        headerSB.append(header.get(4)).append("\t");
         String taxonName;
         for (int i = 5; i < header.size(); i=i+4) {
             headerSB.append(header.get(i)).append("\t");
@@ -174,6 +174,7 @@ public class Global {
             taxonName=header.get(i+3).substring(0, header.get(i+3).length()-1);
             headerSB.append(taxonName+"Distance").append("\t");
         }
+        headerSB.deleteCharAt(headerSB.length()-1);
         newHeader=PStringUtils.fastSplit(headerSB.toString());
         List<String> line;
         StringBuilder sb;
@@ -203,7 +204,7 @@ public class Global {
                     sb.append(global.getCell(i, j+1)).append("\t");
                     sb.append(global.getCell(i, j+2)).append("\t");
                     sb.append(global.getCell(i, j+3)).append("\t");
-                    if (global.getCell(i, j+3).equals("NA")){
+                    if (global.getCell(i, j+3).equals("NA") || global.getCell(i, j+3).equals("M000")){
                         sb.append("NA").append("\t");
                     }else {
                         abd[0]=Double.parseDouble(global.getCell(i, j));
@@ -227,7 +228,8 @@ public class Global {
         List<String> taxonNames=new ArrayList<>();
         RowTableTool<String> rowTableTool;
         ColumnTableTool<String> columnTable;
-        List<String> triadID, loadA, loadB, loadD;
+        List<String> triadID, loadA, loadB, loadD, region;
+        double[] loadABD;
         List<List<String>> cells;
         String header="TriadID\tloadA\tloadB\tloadD";
         int[] indexNonsyn={5,6,7};
@@ -250,22 +252,41 @@ public class Global {
             loadA=rowTableTool.getColumn(indexNonsyn[0]);
             loadB=rowTableTool.getColumn(indexNonsyn[1]);
             loadD=rowTableTool.getColumn(index[2]);
+            region=new ArrayList<>();
+            for (int j = 0; j < loadA.size(); j++) {
+                if (loadA.get(j).equals("NA") || loadB.get(j).equals("NA") || loadD.get(j).equals("NA")){
+                    region.add("NA");
+                }else {
+                    loadABD=new double[3];
+                    loadABD[0]=Double.parseDouble(loadA.get(j));
+                    loadABD[1]=Double.parseDouble(loadB.get(j));
+                    loadABD[2]=Double.parseDouble(loadD.get(j));
+                    if (loadABD[0]==0 && loadABD[1]==0 && loadABD[2]==0){
+                        region.add("M000");
+                    }else {
+                        region.add(Standardization.getNearestPointIndex(loadABD).getRegion());
+                    }
+                }
+            }
             cells=new ArrayList<>();
             cells.add(triadID);
             cells.add(loadA);
             cells.add(loadB);
             cells.add(loadD);
+            cells.add(region);
             columnTable=new ColumnTableTool<>(PStringUtils.fastSplit(header), cells);
             hexaploidTables.add(columnTable);
         }
         RowTableTool<String> global=average(hexaploidTables);
         List<List<String>> individualColumns;
         String individualHeader;
+        List<String> individualHeaderList;
         for (int i = 0; i < hexaploidTables.size(); i++) {
             individualHeader=getIndividualHeader(taxonNames.get(i));
             individualColumns=hexaploidTables.get(i).getCells();
+            individualHeaderList=PStringUtils.fastSplit(individualHeader);
             for (int j = 1; j < individualColumns.size(); j++) {
-                global.addColumn(PStringUtils.fastSplit(individualHeader).get(i-1), individualColumns.get(i));
+                global.addColumn(individualHeaderList.get(j), individualColumns.get(j));
             }
         }
         RowTableTool<String> globalAddedDistance=addDistance(global);
@@ -275,7 +296,7 @@ public class Global {
     }
 
     private static String getIndividualHeader(String taxonName){
-        String header="LoadA\tLoadB\tLoadD\tRegion";
+        String header="\tLoadA\tLoadB\tLoadD\tRegion";
         List<String> temp=PStringUtils.fastSplit(header);
         StringBuilder sb=new StringBuilder();
         for (int i = 0; i < temp.size(); i++) {
