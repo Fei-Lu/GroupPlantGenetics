@@ -295,6 +295,58 @@ public class LoadGO {
         }
     }
 
+    public static void retainTriadPseudohexaploid(String triadFile, String triadIDFile, List<File> inputFiles,
+                                                  String outDir){
+        RowTableTool<String> table=new RowTableTool<>(triadIDFile);
+        List<String> triadIDList=table.getColumn(0);
+        inputFiles.stream().parallel().forEach(f->retainTriadPseudohexaploid(triadFile, triadIDList, f, outDir));
+    }
 
-
+    private static void retainTriadPseudohexaploid(String triadFile, List<String> triadIDList, File inputFile, String outDir){
+        Triad triad=new Triad(triadFile);
+        RowTableTool<String> table=new RowTableTool<>(inputFile.getAbsolutePath());
+        List<String> geneNames=table.getColumn(0);
+        Collections.sort(geneNames);
+        String[] threeName;
+        int indexABD[]=new int[3];
+        String triadID, taxon, temp;
+        taxon=PStringUtils.fastSplit(inputFile.getName(), ".").get(0);
+        StringBuilder sb;
+        BufferedWriter bw;
+        int[] cdsLen;
+        try {
+            bw=IOTool.getTextGzipWriter(new File(outDir, taxon + ".triad.txt.gz"));
+            bw.write("TriadID\tcdsLen\tGeneName\tnumSyn\tnumDerivedInSyn\tnumNonsyn\tnumDerivedInNonsyn" +
+                    "\tnumHGDeleterious\tnumDerivedInHGDeleterious\tsubgenome");
+            bw.newLine();
+            String subgenome, geneName;
+            for (int i = 0; i < triad.getRowNum(); i++) {
+                if (!triadIDList.contains(triad.getTraidID(i))) continue;
+                threeName=triad.getTriad(i);
+                for (int j = 0; j < indexABD.length-1; j++) {
+                    indexABD[j]= Collections.binarySearch(geneNames, threeName[j]);
+                }
+                if (indexABD[0] < 0) continue;
+                if (indexABD[1] < 0) continue;
+//                if (indexABD[2] < 0) continue;
+                triadID=triad.getTraidID(i);
+                cdsLen=triad.getCDSLen(i);
+                for (int j = 0; j < indexABD.length-1; j++) {
+                    temp=String.join("\t", table.getRow(indexABD[j]));
+                    sb=new StringBuilder();
+                    sb.append(triadID).append("\t").append(cdsLen[j]).append("\t");
+                    sb.append(temp).append("\t");
+                    geneName=table.getRow(indexABD[j]).get(0);
+                    subgenome=geneName.substring(8,9);
+                    sb.append(subgenome);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+            }
+            bw.flush();
+            bw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
