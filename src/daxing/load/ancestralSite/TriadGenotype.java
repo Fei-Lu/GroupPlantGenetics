@@ -46,7 +46,7 @@ public class TriadGenotype {
         String loadAGenotype, loadBGenotype, loadDGenotype;
         for (int i = 0; i < files.size(); i++) {
             columnTable=new ColumnTableTool<>(files.get(i).getAbsolutePath());
-            taxonName=PStringUtils.fastSplit(files.get(i).getName(),".").get(0);
+            taxonName=PStringUtils.fastSplit(files.get(i).getName(),".triad").get(0);
             headerSB.append("\t").append(taxonName);
             loadAColumn=columnTable.getColumn(5);
             loadBColumn=columnTable.getColumn(6);

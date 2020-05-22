@@ -9,10 +9,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -345,6 +342,54 @@ public class LoadGO {
             }
             bw.flush();
             bw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void syntheticPseudohexaploid(String tetraploidDir, String diploidDir, String outDir,
+                                                int numPseudohexaploid){
+        List<File> diploidFiles=IOUtils.getVisibleFileListInDir(diploidDir);
+        List<File> tetraploidFiles=IOUtils.getVisibleFileListInDir(tetraploidDir);
+        List<int[]> combinations=new ArrayList<>();
+        int[] combination;
+        for (int i = 0; i < diploidFiles.size(); i++) {
+            for (int j = 0; j < tetraploidFiles.size(); j++) {
+                combination=new int[2];
+                combination[0]=j;
+                combination[1]=i;
+                combinations.add(combination);
+            }
+        }
+        int[] randomIndex=ArrayTool.getRandomNonrepetitionArray(numPseudohexaploid, 0, combinations.size());
+        IntStream.range(0, randomIndex.length).parallel().forEach(e->syntheticPseudohexaploid(diploidFiles.get(combinations.get(randomIndex[e])[1]),
+                tetraploidFiles.get(combinations.get(randomIndex[e])[0]), outDir));
+    }
+
+    private static void syntheticPseudohexaploid(File diploidFile, File tetraploidFile, String outDir){
+        String diploidName=PStringUtils.fastSplit(diploidFile.getName(),".").get(0);
+        String tetraploidName=PStringUtils.fastSplit(tetraploidFile.getName(), ".").get(0);
+        File outFile=new File(outDir, tetraploidName+"."+diploidName+".triad.txt.gz");
+        try (BufferedReader brDiploid = IOTool.getReader(diploidFile);
+             BufferedReader brTetraploid = IOTool.getReader(tetraploidFile);
+             BufferedWriter bw =IOTool.getTextGzipWriter( outFile)) {
+            String line, header;
+            List<String> temp;
+            header=brDiploid.readLine();
+            brTetraploid.readLine();
+            bw.write(header);
+            bw.newLine();
+            while ((line=brTetraploid.readLine())!=null){
+                bw.write(line);
+                bw.newLine();
+                line=brTetraploid.readLine();
+                bw.write(line);
+                bw.newLine();
+                line=brDiploid.readLine();
+                bw.write(line);
+                bw.newLine();
+            }
+            bw.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
