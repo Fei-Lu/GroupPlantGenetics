@@ -5,24 +5,16 @@
  */
 package xujun.analysis.rnaseq;
 
-import com.koloboke.collect.map.hash.HashIntIntMap;
-import com.koloboke.collect.map.hash.HashIntIntMaps;
-import pgl.infra.genomeAnnotation.GeneFeature;
+import pgl.infra.anno.gene.GeneFeature;
 import pgl.infra.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import pgl.infra.utils.Benchmark;
+
 import pgl.infra.utils.IOUtils;
 
 /**

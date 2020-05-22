@@ -1,6 +1,6 @@
 package daxing.common;
 
-import pgl.infra.position.ChrPos;
+import pgl.infra.pos.ChrPos;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;

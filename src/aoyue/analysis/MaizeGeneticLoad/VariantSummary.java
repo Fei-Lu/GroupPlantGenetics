@@ -5,16 +5,16 @@
  */
 package aoyue.analysis.MaizeGeneticLoad;
 
-import pgl.infra.genomeAnnotation.GeneFeature;
+import pgl.infra.anno.gene.GeneFeature;
 import pgl.infra.range.Range;
 import pgl.infra.table.RowTable;
 import gnu.trove.list.array.TByteArrayList;
 import gnu.trove.list.array.TCharArrayList;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
-import pgl.graphcis.r.DensityPlot;
-import pgl.graphcis.r.Histogram;
-import pgl.graphcis.r.ScatterPlot;
+import pgl.graph.r.DensityPlot;
+import pgl.graph.r.Histogram;
+import pgl.graph.r.ScatterPlot;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PArrayUtils;
