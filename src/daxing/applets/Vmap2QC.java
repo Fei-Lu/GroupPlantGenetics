@@ -1,10 +1,10 @@
 package daxing.applets;
 
+import daxing.common.IOTool;
 import daxing.common.VCF;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class Vmap2QC {
 
     public Vmap2QC(){
-        this.assessFalesPositiveRate("/data4/home/aoyue/vmap2/genotype/mergedVCF/011_VMapII");
+        this.assessFalesPositiveRate("/data4/home/aoyue/vmap2/genotype/mergedVCF/102_VMap2.0");
 //        this.getMaf("vcfDir", "outFileDir");
 //        this.mergeAddRefCSFordxy("chrAB.vcf",
 //                "chrD.vcf",
@@ -47,7 +47,7 @@ public class Vmap2QC {
 
     private static int assessFalesPositiveRate(File vcfFile){
         int count=0;
-        try (BufferedReader br = IOUtils.getTextReader(vcfFile.getAbsolutePath())) {
+        try (BufferedReader br = IOTool.getReader(vcfFile)) {
             String line;
             List<String> lineList;
             while ((line=br.readLine()).startsWith("##")){}
