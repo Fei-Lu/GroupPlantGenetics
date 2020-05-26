@@ -273,11 +273,12 @@ public class VCF {
             String line;
             int vcfChr, vcfPos;
             String refChr;
-            int refPos;
+            int refPos, chrNum;
             for (int i = 0; i < f.length; i=i+2) {
                 br1=IOTool.getReader(f[i].getAbsolutePath());
                 br2=IOTool.getReader(f[i+1].getAbsolutePath());
-                bw=IOUtils.getTextWriter(new File(outDir, "chr"+outChrs.get(i/2)+".vcf").getAbsolutePath());
+                chrNum=Integer.parseInt(f[i].getName().substring(3,6));
+                bw= IOUtils.getTextWriter(new File(outDir, "chr"+RefV1Utils.getChromosome(chrNum, 0)+".vcf").getAbsolutePath());
                 while ((line=br1.readLine()).startsWith("##")){
                     bw.write(line);
                     bw.newLine();
