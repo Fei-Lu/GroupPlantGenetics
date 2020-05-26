@@ -5,13 +5,6 @@
  */
 package xuebo.analysis.annotation;
 
-import pgl.infra.dna.FastaByte;
-import pgl.infra.genomeAnnotation.GeneFeature;
-import java.io.BufferedReader;
-import java.util.ArrayList;
-import java.util.List;
-import pgl.infra.utils.IOUtils;
-
 /**
  *
  * @author xuebozhao

@@ -5,10 +5,8 @@
  */
 package xuebo.analysis.annotation;
 
-import pgl.infra.genomeAnnotation.GeneFeature;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import pgl.infra.utils.IOUtils;

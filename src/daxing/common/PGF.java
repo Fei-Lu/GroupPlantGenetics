@@ -11,7 +11,7 @@ import gnu.trove.set.hash.TIntHashSet;
 import org.apache.commons.lang3.ArrayUtils;
 import pgl.infra.dna.FastaByte;
 import pgl.infra.dna.SequenceByte;
-import pgl.infra.position.ChrPos;
+import pgl.infra.pos.ChrPos;
 import pgl.infra.range.Range;
 import pgl.infra.range.RangeInterface;
 import pgl.infra.utils.Benchmark;

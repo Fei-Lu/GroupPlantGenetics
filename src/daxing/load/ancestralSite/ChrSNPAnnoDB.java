@@ -1,7 +1,7 @@
 package daxing.load.ancestralSite;
 
 import daxing.common.IOTool;
-import pgl.infra.position.ChrPos;
+import pgl.infra.pos.ChrPos;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.File;
