@@ -16,15 +16,14 @@ import java.util.stream.Collectors;
 
 public class Vmap2QC {
 
-    public Vmap2QC(){
-        this.assessFalesPositiveRate("/data4/home/aoyue/vmap2/genotype/mergedVCF/102_VMap2.0");
+    public Vmap2QC(String vcfAB, String vcfD, String outMergedVCF){
+//        this.assessFalesPositiveRate(vcfDir, csTaxonName);
 //        this.getMaf("vcfDir", "outFileDir");
-//        this.mergeAddRefCSFordxy("chrAB.vcf",
-//                "chrD.vcf",
-//                "merged.vcf");
+        this.mergeAddRefCSFordxy(vcfAB,
+                vcfD, outMergedVCF);
     }
 
-    public void assessFalesPositiveRate(String vcfDir){
+    public void assessFalesPositiveRate(String vcfDir, String csTaxonName){
         double wheatSize=14066280851d;
         AtomicInteger total= new AtomicInteger(0);
         File[] files=IOUtils.listRecursiveFiles(new File(vcfDir));
@@ -38,22 +37,21 @@ public class Vmap2QC {
             }
             List<Integer> integerList=Arrays.asList(subLibIndices);
             integerList.parallelStream().forEach(index->{
-                int count= Vmap2QC.assessFalesPositiveRate(f1[index]);
+                int count= Vmap2QC.assessFalesPositiveRate(f1[index], csTaxonName);
                 total.addAndGet(count);
             });
         }
         System.out.println("Fales Positive Rate: "+ total.get()/wheatSize+"("+total.get()+"/"+14066280851d+")");
     }
 
-    private static int assessFalesPositiveRate(File vcfFile){
+    private static int assessFalesPositiveRate(File vcfFile, String csTaxonName){
         int count=0;
         try (BufferedReader br = IOTool.getReader(vcfFile)) {
             String line;
             List<String> lineList;
             while ((line=br.readLine()).startsWith("##")){}
             lineList= PStringUtils.fastSplit(line);
-            int index=lineList.indexOf("CS");
-            List<String> infor;
+            int index=lineList.indexOf("CS-2017");
             String genotype;
             while ((line=br.readLine())!=null){
                 lineList=PStringUtils.fastSplit(line);
@@ -116,14 +114,16 @@ public class Vmap2QC {
 
     /**
      * 以merged后两个vcf为输入文件（chrAB.vcf, chrD.vcf），merge为一个vcf文件(taxon依次为AABBDD, AABB, DD), 并在taxons最后添加refCS
+     * AABB 缺失的D用./. 补齐
+     * DD 缺失的AB用./. 补齐
      * @param abVcfInputFile chrAB.vcf
      * @param dVcfInput chrD.vcf
      * @param mergedVCF 包含refCS的基因型, 0/0
      */
     public void mergeAddRefCSFordxy(String abVcfInputFile, String dVcfInput, String mergedVCF){
-        try(BufferedReader br1=IOUtils.getTextReader(abVcfInputFile);
-            BufferedReader br2=IOUtils.getTextReader(dVcfInput);
-            BufferedWriter bw=IOUtils.getTextWriter(mergedVCF)){
+        try(BufferedReader br1=IOTool.getReader(abVcfInputFile);
+            BufferedReader br2=IOTool.getReader(dVcfInput);
+            BufferedWriter bw=IOTool.getTextGzipWriter(mergedVCF)){
             String line;
             List<String> lineList;
             String bread;
@@ -134,11 +134,11 @@ public class Vmap2QC {
                 bw.newLine();
             }
             lineList= PStringUtils.fastSplit(line);
-            emmerTaxons=lineList.stream().skip(9+419).collect(Collectors.joining("\t"));
+            emmerTaxons=lineList.stream().skip(9+420).collect(Collectors.joining("\t"));
             while ((line=br2.readLine()).startsWith("##")){}
             lineList= PStringUtils.fastSplit(line);
-            tauschiiTaxons=lineList.stream().skip(9+419).collect(Collectors.joining("\t"));
-            bread=lineList.stream().limit(9+419).collect(Collectors.joining("\t"));
+            tauschiiTaxons=lineList.stream().skip(9+420).collect(Collectors.joining("\t"));
+            bread=lineList.stream().limit(9+420).collect(Collectors.joining("\t"));
             bw.write(bread+"\t"+emmerTaxons+"\t"+tauschiiTaxons+"\tRefCS");
             bw.newLine();
             String emmerGenotype;
@@ -165,9 +165,9 @@ public class Vmap2QC {
             while ((line=br2.readLine())!=null){
                 sb=new StringBuilder();
                 lineList=PStringUtils.fastSplit(line);
-                sb.append(lineList.stream().limit(9+419).collect(Collectors.joining("\t"))).append("\t");
+                sb.append(lineList.stream().limit(9+420).collect(Collectors.joining("\t"))).append("\t");
                 sb.append(emmerGenotype).append("\t");
-                sb.append(lineList.stream().skip(9+419).collect(Collectors.joining("\t"))).append("\t");
+                sb.append(lineList.stream().skip(9+420).collect(Collectors.joining("\t"))).append("\t");
                 sb.append(refCSGenotype);
                 bw.write(sb.toString());
                 bw.newLine();
