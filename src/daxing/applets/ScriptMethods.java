@@ -1,15 +1,18 @@
 package daxing.applets;
 
-import com.google.common.collect.*;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Table;
+import com.google.common.collect.TreeMultimap;
 import daxing.common.*;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.util.CombinatoricsUtils;
-import pgl.infra.table.RowTable;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -531,7 +534,8 @@ public class ScriptMethods {
             StringBuilder sb;
             for (int i = 0; i < files1.size(); i++) {
                 sb=new StringBuilder();
-                sb.append("nohup sh ../").append("scriptAll/").append(files1.get(i).getName()).append(" &");
+                sb.append("nohup sh ../").append("scriptAll/").append(files1.get(i).getName());
+                sb.append(" >"+files1.get(i).getName()+".log 2>&1").append(" &");
                 bw.write(sb.toString());
                 bw.newLine();
             }
