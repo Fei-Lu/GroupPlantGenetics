@@ -258,9 +258,8 @@ public class VCF {
      * only support even, between chr001 and chr042, suitable for large VCF file
      * @param inputVcfDir
      * @param outDir
-     * @param chrConvertionRule
      */
-    public static void fastMergeVCFtoChr(String inputVcfDir, String outDir, ChrConvertionRule chrConvertionRule){
+    public static void fastMergeVCFtoChr(String inputVcfDir, String outDir){
         System.out.println(DateTime.getDateTimeOfNow()+ "start");
         long start= System.nanoTime();
         File[] files=IOUtils.listRecursiveFiles(new File(inputVcfDir));
@@ -289,8 +288,8 @@ public class VCF {
                     temp=PStringUtils.fastSplit(line);
                     vcfChr=Integer.parseInt(temp.get(0));
                     vcfPos=Integer.parseInt(temp.get(1));
-                    refChr= chrConvertionRule.getRefChrFromVCFChr(vcfChr);
-                    refPos=chrConvertionRule.getRefPosFromVCFChrPos(vcfChr, vcfPos);
+                    refChr= RefV1Utils.getChromosome(vcfChr, vcfPos);
+                    refPos= RefV1Utils.getPosOnChromosome(vcfChr, vcfPos);
                     temp.set(0, refChr);
                     temp.set(1, String.valueOf(refPos));
                     bw.write(temp.stream().collect(Collectors.joining("\t")));
@@ -302,8 +301,8 @@ public class VCF {
                     temp=PStringUtils.fastSplit(line);
                     vcfChr=Integer.parseInt(temp.get(0));
                     vcfPos=Integer.parseInt(temp.get(1));
-                    refChr= chrConvertionRule.getRefChrFromVCFChr(vcfChr);
-                    refPos=chrConvertionRule.getRefPosFromVCFChrPos(vcfChr, vcfPos);
+                    refChr= RefV1Utils.getChromosome(vcfChr, vcfPos);
+                    refPos= RefV1Utils.getPosOnChromosome(vcfChr, vcfPos);
                     temp.set(0, refChr);
                     temp.set(1, String.valueOf(refPos));
                     bw.write(temp.stream().collect(Collectors.joining("\t")));
