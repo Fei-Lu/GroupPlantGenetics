@@ -206,9 +206,10 @@ public class SnpEffSummaryHTML {
     /**
      * 解析snpEff软件产生的summary.html文件，统计Effects by type and region
      * @param summaryHtmlFileDir 包含HTML文件的目录
-     * @param outFileDir
+     * @param outFileDirOfEffectsByTypeAndRegion
      */
-    public static void getA_B_D_lineageTypeAndRegion(String summaryHtmlFileDir, String outFileDir){
+    public static void getA_B_D_lineageTypeAndRegion(String summaryHtmlFileDir,
+                                                     String outFileDirOfEffectsByTypeAndRegion){
         File[] input=IOUtils.listRecursiveFiles(new File(summaryHtmlFileDir));
         Predicate<File> p=File::isHidden;
         File[] files=Arrays.stream(input).filter(p.negate()).filter(f->f.getName().endsWith("html")).toArray(File[]::new);
@@ -261,8 +262,8 @@ public class SnpEffSummaryHTML {
         String columnForRegion="DOWNSTREAM\tEXON\tINTERGENIC\tINTRON\tSPLICE_SITE_ACCEPTOR\tSPLICE_SITE_DONOR\tSPLICE_SITE_REGION\tUPSTREAM\tUTR_3_PRIME\tUTR_5_PRIME";
         String[] typeColumn= StringUtils.split(columnForType, "\t");
         String[] regionColumn=StringUtils.split(columnForRegion, "\t");
-        try(BufferedWriter bwType=IOUtils.getTextWriter(new File(outFileDir, "type.txt").getAbsolutePath());
-            BufferedWriter bwRegion=IOUtils.getTextWriter(new File(outFileDir, "region.txt").getAbsolutePath())){
+        try(BufferedWriter bwType=IOUtils.getTextWriter(new File(outFileDirOfEffectsByTypeAndRegion, "type.txt").getAbsolutePath());
+            BufferedWriter bwRegion=IOUtils.getTextWriter(new File(outFileDirOfEffectsByTypeAndRegion, "region.txt").getAbsolutePath())){
             bwType.write("Type"+"\t"+header);
             bwRegion.write("Region"+"\t"+header);
             bwType.newLine();
