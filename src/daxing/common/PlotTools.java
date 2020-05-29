@@ -18,6 +18,49 @@ import java.util.stream.IntStream;
  */
 public class PlotTools {
 
+    public static void slidingWindow(String inputDir, String outDir){
+        List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
+        String[] outNames=files.stream().map(File::getName)
+                .map(str->str.replaceAll(".txt", ".sliding.txt")).toArray(String[]::new);
+        IntStream.range(0, files.size()).forEach(e-> PlotTools.slidingWindow(files.get(e).getAbsolutePath(),
+                4, 10000000, 1000000, new File(outDir, outNames[e]).getAbsolutePath()));
+    }
+
+    /**
+     * 将滑窗后生成的所有染色体合并起来
+     * @param inputDir
+     * @param outFile
+     */
+    public static void merge(String inputDir, String outFile){
+        List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
+        BufferedReader br;
+        BufferedWriter bw=IOTool.getTextWriter(outFile);
+        try {
+            String line;
+            List<String> temp;
+            StringBuilder sb=new StringBuilder();
+            bw.write("Chr\tStart\tEnd\tValue");
+            bw.newLine();
+            for (int i = 0; i < files.size(); i++) {
+                br=IOTool.getReader(files.get(i));
+                br.readLine();
+                while ((line=br.readLine())!=null){
+                    temp=PStringUtils.fastSplit(line);
+                    sb.setLength(0);
+                    sb.append(temp.get(0)).append("\t").append(temp.get(1)).append("\t");
+                    sb.append(temp.get(2)).append("\t").append(temp.get(4));
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+                br.close();
+            }
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * CHROM POS WEIR_AND_COCKERHAM_FST
      * 1D	113140	0.250977
