@@ -18,12 +18,12 @@ import java.util.stream.IntStream;
  */
 public class PlotTools {
 
-    public static void slidingWindow(String inputDir, String outDir){
+    public static void slidingWindow(String inputDir, String outDir, int columnIndex){
         List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
         String[] outNames=files.stream().map(File::getName)
-                .map(str->str.replaceAll(".txt", ".sliding.txt")).toArray(String[]::new);
+                .map(str->str.replaceAll(".vcf", ".sliding.txt")).toArray(String[]::new);
         IntStream.range(0, files.size()).forEach(e-> PlotTools.slidingWindow(files.get(e).getAbsolutePath(),
-                4, 10000000, 1000000, new File(outDir, outNames[e]).getAbsolutePath()));
+                columnIndex, 10000000, 1000000, new File(outDir, outNames[e]).getAbsolutePath()));
     }
 
     /**
@@ -68,19 +68,18 @@ public class PlotTools {
      * 1D	128693	-0.00703244
      * 1D	201064	0.287936
      * 1D	554081	0.930793
-     * @param inputFile
+     * @param rowTable
      * @param columnIndex
      * @param windowSize
      * @param stepSize
      * @param outFile
      * @param sdMedian 是否输出标准差和中位数
      */
-    public static void slidingWindow(String inputFile, int columnIndex, int windowSize, int stepSize,
+    public static void slidingWindow(RowTableTool<String> rowTable, int columnIndex, int windowSize, int stepSize,
                                      String outFile, boolean sdMedian){
-        RowTableTool<String> rowTable=new RowTableTool<>(inputFile);
         Set<String> chrNum=new HashSet<>(rowTable.getColumn(0));
         if (chrNum.size()!=1){
-            System.out.println(new File(inputFile).getName()+" had multiple chromosomes, program quit");
+            System.out.println(chrNum.iterator().next()+" had multiple chromosomes, program quit");
             System.exit(1);
         }
         Comparator<List<String>> c=Comparator.comparing(l->Integer.parseInt(l.get(1)));
@@ -100,7 +99,7 @@ public class PlotTools {
             keyList.add(Double.parseDouble(posListStr.get(i)));
             valueList.add(Double.parseDouble(valueListStr.get(i)));
         }
-        System.out.print(new File(inputFile).getName()+" had "+cnt+" NaN rows");
+        System.out.print(chrNum.iterator().next()+" rowTable had "+cnt+" NaN rows");
         String valueName=rowTable.getColumnName(columnIndex).toUpperCase();
         String chrName=rowTable.getCell(0, 0);
         double[] key=keyList.toArray();
@@ -177,7 +176,8 @@ public class PlotTools {
 
     public static void slidingWindow(String inputFile, int columnIndex, int windowSize, int stepSize,
                                      String outFile){
-        slidingWindow(inputFile, columnIndex, windowSize, stepSize, outFile, false);
+        RowTableTool<String> table=new RowTableTool<>(inputFile);
+        slidingWindow(table, columnIndex, windowSize, stepSize, outFile, false);
     }
 
     public static void windowMean(String ingputFile, int binWidth_kb, int threshForDistance_Mb, String outFile){
