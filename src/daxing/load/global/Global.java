@@ -245,13 +245,13 @@ public class Global {
         }
         String taxon;
         for (int i = 0; i < files.size(); i++) {
-            taxon=PStringUtils.fastSplit(files.get(i).getName(), ".").get(0);
+            taxon=PStringUtils.fastSplit(files.get(i).getName(), "triad.").get(0);
             taxonNames.add(taxon);
             rowTableTool=new RowTableTool<>(files.get(i).getAbsolutePath());
             triadID=rowTableTool.getColumn(0);
             loadA=rowTableTool.getColumn(indexNonsyn[0]);
             loadB=rowTableTool.getColumn(indexNonsyn[1]);
-            loadD=rowTableTool.getColumn(index[2]);
+            loadD=rowTableTool.getColumn(indexNonsyn[2]);
             region=new ArrayList<>();
             for (int j = 0; j < loadA.size(); j++) {
                 if (loadA.get(j).equals("NA") || loadB.get(j).equals("NA") || loadD.get(j).equals("NA")){
