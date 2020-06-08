@@ -146,13 +146,13 @@ public class Vmap2QC {
             String refCSGenotype="0/0:50,50:0,7,44";
             StringBuilder sb=new StringBuilder();
             for (int i = 0; i < 187; i++) {
-                sb.append("./.").append("\t");
+                sb.append("./.:.:.").append("\t");
             }
             sb.deleteCharAt(sb.length()-1);
             emmerGenotype=sb.toString();
             sb=new StringBuilder();
             for (int i = 0; i < 36; i++) {
-                sb.append("./.").append("\t");
+                sb.append("./.:.:.").append("\t");
             }
             sb.deleteCharAt(sb.length()-1);
             tauschiiGenotype=sb.toString();
