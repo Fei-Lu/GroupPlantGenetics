@@ -16,11 +16,11 @@ import java.util.stream.Collectors;
 
 public class Vmap2QC {
 
-    public Vmap2QC(String vcfAB, String vcfD, String outMergedVCF){
-//        this.assessFalesPositiveRate(vcfDir, csTaxonName);
+    public Vmap2QC(String vcfDir, String csTaxonName){
+        this.assessFalesPositiveRate(vcfDir, csTaxonName);
 //        this.getMaf("vcfDir", "outFileDir");
-        this.mergeAddRefCSFordxy(vcfAB,
-                vcfD, outMergedVCF);
+//        this.mergeAddRefCSFordxy(vcfAB,
+//                vcfD, outMergedVCF);
     }
 
     public void assessFalesPositiveRate(String vcfDir, String csTaxonName){
@@ -51,7 +51,7 @@ public class Vmap2QC {
             List<String> lineList;
             while ((line=br.readLine()).startsWith("##")){}
             lineList= PStringUtils.fastSplit(line);
-            int index=lineList.indexOf("CS-2017");
+            int index=lineList.indexOf(csTaxonName);
             String genotype;
             while ((line=br.readLine())!=null){
                 lineList=PStringUtils.fastSplit(line);
