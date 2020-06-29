@@ -1,7 +1,11 @@
 package daxing.common;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
 import daxing.load.ancestralSite.Standardization;
+import daxing.load.ancestralSite.TriadGenotype;
+import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.PStringUtils;
@@ -163,6 +167,13 @@ public class Triad {
         return this.getTriadID().size();
     }
 
+    /**
+     * 利用PGF文件、重组率文件、triad文件得到每个triad对应的pos和重组率信息
+     * @param pgfFile wheat_v1.1_Lulab_geneHC.pgf
+     * @param triadFile triadGenes1.1_cdsLen_geneHC.txt
+     * @param recombinationFile iwgsc_refseqv1.0_recombination_rate.txt
+     * @param outFile
+     */
     public static void triadPosRecombinationRate(String pgfFile, String triadFile, String recombinationFile, String outFile){
         PGF pgf=new PGF(pgfFile);
         pgf.sortGeneByName();
@@ -230,6 +241,25 @@ public class Triad {
         }
     }
 
+    /**
+     * 将triadPos文件按A B D pos重新赋值
+     * @param triadPosFile triadPos.txt
+     * TriadID	Chr	Pos	RecombinationRate
+     * T000001	1A	239435	    1.72
+     * T000001	6B	111691197	0.06
+     * T000001	7D	74092118	0.32
+     * T000002	1A	1161012	    1.72
+     * T000002	1B	1205398	    0.3
+     * T000002	1D	2078877	    0
+     * @param outFile triadDPos.txt
+     * TriadID	Chr	Pos	RecombinationRate
+     * T000001	1A	74092118	1.72
+     * T000001	6B	74092118	0.06
+     * T000001	7D	74092118	0.32
+     * T000002	1A	2078877	    1.72
+     * T000002	1B	2078877	    0.3
+     * T000002	1D	2078877	    0
+     */
     public static void transformTriadPos(String triadPosFile, String outFile){
         try (BufferedReader br = IOTool.getReader(triadPosFile);
              BufferedWriter bw = IOTool.getTextWriter(outFile)) {
@@ -262,6 +292,27 @@ public class Triad {
         }
     }
 
+    /**
+     * 向六倍体triad群体均值load文件添加每个triad的重组率信息
+     * @param triadPosFile
+     * TriadID	Chr	Pos	RecombinationRate
+     * T000001	1A	239435	    1.72
+     * T000001	6B	111691197	0.06
+     * T000001	7D	74092118	0.32
+     * T000002	1A	1161012	    1.72
+     * T000002	1B	1205398	    0.3
+     * T000002	1D	2078877	    0
+     * @param popMeanLoadFile
+     * TriadID	aabbInHexaploid	aabbdd
+     * T000002	0.4630606979695424	0.3475395093062605
+     * T000003	0.36036078406169736	0.24024052270779797
+     * T000004	0.5448779040404048	0.5938889309764311
+     * @param outFile
+     * TriadID	aabbPopMeanLoadHexaploid	aabbddPopMeanLoadHexaploid	recombinationRate
+     * T000002	0.4630606979695424	0.3475395093062605	0.6733333333333333
+     * T000003	0.36036078406169736	0.24024052270779797	0.6733333333333333
+     * T000004	0.5448779040404048	0.5938889309764311	0.6733333333333333
+     */
     public static void recombinationRatePopMeanLoad(String triadPosFile, String popMeanLoadFile, String outFile){
         try (BufferedReader brTriadPos = IOTool.getReader(triadPosFile);
              BufferedReader brPopMeanLoad = IOTool.getReader(popMeanLoadFile);
@@ -299,7 +350,22 @@ public class Triad {
         }
     }
 
-    public static void triadModel(String triadPosFile, String triadPosRegionFile){
+    /**
+     * 向triadPos重组率文件添加三元图region信息
+     * @param triadPosFile
+     * TriadID	Chr	Pos	RecombinationRate
+     * T000001	1A	239435	    1.72
+     * T000001	6B	111691197	0.06
+     * T000001	7D	74092118	0.32
+     * T000002	1A	1161012	    1.72
+     * T000002	1B	1205398	    0.3
+     * T000002	1D	2078877	    0
+     * @param triadPosRegionFile
+     * TriadID	 A	     B	     D	    Region
+     * T000001	1.72	0.06	0.32	M100
+     * T000002	1.72	0.3	    0	    M100
+     */
+    public static void triadRecombinationRateModel(String triadPosFile, String triadPosRegionFile){
         try (BufferedReader br = IOTool.getReader(triadPosFile);
              BufferedWriter bw =IOTool.getTextWriter(triadPosRegionFile)) {
             br.readLine();
@@ -333,11 +399,24 @@ public class Triad {
     }
 
     /**
-     *
+     * 将triadAPos  triadBPos triadDPos 滑窗分别得到 triadAPosSliding.txt  triadBPosSliding.txt triadDPosSliding.txt
      * @param triadPosFile
+     * TriadID	Chr	Pos	RecombinationRate
+     * T000001	1A	239435	1.72
+     * T000001	6B	239435	0.06
+     * T000001	7D	239435	0.32
+     * T000002	1A	1161012	1.72
+     * T000002	1B	1161012	0.3
+     * T000002	1D	1161012	0
      * @param windowSize
      * @param stepSize
      * @param outFile
+     * Chr	Start	End	        Value
+     * 1A	0	    10000000	1.6878048780487804
+     * 1A	1000000	11000000	1.6969767441860466
+     * 1A	2000000	12000000	1.7482499999999999
+     * 1A	3000000	13000000	1.7861702127659576
+     * 1A	4000000	14000000	1.7667391304347826
      * @param triadSubgenome A or B or D
      */
     public static void triadPosSlidingWindow(String triadPosFile, int windowSize, int stepSize, String outFile,
@@ -399,6 +478,161 @@ public class Triad {
             PlotTools.slidingWindow(tempDirs[0].getAbsolutePath(), tempDirs[1].getAbsolutePath(), 2);
             PlotTools.merge(tempDirs[1].getAbsolutePath(), outFile);
 
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     *
+     * @param nonsynGlobalIndividualFile nonsynGlobalIndividual.txt
+     * @param triadRecombinationRateRegionFile
+     * TriadID	A	    B	    D	    Region
+     * T000001	1.72	0.06	0.32	M100
+     * T000002	1.72	0.3	    0	    M100
+     * T000003	1.72	0.3	    0	    M100
+     * T000004	1.72	0.3	    0	    M100
+     * @param triadLoadRecombinationRegionOutFile
+     * TriadID	LoadA	LoadB	LoadD	LoadRegion	RecombinationRateA	RecombinationRateB	RecombinationRateD
+     * RecombinationRateRegion
+     * T000001	0.06701	NA	NA	NA	1.72	0.06	0.32	M100
+     * T000002	0.30384	0.61895	0.11533	M110	1.72	0.3	0	M100
+     * T000003	0.72134	0.0	0.0	M100	1.72	0.3	0	M100
+     */
+    public static void triadGlobalLoadRegionRecombinationRateRegion(String nonsynGlobalIndividualFile,
+                                                                    String triadRecombinationRateRegionFile,
+                                                                    String triadLoadRecombinationRegionOutFile){
+        try (BufferedReader brLoad = IOTool.getReader(nonsynGlobalIndividualFile);
+             BufferedReader brRecombination= IOTool.getReader(triadRecombinationRateRegionFile);
+             BufferedWriter bw = IOTool.getTextWriter(triadLoadRecombinationRegionOutFile)) {
+            brLoad.readLine();
+            brRecombination.readLine();
+            bw.write("TriadID\tLoadA\tLoadB\tLoadD\tLoadRegion\tRecombinationRateA\tRecombinationRateB" +
+                    "\tRecombinationRateD\tRecombinationRateRegion");
+            bw.newLine();
+            String line, triadID;
+            List<String> temp;
+            Multimap<String,String> triadRecombinationMap= ArrayListMultimap.create();
+            while ((line=brRecombination.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                triadRecombinationMap.put(temp.get(0), temp.get(1));
+                triadRecombinationMap.put(temp.get(0), temp.get(2));
+                triadRecombinationMap.put(temp.get(0), temp.get(3));
+                triadRecombinationMap.put(temp.get(0), temp.get(4));
+            }
+            StringBuilder sb=new StringBuilder();
+            List<String> values;
+            while ((line=brLoad.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                sb.setLength(0);
+                triadID=temp.get(0);
+                sb.append(triadID).append("\t").append(temp.get(1)).append("\t").append(temp.get(2)).append("\t");
+                sb.append(temp.get(3)).append("\t").append(temp.get(4)).append("\t");
+                values=new ArrayList<>(triadRecombinationMap.get(triadID));
+                sb.append(String.join("\t", values));
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * for dominantModel
+     * @param triadLoadRecombinationRegionInputFile
+     * @param triadLoadRecombinationRegionOuputFile
+     */
+    private static void dominantModel(String triadLoadRecombinationRegionInputFile,
+                                      String triadLoadRecombinationRegionOuputFile){
+        String[] loadReginArray={"","","","","","",""};
+        try (BufferedReader br = IOTool.getReader(triadLoadRecombinationRegionInputFile);
+             BufferedWriter bw = IOTool.getTextWriter(triadLoadRecombinationRegionOuputFile)) {
+            String header=br.readLine();
+            bw.write(header+"\tDominantLoad\tDominantRecombinationRate");
+            bw.newLine();
+            String line, loadRegion, recombinationRateRegion;
+            double[] loadABD;
+            double dominantLoad, dominantRecombinationRate;
+            List<String> temp;
+            while ((line=br.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                loadRegion=temp.get(4);
+                recombinationRateRegion=temp.get(8);
+                loadABD=new double[3];
+                loadABD[0]=Double.parseDouble(temp.get(1));
+                loadABD[1]=Double.parseDouble(temp.get(2));
+                loadABD[2]=Double.parseDouble(temp.get(3));
+                switch (loadRegion){
+                    case "M111" :
+                        dominantLoad=(loadABD[0]+loadABD[1]+loadABD[2])/3;
+                        break;
+                    case "M100" :
+                        dominantLoad= loadABD[0];
+                        break;
+                    case "M010" :
+                        dominantLoad= loadABD[1];
+                        break;
+                    case "M001" :
+                        dominantLoad =loadABD[2];
+                        break;
+                    case "M110" :
+                        dominantLoad = (loadABD[0]+loadABD[1])/2;
+                        break;
+                    case "M101" :
+                        dominantLoad= (loadABD[0]+loadABD[2])/2;
+                        break;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     *
+     * @param loadThreshFile hexaploidLoadThresh3.0.txt
+     * @param triadPopMeanLoadOutFile hexaploidTriadPopMeanLoad.txt
+     */
+    public static void TriadPopMeanLoad(String loadThreshFile, String triadPopMeanLoadOutFile){
+        TriadGenotype triadGenotype=new TriadGenotype(loadThreshFile);
+        List<String> temp, tem, te;
+        TDoubleArrayList aabb;
+        TDoubleArrayList aabbdd;
+        double loadA, loadB, loadD, sumAB, sumABD;
+        String triadID;
+        try (BufferedWriter bw = IOTool.getTextWriter(triadPopMeanLoadOutFile)) {
+            bw.write("TriadID\taabbInHexaploid\taabbdd");
+            bw.newLine();
+            StringBuilder sb=new StringBuilder();
+            for (int i = 0; i < triadGenotype.columnTableTool.getRowNumber(); i++) {
+                temp=triadGenotype.columnTableTool.getRow(i);
+                aabb=new TDoubleArrayList();
+                aabbdd= new TDoubleArrayList();
+                for (int j = 2; j < temp.size(); j++) {
+                    tem= PStringUtils.fastSplit(temp.get(j), ":");
+                    te=PStringUtils.fastSplit(tem.get(0), ",");
+                    if (te.get(0).equals("NA")) continue;
+                    if (te.get(1).equals("NA")) continue;
+                    if (te.get(2).equals("NA")) continue;
+                    loadA=Double.parseDouble(te.get(0));
+                    loadB=Double.parseDouble(te.get(1));
+                    loadD=Double.parseDouble(te.get(2));
+                    sumAB=loadA+loadB;
+                    sumABD=loadA+loadB+loadD;
+                    aabb.add(sumAB/2);
+                    aabbdd.add(sumABD/3);
+                }
+                if (aabb.size() < 1 || aabbdd.size() < 1) continue;
+                double meanTetraploid=aabb.sum()/aabb.size();
+                double meanHexaploid=aabbdd.sum()/aabbdd.size();
+                sb.setLength(0);
+                sb.append(temp.get(0)).append("\t").append(meanTetraploid).append("\t").append(meanHexaploid);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
