@@ -291,8 +291,6 @@ public class Global {
         }
         RowTableTool<String> globalAddedDistance=addDistance(global);
         globalAddedDistance.write(new File(outDir, nonsynOrDel+"Global.txt.gz"), IOFileFormat.TextGzip);
-        new File(outDir, "cultivar.txt.gz").delete();
-        new File(outDir, "landraceEU.txt.gz").delete();
     }
 
     private static String getIndividualHeader(String taxonName){
