@@ -10,6 +10,7 @@ import pgl.infra.dna.SequenceInterface;
 import gnu.trove.list.array.TCharArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.stream.IntStream;
 
 /**
@@ -237,6 +238,25 @@ public class SeqByte implements SequenceInterface {
         TIntArrayList allIndex=new TIntArrayList(IntStream.range(0, seqWithDash.length()).toArray());
         allIndex.removeAll(indexOfDash);
         return allIndex.get(position);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public BitSet makeDashBeOne(){
+        byte[] dashACGTN={45, 65, 67, 71, 78, 84};
+        byte[] dashBeOne={0, 1, 1, 1, 0, 1};
+        HashByteByteMap dashACGTNToOneMap = HashByteByteMaps.getDefaultFactory().newImmutableMap(dashACGTN, dashBeOne);
+        BitSet bitSet = new BitSet();
+        byte value;
+        boolean res;
+        for (int i = 0; i < seqByte.length; i++) {
+            value=dashACGTNToOneMap.get(seqByte[i]);
+            res= value == 1 ? true : false;
+            bitSet.set(i, res);
+        }
+        return bitSet;
     }
 
     /**

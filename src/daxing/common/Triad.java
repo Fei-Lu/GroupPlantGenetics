@@ -540,68 +540,63 @@ public class Triad {
     }
 
     /**
-     * for dominantModel
-     * @param triadLoadRecombinationRegionInputFile
-     * @param triadLoadRecombinationRegionOuputFile
+     * Individual Additive Model
+     * @param loadThreshFile hexaploidLoadThresh3.0.txt
+     * @param triadPopMeanLoadOutFile hexaploidTriadPopMeanLoad.txt
      */
-    private static void dominantModel(String triadLoadRecombinationRegionInputFile,
-                                      String triadLoadRecombinationRegionOuputFile){
-        String[] loadReginArray={"","","","","","",""};
-        try (BufferedReader br = IOTool.getReader(triadLoadRecombinationRegionInputFile);
-             BufferedWriter bw = IOTool.getTextWriter(triadLoadRecombinationRegionOuputFile)) {
-            String header=br.readLine();
-            bw.write(header+"\tDominantLoad\tDominantRecombinationRate");
+    public static void triadPopMeanLoadAdditive(String loadThreshFile, String triadPopMeanLoadOutFile){
+        TriadGenotype triadGenotype=new TriadGenotype(loadThreshFile);
+        List<String> temp, tem, te;
+        TDoubleArrayList aabb;
+        TDoubleArrayList aabbdd;
+        double loadA, loadB, loadD, sumAB, sumABD;
+        try (BufferedWriter bw = IOTool.getTextWriter(triadPopMeanLoadOutFile)) {
+            bw.write("TriadID\taabbInHexaploid\taabbdd");
             bw.newLine();
-            String line, loadRegion, recombinationRateRegion;
-            double[] loadABD;
-            double dominantLoad, dominantRecombinationRate;
-            List<String> temp;
-            while ((line=br.readLine())!=null){
-                temp=PStringUtils.fastSplit(line);
-                loadRegion=temp.get(4);
-                recombinationRateRegion=temp.get(8);
-                loadABD=new double[3];
-                loadABD[0]=Double.parseDouble(temp.get(1));
-                loadABD[1]=Double.parseDouble(temp.get(2));
-                loadABD[2]=Double.parseDouble(temp.get(3));
-                switch (loadRegion){
-                    case "M111" :
-                        dominantLoad=(loadABD[0]+loadABD[1]+loadABD[2])/3;
-                        break;
-                    case "M100" :
-                        dominantLoad= loadABD[0];
-                        break;
-                    case "M010" :
-                        dominantLoad= loadABD[1];
-                        break;
-                    case "M001" :
-                        dominantLoad =loadABD[2];
-                        break;
-                    case "M110" :
-                        dominantLoad = (loadABD[0]+loadABD[1])/2;
-                        break;
-                    case "M101" :
-                        dominantLoad= (loadABD[0]+loadABD[2])/2;
-                        break;
+            StringBuilder sb=new StringBuilder();
+            for (int i = 0; i < triadGenotype.columnTableTool.getRowNumber(); i++) {
+                temp=triadGenotype.columnTableTool.getRow(i);
+                aabb=new TDoubleArrayList();
+                aabbdd= new TDoubleArrayList();
+                for (int j = 2; j < temp.size(); j++) {
+                    tem= PStringUtils.fastSplit(temp.get(j), ":");
+                    te=PStringUtils.fastSplit(tem.get(0), ",");
+                    if (te.get(0).equals("NA")) continue;
+                    if (te.get(1).equals("NA")) continue;
+                    if (te.get(2).equals("NA")) continue;
+                    loadA=Double.parseDouble(te.get(0));
+                    loadB=Double.parseDouble(te.get(1));
+                    loadD=Double.parseDouble(te.get(2));
+                    sumAB=loadA+loadB;
+                    sumABD=loadA+loadB+loadD;
+                    aabb.add(sumAB/2);
+                    aabbdd.add(sumABD/3);
                 }
+                if (aabb.size() < 1 || aabbdd.size() < 1) continue;
+                double meanTetraploid=aabb.sum()/aabb.size();
+                double meanHexaploid=aabbdd.sum()/aabbdd.size();
+                sb.setLength(0);
+                sb.append(temp.get(0)).append("\t").append(meanTetraploid).append("\t").append(meanHexaploid);
+                bw.write(sb.toString());
+                bw.newLine();
             }
+            bw.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     /**
-     *
+     * Individual Dominant Model
      * @param loadThreshFile hexaploidLoadThresh3.0.txt
-     * @param triadPopMeanLoadOutFile hexaploidTriadPopMeanLoad.txt
+     * @param triadPopMeanLoadOutFile hexaploidTriadPopMeanLoadDominant.txt
      */
-    public static void TriadPopMeanLoad(String loadThreshFile, String triadPopMeanLoadOutFile){
+    public static void triadPopMeanLoadDominant(String loadThreshFile, String triadPopMeanLoadOutFile){
         TriadGenotype triadGenotype=new TriadGenotype(loadThreshFile);
         List<String> temp, tem, te;
         TDoubleArrayList aabb;
         TDoubleArrayList aabbdd;
         double loadA, loadB, loadD, sumAB, sumABD;
-        String triadID;
         try (BufferedWriter bw = IOTool.getTextWriter(triadPopMeanLoadOutFile)) {
             bw.write("TriadID\taabbInHexaploid\taabbdd");
             bw.newLine();
