@@ -24,28 +24,23 @@ public class para {
         String line;
         List name = new ArrayList<>();
         while((line = reader.readLine())!=null){
-            List list1 = Arrays.asList(line.split("/"));
-//            String s = (String) list1.get(list1.size() - 1);
-//            List list2 = Arrays.asList(s.split("\\."));
-//            String bam = String.valueOf(list2.get(0));
-            String bam = String.valueOf(Arrays.asList(((String) list1.get(list1.size() - 1)).split("\\.")).get(0));
-            name.add(bam);
+            name.add(line);
         }
         return name;
     }
     public static void main(String[] args) {
         int chrA[] = {1,2,7,8,13,14,19,20,25,26,31,32,37,38};
-        getNewTaxafile("/Users/guoyafei/Desktop/test1/AA_bam.txt",chrA,"/Users/guoyafei/Desktop/test1/parameters_hapScanner_001.txt","/Users/guoyafei/Desktop/test1/out");
-//        int chrB[] = {3,4,9,10,15,16,21,22,27,28,33,34,39,40};
-//        getNewTaxafile("/data2/xuebo/Projects/Speciation/More_accessions/hapScan/SS_bam.txt",chrB,"/data2/xuebo/Projects/Speciation/More_accessions/hapScan/parameters_hapScanner_001.txt","/data2/xuebo/Projects/Speciation/More_accessions/hapScan");
-//        int chrD[] = {5,6,11,12,17,18,23,24,29,30,35,36,41,42};
-//        getNewTaxafile("/data2/xuebo/Projects/Speciation/More_accessions/hapScan/DD_bam.txt",chrD,"/data2/xuebo/Projects/Speciation/More_accessions/hapScan/parameters_hapScanner_001.txt","/data2/xuebo/Projects/Speciation/More_accessions/hapScan");
-//        int chrAB[] = {1,2,7,8,13,14,19,20,25,26,31,32,37,38,3,4,9,10,15,16,21,22,27,28,33,34,39,40};
-//        getNewTaxafile("/data2/xuebo/Projects/Speciation/More_accessions/hapScan/AABB_bam.txt",chrAB,"/data2/xuebo/Projects/Speciation/More_accessions/hapScan/parameters_hapScanner_001.txt","/data2/xuebo/Projects/Speciation/More_accessions/hapScan");
-//        int chrABD[] = {1,2,7,8,13,14,19,20,25,26,31,32,37,38,3,4,9,10,15,16,21,22,27,28,33,34,39,40,5,6,11,12,17,18,23,24,29,30,35,36,41,42};
-//        getNewTaxafile("/data2/xuebo/Projects/Speciation/More_accessions/hapScan/AABBDD_bam.txt",chrABD,"/data2/xuebo/Projects/Speciation/More_accessions/hapScan/parameters_hapScanner_001.txt","/data2/xuebo/Projects/Speciation/More_accessions/hapScan");
+        getNewTaxafile("/data2/xuebo/Projects/Speciation/More_accessions/hapScan/AA_bam.txt","/data2/xuebo/Projects/Speciation/More_accessions/hapScan/AA_bam_name.txt", chrA,"/data2/xuebo/Projects/Speciation/More_accessions/hapScan/parameters_hapScanner_001.txt","/data2/xuebo/Projects/Speciation/More_accessions/hapScan/outA");
+        int chrB[] = {3,4,9,10,15,16,21,22,27,28,33,34,39,40};
+        getNewTaxafile("/data2/xuebo/Projects/Speciation/More_accessions/hapScan/SS_bam.txt","/data2/xuebo/Projects/Speciation/More_accessions/hapScan/SS_bam_name.txt",chrB,"/data2/xuebo/Projects/Speciation/More_accessions/hapScan/parameters_hapScanner_001.txt","/data2/xuebo/Projects/Speciation/More_accessions/hapScan/outB");
+        int chrD[] = {5,6,11,12,17,18,23,24,29,30,35,36,41,42};
+        getNewTaxafile("/data2/xuebo/Projects/Speciation/More_accessions/hapScan/DD_bam.txt","/data2/xuebo/Projects/Speciation/More_accessions/hapScan/DD_bam_name.txt",chrD,"/data2/xuebo/Projects/Speciation/More_accessions/hapScan/parameters_hapScanner_001.txt","/data2/xuebo/Projects/Speciation/More_accessions/hapScan/outD");
+        int chrAB[] = {1,2,7,8,13,14,19,20,25,26,31,32,37,38,3,4,9,10,15,16,21,22,27,28,33,34,39,40};
+        getNewTaxafile("/data2/xuebo/Projects/Speciation/More_accessions/hapScan/AABB_bam.txt","/data2/xuebo/Projects/Speciation/More_accessions/hapScan/AABB_bam_name.txt",chrAB,"/data2/xuebo/Projects/Speciation/More_accessions/hapScan/parameters_hapScanner_001.txt","/data2/xuebo/Projects/Speciation/More_accessions/hapScan/outAB");
+        int chrABD[] = {1,2,7,8,13,14,19,20,25,26,31,32,37,38,3,4,9,10,15,16,21,22,27,28,33,34,39,40,5,6,11,12,17,18,23,24,29,30,35,36,41,42};
+        getNewTaxafile("/data2/xuebo/Projects/Speciation/More_accessions/hapScan/AABBDD_bam.txt","/data2/xuebo/Projects/Speciation/More_accessions/hapScan/AABBDD_bam_name.txt",chrABD,"/data2/xuebo/Projects/Speciation/More_accessions/hapScan/parameters_hapScanner_001.txt","/data2/xuebo/Projects/Speciation/More_accessions/hapScan/outABD");
     }
-    public static void getNewTaxafile(String bamPath, int chr[], String infileS,String outfileS){
+    public static void getNewTaxafile(String bamPath, String outName, int chr[], String infileS,String outfileS){
         try {
             BufferedWriter bw = null;
             String temp = "";
@@ -57,7 +52,7 @@ public class para {
             //int chrA[] = {5,6,11,12,17,18,23,24,29,30,35,36,41,42};
             //int chrA[] = {1,2,7,8,13,14,19,20,25,26,31,32,37,38,5,6,11,12,17,18,23,24,29,30,35,36,41,42};
             List path = getBamPath(bamPath);
-            List name = getBamName(bamPath);
+            List name = getBamName(outName);
             for (int j = 0; j < path.size() ; j++) {
                 for(int i = 0; i < chrA.length;i++ ){
                     BufferedReader br = IOUtils.getTextReader(infileS);
