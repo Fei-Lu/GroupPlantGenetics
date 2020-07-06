@@ -1,12 +1,10 @@
 package yafei;
-
 //import utils.IOUtils;
-
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import pgl.infra.utils.IOUtils;
-
 /**
  * @author Yafei Guo
  * @create 2020-07-06 2:27 PM
@@ -15,18 +13,22 @@ public class para {
     public static List getBamPath(String infileS) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(new File(infileS)));
         String line;
-        List path = Arrays.asList();
+        List path = new ArrayList<>();
         while((line = reader.readLine())!=null){
-            path.add(line.trim());
+            path.add(String.valueOf(line));
         }
         return path;
     }
     public static List getBamName(String inFileS) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(new File(inFileS)));
         String line;
-        List name = Arrays.asList();
+        List name = new ArrayList<>();
         while((line = reader.readLine())!=null){
-            String bam = line.split("/")[-1].split(".")[0];
+            List list1 = Arrays.asList(line.split("/"));
+//            String s = (String) list1.get(list1.size() - 1);
+//            List list2 = Arrays.asList(s.split("\\."));
+//            String bam = String.valueOf(list2.get(0));
+            String bam = String.valueOf(Arrays.asList(((String) list1.get(list1.size() - 1)).split("\\.")).get(0));
             name.add(bam);
         }
         return name;
@@ -98,7 +100,6 @@ public class para {
                     br.close();
                 }
             }
-
         }
         catch(Exception e){
             e.printStackTrace();
