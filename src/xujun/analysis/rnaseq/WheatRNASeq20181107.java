@@ -74,13 +74,13 @@ public class WheatRNASeq20181107 {
 //        this.avergeTranscriptLengthInWheat();
 //        this.splitSample();//双端文件读入，R1和R2都输出，用于双端比对
 //        this.findTriad();
-        this.geneSequence();
+//        this.geneSequence();
 //        this.shScoreParse();
 //        this.getList();
 //        this.highDiverganceGene();
 //        this.isSame();
 //        this.geneNumber();
-        this.overlapSNP();
+//        this.overlapSNP();
 //        this.NPos();
 //        this.changPos();
         

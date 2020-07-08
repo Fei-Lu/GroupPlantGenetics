@@ -1598,10 +1598,11 @@ public class WheatTEP {
 //    }
     
     public static void main(String args[]) { 
-        new WheatRNASeq20181107();
+//        new WheatRNASeq20181107();
 //        new WheatTEP(args[0]);
 //        new DistinguishSample();
 //        new DemoSample();
+        new eQTL();
         
     }
     
