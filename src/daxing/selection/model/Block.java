@@ -2,8 +2,8 @@ package daxing.selection.model;
 
 import daxing.common.SeqByte;
 import org.apache.commons.lang3.StringUtils;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 
@@ -48,6 +48,11 @@ public class Block {
         return chrs;
     }
 
+    public String[] getSubgenome(){
+        String[] chrs=this.getChrs();
+        return Arrays.stream(chrs).map(s->s.substring(1,2)).toArray(String[]::new);
+    }
+
     public int[] getSeqStart() {
         return seqStart;
     }
@@ -68,24 +73,60 @@ public class Block {
         return getChrs()[seqByteIndex];
     }
 
-    public int getSeqStart(int seqByteIndex){
-        return getSeqStart()[seqByteIndex];
+    public int getSeqStart(int index){
+        return getSeqStart()[index];
     }
 
-    public int getSeqLen(int seqByteIndex){
-        return getSeqLen()[seqByteIndex];
+    public int getSeqLen(int index){
+        return getSeqLen()[index];
     }
 
-    public boolean getIfMinus(int seqByteIndex){
-        return getIfMinus()[seqByteIndex];
+    public boolean getIfMinus(int index){
+        return getIfMinus()[index];
     }
 
-    public SeqByte getSeqByte(int seqByteIndex){
-        return getSeqByte()[seqByteIndex];
+    public SeqByte getSeqByte(int index){
+        return getSeqByte()[index];
+    }
+
+    public String getChr(String subgenome){
+        int index=this.getSubIndex(subgenome);
+        return this.getChr(index);
+    }
+
+    public int getSeqStart(String subgenome){
+        int index=this.getSubIndex(subgenome);
+        return this.getSeqStart(index);
+    }
+
+    public int getSeqLen(String subgenome){
+        int index=this.getSubIndex(subgenome);
+        return this.getSeqLen(index);
+    }
+
+    public boolean getIfMinus(String subgenome){
+        int index=this.getSubIndex(subgenome);
+        return this.getIfMinus(index);
+    }
+
+    public SeqByte getSeqByte(String subgenome){
+        int index=this.getSubIndex(subgenome);
+        return this.getSeqByte(index);
     }
 
     public int getBlockSize(){
         return getChrs().length;
+    }
+
+    public int getSubIndex(String subgenome){
+        String[] subs=this.getSubgenome();
+        return Arrays.binarySearch(subs, subgenome);
+    }
+
+    public boolean haveAlignment(String subgenome){
+        int index=getSubIndex(subgenome);
+        if (index < 0) return false;
+        return true;
     }
 
     public List<Block> subsetBlockWithoutIndel(){
