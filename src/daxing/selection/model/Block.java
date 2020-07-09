@@ -10,7 +10,7 @@ import java.util.BitSet;
 import java.util.List;
 
 /**
- * an alignment record (block) in a maf file
+ * an alignment record without indel (block) in a maf file
  */
 public class Block {
 
@@ -219,9 +219,9 @@ public class Block {
      */
     public List<int[]> getFullyAlignmenRegion(){
         BitSet bitSet0, bitSet;
-        bitSet0=this.getSeqByte(0).makeDashBeOne();
+        bitSet0=this.getSeqByte(0).makeDashBeZero();
         for (int i = 1; i < this.getBlockSize(); i++) {
-            bitSet = this.getSeqByte(i).makeDashBeOne();
+            bitSet = this.getSeqByte(i).makeDashBeZero();
             bitSet0.and(bitSet);
         }
         List<int[]> rangeList=new ArrayList<>();

@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 /**
- * multiple alignment records (blocks) in a maf file
+ * multiple alignment records without indel (blocks) in a maf file
  */
 public class BlockOperation {
 
