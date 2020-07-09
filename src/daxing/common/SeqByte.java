@@ -5,10 +5,10 @@ import com.koloboke.collect.map.hash.HashByteByteMap;
 import com.koloboke.collect.map.hash.HashByteByteMaps;
 import com.koloboke.collect.map.hash.HashCharCharMap;
 import com.koloboke.collect.map.hash.HashCharCharMaps;
-import pgl.infra.dna.DNAUtils;
-import pgl.infra.dna.SequenceInterface;
 import gnu.trove.list.array.TCharArrayList;
 import gnu.trove.list.array.TIntArrayList;
+import pgl.infra.dna.DNAUtils;
+import pgl.infra.dna.SequenceInterface;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.stream.IntStream;
@@ -242,25 +242,6 @@ public class SeqByte implements SequenceInterface {
 
     /**
      *
-     * @return
-     */
-    public BitSet makeDashBeOne(){
-        byte[] dashACGTN={45, 65, 67, 71, 78, 84};
-        byte[] dashBeOne={0, 1, 1, 1, 0, 1};
-        HashByteByteMap dashACGTNToOneMap = HashByteByteMaps.getDefaultFactory().newImmutableMap(dashACGTN, dashBeOne);
-        BitSet bitSet = new BitSet();
-        byte value;
-        boolean res;
-        for (int i = 0; i < seqByte.length; i++) {
-            value=dashACGTNToOneMap.get(seqByte[i]);
-            res= value == 1 ? true : false;
-            bitSet.set(i, res);
-        }
-        return bitSet;
-    }
-
-    /**
-     *
      * @param indexInDashSeq
      * @return index in Seq Without Dash
      */
@@ -270,6 +251,25 @@ public class SeqByte implements SequenceInterface {
         TIntArrayList allIndex=new TIntArrayList(IntStream.range(0, seqWithDash.length()).toArray());
         allIndex.removeAll(indexOfDash);
         return allIndex.binarySearch(indexInDashSeq);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public BitSet makeDashBeZero(){
+        byte[] dashACGTN={45, 65, 67, 71, 78, 84};
+        byte[] dashBeZero={0, 1, 1, 1, 0, 1};
+        HashByteByteMap dashACGTNToZeroMap = HashByteByteMaps.getDefaultFactory().newImmutableMap(dashACGTN, dashBeZero);
+        BitSet bitSet = new BitSet();
+        byte value;
+        boolean res;
+        for (int i = 0; i < seqByte.length; i++) {
+            value=dashACGTNToZeroMap.get(seqByte[i]);
+            res= value == 1 ? true : false;
+            bitSet.set(i, res);
+        }
+        return bitSet;
     }
 
     @Override
