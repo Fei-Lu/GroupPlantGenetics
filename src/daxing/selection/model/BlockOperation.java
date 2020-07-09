@@ -1,10 +1,14 @@
 package daxing.selection.model;
 
+import daxing.common.ChrPos;
 import daxing.common.IOTool;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.function.Predicate;
 
 public class BlockOperation {
@@ -60,16 +64,76 @@ public class BlockOperation {
         this.blockList.removeIf(p.negate());
     }
 
+    public static Comparator<Block> getComparator(String subgenome){
+        Comparator<Block> chrComparator=Comparator.comparing(block -> block.getChr(subgenome));
+        Comparator<Block> chrPlusComparator=chrComparator.thenComparing(block -> block.getIfMinus(subgenome));
+        Comparator<Block> chrPlusPosComparator=chrPlusComparator.thenComparing(block -> block.getSeqStart(subgenome));
+        return chrPlusPosComparator;
+    }
+
+    /**
+     * sort by subgenome A
+     * @param chrA
+     * @param posA
+     * @return
+     */
+    public int getBlockIndex(String chrA, int posA){
+        this.sortBy("A");
+        Block query=new Block(chrA, posA);
+        int hit=Collections.binarySearch(this.blockList, query, getComparator("A"));
+        int index=hit;
+        if (hit < -1){
+            index=-hit-2;
+            index= isInThisBlock(index, chrA, posA) ? index : hit;
+        }
+        return index;
+    }
+
+    /**
+     *
+     * @param chrA
+     * @param posA one-based position in subgenome A
+     * @return posB one-based position in subgenome B
+     */
+    public ChrPos getChrPosB(String chrA, int posA){
+        int index=getBlockIndex(chrA, posA);
+        if (index < 0) return null;
+        if (!this.blockList.get(index).haveAlignment("B")) return null;
+        return this.blockList.get(index).getChrPosB(posA);
+    }
+
+    /**
+     *
+     * @param chrA
+     * @param posA one-based position in subgenome A
+     * @return posD one-based position in subgenome D
+     */
+    public ChrPos getChrPosD(String chrA, int posA){
+        int index=getBlockIndex(chrA, posA);
+        if (index < 0) return null;
+        if (!this.blockList.get(index).haveAlignment("D")) return null;
+        return this.blockList.get(index).getChrPosD(posA);
+    }
+
+    private boolean isInThisBlock(int blockIndex, String chrA, int posA){
+        Block block=this.blockList.get(blockIndex);
+        String chr=block.getChr("A");
+        if (!chr.equals(chrA)) return false;
+        int seqStart=block.getSeqStart("A");
+        int seqLen=block.getSeqLen("A");
+        int zeroBasedPosA=posA - 1;
+        if (zeroBasedPosA < seqStart) return false;
+        if (zeroBasedPosA >= seqStart + seqLen) return false;
+        return true;
+    }
+
     /**
      * first removed, then sort
      * @param subgenome
      */
     public void sortBy(String subgenome){
         this.removeLackingSubgenome(subgenome);
-        Comparator<Block> chrComparator=Comparator.comparing(block -> block.getChr(subgenome));
-        Comparator<Block> chrPlusComparator=chrComparator.thenComparing(block -> block.getIfMinus(subgenome));
-        Comparator<Block> chrPlusPosComparator=chrPlusComparator.thenComparing(block -> block.getSeqStart(subgenome));
-        Collections.sort(this.blockList, chrPlusPosComparator);
+        Collections.sort(this.blockList, BlockOperation.getComparator(subgenome));
     }
 
     public static void initialize(String triadsMafFile, String outFile){

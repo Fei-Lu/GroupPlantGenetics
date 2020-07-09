@@ -1,7 +1,9 @@
 package daxing.selection.model;
 
+import daxing.common.ChrPos;
 import daxing.common.SeqByte;
 import org.apache.commons.lang3.StringUtils;
+import pgl.infra.utils.wheat.RefV1Utils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -42,6 +44,27 @@ public class Block {
         this.seqLen=seqLen;
         this.ifMinus=ifMinus;
         this.seqByte=seqByte;
+    }
+
+    public Block(String chr, int pos){
+        String[] chrs=new String[2];
+        chrs[0]=chr;
+        chrs[1]="1E";
+        int[] seqStart=new int[2];
+        seqStart[0]=pos-1;
+        seqStart[1]=-1;
+        int[] seqLen=new int[2];
+        seqLen[0]=1;
+        seqLen[1]=-1;
+        boolean[] ifMinus=new boolean[2];
+        ifMinus[0]=false;
+        ifMinus[1]=false;
+        SeqByte[] seqBytes=new SeqByte[2];
+        this.chrs=chrs;
+        this.seqStart=seqStart;
+        this.seqLen=seqLen;
+        this.ifMinus=ifMinus;
+        this.seqByte=seqBytes;
     }
 
     public String[] getChrs() {
@@ -127,6 +150,36 @@ public class Block {
         int index=getSubIndex(subgenome);
         if (index < 0) return false;
         return true;
+    }
+
+    /**
+     *
+     * @param posA one-based position in subgenome A
+     * @return PosB one-based position in subgenome B
+     */
+    public ChrPos getChrPosB(int posA){
+        int index=posA-1-this.getSeqStart("A");
+        int posBZeroBased=this.getSeqStart("B")+index;
+        String chrB=this.getChr("B");
+        int sizeB= RefV1Utils.getChromosomeLength(chrB);
+        boolean ifBMinus=this.getIfMinus("B");
+        int posBOneBased = ifBMinus ? sizeB - posBZeroBased : posBZeroBased + 1;
+        return new ChrPos(chrB, posBOneBased);
+    }
+
+    /**
+     *
+     * @param posA one-based position in subgenome A
+     * @return PosD one-based position in subgenome D
+     */
+    public ChrPos getChrPosD(int posA){
+        int index=posA-1-this.getSeqStart("A");
+        int posDZeroBased=this.getSeqStart("D")+index;
+        String chrD=this.getChr("D");
+        int sizeD= RefV1Utils.getChromosomeLength(chrD);
+        boolean ifDMinus=this.getIfMinus("D");
+        int posDOneBased = ifDMinus ? sizeD - posDZeroBased : posDZeroBased + 1;
+        return new ChrPos(chrD, posDOneBased);
     }
 
     public List<Block> subsetBlockWithoutIndel(){
