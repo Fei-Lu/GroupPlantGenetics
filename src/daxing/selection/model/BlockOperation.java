@@ -11,6 +11,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
+/**
+ * multiple alignment records (blocks) in a maf file
+ */
 public class BlockOperation {
 
     List<Block> blockList;

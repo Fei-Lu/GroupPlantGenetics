@@ -9,6 +9,9 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 
+/**
+ * an alignment record (block) in a maf file
+ */
 public class Block {
 
     String[] chrs;
@@ -211,7 +214,7 @@ public class Block {
     }
 
     /**
-     * fully alignmen region: no dash among all sequences
+     * fully alignment region: no dash among all sequences
      * @return
      */
     public List<int[]> getFullyAlignmenRegion(){
