@@ -45,14 +45,14 @@ public class ChrSNPAnnoDB {
         SNPAnnotation.Region region=SNPAnnotation.Region.valueOf(temp.get(11));
         String variant_type=temp.get(12);
         String alt_SIFT=temp.get(13);
-        String gerp=temp.get(20);
-        String daf=temp.get(32);
+        String gerp=temp.get(18);
+        String daf=temp.get(15);
         double maf=Double.parseDouble(temp.get(7));
         String[] dafs=new String[2];
-        dafs[0]=temp.get(33);
-        dafs[1]=temp.get(34);
-        String ancestral=temp.get(31);
-        String recombinationRate=temp.get(21);
+        dafs[0]=temp.get(16);
+        dafs[1]=temp.get(17);
+        String ancestral=temp.get(14);
+        String recombinationRate=null;
         return new SNPAnnotation(chr, pos, refBase, altBase, geneName, majorBase, ancestral, maf
                 , aaf, daf, dafs, region, variant_type, alt_SIFT, gerp, recombinationRate);
     }
