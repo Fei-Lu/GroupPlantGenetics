@@ -57,14 +57,15 @@ public class IOTool extends IOUtils {
     }
 
     /**
-     * 获取当前目录下的所有非隐藏文件，不递归
+     * 获取当前目录下的所有非隐藏文件(不包含目录)，不递归
      * @param dir
      * @return
      */
     public static List<File> getVisibleDir(String dir){
         File[] files=new File(dir).listFiles();
         Predicate<File> hidden=File::isHidden;
-        return Arrays.stream(files).filter(hidden.negate()).sorted().collect(Collectors.toList());
+        Predicate<File> file=File::isFile;
+        return Arrays.stream(files).filter(hidden.negate().and(file)).sorted().collect(Collectors.toList());
     }
 
     /**
