@@ -539,6 +539,50 @@ public class Triad {
         }
     }
 
+    public static void triadGlobalLoadRegionRecombinationRateRegion(String nonsynGlobalIndividualFile,
+                                                                    String triadRecombinationRateRegionFile,
+                                                                    String triadLoadRecombinationRegionOutFile,
+                                                                    String taxonName){
+        try (BufferedReader brLoad = IOTool.getReader(nonsynGlobalIndividualFile);
+             BufferedReader brRecombination= IOTool.getReader(triadRecombinationRateRegionFile);
+             BufferedWriter bw = IOTool.getTextWriter(triadLoadRecombinationRegionOutFile)) {
+            String header=brLoad.readLine();
+            List<String> taxonNames=PStringUtils.fastSplit(header);
+            int index=taxonNames.indexOf(taxonName);
+            brRecombination.readLine();
+            bw.write("TriadID\tLoadA\tLoadB\tLoadD\tLoadRegion\tRecombinationRateA\tRecombinationRateB" +
+                    "\tRecombinationRateD\tRecombinationRateRegion");
+            bw.newLine();
+            String line, triadID;
+            List<String> temp;
+            Multimap<String,String> triadRecombinationMap= ArrayListMultimap.create();
+            while ((line=brRecombination.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                triadRecombinationMap.put(temp.get(0), temp.get(1));
+                triadRecombinationMap.put(temp.get(0), temp.get(2));
+                triadRecombinationMap.put(temp.get(0), temp.get(3));
+                triadRecombinationMap.put(temp.get(0), temp.get(4));
+            }
+            StringBuilder sb=new StringBuilder();
+            List<String> values;
+            while ((line=brLoad.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                sb.setLength(0);
+                triadID=temp.get(0);
+                sb.append(triadID).append("\t").append(temp.get(index)).append("\t").append(temp.get(index+1)).append(
+                        "\t");
+                sb.append(temp.get(index+2)).append("\t").append(temp.get(index+3)).append("\t");
+                values=new ArrayList<>(triadRecombinationMap.get(triadID));
+                sb.append(String.join("\t", values));
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Individual Additive Model
      * @param loadThreshFile hexaploidLoadThresh3.0.txt
