@@ -249,9 +249,9 @@ public class Global {
             taxonNames.add(taxon);
             rowTableTool=new RowTableTool<>(files.get(i).getAbsolutePath());
             triadID=rowTableTool.getColumn(0);
-            loadA=rowTableTool.getColumn(indexNonsyn[0]);
-            loadB=rowTableTool.getColumn(indexNonsyn[1]);
-            loadD=rowTableTool.getColumn(indexNonsyn[2]);
+            loadA=rowTableTool.getColumn(index[0]);
+            loadB=rowTableTool.getColumn(index[1]);
+            loadD=rowTableTool.getColumn(index[2]);
             region=new ArrayList<>();
             for (int j = 0; j < loadA.size(); j++) {
                 if (loadA.get(j).equals("NA") || loadB.get(j).equals("NA") || loadD.get(j).equals("NA")){
