@@ -1,21 +1,14 @@
 package xiaohan.rareallele;
 
-import com.koloboke.collect.map.hash.HashIntIntMap;
-import com.koloboke.collect.map.hash.HashIntIntMaps;
-import pgl.infra.range.Range;
-import pgl.infra.range.RangeValStr;
-import pgl.infra.utils.PStringUtils;
-import smile.stat.Stat;
-import xujun.analysis.rnaseq.GeneFeature;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.nio.Buffer;
 import java.util.*;
 
 public class Test {
+
+    private String infile;
 
     public Test() throws IOException {
 //        String[] subinDirS = {"chr1", "chr2", "chr3", "chr4", "chr5", "chr6"};
@@ -73,11 +66,186 @@ public class Test {
 //        this.homologychr1();
 //        this.candidate();
         this.writecode1();
+//        this.extractsub();
+//        this.extractsub_5_10();
+//        this.extractexpressionsub();
+//        String infile = "name";
+//        this.write(infile);
+    }
+
+    public void write(String infile){
+        this.infile = infile;
+        System.out.print(infile);
+    }
+
+    public void extractexpressionsub(){
+        String inputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7/";
+        try {
+            BufferedReader br = IOUtils.getTextReader(new File(inputDir, "countResult7_DESeq2.txt").getAbsolutePath());
+            BufferedWriter bwA = IOUtils.getTextWriter(new File(inputDir, "A_countResult7_DESeq2.txt").getAbsolutePath());
+            BufferedWriter bwB = IOUtils.getTextWriter(new File(inputDir, "B_countResult7_DESeq2.txt").getAbsolutePath());
+            BufferedWriter bwD = IOUtils.getTextWriter(new File(inputDir, "D_countResult7_DESeq2.txt").getAbsolutePath());
+            String temp = null;
+            String[] temps = null;
+            String sub = "";
+            temp = br.readLine();
+            bwA.write(temp);
+            bwB.write(temp);
+            bwD.write(temp);
+            bwA.newLine();
+            bwB.newLine();
+            bwD.newLine();
+            while ((temp = br.readLine()) != null) {
+                temps = temp.split("\t");
+                System.out.println(temp);
+                sub = temps[3].substring(8, 9);
+//                        System.out.println(sub);
+                if (sub.equals("A")) {
+                    bwA.write(temp);
+                    bwA.newLine();
+                }
+                if (sub.equals("B")) {
+                    bwB.write(temp);
+                    bwB.newLine();
+                }
+                if (sub.equals("D")) {
+                    bwD.write(temp);
+                    bwD.newLine();
+                }
+                continue;
+            }
+            br.close();
+            bwA.flush();
+            bwA.close();
+            bwB.flush();
+            bwB.close();
+            bwD.flush();
+            bwD.close();
+        } catch (
+                Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
+    public void extractsub_5_10() {
+        String inputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7/snp_count";
+        for (int i = 1; i < 3; i++) {
+            int f = i * 5;
+            try {
+                BufferedReader br = IOUtils.getTextReader(new File(inputDir, "all_" + f + "k_" + "all_count.txt").getAbsolutePath());
+                BufferedWriter bwA = IOUtils.getTextWriter(new File(inputDir, "A_" + f + "k_" + "all_count.txt").getAbsolutePath());
+                BufferedWriter bwB = IOUtils.getTextWriter(new File(inputDir, "B_" + f + "k_" + "all_count.txt").getAbsolutePath());
+                BufferedWriter bwD = IOUtils.getTextWriter(new File(inputDir, "D_" + f + "k_" + "all_count.txt").getAbsolutePath());
+                String temp = null;
+                String[] temps = null;
+                String sub = "";
+                temp = br.readLine();
+                bwA.write(temp);
+                bwB.write(temp);
+                bwD.write(temp);
+                bwA.newLine();
+                bwB.newLine();
+                bwD.newLine();
+                while ((temp = br.readLine()) != null) {
+                    temps = temp.split("\t");
+                    System.out.println(temp);
+                    sub = temps[0].substring(8, 9);
+//                        System.out.println(sub);
+                    if (sub.equals("A")) {
+                        bwA.write(temp);
+                        bwA.newLine();
+                    }
+                    if (sub.equals("B")) {
+                        bwB.write(temp);
+                        bwB.newLine();
+                    }
+                    if (sub.equals("D")) {
+                        bwD.write(temp);
+                        bwD.newLine();
+                    }
+                    continue;
+                }
+                br.close();
+                bwA.flush();
+                bwA.close();
+                bwB.flush();
+                bwB.close();
+                bwD.flush();
+                bwD.close();
+            } catch (
+                    Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    public void extractsub() {
+        String inputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7/snp_count";
+        File[] fs = new File(inputDir).listFiles();
+        List<File> fList = new ArrayList(Arrays.asList());
+        fs = IOUtils.listFilesStartsWith(fs, "all");
+        HashSet<String> nameSet = new HashSet();
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) continue;
+            String Name = fs[i].getName().split("_")[1].split("k")[0];
+            nameSet.add(Name);
+            System.out.println(Name);
+        }
+        nameSet.stream().forEach(f -> {
+            try {
+                if (Integer.parseInt(f) < 10) {
+                    int count = Integer.parseInt(f) + 1;
+                    BufferedReader br = IOUtils.getTextReader(new File(inputDir, "all_" + f + "k_" + count + "k_count.txt").getAbsolutePath());
+                    BufferedWriter bwA = IOUtils.getTextWriter(new File(inputDir, "A_" + f + "k_" + count + "k_count.txt").getAbsolutePath());
+                    BufferedWriter bwB = IOUtils.getTextWriter(new File(inputDir, "B_" + f + "k_" + count + "k_count.txt").getAbsolutePath());
+                    BufferedWriter bwD = IOUtils.getTextWriter(new File(inputDir, "D_" + f + "k_" + count + "k_count.txt").getAbsolutePath());
+                    String temp = null;
+                    String[] temps = null;
+                    String sub = "";
+                    temp = br.readLine();
+                    bwA.write(temp);
+                    bwB.write(temp);
+                    bwD.write(temp);
+                    bwA.newLine();
+                    bwB.newLine();
+                    bwD.newLine();
+                    while ((temp = br.readLine()) != null) {
+                        temps = temp.split("\t");
+                        System.out.println(temp);
+                        sub = temps[0].substring(8, 9);
+//                        System.out.println(sub);
+                        if (sub.equals("A")) {
+                            bwA.write(temp);
+                            bwA.newLine();
+                        }
+                        if (sub.equals("B")) {
+                            bwB.write(temp);
+                            bwB.newLine();
+                        }
+                        if (sub.equals("D")) {
+                            bwD.write(temp);
+                            bwD.newLine();
+                        }
+                        continue;
+                    }
+                    br.close();
+                    bwA.flush();
+                    bwA.close();
+                    bwB.flush();
+                    bwB.close();
+                    bwD.flush();
+                    bwD.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
     public void writecode1() {
-        for (int i = 14; i < 25; i++) {
+        for (int i = 1; i < 13; i++) {
             int count = i;
 //            System.out.print("nohup vcftools --gzvcf /data3/wgs/vcf/GATK/vmap3/1.SNP/");
 //            System.out.print(i);
@@ -88,26 +256,43 @@ public class Test {
 //            System.out.println("nohup bcftools view -S S3SampleName.txt /data2/xiaohan/SNP/"+i+".snp.maf005.mis01.recode.vcf.gz -Ov > /data2/xiaohan/sub3/snp"+i+".vcf && bgzip /data2/xiaohan/sub3/snp"+i+".vcf &");
 //            System.out.println("nohup bcftools +dosage /data2/xiaohan/sub3/snp"+i+".vcf -- -t GT >/data2/xiaohan/DS/S3/col"+i+"DS.vcf &");
 //              System.out.println("snp"+count+" <- snp"+count+"[,-1]\n" +
-//                                "count"+count+"=c(rep(0,85)) \n" +
-//                                "for(i in 1:5000){ \n" +
+//                                "count"+count+"=c(rep(0,92)) \n" +
+//                                "for(i in 1:35345){ \n" +
 //                                "  Rk=rank(exp[i,],ties.method=\"first\") \n" +
-//                                "  for(j in 1:85){ \n" +
+//                                "  for(j in 1:92){ \n" +
 //                                "    zz=as.integer(Rk[j]) \n" +
 //                                "    if(snp"+count+"[i,j]!=0){ \n" +
 //                                "      count"+count+"[zz]=count"+count+"[zz]+snp"+count+"[i,j]}\n" +
 //                                "    j=j+1}\n" +
 //                                "  i=i+1} \n" +
-//                                "perc=1:85\n" +
+//                                "perc=1:92\n" +
 //                                "count"+count);
-              int number = count -14;
-              int number1 = number + 1;
-              System.out.println("###############"+number+"_"+number1+"###################\n"+
-                                "x <- data[1,]\n" +
-                                "x <- x[,-1]\n" +
-                                "x <- c(x)\n" +
-                                "y <- data["+count+",]\n" +
-                                "y <- y[,-1]\n" +
-                                "y <- c(y)");
+//            int number = count - 14;
+//            int number1 = number + 1;
+//            System.out.println("###############" + number + "_" + number1 + "###################\n" +
+//                    "x <- data[1,]\n" +
+//                    "x <- x[,-1]\n" +
+//                    "x <- c(x)\n" +
+//                    "y <- data[" + count + ",]\n" +
+//                    "y <- y[,-1]\n" +
+//                    "y <- c(y)");
+//            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq/output/subFastqs/TRU_am"+i+"_R1.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq5M/output/subFastqs/TRU_am"+i+"_R1.fq");
+//            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq/output/subFastqs/TRU_pm"+i+"_R1.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq5M/output/subFastqs/TRU_pm"+i+"_R1.fq");
+//            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq/output/subFastqs/TRU_am"+i+"_R2.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq5M/output/subFastqs/TRU_am"+i+"_R2.fq");
+//            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq/output/subFastqs/TRU_pm"+i+"_R2.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq5M/output/subFastqs/TRU_pm"+i+"_R2.fq");
+//            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq/output/subFastqs/TRU_am"+i+"_R1.fq.gz 10000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq10M/output/subFastqs/TRU_am"+i+"_R1.fq");
+//            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq/output/subFastqs/TRU_pm"+i+"_R1.fq.gz 10000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq10M/output/subFastqs/TRU_pm"+i+"_R1.fq");
+//            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq/output/subFastqs/TRU_am"+i+"_R2.fq.gz 10000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq10M/output/subFastqs/TRU_am"+i+"_R2.fq");
+//            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq/output/subFastqs/TRU_pm"+i+"_R2.fq.gz 10000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq10M/output/subFastqs/TRU_pm"+i+"_R2.fq");
+            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASURam"+i+"_200415_R1.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASURam"+i+"_200415_R1.fq.gz");
+            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASURam"+i+"_200415_R2.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASURam"+i+"_200415_R2.fq.gz");
+            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASRam"+i+"_200415_R1.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASRam"+i+"_200415_R1.fq.gz");
+            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASRam"+i+"_200415_R2.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASRam"+i+"_200415_R2.fq.gz");
+            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASUam"+i+"_200415_R1.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASUam"+i+"_200415_R1.fq.gz");
+            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASUam"+i+"_200415_R2.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASUam"+i+"_200415_R2.fq.gz");
+            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASam"+i+"_200415_R1.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASam"+i+"_200415_R1.fq.gz");
+            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASam"+i+"_200415_R2.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASam"+i+"_200415_R2.fq.gz");
+            
         }
     }
 
@@ -880,7 +1065,7 @@ public class Test {
 //                for (int i = 0; i < 100; i++) {
 //                    int distance1 = -i * 10000 ;
 //                    bw.write("Large" + "\t" + distance1 + "\t" + count[i+300] + "\n"
-//                            + "Medium" + "\t" + distance1 + "\t" + count[i+400] + "\n" 
+//                            + "Medium" + "\t" + distance1 + "\t" + count[i+400] + "\n"
 //                            + "Small" + "\t" + distance1 + "\t" + count[i+500]);
 //                    bw.newLine();
 //                }
@@ -1046,7 +1231,7 @@ public class Test {
                 String temp1 = null;
                 BufferedReader br = IOUtils.getTextReader(new File(DSdir, "col" + p + "DS.vcf").getAbsolutePath());
                 BufferedReader br1 = IOUtils.getTextReader(new File(genoDir, "snp" + p + ".vcf").getAbsolutePath());
-                BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, "genotypes"+ p + ".vcf").getAbsolutePath());
+                BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, "genotypes" + p + ".vcf").getAbsolutePath());
                 for (int m = 0; m < 45; m++) {
                     temp1 = br1.readLine();
                 }
@@ -1100,231 +1285,231 @@ public class Test {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            });
-        }
+        });
+    }
 
-        public void addinfobySample () {
-            String DSdir = "/data2/xiaohan/DS";
-            String genoDir = "/data2/xiaohan/sub3";
-            String outputDir = "/data2/xiaohan/addinfo/S3";
+    public void addinfobySample() {
+        String DSdir = "/data2/xiaohan/DS";
+        String genoDir = "/data2/xiaohan/sub3";
+        String outputDir = "/data2/xiaohan/addinfo/S3";
 //        String DSdir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/test/DS/";
 //        String genoDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/test/sub";
 //        String outputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/test/addinfo/";
-            HashSet<String> nameSet = new HashSet<String>();
-            //3
-            String name = "B18-E002,B18-E007,B18-E008,B18-E010,B18-E011,B18-E014,B18-E016,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E035,B18-E038,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E087,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E134,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E251,B18-E252,B18-E253,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E348,B18-E355,B18-E356,B18-E357";
-            //7
+        HashSet<String> nameSet = new HashSet<String>();
+        //3
+        String name = "B18-E002,B18-E007,B18-E008,B18-E010,B18-E011,B18-E014,B18-E016,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E035,B18-E038,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E087,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E134,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E251,B18-E252,B18-E253,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E348,B18-E355,B18-E356,B18-E357";
+        //7
 //        String name = "B18-E002,B18-E007,B18-E008,B18-E011,B18-E014,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E035,B18-E038,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E052,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E083,B18-E087,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E134,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E227,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E251,B18-E252,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E348,B18-E355,B18-E356,B18-E357";
-            String[] names = name.split(",");
-            String[] temps = null;
-            String temp = null;
-            String[] tems = null;
-            String[] temps1 = null;
-            String temp1 = null;
-            for (int Samplecount = 4; Samplecount < 5; Samplecount++) {
-                BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, "genotypes" + Samplecount + ".vcf").getAbsolutePath());
-                BufferedReader br = IOUtils.getTextReader(new File(DSdir, "col" + Samplecount + "DS.vcf").getAbsolutePath());
-                BufferedReader br1 = IOUtils.getTextReader(new File(genoDir, "snp" + Samplecount + ".vcf").getAbsolutePath());
-                try {
-                    for (int m = 0; m < 45; m++) {
-                        temp1 = br1.readLine();
-                    }
-                    while ((temp = br.readLine()) != null) {
-                        temp1 = br1.readLine();
-                        temps1 = temp1.split("\t");
-                        if (temp.startsWith("#")) {
-                            temps = temp.split("\t");
-                            bw.write("#");
-                            //1.Chrom+2.position
-                            for (int i = 0; i < 2; i++) {
-                                tems = temps[i].split("]");
-                                bw.write(tems[1] + "\t");
-                            }
-                            //3.ID
-                            bw.write("ID" + "\t");
-                            //4.REF+5.ALT
-                            for (int i = 2; i < 4; i++) {
-                                tems = temps[i].split("]");
-                                bw.write(tems[1] + "\t");
-                            }
-                            //6.QUAL+7.FILTER+8.INFO+9.FORMAT
-                            bw.write(temps1[5] + "\t" + temps1[6] + "\t" + temps1[7] + "\t" + temps1[8] + "\t");
-                            //96Sample
-                            for (int i = 0; i < 95; i++) {
-                                bw.write(names[i] + "\t");
-                            }
-                            bw.write(names[95]);
-                            bw.newLine();
-                        } else {
-                            temps = temp.split("\t");
-                            temps1 = temp1.split("\t");
-                            for (int i = 0; i < 2; i++) {
-                                bw.write(temps[i] + "\t");
-                            }
-                            bw.write("snp_" + temps[1] + "\t");
-                            for (int i = 2; i < 4; i++) {
-                                bw.write(temps[i] + "\t");
-                            }
-                            bw.write(temps1[5] + "\t" + temps1[6] + "\t" + "INFO" + "\t" + "DS" + "\t");
-                            for (int i = 4; i < 99; i++) {
-                                bw.write(temps[i] + "\t");
-                            }
-                            bw.write(temps[99]);
-                            bw.newLine();
-                        }
-                    }
-                    bw.flush();
-                    bw.close();
-                    br.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
+        String[] names = name.split(",");
+        String[] temps = null;
+        String temp = null;
+        String[] tems = null;
+        String[] temps1 = null;
+        String temp1 = null;
+        for (int Samplecount = 4; Samplecount < 5; Samplecount++) {
+            BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, "genotypes" + Samplecount + ".vcf").getAbsolutePath());
+            BufferedReader br = IOUtils.getTextReader(new File(DSdir, "col" + Samplecount + "DS.vcf").getAbsolutePath());
+            BufferedReader br1 = IOUtils.getTextReader(new File(genoDir, "snp" + Samplecount + ".vcf").getAbsolutePath());
+            try {
+                for (int m = 0; m < 45; m++) {
+                    temp1 = br1.readLine();
                 }
+                while ((temp = br.readLine()) != null) {
+                    temp1 = br1.readLine();
+                    temps1 = temp1.split("\t");
+                    if (temp.startsWith("#")) {
+                        temps = temp.split("\t");
+                        bw.write("#");
+                        //1.Chrom+2.position
+                        for (int i = 0; i < 2; i++) {
+                            tems = temps[i].split("]");
+                            bw.write(tems[1] + "\t");
+                        }
+                        //3.ID
+                        bw.write("ID" + "\t");
+                        //4.REF+5.ALT
+                        for (int i = 2; i < 4; i++) {
+                            tems = temps[i].split("]");
+                            bw.write(tems[1] + "\t");
+                        }
+                        //6.QUAL+7.FILTER+8.INFO+9.FORMAT
+                        bw.write(temps1[5] + "\t" + temps1[6] + "\t" + temps1[7] + "\t" + temps1[8] + "\t");
+                        //96Sample
+                        for (int i = 0; i < 95; i++) {
+                            bw.write(names[i] + "\t");
+                        }
+                        bw.write(names[95]);
+                        bw.newLine();
+                    } else {
+                        temps = temp.split("\t");
+                        temps1 = temp1.split("\t");
+                        for (int i = 0; i < 2; i++) {
+                            bw.write(temps[i] + "\t");
+                        }
+                        bw.write("snp_" + temps[1] + "\t");
+                        for (int i = 2; i < 4; i++) {
+                            bw.write(temps[i] + "\t");
+                        }
+                        bw.write(temps1[5] + "\t" + temps1[6] + "\t" + "INFO" + "\t" + "DS" + "\t");
+                        for (int i = 4; i < 99; i++) {
+                            bw.write(temps[i] + "\t");
+                        }
+                        bw.write(temps[99]);
+                        bw.newLine();
+                    }
+                }
+                bw.flush();
+                bw.close();
+                br.close();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
+    }
 
 
-        public void vcfmerge () {
-            StringBuilder sb = new StringBuilder();
-            sb.append("nohup vcf-concat ");
-            for (int i = 0; i < 45; i++) {
-                sb.append("/data3/wgs/vcf/GATK/vmap3/1.SNP/" + i + ".snp.vcf.gz ");
-            }
-            sb.append("| bgzip -c > all.non-filtering.vcf.gz &");
-            System.out.println(sb.toString());
+    public void vcfmerge() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("nohup vcf-concat ");
+        for (int i = 0; i < 45; i++) {
+            sb.append("/data3/wgs/vcf/GATK/vmap3/1.SNP/" + i + ".snp.vcf.gz ");
         }
+        sb.append("| bgzip -c > all.non-filtering.vcf.gz &");
+        System.out.println(sb.toString());
+    }
 
-        public void vcffiltering () {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < 45; i++) {
+    public void vcffiltering() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 45; i++) {
 //            sb.append("nohup vcftools --gzvcf /data3/wgs/vcf/GATK/vmap3/1.SNP/");
 //            sb.append(i+".snp.vcf.gz --maf 0 --max-maf 0.05 --out ");
 //            sb.append("/data2/xiaohan/SNP/");
 //            sb.append(i+".snp.maf005 --recode "+" || ");
-                sb.append("bgzip " + i + ".snp.maf005.recode.vcf" + "\n");
+            sb.append("bgzip " + i + ".snp.maf005.recode.vcf" + "\n");
 //            sb.append("log"+i+".txt 2>&1 &"+"\n");
-            }
-            String words = sb.toString();
-            System.out.println(words);
         }
+        String words = sb.toString();
+        System.out.println(words);
+    }
 
-        public static void mkshell (File file){
-            File[] fl = file.listFiles();
-            for (File f : fl) {
-                if (f.isDirectory()) {
-                    mkshell(f);
-                }
-                if (f.isFile()) {
-                    System.out.println(f);
-                }
+    public static void mkshell(File file) {
+        File[] fl = file.listFiles();
+        for (File f : fl) {
+            if (f.isDirectory()) {
+                mkshell(f);
             }
-        }
-
-        public void callposition () {
-            String infileS = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/origin/wheat_v1.1_Lulab.gtf";
-            String geneNameS = null;
-            int gfIndex = 0;
-            try {
-                BufferedReader br = IOUtils.getTextReader(infileS);
-                String temp = null;
-                Set<String> geneSet = new HashSet<String>();
-                Set<Integer> chrSet = new HashSet<>();
-                String[] tem = null;
-                String geneName = null;
-                String[] geneNames = null;
-                HashMap<String, Integer> geneChrMap = new HashMap();
-                HashMap<String, Integer> geneMinMap = new HashMap();
-                HashMap<String, Integer> geneMaxMap = new HashMap();
-                HashMap<String, Byte> geneStrandMap = new HashMap();
-                while ((temp = br.readLine()) != null) {
-                    tem = temp.split("\t");
-                    if (!tem[2].startsWith("exon")) continue;
-                    String[] te = tem[8].split(";");
-                    geneName = te[1].split("\"")[1].toString();
-                    if (!geneSet.contains(geneName)) {
-                        geneMinMap.put(geneName, Integer.MAX_VALUE);
-                        geneMaxMap.put(geneName, Integer.MIN_VALUE);
-                        geneSet.add(geneName);
-                    }
-                    //geneSet.add(geneName);
-                    int min = Integer.parseInt(tem[3]);
-                    int max = Integer.parseInt(tem[4]);
-                    if (geneMinMap.get(geneName) > min) {
-                        geneMinMap.put(geneName, min);
-                    }
-                    if (geneMaxMap.get(geneName) < max) {
-                        geneMaxMap.put(geneName, max);
-                    }
-                    int chr = Integer.parseInt(tem[0]);
-                    chrSet.add(chr);
-                    geneChrMap.put(geneName, chr);
-                    if (tem[6].startsWith("-")) geneStrandMap.put(geneName, (byte) 1);
-                    else geneStrandMap.put(geneName, (byte) 0);
-                }
-                geneNames = geneSet.toArray(new String[geneSet.size()]);
-                Arrays.sort(geneNames);
-                for (int i = 0; i < geneNames.length; i++) {
-                    String geneS = geneNames[i];
-                    System.out.println(geneChrMap.get(geneS) + "\t" + geneMinMap.get(geneS) + "\t" + geneMaxMap.get(geneS) + "\t" + geneS);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.exit(1);
-                System.out.println(geneNameS + "\t" + gfIndex);
+            if (f.isFile()) {
+                System.out.println(f);
             }
         }
+    }
 
-        public void findDifference () {
-            String infileS = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/expressionboxcox.txt";
+    public void callposition() {
+        String infileS = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/origin/wheat_v1.1_Lulab.gtf";
+        String geneNameS = null;
+        int gfIndex = 0;
+        try {
             BufferedReader br = IOUtils.getTextReader(infileS);
-            BufferedReader br1 = IOUtils.getTextReader(infileS);
-            try {
-                String temp = br.readLine();
-                String temp1 = br1.readLine();
-                temp = br.readLine();
-                temp1 = br1.readLine();
-                while ((temp = br.readLine()) != null) {
-                    String[] temps = temp.split("\t");
-                    String[] temps1 = temp1.split("\t");
-                    String chr = temps[0];
-                    String chr1 = temps1[0];
-                    String largerNumber = temps[1];
-                    String smallNumber = temps1[1];
-                    int larger = Integer.parseInt(largerNumber);
-                    int small = Integer.parseInt(smallNumber);
-                    if (chr.equals(chr1) && larger < small) {
-                        System.out.println(temps1[0] + "\t" + temps1[1]);
-                    }
-                    temp1 = br1.readLine();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        public void findFalseSample () {
-            String infileS = "/Users/yxh/Documents/eQTL/003experiment/浓度汇总/RNAconcentration.txt";
-            BufferedReader br = IOUtils.getTextReader(infileS);
-            String[] temps = null;
             String temp = null;
-            HashSet<String> NameSet = new HashSet<String>();
-            HashMap<String, Double> A280Map = new HashMap<>();
-            HashMap<String, Double> A230Map = new HashMap<>();
-            HashMap<String, Double> ConcentrationMap = new HashMap<>();
-            try {
-                while ((temp = br.readLine()) != null) {
-                    if (temp.startsWith("#")) {
-                        continue;
-                    }
-                    temps = temp.split("\t");
-                    String Name = temps[0];
-                    Double A280 = Double.valueOf(temps[1]);
-                    Double A230 = Double.valueOf(temps[2]);
-                    Double Concentration = Double.valueOf(temps[3]);
-                    NameSet.add(Name);
-                    A280Map.put(Name, A280);
-                    A230Map.put(Name, A230);
-                    ConcentrationMap.put(Name, Concentration);
-                    //A280不合格，A230合格
+            Set<String> geneSet = new HashSet<String>();
+            Set<Integer> chrSet = new HashSet<>();
+            String[] tem = null;
+            String geneName = null;
+            String[] geneNames = null;
+            HashMap<String, Integer> geneChrMap = new HashMap();
+            HashMap<String, Integer> geneMinMap = new HashMap();
+            HashMap<String, Integer> geneMaxMap = new HashMap();
+            HashMap<String, Byte> geneStrandMap = new HashMap();
+            while ((temp = br.readLine()) != null) {
+                tem = temp.split("\t");
+                if (!tem[2].startsWith("exon")) continue;
+                String[] te = tem[8].split(";");
+                geneName = te[1].split("\"")[1].toString();
+                if (!geneSet.contains(geneName)) {
+                    geneMinMap.put(geneName, Integer.MAX_VALUE);
+                    geneMaxMap.put(geneName, Integer.MIN_VALUE);
+                    geneSet.add(geneName);
+                }
+                //geneSet.add(geneName);
+                int min = Integer.parseInt(tem[3]);
+                int max = Integer.parseInt(tem[4]);
+                if (geneMinMap.get(geneName) > min) {
+                    geneMinMap.put(geneName, min);
+                }
+                if (geneMaxMap.get(geneName) < max) {
+                    geneMaxMap.put(geneName, max);
+                }
+                int chr = Integer.parseInt(tem[0]);
+                chrSet.add(chr);
+                geneChrMap.put(geneName, chr);
+                if (tem[6].startsWith("-")) geneStrandMap.put(geneName, (byte) 1);
+                else geneStrandMap.put(geneName, (byte) 0);
+            }
+            geneNames = geneSet.toArray(new String[geneSet.size()]);
+            Arrays.sort(geneNames);
+            for (int i = 0; i < geneNames.length; i++) {
+                String geneS = geneNames[i];
+                System.out.println(geneChrMap.get(geneS) + "\t" + geneMinMap.get(geneS) + "\t" + geneMaxMap.get(geneS) + "\t" + geneS);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+            System.out.println(geneNameS + "\t" + gfIndex);
+        }
+    }
+
+    public void findDifference() {
+        String infileS = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/expressionboxcox.txt";
+        BufferedReader br = IOUtils.getTextReader(infileS);
+        BufferedReader br1 = IOUtils.getTextReader(infileS);
+        try {
+            String temp = br.readLine();
+            String temp1 = br1.readLine();
+            temp = br.readLine();
+            temp1 = br1.readLine();
+            while ((temp = br.readLine()) != null) {
+                String[] temps = temp.split("\t");
+                String[] temps1 = temp1.split("\t");
+                String chr = temps[0];
+                String chr1 = temps1[0];
+                String largerNumber = temps[1];
+                String smallNumber = temps1[1];
+                int larger = Integer.parseInt(largerNumber);
+                int small = Integer.parseInt(smallNumber);
+                if (chr.equals(chr1) && larger < small) {
+                    System.out.println(temps1[0] + "\t" + temps1[1]);
+                }
+                temp1 = br1.readLine();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void findFalseSample() {
+        String infileS = "/Users/yxh/Documents/eQTL/003experiment/浓度汇总/RNAconcentration.txt";
+        BufferedReader br = IOUtils.getTextReader(infileS);
+        String[] temps = null;
+        String temp = null;
+        HashSet<String> NameSet = new HashSet<String>();
+        HashMap<String, Double> A280Map = new HashMap<>();
+        HashMap<String, Double> A230Map = new HashMap<>();
+        HashMap<String, Double> ConcentrationMap = new HashMap<>();
+        try {
+            while ((temp = br.readLine()) != null) {
+                if (temp.startsWith("#")) {
+                    continue;
+                }
+                temps = temp.split("\t");
+                String Name = temps[0];
+                Double A280 = Double.valueOf(temps[1]);
+                Double A230 = Double.valueOf(temps[2]);
+                Double Concentration = Double.valueOf(temps[3]);
+                NameSet.add(Name);
+                A280Map.put(Name, A280);
+                A230Map.put(Name, A230);
+                ConcentrationMap.put(Name, Concentration);
+                //A280不合格，A230合格
                 /*if((A280 > 2.3 || A280 < 1.6) && (A230<2.5 && A230 > 1.6)){
                 System.out.println(Name + "\t" + A280 + "\t" + A230 + "\t" + Concentration);
                 }
@@ -1332,57 +1517,57 @@ public class Test {
                 if((A280 < 2.3 && A280 > 1.6) && (A230 > 2.5 || A230 < 1.6)){
                 System.out.println(Name + "\t" + A280 + "\t" + A230 + "\t" + Concentration);
                 }*/
-                    //A280，A230都不合格
+                //A280，A230都不合格
                 /*if((A280 > 2.3 || A280 < 1.6) && (A230 > 2.5 || A230 < 1.6)){
                 System.out.println(Name + "\t" + A280 + "\t" + A230 + "\t" + Concentration);
                 }*/
-                    //浓度不合格
+                //浓度不合格
                 /*if(Concentration < 30){
                 System.out.println(Name + "\t" + A280 + "\t" + A230 + "\t" + Concentration);
                 }*/
                 /*if((A280 > 2.3 || A280 < 1.6) || (A230 > 2.5 || A230 < 1.6) || (Concentration < 30)){
                 System.out.println(Name + "\t" + A280 + "\t" + A230 + "\t" + Concentration);
                 }*/
-                    if ((A280 > 2.3 || A280 < 1.6) || (A230 > 2.5 || A230 < 1.6) || (Concentration < 30)) {
-                        System.out.println(Name + "\t" + A280 + "\t" + A230 + "\t" + Concentration);
-                    }
-
+                if ((A280 > 2.3 || A280 < 1.6) || (A230 > 2.5 || A230 < 1.6) || (Concentration < 30)) {
+                    System.out.println(Name + "\t" + A280 + "\t" + A230 + "\t" + Concentration);
                 }
 
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
 
-        public void findTaxon () {
+    public void findTaxon() {
 
-        }
+    }
 
-        public void findSNPnumber () throws IOException {
-            String infile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/output/genotype.vcf";
-            BufferedReader br = IOUtils.getTextReader(infile);
-            String temp = null;
-            int count = 0;
-            try {
-                while ((temp = br.readLine()) != null) {
-                    if (temp.startsWith("#")) {
-                        continue;
-                    } else {
-                        count = count++;
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                {
+    public void findSNPnumber() throws IOException {
+        String infile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/output/genotype.vcf";
+        BufferedReader br = IOUtils.getTextReader(infile);
+        String temp = null;
+        int count = 0;
+        try {
+            while ((temp = br.readLine()) != null) {
+                if (temp.startsWith("#")) {
+                    continue;
+                } else {
+                    count = count++;
                 }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+            {
+            }
         }
+    }
 
-        public static void main (String[]args) throws IOException {
-            new Test();
+    public static void main(String[] args) throws IOException {
+        new Test();
 //        String path = "/data2/junxu/SiPASData/data_P101SC18112845-01-F004-B4-21/1.rawdata";
 //        File file = new File(path);
 //        mkshell(file);
-        }
     }
+}
 
