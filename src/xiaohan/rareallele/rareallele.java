@@ -51,6 +51,8 @@ public class rareallele {
 //        this.candidate();
 //        this.writesetFile();
 //        this.extractTop();
+        this.extractHomologousGene();
+//        this.extractsubgenome();
 //        this.extractTopPheno();
     }
 
@@ -111,12 +113,12 @@ public class rareallele {
     }
 
     public void extractTop() {
-//        String inputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S3/snp_count";
-//        String inforDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S3";
-        String inputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7/snp_count";
-        String inforDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7";
-//        String infor = "Top_5000_median_exp_genes.txt";
-        String infor = "Top_5001_to_10000_median_exp_genes.txt";
+//        String inputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S3/snp_count/major_SNP_site";
+//        String inforDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S3/expressionTable";
+        String inputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7/snp_count/major_SNP_site";
+        String inforDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7/expressionTable";
+        String infor = "Top_5000_median_exp_genes.txt";
+//        String infor = "Top_5001_to_10000_median_exp_genes.txt";
         File[] fs = new File(inputDir).listFiles();
         List<File> fList = new ArrayList(Arrays.asList());
         fs = IOUtils.listFilesStartsWith(fs, "all");
@@ -179,6 +181,161 @@ public class rareallele {
         });
     }
 
+    public void extractHomologousGene() {
+//        String inputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S3/snp_count/major_SNP_site";
+        String inputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7/snp_count/major_SNP_site";
+        String inforDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data";
+        String infor = "TheABD.txt";
+        File[] fs = new File(inputDir).listFiles();
+        List<File> fList = new ArrayList(Arrays.asList());
+        fs = IOUtils.listFilesStartsWith(fs, "all");
+        HashSet<String> nameSet = new HashSet();
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) continue;
+            String Name = fs[i].getName().split("_")[1] + "_" + fs[i].getName().split("_")[2] ;
+            nameSet.add(Name);
+            System.out.println(Name);
+        }
+        nameSet.stream().forEach(f -> {
+            try {
+                String temp = null;
+                String[] temps = null;
+                HashSet GeneSetA = new HashSet();
+                HashSet GeneSetB = new HashSet();
+                HashSet GeneSetD = new HashSet();
+                HashMap<String, Integer> genesubAMap = new HashMap();
+                HashMap<String, Integer> genesubBMap = new HashMap();
+                HashMap<String, Integer> genesubDMap = new HashMap();
+                BufferedReader br = IOUtils.getTextReader(new File(inforDir, infor).getAbsolutePath());
+                while ((temp = br.readLine()) != null) {
+                    temps = temp.split("\t");
+                    GeneSetA.add(temps[1]);
+                    GeneSetB.add(temps[2]);
+                    GeneSetD.add(temps[3]);
+                    genesubAMap.put(temps[1], Integer.parseInt(temps[0]));
+                    genesubBMap.put(temps[2], Integer.parseInt(temps[0]));
+                    genesubDMap.put(temps[3], Integer.parseInt(temps[0]));
+                    continue;
+                }
+                String temp1 = null;
+                String[] temps1 = null;
+                String[] rankA = new String[17108];
+                String[] rankB = new String[17108];
+                String[] rankD = new String[17108];
+                    BufferedReader br1 = IOUtils.getTextReader(new File(inputDir, "all_" +f+ "_count.txt").getAbsolutePath());
+                    BufferedReader br2 = IOUtils.getTextReader(new File(inputDir, "all_" +f+ "_count.txt").getAbsolutePath());
+                    BufferedWriter bw1 = IOUtils.getTextWriter(new File(inputDir, "Ahomo_" +f+ "_count.txt").getAbsolutePath());
+                    BufferedWriter bw2 = IOUtils.getTextWriter(new File(inputDir, "Bhomo_" +f+ "_count.txt").getAbsolutePath());
+                    BufferedWriter bw3 = IOUtils.getTextWriter(new File(inputDir, "Dhomo_" +f+ "_count.txt").getAbsolutePath());
+                    while ((temp1 = br2.readLine()) != null) {
+                        temps1 = temp1.split("\t");
+                        if (temps1[0].startsWith("gene")) {
+                            bw1.write(temp1);
+                            bw1.newLine();
+                            bw2.write(temp1);
+                            bw2.newLine();
+                            bw3.write(temp1);
+                            bw3.newLine();
+                        }
+                    }
+                    while ((temp1 = br1.readLine()) != null) {
+                        temps1 = temp1.split("\t");
+                        if (GeneSetA.contains(temps1[0])) {
+                            String gene = temps1[0];
+                            int indexA = genesubAMap.get(gene);
+                            rankA[indexA - 1] = temp1;
+                        }
+                        if (GeneSetB.contains(temps1[0])) {
+                            String gene = temps1[0];
+                            int indexB = genesubBMap.get(gene);
+                            rankB[indexB - 1] = temp1;
+                        }
+                        if (GeneSetD.contains(temps1[0])) {
+                            String gene = temps1[0];
+                            int indexD = genesubDMap.get(gene);
+                            rankD[indexD - 1] = temp1;
+                        }
+                    }
+                    for (int i = 0; i < rankA.length; i++) {
+                        bw1.write(rankA[i]);
+                        bw1.newLine();
+                    }
+                    for (int i = 0; i < rankB.length; i++) {
+                        bw2.write(rankB[i]);
+                        bw2.newLine();
+                    }
+                    for (int i = 0; i < rankD.length; i++) {
+                        bw3.write(rankD[i]);
+                        bw3.newLine();
+                    }
+                    br1.close();
+                    br2.close();
+                    bw1.flush();bw2.flush();bw3.flush();
+                    bw1.close();bw2.close();bw3.close();
+                    br.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        });
+    }
+    
+    public void extractsubgenome() {
+        String inputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S3/snp_count/major_SNP_site";
+//        String inputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7/snp_count/major_SNP_site";
+        File[] fs = new File(inputDir).listFiles();
+        List<File> fList = new ArrayList(Arrays.asList());
+        fs = IOUtils.listFilesStartsWith(fs, "all");
+        HashSet<String> nameSet = new HashSet();
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) continue;
+            String Name = fs[i].getName().split("_")[1] + "_" + fs[i].getName().split("_")[2] ;
+            nameSet.add(Name);
+            System.out.println(Name);
+        }
+        nameSet.stream().forEach(f -> {
+            try {
+                String temp = null;
+                String[] temps = null;
+                String[] rank = new String[5000];
+                    BufferedReader br1 = IOUtils.getTextReader(new File(inputDir, "all_" +f+ "_count.txt").getAbsolutePath());
+                    BufferedWriter bw1 = IOUtils.getTextWriter(new File(inputDir, "A_" +f+ "_count.txt").getAbsolutePath());
+                    BufferedWriter bw2 = IOUtils.getTextWriter(new File(inputDir, "B_" +f+ "_count.txt").getAbsolutePath());
+                    BufferedWriter bw3 = IOUtils.getTextWriter(new File(inputDir, "D_" +f+ "_count.txt").getAbsolutePath());
+                    temp = br1.readLine();
+                    bw1.write(temp);
+                    bw2.write(temp);
+                    bw3.write(temp);
+                    bw1.newLine();
+                    bw2.newLine();
+                    bw3.newLine();
+                    while((temp = br1.readLine())!= null){
+                        if(!temp.startsWith("T"))continue;
+                        temps = temp.split("\t");
+                        String geneName = temps[0];
+                        String subgenome = geneName.toString().substring(8, 9);
+                        if(subgenome.equals("A")){
+                            bw1.write(temp);
+                            bw1.newLine();
+                        }
+                        if(subgenome.equals("B")){
+                            bw2.write(temp);
+                            bw2.newLine();
+                        }
+                        if(subgenome.equals("D")){
+                            bw3.write(temp);
+                            bw3.newLine();
+                        }
+                    }
+                    br1.close();
+                    bw1.flush();bw1.close();
+                    bw2.flush();bw2.close();
+                    bw3.flush();bw3.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
 
     public void writesetFile() {
         String inputDir = "/data1/home/xiaohan/rareallele/rvtest/output/different";
@@ -1506,8 +1663,8 @@ public class rareallele {
         String expressionfileDir = "/data1/home/xiaohan/rareallele/fastQTL/expression/S3";
 //        String VCFfileDir = "/data2/xiaohan/GT/S7";
 //        String expressionfileDir = "/data1/home/xiaohan/rareallele/fastQTL/expression/S7";
-        String outputDir = "/data1/home/xiaohan/rareallele/rankcorrelation/S3/01";
-//        String outputDir = "/data1/home/xiaohan/rareallele/rankcorrelation/S7/01";
+        String outputDir = "/data1/home/xiaohan/rareallele/rankcorrelation/S3/minor";
+//        String outputDir = "/data1/home/xiaohan/rareallele/rankcorrelation/S7/minor";
         File[] fs = new File(VCFfileDir).listFiles();
         fs = pgl.infra.utils.IOUtils.listFilesEndsWith(fs, ".vcf.gz");
         HashSet<String> nameSet = new HashSet<String>();
@@ -1640,135 +1797,339 @@ public class rareallele {
                     for (int i = 0; i < TSS.length; i++) {
                         int startsite = Integer.parseInt(TSSMap.get(TSS[i]));
                         int distance = (int) (startsite - snpsite);
-                        if (distance > 0 && distance < 5000) {
-                            for (int m = 9; m < VCF.length; m++) {
-                                if (VCF[m].equals("0/1")) {
-                                    count5k[i][m - 9]++;
+                        if (distance >= 0 && distance < 5000) {
+                            int number0 = 0;
+                            int number1 = 0;
+                            for(int m = 9;m < VCF.length; m++){
+                                if(VCF[m].equals("0/0")){
+                                    number0 ++;
                                 }
-                                if (VCF[m].equals("1/1")) {
-                                    count5k[i][m - 9]++;
-                                    count5k[i][m - 9]++;
+                                if(VCF[m].equals("1/1")){
+                                    number1 ++;
+                                }
+                            }
+                            if(number0 > number1){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("1/1")) {
+                                        count5k[i][m - 9]++;
+                                        count5k[i][m - 9]++;
+                                    }
+                                }
+                            }
+                            else if(number1 > number0){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("0/0")) {
+                                        count5k[i][m - 9]++;
+                                        count5k[i][m - 9]++;
+                                    }
                                 }
                             }
                         }
-                        if (distance > 0 && distance < 10000) {
-                            for (int m = 9; m < VCF.length; m++) {
-                                if (VCF[m].equals("0/1")) {
-                                    count10k[i][m - 9]++;
+                        if (distance >= 0 && distance < 10000) {
+                            int number0 = 0;
+                            int number1 = 0;
+                            for(int m = 9;m < VCF.length; m++){
+                                if(VCF[m].equals("0/0")){
+                                    number0 ++;
                                 }
-                                if (VCF[m].equals("1/1")) {
-                                    count10k[i][m - 9]++;
-                                    count10k[i][m - 9]++;
+                                if(VCF[m].equals("1/1")){
+                                    number1 ++;
+                                }
+                            }
+                            if(number0 > number1){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("1/1")) {
+                                        count10k[i][m - 9]++;
+                                        count10k[i][m - 9]++;
+                                    }
+                                }
+                            }
+                            else if(number1 > number0){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("0/0")) {
+                                        count10k[i][m - 9]++;
+                                        count10k[i][m - 9]++;
+                                    }
                                 }
                             }
                         }
-                        if (distance > 0 && distance < 1000) {
-                            for (int m = 9; m < VCF.length; m++) {
-                                if (VCF[m].equals("0/1")) {
-                                    count0_1k[i][m - 9]++;
+                        if (distance >= 0 && distance < 1000) {
+                            int number0 = 0;
+                            int number1 = 0;
+                            for(int m = 9;m < VCF.length; m++){
+                                if(VCF[m].equals("0/0")){
+                                    number0 ++;
                                 }
-                                if (VCF[m].equals("1/1")) {
-                                    count0_1k[i][m - 9]++;
-                                    count0_1k[i][m - 9]++;
+                                if(VCF[m].equals("1/1")){
+                                    number1 ++;
+                                }
+                            }
+                            if(number0 > number1){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("1/1")) {
+                                        count0_1k[i][m - 9]++;
+                                        count0_1k[i][m - 9]++;
+                                    }
+                                }
+                            }
+                            else if(number1 > number0){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("0/0")) {
+                                        count0_1k[i][m - 9]++;
+                                        count0_1k[i][m - 9]++;
+                                    }
                                 }
                             }
                         }
-                        if (distance > 1000 && distance < 2000) {
-                            for (int m = 9; m < VCF.length; m++) {
-                                if (VCF[m].equals("0/1")) {
-                                    count1_2k[i][m - 9]++;
+                        if (distance >= 1000 && distance < 2000) {
+                            int number0 = 0;
+                            int number1 = 0;
+                            for(int m = 9;m < VCF.length; m++){
+                                if(VCF[m].equals("0/0")){
+                                    number0 ++;
                                 }
-                                if (VCF[m].equals("1/1")) {
-                                    count1_2k[i][m - 9]++;
-                                    count1_2k[i][m - 9]++;
+                                if(VCF[m].equals("1/1")){
+                                    number1 ++;
+                                }
+                            }
+                            if(number0 > number1){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("1/1")) {
+                                        count1_2k[i][m - 9]++;
+                                        count1_2k[i][m - 9]++;
+                                    }
+                                }
+                            }
+                            else if(number1 > number0){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("0/0")) {
+                                        count1_2k[i][m - 9]++;
+                                        count1_2k[i][m - 9]++;
+                                    }
                                 }
                             }
                         }
-                        if (distance > 2000 && distance < 3000) {
-                            for (int m = 9; m < VCF.length; m++) {
-                                if (VCF[m].equals("0/1")) {
-                                    count2_3k[i][m - 9]++;
+                        if (distance >= 2000 && distance < 3000) {
+                            int number0 = 0;
+                            int number1 = 0;
+                            for(int m = 9;m < VCF.length; m++){
+                                if(VCF[m].equals("0/0")){
+                                    number0 ++;
                                 }
-                                if (VCF[m].equals("1/1")) {
-                                    count2_3k[i][m - 9]++;
-                                    count2_3k[i][m - 9]++;
+                                if(VCF[m].equals("1/1")){
+                                    number1 ++;
+                                }
+                            }
+                            if(number0 > number1){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("1/1")) {
+                                        count2_3k[i][m - 9]++;
+                                        count2_3k[i][m - 9]++;
+                                    }
+                                }
+                            }
+                            else if(number1 > number0){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("0/0")) {
+                                        count2_3k[i][m - 9]++;
+                                        count2_3k[i][m - 9]++;
+                                    }
                                 }
                             }
                         }
-                        if (distance > 3000 && distance < 4000) {
-                            for (int m = 9; m < VCF.length; m++) {
-                                if (VCF[m].equals("0/1")) {
-                                    count3_4k[i][m - 9]++;
+                        if (distance >= 3000 && distance < 4000) {
+                            int number0 = 0;
+                            int number1 = 0;
+                            for(int m = 9;m < VCF.length; m++){
+                                if(VCF[m].equals("0/0")){
+                                    number0 ++;
                                 }
-                                if (VCF[m].equals("1/1")) {
-                                    count3_4k[i][m - 9]++;
-                                    count3_4k[i][m - 9]++;
+                                if(VCF[m].equals("1/1")){
+                                    number1 ++;
+                                }
+                            }
+                            if(number0 > number1){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("1/1")) {
+                                        count3_4k[i][m - 9]++;
+                                        count3_4k[i][m - 9]++;
+                                    }
+                                }
+                            }
+                            else if(number1 > number0){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("0/0")) {
+                                        count3_4k[i][m - 9]++;
+                                        count3_4k[i][m - 9]++;
+                                    }
                                 }
                             }
                         }
-                        if (distance > 4000 && distance < 5000) {
-                            for (int m = 9; m < VCF.length; m++) {
-                                if (VCF[m].equals("0/1")) {
-                                    count4_5k[i][m - 9]++;
+                        if (distance >= 4000 && distance < 5000) {
+                            int number0 = 0;
+                            int number1 = 0;
+                            for(int m = 9;m < VCF.length; m++){
+                                if(VCF[m].equals("0/0")){
+                                    number0 ++;
                                 }
-                                if (VCF[m].equals("1/1")) {
-                                    count4_5k[i][m - 9]++;
-                                    count4_5k[i][m - 9]++;
+                                if(VCF[m].equals("1/1")){
+                                    number1 ++;
+                                }
+                            }
+                            if(number0 > number1){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("1/1")) {
+                                        count4_5k[i][m - 9]++;
+                                        count4_5k[i][m - 9]++;
+                                    }
+                                }
+                            }
+                            else if(number1 > number0){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("0/0")) {
+                                        count4_5k[i][m - 9]++;
+                                        count4_5k[i][m - 9]++;
+                                    }
                                 }
                             }
                         }
-                        if (distance > 5000 && distance < 6000) {
-                            for (int m = 9; m < VCF.length; m++) {
-                                if (VCF[m].equals("0/1")) {
-                                    count5_6k[i][m - 9]++;
+                        if (distance >= 5000 && distance < 6000) {
+                            int number0 = 0;
+                            int number1 = 0;
+                            for(int m = 9;m < VCF.length; m++){
+                                if(VCF[m].equals("0/0")){
+                                    number0 ++;
                                 }
-                                if (VCF[m].equals("1/1")) {
-                                    count5_6k[i][m - 9]++;
-                                    count5_6k[i][m - 9]++;
+                                if(VCF[m].equals("1/1")){
+                                    number1 ++;
+                                }
+                            }
+                            if(number0 > number1){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("1/1")) {
+                                        count5_6k[i][m - 9]++;
+                                        count5_6k[i][m - 9]++;
+                                    }
+                                }
+                            }
+                            else if(number1 > number0){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("0/0")) {
+                                        count5_6k[i][m - 9]++;
+                                        count5_6k[i][m - 9]++;
+                                    }
                                 }
                             }
                         }
-                        if (distance > 6000 && distance < 7000) {
-                            for (int m = 9; m < VCF.length; m++) {
-                                if (VCF[m].equals("0/1")) {
-                                    count6_7k[i][m - 9]++;
+                        if (distance >= 6000 && distance < 7000) {
+                            int number0 = 0;
+                            int number1 = 0;
+                            for(int m = 9;m < VCF.length; m++){
+                                if(VCF[m].equals("0/0")){
+                                    number0 ++;
                                 }
-                                if (VCF[m].equals("1/1")) {
-                                    count6_7k[i][m - 9]++;
-                                    count6_7k[i][m - 9]++;
+                                if(VCF[m].equals("1/1")){
+                                    number1 ++;
+                                }
+                            }
+                            if(number0 > number1){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("1/1")) {
+                                        count6_7k[i][m - 9]++;
+                                        count6_7k[i][m - 9]++;
+                                    }
+                                }
+                            }
+                            else if(number1 > number0){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("0/0")) {
+                                        count6_7k[i][m - 9]++;
+                                        count6_7k[i][m - 9]++;
+                                    }
                                 }
                             }
                         }
-                        if (distance > 7000 && distance < 8000) {
-                            for (int m = 9; m < VCF.length; m++) {
-                                if (VCF[m].equals("0/1")) {
-                                    count7_8k[i][m - 9]++;
+                        if (distance >= 7000 && distance < 8000) {
+                            int number0 = 0;
+                            int number1 = 0;
+                            for(int m = 9;m < VCF.length; m++){
+                                if(VCF[m].equals("0/0")){
+                                    number0 ++;
                                 }
-                                if (VCF[m].equals("1/1")) {
-                                    count7_8k[i][m - 9]++;
-                                    count7_8k[i][m - 9]++;
+                                if(VCF[m].equals("1/1")){
+                                    number1 ++;
+                                }
+                            }
+                            if(number0 > number1){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("1/1")) {
+                                        count7_8k[i][m - 9]++;
+                                        count7_8k[i][m - 9]++;
+                                    }
+                                }
+                            }
+                            else if(number1 > number0){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("0/0")) {
+                                        count7_8k[i][m - 9]++;
+                                        count7_8k[i][m - 9]++;
+                                    }
                                 }
                             }
                         }
-                        if (distance > 8000 && distance < 9000) {
-                            for (int m = 9; m < VCF.length; m++) {
-                                if (VCF[m].equals("0/1")) {
-                                    count8_9k[i][m - 9]++;
+                        if (distance >= 8000 && distance < 9000) {
+                            int number0 = 0;
+                            int number1 = 0;
+                            for(int m = 9;m < VCF.length; m++){
+                                if(VCF[m].equals("0/0")){
+                                    number0 ++;
                                 }
-                                if (VCF[m].equals("1/1")) {
-                                    count8_9k[i][m - 9]++;
-                                    count8_9k[i][m - 9]++;
+                                if(VCF[m].equals("1/1")){
+                                    number1 ++;
+                                }
+                            }
+                            if(number0 > number1){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("1/1")) {
+                                        count8_9k[i][m - 9]++;
+                                        count8_9k[i][m - 9]++;
+                                    }
+                                }
+                            }
+                            else if(number1 > number0){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("0/0")) {
+                                        count8_9k[i][m - 9]++;
+                                        count8_9k[i][m - 9]++;
+                                    }
                                 }
                             }
                         }
-                        if (distance > 9000 && distance < 10000) {
-                            for (int m = 9; m < VCF.length; m++) {
-                                if (VCF[m].equals("0/1")) {
-                                    count9_10k[i][m - 9]++;
+                        if (distance >= 9000 && distance < 10000) {
+                            int number0 = 0;
+                            int number1 = 0;
+                            for(int m = 9;m < VCF.length; m++){
+                                if(VCF[m].equals("0/0")){
+                                    number0 ++;
                                 }
-                                if (VCF[m].equals("1/1")) {
-                                    count9_10k[i][m - 9]++;
-                                    count9_10k[i][m - 9]++;
+                                if(VCF[m].equals("1/1")){
+                                    number1 ++;
+                                }
+                            }
+                            if(number0 > number1){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("1/1")) {
+                                        count9_10k[i][m - 9]++;
+                                        count9_10k[i][m - 9]++;
+                                    }
+                                }
+                            }
+                            else if(number1 > number0){
+                                for (int m = 9; m < VCF.length; m++) {
+                                    if (VCF[m].equals("0/0")) {
+                                        count9_10k[i][m - 9]++;
+                                        count9_10k[i][m - 9]++;
+                                    }
                                 }
                             }
                         }

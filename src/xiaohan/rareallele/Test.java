@@ -65,10 +65,11 @@ public class Test {
 //        this.ExtractDistanceandEffect();
 //        this.homologychr1();
 //        this.candidate();
-        this.writecode1();
+//        this.writecode1();
 //        this.extractsub();
 //        this.extractsub_5_10();
 //        this.extractexpressionsub();
+        this.extractExpressionHomo();
 //        String infile = "name";
 //        this.write(infile);
     }
@@ -128,6 +129,91 @@ public class Test {
 
     }
 
+    public void extractExpressionHomo(){
+        String inputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7/expressionTable";
+        String inforDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data";
+        String infor = "TheABD.txt";
+        try {
+            BufferedReader br1 = IOUtils.getTextReader(new File(inforDir, infor).getAbsolutePath());
+            BufferedReader br = IOUtils.getTextReader(new File(inputDir, "countResult7_DESeq2.txt").getAbsolutePath());
+            BufferedWriter bwA = IOUtils.getTextWriter(new File(inputDir, "Ahomo_countResult7_DESeq2.txt").getAbsolutePath());
+            BufferedWriter bwB = IOUtils.getTextWriter(new File(inputDir, "Bhomo_countResult7_DESeq2.txt").getAbsolutePath());
+            BufferedWriter bwD = IOUtils.getTextWriter(new File(inputDir, "Dhomo_countResult7_DESeq2.txt").getAbsolutePath());
+            String temp = null;
+            String[] temps = null;
+            HashSet GeneSetA = new HashSet();
+            HashSet GeneSetB = new HashSet();
+            HashSet GeneSetD = new HashSet();
+            HashMap<String, Integer> genesubAMap = new HashMap();
+            HashMap<String, Integer> genesubBMap = new HashMap();
+            HashMap<String, Integer> genesubDMap = new HashMap();
+            while ((temp = br1.readLine()) != null) {
+                temps = temp.split("\t");
+                GeneSetA.add(temps[1]);
+                GeneSetB.add(temps[2]);
+                GeneSetD.add(temps[3]);
+                genesubAMap.put(temps[1], Integer.parseInt(temps[0]));
+                genesubBMap.put(temps[2], Integer.parseInt(temps[0]));
+                genesubDMap.put(temps[3], Integer.parseInt(temps[0]));
+                continue;
+                }
+            String[] rankA = new String[17108];
+            String[] rankB = new String[17108];
+            String[] rankD = new String[17108];
+            temp = br.readLine();
+            bwA.write(temp);
+            bwB.write(temp);
+            bwD.write(temp);
+            bwA.newLine();
+            bwB.newLine();
+            bwD.newLine();
+            String temp1 = null;
+            String[] temps1 = null;
+            while ((temp1 = br.readLine()) != null) {
+                temps1 = temp1.split("\t");
+                if (GeneSetA.contains(temps1[3])) {
+                    String gene = temps1[3];
+                    int indexA = genesubAMap.get(gene);
+                    rankA[indexA - 1] = temp1;
+                        }
+                if (GeneSetB.contains(temps1[3])) {
+                    String gene = temps1[3];
+                    int indexB = genesubBMap.get(gene);
+                    rankB[indexB - 1] = temp1;
+                }
+                if (GeneSetD.contains(temps1[3])) {
+                    String gene = temps1[3];
+                    int indexD = genesubDMap.get(gene);
+                    rankD[indexD - 1] = temp1;
+                }
+            }
+            for (int i = 0; i < rankA.length; i++) {
+                bwA.write(rankA[i]);
+                bwA.newLine();
+            }
+            for (int i = 0; i < rankB.length; i++) {
+                bwB.write(rankB[i]);
+                bwB.newLine();
+            }
+            for (int i = 0; i < rankD.length; i++) {
+                bwD.write(rankD[i]);
+                bwD.newLine();
+            }
+            br.close();
+            br1.close();
+            bwA.flush();
+            bwA.close();
+            bwB.flush();
+            bwB.close();
+            bwD.flush();
+            bwD.close();
+        } catch (
+                Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+    
     public void extractsub_5_10() {
         String inputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7/snp_count";
         for (int i = 1; i < 3; i++) {
@@ -245,8 +331,8 @@ public class Test {
     }
 
     public void writecode1() {
-        for (int i = 1; i < 13; i++) {
-            int count = i;
+        for(int i = 0; i < 43 ; i++){
+            int count = i + 1;
 //            System.out.print("nohup vcftools --gzvcf /data3/wgs/vcf/GATK/vmap3/1.SNP/");
 //            System.out.print(i);
 //            System.out.print(".snp.vcf.gz --maf 0 --max-maf 0.05 --out ");
@@ -284,15 +370,29 @@ public class Test {
 //            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq/output/subFastqs/TRU_pm"+i+"_R1.fq.gz 10000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq10M/output/subFastqs/TRU_pm"+i+"_R1.fq");
 //            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq/output/subFastqs/TRU_am"+i+"_R2.fq.gz 10000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq10M/output/subFastqs/TRU_am"+i+"_R2.fq");
 //            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq/output/subFastqs/TRU_pm"+i+"_R2.fq.gz 10000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq10M/output/subFastqs/TRU_pm"+i+"_R2.fq");
-            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASURam"+i+"_200415_R1.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASURam"+i+"_200415_R1.fq.gz");
-            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASURam"+i+"_200415_R2.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASURam"+i+"_200415_R2.fq.gz");
-            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASRam"+i+"_200415_R1.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASRam"+i+"_200415_R1.fq.gz");
-            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASRam"+i+"_200415_R2.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASRam"+i+"_200415_R2.fq.gz");
-            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASUam"+i+"_200415_R1.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASUam"+i+"_200415_R1.fq.gz");
-            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASUam"+i+"_200415_R2.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASUam"+i+"_200415_R2.fq.gz");
-            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASam"+i+"_200415_R1.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASam"+i+"_200415_R1.fq.gz");
-            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASam"+i+"_200415_R2.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASam"+i+"_200415_R2.fq.gz");
-            
+//            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASURam"+i+"_200415_R1.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASURam"+i+"_200415_R1.fq.gz");
+//            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASURam"+i+"_200415_R2.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASURam"+i+"_200415_R2.fq.gz");
+//            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASRam"+i+"_200415_R1.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASRam"+i+"_200415_R1.fq.gz");
+//            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASRam"+i+"_200415_R2.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASRam"+i+"_200415_R2.fq.gz");
+//            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASUam"+i+"_200415_R1.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASUam"+i+"_200415_R1.fq.gz");
+//            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASUam"+i+"_200415_R2.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASUam"+i+"_200415_R2.fq.gz");
+//            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASam"+i+"_200415_R1.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASam"+i+"_200415_R1.fq.gz");
+//            System.out.println("seqtk sample -s100 /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS/output/subFastqs/SiPASam"+i+"_200415_R2.fq.gz 5000000 > /data1/home/xiaohan/rareallele/SiPASpipeline/20200527/SiPAS5M/output/subFastqs/SiPASam"+i+"_200415_R2.fq.gz");
+//              System.out.println("rownumber <- nrow(snp"+i+")\n" +
+//                        "colnumber <- ncol(snp"+i+")\n" +
+//                        "colnumber <- colnumber - 1\n" +
+//                        "snp"+i+" <- snp"+i+"[,-1]\n" +
+//                        "count"+i+"=c(rep(0,colnumber)) \n" +
+//                        "for(i in 1:rownumber){ \n" +
+//                        "  Rk=rank(exp[i,],ties.method=\"first\") \n" +
+//                        "  for(j in 1:colnumber){ \n" +
+//                        "    zz=as.integer(Rk[j]) \n" +
+//                        "    count"+i+"[zz]=count"+i+"[zz]+snp"+i+"[i,j]\n" +
+//                        "    j=j+1}\n" +
+//                        "  i=i+1} \n" +
+//                        "perc=1:colnumber\n" +
+//                        "count"+i);
+              System.out.println("vcftools --gzvcf /data3/wgs/vcf/GATK/vmap3/1.SNP/"+i+".snp.vcf.gz --maf 0.05 --out /data2/xiaohan/commonSNP/"+i+".snp.minmaf005.mis01 --recode ");
         }
     }
 
