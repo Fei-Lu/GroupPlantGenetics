@@ -2,6 +2,7 @@ package xiaohan.wheatRNAseq;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 
 import pgl.infra.utils.IOUtils;
@@ -20,8 +21,8 @@ public class test {
     public test() throws IOException {
 //        this.mkPosGeneMap();
         //this.wordList();
-        this.writecode();
-
+//        this.writecode();
+        this.decimals();
 
     }
 
@@ -30,13 +31,29 @@ public class test {
      */
 
 
+    public void decimals(){
+        double MAF = 0.0000;
+        int site0 = 1;
+        int sitesum = 150;
+        MAF =  new BigDecimal((float)site0/sitesum).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();       
+        System.out.print(MAF);
+
+    }
+    
     public void writecode(){
-        for(int i = 18;i<45;i++){
-            System.out.print("nohup vcftools --gzvcf /data3/wgs/vcf/GATK/vmap3/1.SNP/");
-            System.out.print(i);
-            System.out.print(".snp.vcf.gz --maf 0 --max-maf 0.05 --out ");
-            System.out.print(i+".snp.maf005 --recode && tabix -p "+i+".snp.maf005.recode.vcf.gz >log1.txt 2>&1 &");
+        String[] FileNames = {"0k_1k", "1k_2k", "2k_3k", "3k_4k", "4k_5k", "5k_6k", "6k_7k", "7k_8k", "8k_9k", "9k_10k"};
+        for(int i =0;i<FileNames.length;i++){
+        int DiscontrolS = Integer.parseInt(FileNames[i].split("_")[0].replace("k", "")) * 1000;
+        int DiscontrolE = Integer.parseInt(FileNames[i].split("_")[1].replace("k", "")) * 1000;
+        System.out.print(DiscontrolS + "_" + DiscontrolE);
+        System.out.println("this is calculate "+ DiscontrolS +"k to "+ DiscontrolE + "k rare allele count……");
         }
+//        for(int i = 18;i<45;i++){
+//            System.out.print("nohup vcftools --gzvcf /data3/wgs/vcf/GATK/vmap3/1.SNP/");
+//            System.out.print(i);
+//            System.out.print(".snp.vcf.gz --maf 0 --max-maf 0.05 --out ");
+//            System.out.print(i+".snp.maf005 --recode && tabix -p "+i+".snp.maf005.recode.vcf.gz >log1.txt 2>&1 &");
+//        }
     }
 
     public void mkPosGeneMap() {
