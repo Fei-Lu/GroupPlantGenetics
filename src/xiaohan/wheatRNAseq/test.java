@@ -1,11 +1,13 @@
 package xiaohan.wheatRNAseq;
 
+import pgl.infra.utils.IOUtils;
+
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
-
-import pgl.infra.utils.IOUtils;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -20,40 +22,157 @@ public class test {
 
     public test() throws IOException {
 //        this.mkPosGeneMap();
-        //this.wordList();
+//        this.wordList();
 //        this.writecode();
-        this.decimals();
-
+//        this.decimals();
+        this.clonefiles();
+//        this.posAllele();
+//        this.NewFile();
     }
 
     /**
      * @throws IOException
      */
 
+    public void NewFile() {
+        String outputDirS = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/hapscanner/outputDir";
+        for (int i = 0; i < 42; i++) {
+            int chrNumber = i + 1;
+            new File(outputDirS, "output_chr"+chrNumber).mkdir();
 
-    public void decimals(){
+        }
+    }
+
+    public void posAllele() {
+        String inputDir = "/data2/junxu/genotype";
+        String outputDir1 = "/data1/home/xiaohan/rareallele/Hapscanner/inputfile/pos";
+        String outputDir2 = "/data1/home/xiaohan/rareallele/Hapscanner/inputfile/posAllele";
+        String temp = null;
+        String[] temps = null;
+        File[] fs = new File(inputDir).listFiles();
+        List<File> fList = new ArrayList(Arrays.asList());
+        fs = xiaohan.rareallele.IOUtils.listFilesStartsWith(fs, "all");
+        HashSet<String> nameSet = new HashSet();
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) continue;
+            String Name = fs[i].getName().split(".")[0];
+            nameSet.add(Name);
+            System.out.println(Name);
+        }
+        try {
+            BufferedReader[] br = new BufferedReader[42];
+            BufferedWriter[] bw1 = new BufferedWriter[42];
+            BufferedWriter[] bw2 = new BufferedWriter[42];
+            for (int i = 0; i < br.length; i++) {
+                int chrNumber = i + 1;
+                br[i] = IOUtils.getTextGzipReader(new File(inputDir, chrNumber + ".346.B18.recode.vcf.gz").getAbsolutePath());
+            }
+            for (int i = 0; i < br.length; i++) {
+                int chrNumber = i + 1;
+                bw1[i] = IOUtils.getTextWriter(new File(outputDir1, "pos_hapscanner_chr" + chrNumber + ".txt").getAbsolutePath());
+                bw2[i] = IOUtils.getTextWriter(new File(outputDir2, "posAllele_hapscanner_chr" + chrNumber + ".txt").getAbsolutePath());
+                bw2[i].write("Chr\tPos\tRef\tAlt(maximum 2 alternative alleles, which is seperated by \",\", e.g. A,C)");
+                bw2[i].newLine();
+            }
+            for (int i = 0; i < br.length; i++) {
+                while ((temp = br[i].readLine()) != null) {
+                    if (temp.startsWith("#")) continue;
+                    temps = temp.split("\t");
+                    bw1[i].write(temps[0] + "\t" + temps[1]);
+                    bw1[i].newLine();
+                    bw2[i].write(temps[0] + "\t" + temps[1] + "\t" + temps[3] + "\t" + temps[4]);
+                    bw2[i].newLine();
+                }
+            }
+            for (int i = 0; i < br.length; i++) {
+                br[i].close();
+                bw1[i].flush();
+                bw1[i].close();
+                bw2[i].flush();
+                bw2[i].close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void clonefiles() {
+//        String inputfile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/hapscanner/parameter/parameters_hapScanner_chr1.txt";
+        String inputfile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/hapscanner/taxaRef/taxaRefBAM_hapscanner_chr1.txt";
+//        String outputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/hapscanner/parameter";
+        String outputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/hapscanner/taxaRef";
+        String temp = null;
+        String prefix = "/data1/home/xiaohan/rareallele/Hapscanner/";
+        BufferedReader br = IOUtils.getTextReader(inputfile);
+        try {
+            BufferedWriter[] bw = new BufferedWriter[41];
+            for (int i = 0; i < 41; i++) {
+                int chrNumber = i + 2;
+                bw[i] = IOUtils.getTextWriter(new File(outputDir, "taxaRefBAM_hapscanner_chr" + chrNumber + ".txt").getAbsolutePath());
+            }
+            while ((temp = br.readLine()) != null) {
+//                if (temp.startsWith(prefix)) {
+                    for (int i = 0; i < bw.length; i++) {
+                        int chrNumber = i + 2;
+                        System.out.print(chrNumber);
+                        String temp1 = temp.replace("chr1", "chr" + chrNumber);
+                        System.out.println(temp1);
+                        bw[i].write(temp1);
+                        bw[i].newLine();
+//                    }
+//                } else {
+//                    for (int i = 0; i < bw.length; i++) {
+//                        bw[i].write(temp);
+//                        bw[i].newLine();
+//                    }
+                }
+            }
+            br.close();
+            for (int i = 0; i < bw.length; i++) {
+                bw[i].flush();
+                bw[i].close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void decimals() {
         double MAF = 0.0000;
         int site0 = 1;
         int sitesum = 150;
-        MAF =  new BigDecimal((float)site0/sitesum).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();       
+        MAF = new BigDecimal((float) site0 / sitesum).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
         System.out.print(MAF);
 
     }
-    
-    public void writecode(){
-        String[] FileNames = {"0k_1k", "1k_2k", "2k_3k", "3k_4k", "4k_5k", "5k_6k", "6k_7k", "7k_8k", "8k_9k", "9k_10k"};
-        for(int i =0;i<FileNames.length;i++){
-        int DiscontrolS = Integer.parseInt(FileNames[i].split("_")[0].replace("k", "")) * 1000;
-        int DiscontrolE = Integer.parseInt(FileNames[i].split("_")[1].replace("k", "")) * 1000;
-        System.out.print(DiscontrolS + "_" + DiscontrolE);
-        System.out.println("this is calculate "+ DiscontrolS +"k to "+ DiscontrolE + "k rare allele count……");
-        }
+
+    public void writecode() {
+//        String[] FileNames = {"0k_1k", "1k_2k", "2k_3k", "3k_4k", "4k_5k", "5k_6k", "6k_7k", "7k_8k", "8k_9k", "9k_10k"};
+//        for (int i = 0; i < FileNames.length; i++) {
+//            int DiscontrolS = Integer.parseInt(FileNames[i].split("_")[0].replace("k", "")) * 1000;
+//            int DiscontrolE = Integer.parseInt(FileNames[i].split("_")[1].replace("k", "")) * 1000;
+//            System.out.print(DiscontrolS + "_" + DiscontrolE);
+//            System.out.println("this is calculate " + DiscontrolS + "k to " + DiscontrolE + "k rare allele count……");
+//        }
 //        for(int i = 18;i<45;i++){
 //            System.out.print("nohup vcftools --gzvcf /data3/wgs/vcf/GATK/vmap3/1.SNP/");
 //            System.out.print(i);
 //            System.out.print(".snp.vcf.gz --maf 0 --max-maf 0.05 --out ");
 //            System.out.print(i+".snp.maf005 --recode && tabix -p "+i+".snp.maf005.recode.vcf.gz >log1.txt 2>&1 &");
 //        }
+//          for(int i = 1;i<97;i++){
+//              System.out.println("/data1/home/xiaohan/rareallele/SiPASpipeline/S1-7/sams/PL-BC"+i+"Aligned.out.bam.gz");
+//          }
+//        String name = "B18-E002,B18-E007,B18-E008,B18-E011,B18-E014,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E038,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E052,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E083,B18-E087,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E227,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E252,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E355,B18-E356,B18-E357";
+//        //建立对应的name位点表
+//        String[] Samplenames = name.split(",");
+//        for (int i = 0; i < Samplenames.length; i++) {
+//            System.out.println(Samplenames[i]);
+//        }
+        for (int i = 0; i < 42; i++) {
+            int chrNumber = i + 1;
+            System.out.println("nohup java -Xmx10g -jar TIGER.jar -a HapScanner -p /data1/home/xiaohan/rareallele/Hapscanner/inputfile/parameter/parameters_hapScanner_chr" + chrNumber + ".txt > log" + chrNumber + ".txt &");
+        }
     }
 
     public void mkPosGeneMap() {
