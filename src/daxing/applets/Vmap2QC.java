@@ -5,9 +5,11 @@ import daxing.common.VCF;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;
+import pgl.infra.utils.wheat.RefV1Utils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -177,6 +179,58 @@ public class Vmap2QC {
             e.printStackTrace();
         }
         this.sort(mergedVCF);
+    }
+
+    /**
+     * 将 dxy.vcf 拆分成A B D
+     * @param dxyRefCSFile
+     * @param outDir
+     */
+    public static void splitRefCSDxy(String dxyRefCSFile, String outDir){
+        try (BufferedReader bufferedReader = IOTool.getReader(dxyRefCSFile)) {
+            String line;
+            List<String> temp;
+            int[] a=RefV1Utils.getChrIDsOfSubgenome("A");
+            int[] b=RefV1Utils.getChrIDsOfSubgenome("B");
+            int[] d=RefV1Utils.getChrIDsOfSubgenome("D");
+            BufferedWriter[] bws=new BufferedWriter[3];
+            String[] abd={"A","B","D"};
+            for (int i = 0; i < bws.length; i++) {
+                bws[i]=IOTool.getTextGzipWriter(new File(outDir, "chr_"+abd[i]+".dxy.vmap2.1.vcf.gz"));
+            }
+            while ((line=bufferedReader.readLine()).startsWith("##")){
+                for (int i = 0; i < bws.length; i++) {
+                    bws[i].write(line);
+                    bws[i].newLine();
+                }
+            }
+            for (int i = 0; i < bws.length; i++) {
+                bws[i].write(line);
+                bws[i].newLine();
+            }
+            int chr, pos;
+            while ((line=bufferedReader.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                chr=Integer.parseInt(temp.get(0));
+                pos= Integer.parseInt(temp.get(1));
+                if (RefV1Utils.getChromosome(chr, pos).endsWith("A")){
+                    bws[0].write(line);
+                    bws[0].newLine();
+                }else if (RefV1Utils.getChromosome(chr, pos).endsWith("B")){
+                    bws[1].write(line);
+                    bws[1].newLine();
+                }else {
+                    bws[2].write(line);
+                    bws[2].newLine();
+                }
+            }
+            for (int i = 0; i < 3; i++) {
+                bws[i].flush();
+                bws[i].close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void sort(String mergedVCF){
