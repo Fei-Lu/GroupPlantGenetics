@@ -7,10 +7,10 @@ import java.util.*;
 
 public class RareAlleleCount {
     String Samplename = "B18-E007,B18-E008,B18-E011,B18-E014,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E038,B18-E043,B18-E046,B18-E049,B18-E051,B18-E052,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E083,B18-E087,B18-E089,B18-E097,B18-E099,B18-E118,B18-E124,B18-E127,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E227,B18-E228,B18-E233,B18-E237,B18-E242,B18-E245,B18-E252,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E355,B18-E356,B18-E357";
-    String SNPfileDir = "/data2/xiaohan/genotype_root";//根据不同MAF值过滤得到的VCF文件存放位置
+    String SNPfileDir = "/data2/xiaohan/genotype_rootMaf005-10";//根据不同MAF值过滤得到的VCF文件存放位置
     String TSSpositionfileDir = "/data1/home/xiaohan/rareallele/fastQTL/expression/S7";//存储不同基因的位置区域的文件存放位置chr + start + end + gene
     String ExpressionFileDir = "/data1/home/xiaohan/rareallele/rankcorrelation/root/expressionTable";//存储不同表达矩阵的文件存放位置all/donor02/sub/subhomo
-    String rareAlleleCountDir = "/data1/home/xiaohan/rareallele/rankcorrelation/root/rareAlleleCount/MAF010-25";//不同的上游rare allele数目统计的文件存放位置
+    String rareAlleleCountDir = "/data1/home/xiaohan/rareallele/rankcorrelation/root/rareAlleleCount/MAF005-10";//不同的上游rare allele数目统计的文件存放位置
     String donor02GeneNamelistfile = "/data1/home/xiaohan/rareallele/rankcorrelation/infor/donor02GeneName.txt";//表达个体数目大于百分之二十的基因名字列表文件
     String homoGeneNamelistfile = "/data1/home/xiaohan/rareallele/rankcorrelation/infor/TheABD.txt";//ABD同源基因的基因列表文件
     String enrichmentTableDir = "";//获取得到的稀有变异富集的表格文件
@@ -19,10 +19,17 @@ public class RareAlleleCount {
     String[] FileNames = {"0k_200k", "200k_400k", "400k_600k", "600k_800k", "800k_1000k", "0k_1000k"};
 
     public RareAlleleCount(){
+        this.mkFileDir();
         this.getupstreamSNPcount();//根据上游的不同位置call出rare allele count
         this.mergeUprareCount();
         this.getdonor02File();
         this.getsubdonor02File();
+    }
+
+    public void mkFileDir() {
+        for (int i = 0; i < this.subDir.length; i++) {
+            new File(this.rareAlleleCountDir, subDir[i]).mkdir();
+        }
     }
 
     public void getsubdonor02File() {
