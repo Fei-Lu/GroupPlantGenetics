@@ -194,6 +194,22 @@ public class RowTableTool<T> extends RowTable<T> {
         return s;
     }
 
+    public static List<String> getColumnList(String inFile, int columnIndex, String sep){
+        List<String> list=new ArrayList<>();
+        try (BufferedReader br = IOTool.getReader(inFile)) {
+            String line;
+            String[] temp;
+            br.readLine();
+            while ((line=br.readLine())!=null){
+                temp= StringUtils.split(line, sep);
+                list.add(temp[columnIndex]);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     /**
      * merge multiple table into one table with a new column
      * note: each row name of the new column is equal to table file name without file extension
