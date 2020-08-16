@@ -534,8 +534,8 @@ public class ScriptMethods {
             StringBuilder sb;
             for (int i = 0; i < files1.size(); i++) {
                 sb=new StringBuilder();
-                sb.append("nohup sh ../").append("scriptAll/").append(files1.get(i).getName());
-                sb.append(" >"+files1.get(i).getName()+".log 2>&1").append(" &");
+                sb.append("nohup sh ").append(outDir).append("/").append("scriptAll/").append(files1.get(i).getName());
+                sb.append(" >"+outDir+"/scriptOne/"+files1.get(i).getName()+".log 2>&1").append(" &");
                 bw.write(sb.toString());
                 bw.newLine();
             }
@@ -775,5 +775,66 @@ public class ScriptMethods {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     *
+     * @param softPath
+     * @param genoFileDir
+     * @param outDir
+     * @param popsFilePath
+     * @param p2File
+     * @param p3File
+     * @param outSHFile
+     * @param ifDsubgenome
+     */
+    public static void fdSH(String softPath, String genoFileDir, String outDir, String popsFilePath, String p2File,
+                            String p3File, String outSHFile, boolean ifDsubgenome){
+        List<File> genoFiles=IOUtils.getVisibleFileListInDir(genoFileDir);
+        Predicate<File> d=file -> file.getName().substring(4,5).equals("D");
+        Predicate<File> ab=file -> file.getName().substring(4,5).equals("A") || file.getName().substring(4,5).equals("B");
+        List<File> dGenoFiles=genoFiles.stream().filter(d).collect(Collectors.toList());
+        List<File> abGenoFiles=genoFiles.stream().filter(ab).collect(Collectors.toList());
+        List<File> filteredGeno=ifDsubgenome ? dGenoFiles : abGenoFiles;
+        List<String> p2List=getColumn(p2File, 0);
+        List<String> p3List=getColumn(p3File, 0);
+        StringBuilder sb=new StringBuilder();
+        try (BufferedWriter bw = IOTool.getTextWriter(outSHFile)) {
+            String genoFile;
+            for (int i = 0; i < filteredGeno.size(); i++) {
+                for (int j = 0; j < p2List.size(); j++) {
+                    for (int k = 0; k < p3List.size(); k++) {
+                        genoFile=filteredGeno.get(i).getName().replaceAll(".geno.gz$","");
+                        sb.setLength(0);
+                        sb.append("python ").append(softPath).append(" --windType sites -g ").append(filteredGeno.get(i).getAbsolutePath());
+                        sb.append("  -f phased -o ").append(outDir).append("/").append(genoFile).append("_");
+                        sb.append(p2List.get(j)).append("_").append(p3List.get(k));
+                        sb.append(".csv -w 100 -m 3 --overlap 50 -P1 IndianDwarfWheat -P2 ").append(p2List.get(j));
+                        sb.append(" -P3").append(p3List.get(k)).append(" -O ancestral -T 1 --popsFile ").append(popsFilePath);
+                        sb.append(" --writeFailedWindows");
+                        bw.write(sb.toString());
+                        bw.newLine();
+                    }
+                }
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static List<String> getColumn(String pFile, int columnIndex){
+        List<String> lines=new ArrayList<>();
+        try (BufferedReader br = IOTool.getReader(pFile)) {
+            String line;
+            List<String> temp;
+            while ((line=br.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                lines.add(temp.get(columnIndex));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return lines;
     }
 }
