@@ -17,7 +17,7 @@ import pgl.infra.range.RangeInterface;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
-
+import pgl.infra.utils.wheat.RefV1Utils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -1059,6 +1059,41 @@ public class PGF {
             genes[i]=this.getGeneOnChr(chrList.get(i));
         }
         return genes;
+    }
+
+    /**
+     * 返回指定范围内的基因总数
+     * @param chromosome
+     * @param posStart inclusive
+     * @param posEnd exclusive
+     * @return
+     */
+    public int getGeneNum(String chromosome, int posStart, int posEnd){
+        int chrStart= RefV1Utils.getChrID(chromosome, posStart);
+        int chrEnd=RefV1Utils.getChrID(chromosome, posEnd);
+        int posOnChrIDStart=RefV1Utils.getPosOnChrID(chromosome, posStart);
+        int posOnChrIDEnd=RefV1Utils.getPosOnChrID(chromosome, posEnd);
+        this.sortGeneByGeneRange();
+        Gene queryStart=new Gene(chrStart, posOnChrIDStart, posOnChrIDStart+1);
+        Gene queryEnd=new Gene(chrEnd, posOnChrIDEnd, posOnChrIDEnd+1);
+        int startHit = Arrays.binarySearch(this.genes, queryStart);
+        int endHit = Arrays.binarySearch(this.genes, queryEnd);
+        int indexStart, indexEnd;
+        if (startHit < -1){
+            indexStart = -startHit-2;
+        }else if (startHit > -1){
+            indexStart = startHit;
+        }else {
+            indexStart = 0;
+        }
+        if (endHit < -1){
+            indexEnd = -endHit-2;
+        }else if (endHit > -1){
+            indexEnd = endHit;
+        }else {
+            indexEnd = 0;
+        }
+        return indexEnd-indexStart;
     }
 
     public class Gene implements Comparable<Gene> {
