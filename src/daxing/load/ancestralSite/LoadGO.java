@@ -1,6 +1,8 @@
 package daxing.load.ancestralSite;
 
+import com.google.common.collect.Table;
 import daxing.common.*;
+import org.apache.commons.math3.distribution.BinomialDistribution;
 import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
@@ -133,6 +135,207 @@ public class LoadGO {
                 tableTool.add(new RowTableTool<>(temp.get(j).getAbsolutePath()));
             }
             tableTool.write(new File(outDir, outName+".txt.gz"), IOFileFormat.TextGzip);
+        }
+    }
+
+    public static void calculateExpectedSynNonDelPerTaxonPerSub(String countMergedDir,
+                                                                String derivedProbabilityFile, String outDir){
+        List<File> files=IOUtils.getVisibleFileListInDir(countMergedDir);
+        String[] taxonName= files.stream().map(File::getName)
+                .map(str -> PStringUtils.fastSplit(str,".triad.txt").get(0)).toArray(String[]::new);
+        String[] outFile= Arrays.stream(taxonName).map(s->s+".expected.txt").toArray(String[]::new);
+        IntStream.range(0, files.size()).parallel().forEach(e->calculateExpectedSynNonDelPerTaxonPerSub(files.get(e),
+                taxonName[e], derivedProbabilityFile,new File(outDir, outFile[e])));
+    }
+
+    public static double[] getTaxonSynNonDelDerivedProbability(String taxon, String subgenome,
+                                                                  String derivedProbabilityFile){
+        RowTableTool<String> table=new RowTableTool<>(derivedProbabilityFile);
+        Table<String,String,String> synTable=table.getTable(0, 1,7);
+        Table<String,String,String> nonTable=table.getTable(0, 1,8);
+        Table<String,String,String> delTable=table.getTable(0, 1,9);
+        double[] synNonDel=new double[3];
+        Arrays.fill(synNonDel, -1);
+        synNonDel[0]=Float.parseFloat(synTable.get(taxon,subgenome));
+        synNonDel[1]=Float.parseFloat(nonTable.get(taxon,subgenome));
+        synNonDel[2]=Float.parseFloat(delTable.get(taxon,subgenome));
+        return synNonDel;
+    }
+
+    public static void calculateExpectedSynNonDelPerTaxonPerSub(File mergedTaxonFile, String taxonName,
+                                                                String derivedProbabilityFile,
+                                                                File outFile){
+        try (BufferedReader br = IOTool.getReader(mergedTaxonFile);
+             BufferedWriter bw =IOTool.getTextWriter(outFile)) {
+            String header=br.readLine();
+            bw.write(header+"\tAncestralNum\tExpectedSyn\tExpectedNonsyn\tExpectedDel\tp_lowerTail_syn" +
+                    "\tp_upperTaill_syn\tp_lowerTail_non\tp_upperTaill_non\tp_lowerTail_del\tp_upperTaill_del");
+            bw.newLine();
+            StringBuilder sb=new StringBuilder();
+            String line;
+            List<String> temp;
+            int synNum, nonNum, ancestralNum;
+            int[] synNonDelDerivedNum=new int[3];
+            Arrays.fill(synNonDelDerivedNum, -1);
+            double expectedDerivedNum;
+            String sub;
+            BinomialDistribution binomialDistribution;
+            double lowerTail, upperTail;
+            List<String> strList=Collections.nCopies(9, "NA");
+            while ((line=br.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                sub=temp.get(2).substring(8,9);
+                synNum=Integer.parseInt(temp.get(3));
+                synNonDelDerivedNum[0]=Integer.parseInt(temp.get(4));
+                nonNum=Integer.parseInt(temp.get(5));
+                synNonDelDerivedNum[1]=Integer.parseInt(temp.get(6));
+                synNonDelDerivedNum[2]=Integer.parseInt(temp.get(8));
+                ancestralNum=synNum+nonNum;
+                sb.setLength(0);
+                if (ancestralNum==0){
+                    sb.append(String.join("\t", temp)).append("\t");
+                    sb.append(ancestralNum).append("\t");
+                    sb.append(String.join("\t",strList));
+                    bw.write(sb.toString());
+                    bw.newLine();
+                    continue;
+                }
+                sb.append(String.join("\t", temp)).append("\t");
+                sb.append(ancestralNum).append("\t");
+                double[] synNonDelP=getTaxonSynNonDelDerivedProbability(taxonName, sub, derivedProbabilityFile);
+                for (int i = 0; i < synNonDelP.length; i++) {
+                    expectedDerivedNum=NumberTool.format(ancestralNum*synNonDelP[i], 5);
+                    sb.append(expectedDerivedNum).append("\t");
+                }
+                for (int i = 0; i < synNonDelP.length; i++) {
+                    binomialDistribution=new BinomialDistribution(ancestralNum,synNonDelP[i]);
+                    lowerTail =binomialDistribution.cumulativeProbability(synNonDelDerivedNum[i]);
+                    upperTail = (1-binomialDistribution.cumulativeProbability(synNonDelDerivedNum[i]))+binomialDistribution.probability(synNonDelDerivedNum[i]);
+                    sb.append(NumberTool.format(lowerTail,5)).append("\t").append(NumberTool.format(upperTail, 5)).append("\t");
+                }
+                sb.deleteCharAt(sb.length()-1);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void normalizedTriadByAncestralNumAndAddExpectedRegion(String inputDir, String outDir){
+        List<File> files=IOTool.getVisibleDir(inputDir);
+        IntStream.range(0, files.size()).forEach(f->normalizedTriadByAncestralNumAndAddExpectedRegion(files.get(f), outDir));
+    }
+
+    public static void normalizedTriadByAncestralNumAndAddExpectedRegion(File inputFile, String outDir){
+        String fileName=inputFile.getName().replaceAll("triad", "triad.normalized");
+        try (BufferedReader br = IOTool.getReader(inputFile);
+             BufferedWriter bw =IOTool.getTextGzipWriter(new File(outDir, fileName))) {
+            bw.write("TriadID\tnormalizedNumDerivedInSynA" +
+                    "\tnormalizedNumDerivedInSynB\tnormalizedNumDerivedInSynD\tsynExpectedRegion" +
+                    "\tnormalizedNumDerivedInNonsynA" +
+                    "\tnormalizedNumDerivedInNonsynB\tnormalizedNumDerivedInNonsynD\tnonsynExpectedRegion" +
+                    "\tnormalizedNumDerivedInHGDeleteriousA\tnormalizedNumDerivedInHGDeleteriousB" +
+                    "\tnormalizedNumDerivedInHGDeleteriousD\tdelExpectedRegion");
+            bw.newLine();
+            br.readLine();
+            String line, triadID, region;
+            List<String>[] temp;
+            int[] cdsLen;
+            int[] snpNum;
+            double[] derivedSyn;
+            double[] derivedNonsyn;
+            double[] deleterious;
+            StringBuilder sb;
+            double[] normalizedDerivedSyn;
+            double[] normalizedDerivedNonSyn;
+            double[] normalizedDerivedDel;
+            double[] p_valueSyn, p_valueNon, p_valueDel;
+            while ((line=br.readLine())!=null){
+                temp=new List[3];
+                temp[0]=PStringUtils.fastSplit(line);
+                temp[1]=PStringUtils.fastSplit(br.readLine());
+                temp[2]=PStringUtils.fastSplit(br.readLine());
+                cdsLen=new int[3];
+                snpNum=new int[3];
+                derivedSyn=new double[3];
+                derivedNonsyn=new double[3];
+                deleterious=new double[3];
+                normalizedDerivedSyn=new double[3];
+                normalizedDerivedNonSyn=new double[3];
+                normalizedDerivedDel=new double[3];
+                p_valueSyn=new double[6];
+                p_valueNon=new double[6];
+                p_valueDel=new double[6];
+                Arrays.fill(p_valueSyn, -1);
+                Arrays.fill(p_valueNon, -1);
+                Arrays.fill(p_valueDel, -1);
+                triadID=temp[0].get(0);
+                for (int i = 0; i < cdsLen.length; i++) {
+                    cdsLen[i]=Integer.parseInt(temp[i].get(1));
+                    snpNum[i]=Integer.parseInt(temp[i].get(3))+Integer.parseInt(temp[i].get(5));
+                    derivedSyn[i]=Double.parseDouble(temp[i].get(4));
+                    derivedNonsyn[i]=Double.parseDouble(temp[i].get(6));
+                    deleterious[i]=Double.parseDouble(temp[i].get(8));
+                    if (temp[i].get(14).equals("NA"))continue;
+                    p_valueSyn[2*i]=Double.parseDouble(temp[i].get(14));
+                    p_valueSyn[2*i+1]=Double.parseDouble(temp[i].get(15));
+                    p_valueNon[2*i]=Double.parseDouble(temp[i].get(16));
+                    p_valueNon[2*i+1]=Double.parseDouble(temp[i].get(17));
+                    p_valueDel[2*i]=Double.parseDouble(temp[i].get(18));
+                    p_valueDel[2*i+1]=Double.parseDouble(temp[i].get(19));
+                }
+                for (int i = 0; i < 3; i++) {
+                    normalizedDerivedSyn[i]=1000*10*derivedSyn[i]/(cdsLen[i]*snpNum[i]);
+                    normalizedDerivedNonSyn[i]=1000*10*derivedNonsyn[i]/(cdsLen[i]*snpNum[i]);
+                    normalizedDerivedDel[i]=1000*10*deleterious[i]/(cdsLen[i]*snpNum[i]);
+                }
+                sb=new StringBuilder();
+                sb.append(triadID).append("\t");
+                for (int i = 0; i < 3; i++) {
+                    if (Double.isNaN(normalizedDerivedSyn[i])){
+                        sb.append("NA").append("\t");
+                    }else {
+                        sb.append(NumberTool.format(normalizedDerivedSyn[i], 5)).append("\t");
+                    }
+                }
+                if (Double.isNaN(normalizedDerivedSyn[0]) || Double.isNaN(normalizedDerivedSyn[1]) || Double.isNaN(normalizedDerivedSyn[2])){
+                    region="NA";
+                }else {
+                    region= ExpectedRegion.getExpectedRegion(p_valueSyn);
+                }
+                sb.append(region).append("\t");
+                for (int i = 0; i < 3; i++) {
+                    if (Double.isNaN(normalizedDerivedNonSyn[i])){
+                        sb.append("NA").append("\t");
+                    }else {
+                        sb.append(NumberTool.format(normalizedDerivedNonSyn[i], 5)).append("\t");
+                    }
+                }
+                if (Double.isNaN(normalizedDerivedNonSyn[0]) || Double.isNaN(normalizedDerivedNonSyn[1]) || Double.isNaN(normalizedDerivedNonSyn[2])){
+                    region="NA";
+                }else {
+                    region=ExpectedRegion.getExpectedRegion(p_valueNon);
+                }
+                sb.append(region).append("\t");
+                for (int i = 0; i < 3; i++) {
+                    if (Double.isNaN(normalizedDerivedDel[i])){
+                        sb.append("NA").append("\t");
+                    }else {
+                        sb.append(NumberTool.format(normalizedDerivedDel[i], 5)).append("\t");
+                    }
+                }
+                if (Double.isNaN(normalizedDerivedDel[0]) || Double.isNaN(normalizedDerivedDel[1]) || Double.isNaN(normalizedDerivedDel[2])){
+                    region="NA";
+                }else {
+                    region=ExpectedRegion.getExpectedRegion(p_valueDel);
+                }
+                sb.append(region);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
