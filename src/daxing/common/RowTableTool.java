@@ -224,7 +224,12 @@ public class RowTableTool<T> extends RowTable<T> {
         String[] groupNames= Arrays.stream(f1).map(File::getName).map(str->str.replaceAll("[.].+$", ""))
                                     .toArray(String[]::new);
         BufferedReader br;
-        BufferedWriter bw=IOUtils.getTextWriter(outFile);
+        BufferedWriter bw;
+        if (outFile.endsWith("gz")){
+            bw=IOTool.getTextGzipWriter(outFile);
+        }else {
+            bw=IOTool.getTextWriter(outFile);
+        }
         String line;
         StringBuilder sb;
         String header;

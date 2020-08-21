@@ -150,7 +150,7 @@ public class PlotTools {
                         sb.append("NaN").append("\t").append("NaN").append("\t").append("NaN").append("\t").append("NaN").append("\n");
                     }
                     else {
-                        sb.append("NaN").append("\t").append("NaN").append("\n");
+                        sb.append("NaN").append("\n");
                     }
                 } else {
                     if (sdMedian){
@@ -158,7 +158,7 @@ public class PlotTools {
                         sb.append(stats.getPercentile(50)).append("\n");
                     }
                     else {
-                        sb.append(stats.getMean()).append("\n");
+                        sb.append(NumberTool.format(stats.getMean(),5)).append("\n");
                     }
                 }
                 bw.write(sb.toString());
