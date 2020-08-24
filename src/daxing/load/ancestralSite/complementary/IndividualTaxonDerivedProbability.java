@@ -19,6 +19,12 @@ import java.util.Map;
  */
 public class IndividualTaxonDerivedProbability {
 
+    /**
+     *
+     * @param inputDir retainTriadHexaploid
+     * @param taxa_InfoDBFile
+     * @param outFile
+     */
     public static void getIndividualTaxonDerivedProbability(String inputDir, String taxa_InfoDBFile, String outFile){
         List<File> fileList= IOUtils.getVisibleFileListInDir(inputDir);
         BufferedReader br;
