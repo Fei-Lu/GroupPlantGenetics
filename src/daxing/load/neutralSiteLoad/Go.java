@@ -232,7 +232,7 @@ public class Go {
     private static void filter(File triadNeutralLoadFileInputFile, File outFile, int snpNumThresh,
                                int neutralNumThresh) {
         try (BufferedReader br = IOTool.getReader(triadNeutralLoadFileInputFile);
-             BufferedWriter bw = IOTool.getTextGzipWriter(outFile)) {
+             BufferedWriter bw = IOTool.getTextWriter(outFile)) {
             String header = br.readLine();
             bw.write(header);
             bw.newLine();
@@ -281,7 +281,7 @@ public class Go {
 
     private static void normalized(File inputFile, File outFile){
         try (BufferedReader br = IOTool.getReader(inputFile);
-             BufferedWriter bw =IOTool.getTextGzipWriter(outFile)) {
+             BufferedWriter bw =IOTool.getTextWriter(outFile)) {
             bw.write("TriadID\tnormalizedNumDerivedInNonsynA" +
                     "\tnormalizedNumDerivedInNonsynB\tnormalizedNumDerivedInNonsynD\tnonsynRegion" +
                     "\tnormalizedNumDerivedInHGDeleteriousA\tnormalizedNumDerivedInHGDeleteriousB" +

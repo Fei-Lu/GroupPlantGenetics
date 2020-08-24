@@ -230,7 +230,7 @@ public class ScriptMethods {
             for (int i = 0; i < genoFiles.size(); i++) {
                 outFileName=genoFiles.get(i).getName().replaceAll("geno","exon.geon");
                 bufferedReader=IOTool.getReader(genoFiles.get(i));
-                bufferedWriter=IOTool.getTextGzipWriter(new File(outDir, outFileName));
+                bufferedWriter=IOTool.getTextWriter(new File(outDir, outFileName));
                 header=bufferedReader.readLine();
                 bufferedWriter.write(header);
                 bufferedWriter.newLine();

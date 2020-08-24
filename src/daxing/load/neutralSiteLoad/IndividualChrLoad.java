@@ -31,7 +31,7 @@ public class IndividualChrLoad {
     }
 
     public void write(File parentDir, String outFile){
-        try (BufferedWriter bw = IOTool.getTextGzipWriter(new File(parentDir, outFile))) {
+        try (BufferedWriter bw = IOTool.getTextWriter(new File(parentDir, outFile))) {
             bw.write("GeneName\tnumGeneLocal\tnumDerivedInGeneLocal\tnumNonsynGeneLocal\tnumNonsynDerivedInGeneLocal");
             bw.newLine();
             StringBuilder sb;

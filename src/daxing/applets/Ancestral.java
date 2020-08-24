@@ -78,7 +78,7 @@ public class Ancestral {
     private static void getAncestral_twoOutgroup(File inputFile, File outDir, double thresh){
         try (BufferedReader bufferedReader = IOTool.getReader(inputFile)) {
             String outFileName="chr"+inputFile.getName().substring(0,2)+".secer.hovul.exon.probs.ancestral.txt.gz";
-            BufferedWriter bw=IOTool.getTextGzipWriter(new File(outDir, outFileName));
+            BufferedWriter bw=IOTool.getTextWriter(new File(outDir, outFileName));
             WheatLineage subgenome=WheatLineage.valueOf(inputFile.getName().substring(1,2));
             bw.write("chr\tpos\tancestralAllele\n");
             String line, chr, pos, ancestralAllele;

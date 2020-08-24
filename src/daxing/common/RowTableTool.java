@@ -210,6 +210,24 @@ public class RowTableTool<T> extends RowTable<T> {
         return list;
     }
 
+    public static List<String> getColumnList(String inFile, int columnIndex){
+        return getColumnList(inFile, columnIndex, "\t");
+    }
+
+    public static Map<String,String> getMap(String tableFile, int columnIndexA, int columnIndexB, String sep){
+        List<String> listA=getColumnList(tableFile, columnIndexA, sep);
+        List<String> listB=getColumnList(tableFile, columnIndexB, sep);
+        Map<String,String> map=new HashMap<>();
+        for (int i = 0; i < listA.size(); i++) {
+            map.put(listA.get(i), listB.get(i));
+        }
+        return map;
+    }
+
+    public static Map<String,String> getMap(String tableFile, int columnIndexA, int columnIndexB){
+        return getMap(tableFile, columnIndexA, columnIndexB, "\t");
+    }
+
     /**
      * merge multiple table into one table with a new column
      * note: each row name of the new column is equal to table file name without file extension
