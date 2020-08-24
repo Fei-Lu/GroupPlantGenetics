@@ -39,22 +39,22 @@ public class ChrSNPAnnoDB {
         char altBase=temp.get(4).charAt(0);
         char majorBase=temp.get(5).charAt(0);
         double[] aaf=new double[2];
+        double maf=Double.parseDouble(temp.get(7));
         aaf[0]=Double.parseDouble(temp.get(8));
         aaf[1]=Double.parseDouble(temp.get(9));
         String geneName=temp.get(10).substring(0,18);
         SNPAnnotation.Region region=SNPAnnotation.Region.valueOf(temp.get(11));
         String variant_type=temp.get(12);
-        String alt_SIFT=temp.get(13);
-        String gerp=temp.get(18);
-        String daf=temp.get(15);
-        double maf=Double.parseDouble(temp.get(7));
+        String ancestral=temp.get(15);
+        String derived_SIFT=temp.get(16);
+        String daf=temp.get(17);
         String[] dafs=new String[2];
-        dafs[0]=temp.get(16);
-        dafs[1]=temp.get(17);
-        String ancestral=temp.get(14);
+        dafs[0]=temp.get(18);
+        dafs[1]=temp.get(19);
+        String gerp=temp.get(20);
         String recombinationRate=null;
         return new SNPAnnotation(chr, pos, refBase, altBase, geneName, majorBase, ancestral, maf
-                , aaf, daf, dafs, region, variant_type, alt_SIFT, gerp, recombinationRate);
+                , aaf, daf, dafs, region, variant_type, derived_SIFT, gerp, recombinationRate);
     }
 
     /**

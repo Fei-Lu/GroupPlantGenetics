@@ -38,9 +38,9 @@ public class LoadGO {
         Map<String, File> taxonOutDirMap=getTaxonOutDirMap(vmapIIGroupFile, new File(outDir, subdir[0]).getAbsolutePath());
 //        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
 //                taxonOutDirMap, e+1));
-//        merge(new File(outDir, subdir[0]).getAbsolutePath(), vmapIIGroupFile, new File(outDir, subdir[1]).getAbsolutePath());
-//        retainTriad(triadFile, new File(outDir, subdir[1]).getAbsolutePath(), new File(outDir, subdir[2]).getAbsolutePath());
-        normalizedTriadByAncestralNum(new File(outDir, subdir[2]).getAbsolutePath(), new File(outDir, subdir[3]).getAbsolutePath());
+        merge(new File(outDir, subdir[0]).getAbsolutePath(), vmapIIGroupFile, new File(outDir, subdir[1]).getAbsolutePath());
+        retainTriad(triadFile, new File(outDir, subdir[1]).getAbsolutePath(), new File(outDir, subdir[2]).getAbsolutePath());
+//        normalizedTriadByAncestralNum(new File(outDir, subdir[2]).getAbsolutePath(), new File(outDir, subdir[3]).getAbsolutePath());
     }
 
     private static void go(File exonSNPAnnoFile, File exonVCFFile,
@@ -119,11 +119,13 @@ public class LoadGO {
     }
 
     public static void merge(String inputDir, String vmapIIGroupFile, String outDir){
-        List<File> dirs=IOTool.getVisibleDir(inputDir);
+        List<File> dirs=IOUtils.getDirListInDir(inputDir);
         RowTableTool<String> table=new RowTableTool<>(vmapIIGroupFile);
-        Map<String,String> taxonGroupMap=table.getHashMap(0, 15);
-        Predicate<File> p= f->taxonGroupMap.get(f.getName()).equals("Landrace_Europe") || taxonGroupMap.get(f.getName()).equals("Cultivar");
-        List<File> ldCl=dirs.stream().filter(p).collect(Collectors.toList());
+        Map<String,String> taxonGroupMap=table.getHashMap(0, 14);
+        Predicate<File> p_diploid= f->taxonGroupMap.get(f.getName()).equals("Ae.tauschii");
+//        Predicate<File> p_tetraploid= f->taxonGroupMap.get(f.getName()).equals("Tetraploid");
+//        Predicate<File> p_hexaploid= f->taxonGroupMap.get(f.getName()).equals("Hexaploid");
+        List<File> ldCl=dirs.stream().filter(p_diploid).collect(Collectors.toList());
         List<File> temp;
         RowTableTool<String> tableTool;
         String outName;

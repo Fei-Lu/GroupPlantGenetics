@@ -11,7 +11,7 @@ public class SNPAnnotation extends BiSNP{
     String[] dafs;
     Region region;
     String variant_type;
-    String alt_SIFT;
+    String derived_SIFT;
     String gerp;
     String recombinationRate;
 
@@ -27,7 +27,7 @@ public class SNPAnnotation extends BiSNP{
 
     SNPAnnotation(short chr, int pos, char refBase, char altBase, String transcriptName, char majorBase,
                   String ancestral, double maf, double[] aaf, String daf, String[] dafs, Region region,
-                  String variant_type, String alt_SIFT, String gerp, String recombinationRate){
+                  String variant_type, String derived_SIFT, String gerp, String recombinationRate){
         super(chr, pos, refBase, altBase, transcriptName);
         if (this.getReferenceAlleleBase()==majorBase){
             this.setReferenceAlleleType(AlleleType.Major);
@@ -52,7 +52,7 @@ public class SNPAnnotation extends BiSNP{
         this.dafs=dafs;
         this.region=region;
         this.variant_type=variant_type;
-        this.alt_SIFT=alt_SIFT;
+        this.derived_SIFT =derived_SIFT;
         this.recombinationRate=recombinationRate;
         this.gerp=gerp;
         this.recombinationRate=recombinationRate;
@@ -62,8 +62,8 @@ public class SNPAnnotation extends BiSNP{
         return maf;
     }
 
-    public String getAlt_SIFT() {
-        return alt_SIFT;
+    public String getDerived_SIFT() {
+        return derived_SIFT;
     }
 
     public String getGerp() {
@@ -75,8 +75,8 @@ public class SNPAnnotation extends BiSNP{
     }
 
     public boolean isDeleterious(){
-        if(this.getAlt_SIFT().equals("NA")) return false;
-        float sift=Float.parseFloat(this.getAlt_SIFT());
+        if(this.getDerived_SIFT().equals("NA")) return false;
+        float sift=Float.parseFloat(this.getDerived_SIFT());
         if (sift > 0.05) return false;
         if(this.getGerp().equals("NA")) return false;
         float gerp=Float.parseFloat(this.getGerp());
