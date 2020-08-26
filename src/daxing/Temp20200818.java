@@ -18,15 +18,15 @@ import java.util.stream.IntStream;
 public class Temp20200818 {
 
 //    public static void main(String[] args){
-//        String inputDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_retainTriad/007_retainTriadHexaploid_expected";
+//        String inputDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/003_retainTriad/005_hexaploid_test";
 //        String pgfFile="/Users/xudaxing/Documents/deleteriousMutation/001_vmap2.1Before20200525/002_analysis/014_deleterious/wheat_v1.1_Lulab_geneHC.pgf";
-//        String outDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_retainTriad/008_retainTriadHexaploid_expeted_pos";
+//        String outDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/003_retainTriad/006_hexaploid_test_expected";
 //        addTriadPos(inputDir, pgfFile, outDir);
 
 //        String inputDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_retainTriad/006_hexaploid_test_expected";
 //        String outDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_retainTriad/009_retainTriadHexaploid_expected_pos_slidingWindow/001_triadPos";
 //        forSlidingWindow(inputDir, outDir);
-
+//
 //        String inputDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_retainTriad/009_retainTriadHexaploid_expected_pos_slidingWindow/001_triadPos";
 //        String outDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_retainTriad/009_retainTriadHexaploid_expected_pos_slidingWindow/002_slidWindow";
 //        String synNonDel="syn";

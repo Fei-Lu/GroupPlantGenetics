@@ -4,9 +4,12 @@ import daxing.common.IOTool;
 import pgl.infra.pos.ChrPos;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class ChrSNPAnnoDB {
 
@@ -55,6 +58,10 @@ public class ChrSNPAnnoDB {
         String recombinationRate=null;
         return new SNPAnnotation(chr, pos, refBase, altBase, geneName, majorBase, ancestral, maf
                 , aaf, daf, dafs, region, variant_type, derived_SIFT, gerp, recombinationRate);
+    }
+
+    public int getSize(){
+        return this.snpAnnotationList.size();
     }
 
     /**
@@ -132,5 +139,41 @@ public class ChrSNPAnnoDB {
 
     public boolean isDeleterious(int chr, int pos){
         return this.getSNP(chr, pos).isDeleterious();
+    }
+
+    public int getDelNum(){
+        List<SNPAnnotation> snpAnnotations=this.snpAnnotationList;
+        Predicate<SNPAnnotation> p = SNPAnnotation::isDeleterious;
+        return snpAnnotations.stream().filter(p).collect(Collectors.toList()).size();
+    }
+
+    public int getNum(Predicate<SNPAnnotation> p){
+        return this.snpAnnotationList.stream().filter(p).collect(Collectors.toList()).size();
+    }
+
+    public ChrSNPAnnoDB filter(Predicate<SNPAnnotation> p){
+        List<SNPAnnotation> snpAnnotations=this.snpAnnotationList.stream().filter(p).collect(Collectors.toList());
+        this.snpAnnotationList=snpAnnotations;
+        return this;
+    }
+
+    public void write(String outFile){
+        StringBuilder sb=new StringBuilder();
+        SNPAnnotation snpAnnotation;
+        try (BufferedWriter bw = IOTool.getTextWriter(outFile)) {
+            bw.write("Chr\tPos");
+            bw.newLine();
+            for (int i = 0; i < snpAnnotationList.size(); i++) {
+                snpAnnotation=snpAnnotationList.get(i);
+                sb.setLength(0);
+                sb.append(snpAnnotation.getChromosome()).append("\t").append(snpAnnotation.getPos());
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }

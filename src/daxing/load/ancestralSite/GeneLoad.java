@@ -6,27 +6,30 @@ import java.util.Map;
 
 public class GeneLoad implements Comparable<GeneLoad>{
 
-    //0: 0/0 1: 1/1  0为ancestral, 1为derived
+    //0: 0/0 1: 1/1 2: 0/1 0为ancestral, 1为derived, 2为杂合
     String geneName;
     TByteArrayList synGenotype;
     TByteArrayList nonsynGenotype;
     TByteArrayList hgDeleteriousGenop;
 
+
     public static Map<String, Byte> genotypeToByteMap1 =initializeGenotypeToByteMap1();
     private static Map<String, Byte> initializeGenotypeToByteMap1(){
-        String[] genotype={"0/0", "1/1"};
+        String[] genotype={"0/0", "1/1", "0/1"};
         Map<String,Byte> map=new HashMap<>();
         map.put(genotype[0], (byte) 0);
         map.put(genotype[1], (byte) 1);
+        map.put(genotype[2], (byte) 2);
         return map;
     }
 
     public static Map<String, Byte> genotypeToByteMap2 =initializeGenotypeToByteMap2();
     private static Map<String, Byte> initializeGenotypeToByteMap2(){
-        String[] genotype={"0/0", "1/1"};
+        String[] genotype={"0/0", "1/1", "0/1"};
         Map<String,Byte> map=new HashMap<>();
         map.put(genotype[0], (byte) 1);
         map.put(genotype[1], (byte) 0);
+        map.put(genotype[2], (byte) 2);
         return map;
     }
 
@@ -65,10 +68,38 @@ public class GeneLoad implements Comparable<GeneLoad>{
         return this.hgDeleteriousGenop.size();
     }
 
+    public int getSynHeterSitesNum(){
+        int sum=0;
+        for (int i = 0; i < this.synGenotype.size(); i++) {
+            if (this.synGenotype.get(i)!=2) continue;
+            sum++;
+        }
+        return sum;
+    }
+
+    public int getNonsynHeterSitesNum(){
+        int sum=0;
+        for (int i = 0; i < this.nonsynGenotype.size(); i++) {
+            if (this.nonsynGenotype.get(i)!=2) continue;
+            sum++;
+        }
+        return sum;
+    }
+
+    public int getHGDeleteriousHeterSitesNum(){
+        int sum=0;
+        for (int i = 0; i < this.hgDeleteriousGenop.size(); i++) {
+            if (this.hgDeleteriousGenop.get(i)!=2) continue;
+            sum++;
+        }
+        return sum;
+    }
+
     public int getSynDerivedNum(){
         int sum=0;
         for (int i = 0; i < this.synGenotype.size(); i++) {
-            sum+=this.synGenotype.get(i);
+            if (this.synGenotype.get(i)!=1) continue;
+            sum++;
         }
         return sum;
     }
@@ -76,7 +107,8 @@ public class GeneLoad implements Comparable<GeneLoad>{
     public int getNonsynDerivedNum(){
         int sum=0;
         for (int i = 0; i < this.nonsynGenotype.size(); i++) {
-            sum+=this.nonsynGenotype.get(i);
+            if (this.nonsynGenotype.get(i)!=1) continue;
+            sum++;
         }
         return sum;
     }
@@ -84,7 +116,8 @@ public class GeneLoad implements Comparable<GeneLoad>{
     public int getHGDeleteriousDerivedNum(){
         int sum=0;
         for (int i = 0; i < this.hgDeleteriousGenop.size(); i++) {
-            sum+=this.hgDeleteriousGenop.get(i);
+            if (this.hgDeleteriousGenop.get(i)!=1) continue;
+            sum++;
         }
         return sum;
     }

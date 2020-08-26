@@ -105,30 +105,60 @@ public class IndividualChrLoad{
         return res;
     }
 
+    public TIntArrayList getSynHeterSitesNum(){
+        TIntArrayList res=new TIntArrayList();
+        for (int i = 0; i < geneLoads.length; i++) {
+            res.add(geneLoads[i].getSynHeterSitesNum());
+        }
+        return res;
+    }
+
+    public TIntArrayList getNonsynHeterSitesNum(){
+        TIntArrayList res=new TIntArrayList();
+        for (int i = 0; i < geneLoads.length; i++) {
+            res.add(geneLoads[i].getNonsynHeterSitesNum());
+        }
+        return res;
+    }
+
+    public TIntArrayList getHGDeleteriousHeterSitesNum(){
+        TIntArrayList res=new TIntArrayList();
+        for (int i = 0; i < geneLoads.length; i++) {
+            res.add(geneLoads[i].getHGDeleteriousHeterSitesNum());
+        }
+        return res;
+    }
+
     public void write(String outDir){
         int chr=this.getChr();
         String taxonName=this.getTaxonName();
         File outFile=new File(outDir, "chr"+ PStringUtils.getNDigitNumber(3, chr)+"."+taxonName+".txt.gz");
         try (BufferedWriter bw = IOTool.getTextWriter(outFile)) {
-            bw.write("geneName\tnumSyn\tnumDerivedInSyn\tnumNonsyn\tnumDerivedInNonsyn" +
-                    "\tnumHGDeleterious\tnumDerivedInHGDeleterious");
+            bw.write("geneName\tnumSyn\tnumDerivedInSyn\tnumHeterInSyn\tnumNonsyn\tnumDerivedInNonsyn\t" +
+                    "numHeterInNonsyn\tnumHGDeleterious\tnumDerivedInHGDeleterious\tnumHeterInHGDeleterious");
             bw.newLine();
             StringBuilder sb;
             String[] geneNames=this.getGeneNames();
             TIntArrayList numSyn=this.getNumSyn();
             TIntArrayList numDerivedInSyn=this.getNumDerivedInSyn();
+            TIntArrayList numHeterInSyn=this.getSynHeterSitesNum();
             TIntArrayList numNonsyn=this.getNumNonsyn();
             TIntArrayList numDerivedInNonsyn=this.getNumDerivedInNonsyn();
+            TIntArrayList numHeterInNonsyn=this.getNonsynHeterSitesNum();
             TIntArrayList numHGDeleterious=this.getNumHGDeleterious();
             TIntArrayList numDerivedInHGDeleterious=this.getNumDerivedInHGDeleterious();
+            TIntArrayList numHeterInHGDeleterious=this.getHGDeleteriousHeterSitesNum();
             for (int i = 0; i < geneNames.length; i++) {
                 sb=new StringBuilder();
                 sb.append(geneNames[i]).append("\t").append(numSyn.get(i)).append("\t");
                 sb.append(numDerivedInSyn.get(i)).append("\t");
+                sb.append(numHeterInSyn.get(i)).append("\t");
                 sb.append(numNonsyn.get(i)).append("\t");
                 sb.append(numDerivedInNonsyn.get(i)).append("\t");
+                sb.append(numHeterInNonsyn.get(i)).append("\t");
                 sb.append(numHGDeleterious.get(i)).append("\t");
-                sb.append(numDerivedInHGDeleterious.get(i));
+                sb.append(numDerivedInHGDeleterious.get(i)).append("\t");
+                sb.append(numHeterInHGDeleterious.get(i));
                 bw.write(sb.toString());
                 bw.newLine();
             }

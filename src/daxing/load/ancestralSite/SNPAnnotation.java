@@ -75,11 +75,13 @@ public class SNPAnnotation extends BiSNP{
     }
 
     public boolean isDeleterious(){
+        if(!isNonSyn()) return false;
+        if (!hasAncestral()) return false;
         if(this.getDerived_SIFT().equals("NA")) return false;
-        float sift=Float.parseFloat(this.getDerived_SIFT());
+        double sift=Double.parseDouble(this.getDerived_SIFT());
         if (sift > 0.05) return false;
         if(this.getGerp().equals("NA")) return false;
-        float gerp=Float.parseFloat(this.getGerp());
+        double gerp=Double.parseDouble(this.getGerp());
         if (gerp < 1) return false;
         return true;
     }

@@ -19,12 +19,12 @@ import java.util.stream.IntStream;
 public class LoadGO {
 
     public static void start(){
-        String exonSNPAnnoDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/003_exon/002_exonAnn/001_byChrID";
+        String exonSNPAnnoDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/002_deleteriousPosLib/002_exonAnnotationByDerivedSift/001_exonSNPAnnotationByChrID";
         String exonVCFDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/003_exon/001_exonVCF";
-        String vmapIIGroupFile="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/vmapIIGroup.txt";
+        String taxa_InfoDB="/Users/xudaxing/Desktop/VMAP2/taxa_InfoDB.txt";
         String triadFile="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/triadGenes1.1_cdsLen_geneHC.txt";
-        String outDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection";
-        go(exonSNPAnnoDir, exonVCFDir, vmapIIGroupFile, triadFile, outDir);
+        String outDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift";
+        go(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, triadFile, outDir);
     }
 
     public static void go(String exonSNPAnnoDir, String exonVCFDir, String vmapIIGroupFile, String triadFile, String outDir){
@@ -36,8 +36,8 @@ public class LoadGO {
         List<File> exonAnnoFiles=IOUtils.getVisibleFileListInDir(exonSNPAnnoDir);
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
         Map<String, File> taxonOutDirMap=getTaxonOutDirMap(vmapIIGroupFile, new File(outDir, subdir[0]).getAbsolutePath());
-//        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
-//                taxonOutDirMap, e+1));
+        IntStream.range(0, exonVCFFiles.size()).forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
+                taxonOutDirMap, e+1));
         merge(new File(outDir, subdir[0]).getAbsolutePath(), vmapIIGroupFile, new File(outDir, subdir[1]).getAbsolutePath());
         retainTriad(triadFile, new File(outDir, subdir[1]).getAbsolutePath(), new File(outDir, subdir[2]).getAbsolutePath());
 //        normalizedTriadByAncestralNum(new File(outDir, subdir[2]).getAbsolutePath(), new File(outDir, subdir[3]).getAbsolutePath());
@@ -57,9 +57,9 @@ public class LoadGO {
             for (int i = 0; i < taxonLoads.length; i++) {
                 taxonLoads[i]=new IndividualChrLoad(taxonNames.get(i), geneNames, chr);
             }
-            int pos;
+            int pos, depth;
             String geneName, genotype;
-            List<String> genotypeList;
+            List<String> genotypeList, depthList;
             boolean isRefAlleleAncestral=true;
             boolean isSyn, isNonsyn, isDeleterious;
             byte genotypeByte;
@@ -71,7 +71,7 @@ public class LoadGO {
                 if (!transcriptDB.hasAncestral(chr, pos)) continue;
                 isSyn=transcriptDB.isSyn(chr, pos);
                 isNonsyn=transcriptDB.isNonsyn(chr, pos);
-                if (isSyn==false && isNonsyn==false) continue;
+                if (!(isSyn || isNonsyn)) continue;
                 isDeleterious=transcriptDB.isDeleterious(chr, pos);
                 isRefAlleleAncestral=transcriptDB.isRefAlleleAncestral(chr, pos);
                 geneName=transcriptDB.getGeneName(chr, pos);
@@ -79,18 +79,19 @@ public class LoadGO {
                     genotypeList=PStringUtils.fastSplit(temp.get(i+9), ":");
                     genotype=genotypeList.get(0);
                     if (genotype.equals("./.")) continue;
-                    if (genotype.equals("0/1")) continue;
+//                    if (genotype.equals("0/1")) continue;
+                    depthList=PStringUtils.fastSplit(genotypeList.get(1),",");
+                    depth=Integer.parseInt(depthList.get(0))+Integer.parseInt(depthList.get(1));
+                    if (depth < 2) continue;
                     genotypeByte= GeneLoad.caculateGenotype(genotype, isRefAlleleAncestral);
                     indexGenotype=new byte[2];
+                    indexGenotype[1]=genotypeByte;
                     if (isSyn){
                         indexGenotype[0]=0;
-                        indexGenotype[1]=genotypeByte;
                     }else if (isDeleterious){
                         indexGenotype[0]=2;
-                        indexGenotype[1]=genotypeByte;
                     } else {
                         indexGenotype[0]=1;
-                        indexGenotype[1]=genotypeByte;
                     }
                     taxonLoads[i].addGenotype(geneName, indexGenotype);
                 }
