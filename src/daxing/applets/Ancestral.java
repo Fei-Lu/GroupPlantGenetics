@@ -78,7 +78,7 @@ public class Ancestral {
     private static void getAncestral_twoOutgroup(File inputFile, File outDir, double thresh){
         try (BufferedReader bufferedReader = IOTool.getReader(inputFile)) {
             String outFileName="chr"+inputFile.getName().substring(0,2)+".secer.hovul.exon.probs.ancestral.txt.gz";
-            BufferedWriter bw=IOTool.getTextWriter(new File(outDir, outFileName));
+            BufferedWriter bw=IOTool.getWriter(new File(outDir, outFileName));
             WheatLineage subgenome=WheatLineage.valueOf(inputFile.getName().substring(1,2));
             bw.write("chr\tpos\tancestralAllele\n");
             String line, chr, pos, ancestralAllele;
@@ -112,7 +112,7 @@ public class Ancestral {
             WheatLineage subgenome=WheatLineage.valueOf(inputFile.getName().substring(5,6));
             String outgroupName=inputFile.getName().replaceAll("traes.", "").replaceAll("\\.gz$", "");
             for (int i = 0; i < chrsList.size(); i++) {
-                bw=IOTool.getTextWriter(new File(outDir, chrsList.get(i)+subgenome+outgroupName+".ancestral.txt"));
+                bw=IOTool.getWriter(new File(outDir, chrsList.get(i)+subgenome+outgroupName+".ancestral.txt"));
                 bw.write("chr\tpos\tancestralAllele\n");
                 chrBufferWriterMap.put(chrsList.get(i), bw);
             }
@@ -161,7 +161,7 @@ public class Ancestral {
     public static void getProbabilityDistributionMap_two(String inputDir, String outFile){
         List<File> files= IOUtils.getVisibleFileListInDir(inputDir);
         BufferedReader bufferedReader;
-        BufferedWriter bufferedWriter=IOTool.getTextWriter(outFile);
+        BufferedWriter bufferedWriter=IOTool.getWriter(outFile);
         String line, chr, pos;
         TDoubleArrayList node2_AF;
         String[] temp;
@@ -202,7 +202,7 @@ public class Ancestral {
     public static void getProbabilityDistributionMap_three(String inputDir, String outFile){
         List<File> files= IOUtils.getVisibleFileListInDir(inputDir);
         BufferedReader bufferedReader;
-        BufferedWriter bufferedWriter=IOTool.getTextWriter(outFile);
+        BufferedWriter bufferedWriter=IOTool.getWriter(outFile);
         String line, chr, pos;
         TDoubleArrayList alt_AF;
         double[] node1_ACGT;

@@ -46,7 +46,7 @@ public class BlockOperation {
     }
 
     public void write(String outFile){
-        try (BufferedWriter bw = IOTool.getTextWriter(outFile)) {
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
             for (int i = 0; i < blockList.size(); i++) {
                 bw.write(blockList.get(i).toString());
                 bw.newLine();
@@ -143,7 +143,7 @@ public class BlockOperation {
         List<Block> blockList;
         String line=null;
         try (BufferedReader br = IOTool.getReader(triadsMafFile);
-             BufferedWriter bw = IOTool.getTextWriter(outFile)) {
+             BufferedWriter bw = IOTool.getWriter(outFile)) {
             br.readLine();
             Block block;
             List<String> lines=new ArrayList<>();

@@ -175,7 +175,7 @@ public class LoadGO {
                                                                 String derivedProbabilityFile,
                                                                 File outFile){
         try (BufferedReader br = IOTool.getReader(mergedTaxonFile);
-             BufferedWriter bw =IOTool.getTextWriter(outFile)) {
+             BufferedWriter bw =IOTool.getWriter(outFile)) {
             String header=br.readLine();
             bw.write(header+"\tAncestralNum\tExpectedSyn\tExpectedNonsyn\tExpectedDel\tp_lowerTail_syn" +
                     "\tp_upperTaill_syn\tp_lowerTail_non\tp_upperTaill_non\tp_lowerTail_del\tp_upperTaill_del");
@@ -239,7 +239,7 @@ public class LoadGO {
     public static void normalizedTriadByAncestralNumAndAddExpectedRegion(File inputFile, String outDir){
         String fileName=inputFile.getName().replaceAll("triad", "triad.normalized");
         try (BufferedReader br = IOTool.getReader(inputFile);
-             BufferedWriter bw =IOTool.getTextWriter(new File(outDir, fileName))) {
+             BufferedWriter bw =IOTool.getWriter(new File(outDir, fileName))) {
             bw.write("TriadID\tnormalizedNumDerivedInSynA" +
                     "\tnormalizedNumDerivedInSynB\tnormalizedNumDerivedInSynD\tsynExpectedRegion" +
                     "\tnormalizedNumDerivedInNonsynA" +
@@ -369,7 +369,7 @@ public class LoadGO {
         BufferedWriter bw;
         int[] cdsLen;
         try {
-            bw=IOTool.getTextWriter(new File(outDir, taxon + ".triad.txt.gz"));
+            bw=IOTool.getWriter(new File(outDir, taxon + ".triad.txt.gz"));
             bw.write("TriadID\tcdsLen\tGeneName\tnumSyn\tnumDerivedInSyn\tnumHeterInSyn\tnumNonsyn" +
                     "\tnumDerivedInNonsyn\tnumHeterInNonsyn\tnumHGDeleterious\tnumDerivedInHGDeleterious\tnumHeterInHGDeleterious\tsubgenome");
             bw.newLine();
@@ -423,7 +423,7 @@ public class LoadGO {
     public static void normalizedTriadByAncestralNum(File inputFile, String outDir){
         String fileName=inputFile.getName().replaceAll("triad", "triad.normalized");
         try (BufferedReader br = IOTool.getReader(inputFile);
-             BufferedWriter bw =IOTool.getTextWriter(new File(outDir, fileName))) {
+             BufferedWriter bw =IOTool.getWriter(new File(outDir, fileName))) {
             bw.write("TriadID\tnormalizedNumDerivedInSynA" +
                     "\tnormalizedNumDerivedInSynB\tnormalizedNumDerivedInSynD\tsynRegion" +
                     "\tnormalizedNumDerivedInNonsynA" +
@@ -539,7 +539,7 @@ public class LoadGO {
         BufferedWriter bw;
         int[] cdsLen;
         try {
-            bw=IOTool.getTextWriter(new File(outDir, taxon + ".triad.txt.gz"));
+            bw=IOTool.getWriter(new File(outDir, taxon + ".triad.txt.gz"));
             bw.write("TriadID\tcdsLen\tGeneName\tnumSyn\tnumDerivedInSyn\tnumNonsyn\tnumDerivedInNonsyn" +
                     "\tnumHGDeleterious\tnumDerivedInHGDeleterious\tsubgenome");
             bw.newLine();
@@ -599,7 +599,7 @@ public class LoadGO {
         File outFile=new File(outDir, tetraploidName+"."+diploidName+".triad.txt.gz");
         try (BufferedReader brDiploid = IOTool.getReader(diploidFile);
              BufferedReader brTetraploid = IOTool.getReader(tetraploidFile);
-             BufferedWriter bw =IOTool.getTextWriter( outFile)) {
+             BufferedWriter bw =IOTool.getWriter( outFile)) {
             String line, header;
             List<String> temp;
             header=brDiploid.readLine();

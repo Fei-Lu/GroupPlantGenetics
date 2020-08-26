@@ -88,7 +88,7 @@ public class GeneSummaryUtils {
                 count[7]++;
             }
         }
-        try (BufferedWriter bw = IOTool.getTextWriter(outFile)) {
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
             StringBuilder sb;
             bw.write("model\tcount");
             bw.newLine();
@@ -161,7 +161,7 @@ public class GeneSummaryUtils {
             nonsynCount[i]=getCount(tables[i], 8);
             synCount[i]=getCount(tables[i], 6);
         }
-        try (BufferedWriter bw = IOTool.getTextWriter(outFile)) {
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
             bw.write("model\tdelCount\tnonsynCount\tsynCount\tgroup");
             bw.newLine();
             String[] models={"M000","M100","M010","M001","M110","M101","M011","M111"};

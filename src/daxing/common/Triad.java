@@ -190,7 +190,7 @@ public class Triad {
         int[] posArray;
         StringBuilder sb=new StringBuilder();
         Map<String,String> posRecombinationMap;
-        try (BufferedWriter bw = IOTool.getTextWriter(outFile)) {
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
             bw.write("TriadID\tChr\tPos\tRecombinationRate");
             bw.newLine();
             String recombination;
@@ -262,7 +262,7 @@ public class Triad {
      */
     public static void transformTriadPos(String triadPosFile, String outFile){
         try (BufferedReader br = IOTool.getReader(triadPosFile);
-             BufferedWriter bw = IOTool.getTextWriter(outFile)) {
+             BufferedWriter bw = IOTool.getWriter(outFile)) {
             String line, subgenomePos;
             List<String> tempA, tempB, tempD;
             String header=br.readLine();
@@ -316,7 +316,7 @@ public class Triad {
     public static void recombinationRatePopMeanLoad(String triadPosFile, String popMeanLoadFile, String outFile){
         try (BufferedReader brTriadPos = IOTool.getReader(triadPosFile);
              BufferedReader brPopMeanLoad = IOTool.getReader(popMeanLoadFile);
-             BufferedWriter bw = IOTool.getTextWriter(outFile)) {
+             BufferedWriter bw = IOTool.getWriter(outFile)) {
             brTriadPos.readLine();
             bw.write("TriadID\taabbPopMeanLoadHexaploid\taabbddPopMeanLoadHexaploid\trecombinationRate");
             bw.newLine();
@@ -367,7 +367,7 @@ public class Triad {
      */
     public static void triadRecombinationRateModel(String triadPosFile, String triadPosRegionFile){
         try (BufferedReader br = IOTool.getReader(triadPosFile);
-             BufferedWriter bw =IOTool.getTextWriter(triadPosRegionFile)) {
+             BufferedWriter bw =IOTool.getWriter(triadPosRegionFile)) {
             br.readLine();
             bw.write("TriadID\tA\tB\tD\tRegion");
             bw.newLine();
@@ -504,7 +504,7 @@ public class Triad {
                                                                     String triadLoadRecombinationRegionOutFile){
         try (BufferedReader brLoad = IOTool.getReader(nonsynGlobalIndividualFile);
              BufferedReader brRecombination= IOTool.getReader(triadRecombinationRateRegionFile);
-             BufferedWriter bw = IOTool.getTextWriter(triadLoadRecombinationRegionOutFile)) {
+             BufferedWriter bw = IOTool.getWriter(triadLoadRecombinationRegionOutFile)) {
             brLoad.readLine();
             brRecombination.readLine();
             bw.write("TriadID\tLoadA\tLoadB\tLoadD\tLoadRegion\tRecombinationRateA\tRecombinationRateB" +
@@ -545,7 +545,7 @@ public class Triad {
                                                                     String taxonName){
         try (BufferedReader brLoad = IOTool.getReader(nonsynGlobalIndividualFile);
              BufferedReader brRecombination= IOTool.getReader(triadRecombinationRateRegionFile);
-             BufferedWriter bw = IOTool.getTextWriter(triadLoadRecombinationRegionOutFile)) {
+             BufferedWriter bw = IOTool.getWriter(triadLoadRecombinationRegionOutFile)) {
             String header=brLoad.readLine();
             List<String> taxonNames=PStringUtils.fastSplit(header);
             int index=taxonNames.indexOf(taxonName);
@@ -594,7 +594,7 @@ public class Triad {
         TDoubleArrayList aabb;
         TDoubleArrayList aabbdd;
         double loadA, loadB, loadD, sumAB, sumABD;
-        try (BufferedWriter bw = IOTool.getTextWriter(triadPopMeanLoadOutFile)) {
+        try (BufferedWriter bw = IOTool.getWriter(triadPopMeanLoadOutFile)) {
             bw.write("TriadID\taabbInHexaploid\taabbdd");
             bw.newLine();
             StringBuilder sb=new StringBuilder();
@@ -641,7 +641,7 @@ public class Triad {
         TDoubleArrayList aabb;
         TDoubleArrayList aabbdd;
         double loadA, loadB, loadD, sumAB, sumABD;
-        try (BufferedWriter bw = IOTool.getTextWriter(triadPopMeanLoadOutFile)) {
+        try (BufferedWriter bw = IOTool.getWriter(triadPopMeanLoadOutFile)) {
             bw.write("TriadID\taabbInHexaploid\taabbdd");
             bw.newLine();
             StringBuilder sb=new StringBuilder();

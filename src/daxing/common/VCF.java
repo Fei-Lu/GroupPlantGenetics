@@ -340,7 +340,7 @@ public class VCF {
         BufferedWriter bw;
         for (int i = 0; i < chrs.size(); i++) {
             int chr=Integer.parseInt(chrs.get(i));
-            bw=IOTool.getTextWriter(new File(outDir, "chr"+PStringUtils.getNDigitNumber(3, chr)+".txt"));
+            bw=IOTool.getWriter(new File(outDir, "chr"+PStringUtils.getNDigitNumber(3, chr)+".txt"));
             chrBufferedWriter.put(chrs.get(i), bw);
         }
         try (BufferedReader bufferedReader = IOTool.getReader(subgenomeFile)) {

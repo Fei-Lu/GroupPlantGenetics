@@ -236,7 +236,7 @@ public class SlidingWindowGo {
     private static void filter(File triadNeutralLoadFileInputFile, File outFile, int snpNumThresh,
                                int neutralNumThresh) {
         try (BufferedReader br = IOTool.getReader(triadNeutralLoadFileInputFile);
-             BufferedWriter bw = IOTool.getTextWriter(outFile)) {
+             BufferedWriter bw = IOTool.getWriter(outFile)) {
             String header = br.readLine();
             bw.write(header);
             bw.newLine();
@@ -285,7 +285,7 @@ public class SlidingWindowGo {
 
     private static void normalized(File inputFile, File outFile){
         try (BufferedReader br = IOTool.getReader(inputFile);
-             BufferedWriter bw =IOTool.getTextWriter(outFile)) {
+             BufferedWriter bw =IOTool.getWriter(outFile)) {
             bw.write("TriadID\tnormalizedNumDerivedInNonsynA" +
                     "\tnormalizedNumDerivedInNonsynB\tnormalizedNumDerivedInNonsynD\tnonsynRegion" +
                     "\tnormalizedNumDerivedInHGDeleteriousA\tnormalizedNumDerivedInHGDeleteriousB" +

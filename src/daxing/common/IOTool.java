@@ -36,13 +36,13 @@ public class IOTool extends IOUtils {
         return br;
     }
 
-    public static BufferedWriter getTextWriter(File file){
+    public static BufferedWriter getWriter(File file){
        if (file.getName().endsWith("gz")) return IOUtils.getTextGzipWriter(file.getAbsolutePath());
        return IOUtils.getTextWriter(file.getAbsolutePath());
     }
 
-    public static BufferedWriter getTextWriter(String file){
-        return getTextWriter(new File(file));
+    public static BufferedWriter getWriter(String file){
+        return getWriter(new File(file));
     }
 
     /**

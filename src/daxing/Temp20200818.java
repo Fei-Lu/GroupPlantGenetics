@@ -18,21 +18,21 @@ import java.util.stream.IntStream;
 public class Temp20200818 {
 
 //    public static void main(String[] args){
-//        String inputDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/003_retainTriad/005_hexaploid_test";
+//        String inputDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/005_test/001_hexaploid_test";
 //        String pgfFile="/Users/xudaxing/Documents/deleteriousMutation/001_vmap2.1Before20200525/002_analysis/014_deleterious/wheat_v1.1_Lulab_geneHC.pgf";
-//        String outDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/003_retainTriad/006_hexaploid_test_expected";
+//        String outDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/005_test/002_hexaploid_test_expected";
 //        addTriadPos(inputDir, pgfFile, outDir);
-
-//        String inputDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_retainTriad/006_hexaploid_test_expected";
-//        String outDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_retainTriad/009_retainTriadHexaploid_expected_pos_slidingWindow/001_triadPos";
-//        forSlidingWindow(inputDir, outDir);
 //
-//        String inputDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_retainTriad/009_retainTriadHexaploid_expected_pos_slidingWindow/001_triadPos";
-//        String outDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_retainTriad/009_retainTriadHexaploid_expected_pos_slidingWindow/002_slidWindow";
-//        String synNonDel="syn";
-//        splitChrAndSlidWindow(inputDir,outDir,"syn");
-//        splitChrAndSlidWindow(inputDir,outDir,"non");
-//        splitChrAndSlidWindow(inputDir,outDir,"del");
+////        String inputDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_retainTriad/006_hexaploid_test_expected";
+////        String outDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_retainTriad/009_retainTriadHexaploid_expected_pos_slidingWindow/001_triadPos";
+////        forSlidingWindow(inputDir, outDir);
+////
+////        String inputDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_retainTriad/009_retainTriadHexaploid_expected_pos_slidingWindow/001_triadPos";
+////        String outDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_retainTriad/009_retainTriadHexaploid_expected_pos_slidingWindow/002_slidWindow";
+////        String synNonDel="syn";
+////        splitChrAndSlidWindow(inputDir,outDir,"syn");
+////        splitChrAndSlidWindow(inputDir,outDir,"non");
+////        splitChrAndSlidWindow(inputDir,outDir,"del");
 //    }
 
     public static void splitChrAndSlidWindow(String inputDir, String outDir, String synNonDel){
@@ -94,7 +94,7 @@ public class Temp20200818 {
 
     public static void forSlidingWindow(File inputFile, String triadPosSubgenome, File outFile){
         try (BufferedReader br = IOTool.getReader(inputFile);
-             BufferedWriter bw =IOTool.getTextWriter(outFile)) {
+             BufferedWriter bw =IOTool.getWriter(outFile)) {
             String line;
             List<String> temp;
             br.readLine();
@@ -149,7 +149,7 @@ public class Temp20200818 {
     private static void addTriadPos(File inputFile, PGF pgf, File outFile){
         pgf.sortGeneByName();
         try (BufferedReader br = IOTool.getReader(inputFile);
-             BufferedWriter bw =IOTool.getTextWriter(outFile)) {
+             BufferedWriter bw =IOTool.getWriter(outFile)) {
             String line;
             String[] geneNames;
             List<String> temp;

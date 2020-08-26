@@ -160,7 +160,7 @@ public class ChrSNPAnnoDB {
     public void write(String outFile){
         StringBuilder sb=new StringBuilder();
         SNPAnnotation snpAnnotation;
-        try (BufferedWriter bw = IOTool.getTextWriter(outFile)) {
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
             bw.write("Chr\tPos");
             bw.newLine();
             for (int i = 0; i < snpAnnotationList.size(); i++) {

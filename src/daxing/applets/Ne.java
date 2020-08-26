@@ -33,7 +33,7 @@ public class Ne {
     public static void retainAncestralVmapII(File vcfFile, File ancestralFile, File outFile){
         Table<Integer, Integer, String> ancestral= getAncestral(ancestralFile.getAbsolutePath());
         try (BufferedReader brVCF = IOTool.getReader(vcfFile);
-             BufferedWriter bw=IOTool.getTextWriter(outFile)) {
+             BufferedWriter bw=IOTool.getWriter(outFile)) {
             String line;
             List<String> temp;
             while ((line=brVCF.readLine()).startsWith("##")){
@@ -98,7 +98,7 @@ public class Ne {
     public static void transformRefToAncestral(File vcfFile, File ancestralFile, File outFile){
         Table<Integer, Integer, String> ancestralTable=getAncestral(ancestralFile.getAbsolutePath());
         try (BufferedReader br = IOTool.getReader(vcfFile);
-             BufferedWriter bw=IOTool.getTextWriter(outFile)) {
+             BufferedWriter bw=IOTool.getWriter(outFile)) {
             String line, refAllele, ancestralAllele;
             List<String> temp;
             int chr, pos;

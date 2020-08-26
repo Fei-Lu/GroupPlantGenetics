@@ -34,7 +34,7 @@ public class PlotTools {
     public static void merge(String inputDir, String outFile){
         List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
         BufferedReader br;
-        BufferedWriter bw=IOTool.getTextWriter(outFile);
+        BufferedWriter bw=IOTool.getWriter(outFile);
         try {
             String line;
             List<String> temp;
@@ -235,7 +235,7 @@ public class PlotTools {
             binEnd[i]=binWidth*i+binWidth;
         }
         try (BufferedReader br = IOTool.getReader(inputFile);
-             BufferedWriter bw =IOTool.getTextWriter(outFile)) {
+             BufferedWriter bw =IOTool.getWriter(outFile)) {
             br.readLine();
             bw.write("BinID\tBinStart\tBinEnd\tBinNum\tBinRatio");
             bw.newLine();

@@ -32,7 +32,7 @@ public class IndividualTaxonDerivedProbability {
         Map<String,String> taxonTreeValidatedPloidyMap= RowTableTool.getMap(taxa_InfoDBFile,0, 14);
         Map<String, String> taxonSubspeciesMap=RowTableTool.getMap(taxa_InfoDBFile, 0, 15);
         Map<String, String> taxonFdBySubContinentMap=RowTableTool.getMap(taxa_InfoDBFile,0, 24);
-        try (BufferedWriter bw = IOTool.getTextWriter(outFile)) {
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
             bw.write("Taxon\tSub\tSynCount\tNonCount\tDelCount\tDerivedSynCount" +
                     "\tDerivedNonCount\tDerivedDelCount\tTreeValidatedPloidy\tSubspecies\tfdBySubContinent");
             bw.newLine();

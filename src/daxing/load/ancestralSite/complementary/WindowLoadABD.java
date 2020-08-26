@@ -32,7 +32,7 @@ public class WindowLoadABD {
                 brSyn=IOTool.getReader(files.get(2));
                 brNon=IOTool.getReader(fileList.get(1));
                 brDel=IOTool.getReader(fileList.get(0));
-                bw=IOTool.getTextWriter(new File(outDir, taxa[i]+".triadA.10M_window_1M_step.txt.gz"));
+                bw=IOTool.getWriter(new File(outDir, taxa[i]+".triadA.10M_window_1M_step.txt.gz"));
                 bw.write("Chr\tWindowStart\tWindowEnd\tTriadsNum\tMean_NormalizedTriadLoad_Syn" +
                         "\tMean_NormalizedTriadLoad_Non\tMean_NormalizedTriadLoad_Del");
                 bw.newLine();

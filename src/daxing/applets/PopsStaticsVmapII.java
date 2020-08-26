@@ -82,7 +82,7 @@ public class PopsStaticsVmapII {
         try (BufferedReader br1 = IOTool.getReader(fdFile);
              BufferedReader br2 =IOTool.getReader(fstFile);
              BufferedReader br3 =IOTool.getReader(piFile);
-             BufferedWriter bw = IOTool.getTextWriter(outFile)) {
+             BufferedWriter bw = IOTool.getWriter(outFile)) {
             br1.readLine();
             br2.readLine();
             br3.readLine();
@@ -162,7 +162,7 @@ public class PopsStaticsVmapII {
         try (BufferedReader brHexaploid1 = IOTool.getReader(hexaploidFile1);
              BufferedReader brHexaploid2 = IOTool.getReader(hexaploidFile2);
              BufferedReader br = IOTool.getReader(file3);
-             BufferedWriter bw = IOTool.getTextWriter(outFile)) {
+             BufferedWriter bw = IOTool.getWriter(outFile)) {
             brHexaploid1.readLine();
             brHexaploid2.readLine();
             br.readLine();
@@ -251,7 +251,7 @@ public class PopsStaticsVmapII {
                                       String pop){
         try (BufferedReader br1 = IOTool.getReader(fstFile1);
              BufferedReader br2 =IOTool.getReader(fstFile2);
-             BufferedWriter bw=IOTool.getTextWriter(outFile)) {
+             BufferedWriter bw=IOTool.getWriter(outFile)) {
             br1.readLine();
             br2.readLine();
             bw.write(header);
@@ -314,7 +314,7 @@ public class PopsStaticsVmapII {
                                      String pop){
         try (BufferedReader br1 = IOTool.getReader(fdFile1);
              BufferedReader br2 =IOTool.getReader(fdFile2);
-             BufferedWriter bw=IOTool.getTextWriter(outFile)) {
+             BufferedWriter bw=IOTool.getWriter(outFile)) {
             br1.readLine();
             br2.readLine();
             bw.write(header);

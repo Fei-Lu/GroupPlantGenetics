@@ -3,15 +3,10 @@ package daxing.applets;
 import daxing.common.*;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
-import htsjdk.samtools.util.IOUtil;
-import pgl.infra.table.ColumnTable;
-import pgl.infra.table.RowTable;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
-import smile.stat.Stat;
-import tech.tablesaw.columns.temporal.fillers.TemporalRangeIterable;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -76,7 +71,7 @@ public class Introgression {
         String[] p3Array={"WildEmmer","DomesticatedEmmer","FreeThreshTetraploid","Ae.tauschii"};
         List<String> p3List= Arrays.stream(p3Array).collect(Collectors.toList());
         try (BufferedReader bufferedReader = IOTool.getReader(treeByGroupFile);
-             BufferedWriter bufferedWriter=IOTool.getTextWriter(treeByGroup_p3ab)) {
+             BufferedWriter bufferedWriter=IOTool.getWriter(treeByGroup_p3ab)) {
             String header=bufferedReader.readLine();
             bufferedWriter.write(header);
             bufferedWriter.newLine();
@@ -132,7 +127,7 @@ public class Introgression {
         Predicate<PGF.Gene> hcGenePredict2= gene -> hcGeneList.contains(gene.getGeneName());
         pgf.removeIf(hcGenePredict2.negate());
         try (BufferedReader bufferedReader = IOTool.getReader(freqTable);
-             BufferedWriter bufferedWriter =IOTool.getTextWriter(outFile)) {
+             BufferedWriter bufferedWriter =IOTool.getWriter(outFile)) {
             String header=bufferedReader.readLine();
             bufferedWriter.write(header);
             bufferedWriter.newLine();
@@ -242,7 +237,7 @@ public class Introgression {
         int middleIndex=Integer.MIN_VALUE;
         String geneMiddlePos=null;
         String chr=null;
-        try (BufferedWriter bufferedWriter = IOTool.getTextWriter(outFile)) {
+        try (BufferedWriter bufferedWriter = IOTool.getWriter(outFile)) {
             StringBuilder sb=new StringBuilder();
             sb.append("chr\tgeneName\tstartPos\tendPos\tgeneMiddlePos\tsiteInWindow\t").append(getAB_Header());
             bufferedWriter.write(sb.toString());
@@ -320,7 +315,7 @@ public class Introgression {
         int middleIndex=Integer.MIN_VALUE;
         String geneMiddlePos=null;
         String chr=null;
-        try (BufferedWriter bufferedWriter = IOTool.getTextWriter(outFile)) {
+        try (BufferedWriter bufferedWriter = IOTool.getWriter(outFile)) {
             StringBuilder sb=new StringBuilder();
             sb.append("chr\tgeneName\tstartPos\tendPos\tgeneMiddlePos\tsiteInWindow\t").append(getD_Header());
             bufferedWriter.write(sb.toString());

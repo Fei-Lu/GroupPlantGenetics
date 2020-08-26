@@ -104,7 +104,7 @@ public class TriadGenotype {
     }
 
     public void writeModel(String outFile){
-        try (BufferedWriter bw = IOTool.getTextWriter(outFile)) {
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
 //            List<String> header=columnTableTool.getHeader();
             bw.write(String.join("\t", modelSorted));
             bw.newLine();
@@ -142,7 +142,7 @@ public class TriadGenotype {
         String[] na={"NA","NA","NA","NA","NA","NA","NA","NA"};
         StringBuilder sb;
         String triadID, highFitnessModel;
-        try (BufferedWriter bw = IOTool.getTextWriter(outFile)) {
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
             bw.write(header);
             bw.newLine();
             for (int i = 0; i < columnTable.getRowNumber(); i++) {
@@ -221,7 +221,7 @@ public class TriadGenotype {
         StringBuilder sb;
         String triadID, highLoadFrequency, highFitnessGenotypeLH;
         double[] selectionCoefficientLH;
-        try (BufferedWriter bw = IOTool.getTextWriter(outFile)) {
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
             bw.write(header);
             bw.newLine();
             for (int i = 0; i < columnTable.getRowNumber(); i++) {

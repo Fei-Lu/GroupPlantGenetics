@@ -188,7 +188,7 @@ public class ScriptMethods {
     public static void getAncestral(File inputFile, File ancestralFile, String subgenome){
         String[] acgt={"A","C","G","T"};
         try (BufferedReader bufferedReader = IOTool.getReader(inputFile);
-             BufferedWriter bufferedWriter=IOTool.getTextWriter(ancestralFile)) {
+             BufferedWriter bufferedWriter=IOTool.getWriter(ancestralFile)) {
             String line;
             List<String> temp, secer, hv;
             int chrID, pos, indexOfSecer, indexOfHv;
@@ -230,7 +230,7 @@ public class ScriptMethods {
             for (int i = 0; i < genoFiles.size(); i++) {
                 outFileName=genoFiles.get(i).getName().replaceAll("geno","exon.geon");
                 bufferedReader=IOTool.getReader(genoFiles.get(i));
-                bufferedWriter=IOTool.getTextWriter(new File(outDir, outFileName));
+                bufferedWriter=IOTool.getWriter(new File(outDir, outFileName));
                 header=bufferedReader.readLine();
                 bufferedWriter.write(header);
                 bufferedWriter.newLine();
@@ -293,7 +293,7 @@ public class ScriptMethods {
         try (BufferedReader bufferedReader = IOTool.getReader(groupFile);
              BufferedReader brDistTaxon=IOTool.getReader(distTaxonFile);
              BufferedReader bufferedReader1=IOTool.getReader(genomeFile);
-             BufferedWriter bufferedWriter =IOTool.getTextWriter(shOutFile)) {
+             BufferedWriter bufferedWriter =IOTool.getWriter(shOutFile)) {
             String line;
             List<String> temp;
             bufferedReader.readLine();
@@ -383,7 +383,7 @@ public class ScriptMethods {
         try (BufferedReader bufferedReader = IOTool.getReader(groupFile);
              BufferedReader brDistTaxon=IOTool.getReader(distTaxonFile);
              BufferedReader bufferedReader1=IOTool.getReader(genomeFile);
-             BufferedWriter bufferedWriter =IOTool.getTextWriter(new File(shOutDir, groupA+"."+groupB+".sh"))) {
+             BufferedWriter bufferedWriter =IOTool.getWriter(new File(shOutDir, groupA+"."+groupB+".sh"))) {
             String line;
             List<String> temp;
             bufferedReader.readLine();
@@ -509,10 +509,10 @@ public class ScriptMethods {
         }
         BufferedWriter[] bws=new BufferedWriter[numThreads];
         for (int i = 0; i < bws.length; i++) {
-            bws[i]=IOTool.getTextWriter(new File(files[0], "a"+PStringUtils.getNDigitNumber(3,i)+".sh"));
+            bws[i]=IOTool.getWriter(new File(files[0], "a"+PStringUtils.getNDigitNumber(3,i)+".sh"));
         }
         try (BufferedReader br = IOTool.getReader(inputSH);
-             BufferedWriter bw =IOTool.getTextWriter(new File(files[1], "oneScript.sh"))) {
+             BufferedWriter bw =IOTool.getWriter(new File(files[1], "oneScript.sh"))) {
             String line;
             int count=0;
             int index=0;
@@ -601,7 +601,7 @@ public class ScriptMethods {
         int chrID=StringTool.getNumFromString(file1.getName().substring(0,6));
         String filename=file1.getName().substring(6);
         String chr=RefV1Utils.getChromosome(chrID, 1);
-        try (BufferedWriter bw = IOTool.getTextWriter(new File(outDir, "chr" + chr + filename))) {
+        try (BufferedWriter bw = IOTool.getWriter(new File(outDir, "chr" + chr + filename))) {
             long numLine1=Files.lines(file1.toPath()).count();
             int num1=0;
             BufferedReader br1=IOTool.getReader(file1);
@@ -644,8 +644,8 @@ public class ScriptMethods {
 
     public static void vmap2_exon_ML_Parsimony(String exonSNP_annoFile, String outEst, String outpasimony){
         try (BufferedReader bufferedReader = IOTool.getReader(exonSNP_annoFile);
-             BufferedWriter bufferedWriter= IOTool.getTextWriter(outEst);
-             BufferedWriter bufferedWriter1 =IOTool.getTextWriter(outpasimony)) {
+             BufferedWriter bufferedWriter= IOTool.getWriter(outEst);
+             BufferedWriter bufferedWriter1 =IOTool.getWriter(outpasimony)) {
             bufferedReader.readLine();
             String line, estAncestral, pasimonyAncestral;
             List<String> temp;
@@ -691,7 +691,7 @@ public class ScriptMethods {
             bws=new BufferedWriter[7];
             for (int j = 0; j < bws.length; j++) {
                 int chr=j+1;
-                bws[j]=IOTool.getTextWriter(new File(outDir, "chr"+chr+abd[i]+".est.txt"));
+                bws[j]=IOTool.getWriter(new File(outDir, "chr"+chr+abd[i]+".est.txt"));
                 chrBRmaps.put(chr+abd[i], bws[j]);
             }
             br=IOTool.getReader(files.get(i));
@@ -744,8 +744,8 @@ public class ScriptMethods {
         Table<String, Integer, String> table=getTable(inputFile);
         List<File> files=IOUtils.getVisibleFileListInDir(estByRefChrDir);
         BufferedReader br;
-        BufferedWriter bw=IOTool.getTextWriter(outFileML);
-        BufferedWriter bw1=IOTool.getTextWriter(outFile);
+        BufferedWriter bw=IOTool.getWriter(outFileML);
+        BufferedWriter bw1=IOTool.getWriter(outFile);
         try {
             String line, chr;
             List<String> temp;
@@ -799,7 +799,7 @@ public class ScriptMethods {
         List<String> p2List=getColumn(p2File, 0);
         List<String> p3List=getColumn(p3File, 0);
         StringBuilder sb=new StringBuilder();
-        try (BufferedWriter bw = IOTool.getTextWriter(outSHFile)) {
+        try (BufferedWriter bw = IOTool.getWriter(outSHFile)) {
             String genoFile;
             for (int i = 0; i < filteredGeno.size(); i++) {
                 for (int j = 0; j < p2List.size(); j++) {

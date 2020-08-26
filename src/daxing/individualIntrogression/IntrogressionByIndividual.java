@@ -187,7 +187,7 @@ public class IntrogressionByIndividual {
             }
             windowP3Index[i]=miniIBSP3Index;
         }
-        try (BufferedWriter bw = IOTool.getTextWriter(outFile)) {
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
             bw.write("chr,start,end,mid,sites,sitesUsed,ABBA,BABA,D,fd,fdM,MiniIBSP3");
             bw.newLine();
             List<String> line;

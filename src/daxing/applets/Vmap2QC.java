@@ -196,7 +196,7 @@ public class Vmap2QC {
             BufferedWriter[] bws=new BufferedWriter[3];
             String[] abd={"A","B","D"};
             for (int i = 0; i < bws.length; i++) {
-                bws[i]=IOTool.getTextWriter(new File(outDir, "chr_"+abd[i]+".dxy.vmap2.1.vcf.gz"));
+                bws[i]=IOTool.getWriter(new File(outDir, "chr_"+abd[i]+".dxy.vmap2.1.vcf.gz"));
             }
             while ((line=bufferedReader.readLine()).startsWith("##")){
                 for (int i = 0; i < bws.length; i++) {

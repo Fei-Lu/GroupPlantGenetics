@@ -246,7 +246,7 @@ public class RowTableTool<T> extends RowTable<T> {
         if (outFile.endsWith("gz")){
             bw=IOTool.getTextGzipWriter(outFile);
         }else {
-            bw=IOTool.getTextWriter(outFile);
+            bw=IOTool.getWriter(outFile);
         }
         String line;
         StringBuilder sb;
