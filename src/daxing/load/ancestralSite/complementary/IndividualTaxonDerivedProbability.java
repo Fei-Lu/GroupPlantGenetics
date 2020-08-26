@@ -53,7 +53,7 @@ public class IndividualTaxonDerivedProbability {
                 treeValidatedPloid=taxonTreeValidatedPloidyMap.get(taxonName);
                 subspecies=taxonSubspeciesMap.get(taxonName);
                 fdBySubContinent=taxonFdBySubContinentMap.get(taxonName);
-                int subNum=ploidy.getSubgenomowNum();
+                int subNum=ploidy.getSubgenomewNum();
                 totalNumSyn=new int[subNum];
                 totalNumNon=new int[subNum];
                 totalNumDel=new int[subNum];
