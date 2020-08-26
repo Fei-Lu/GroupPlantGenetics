@@ -1,6 +1,7 @@
 package xiaohan.wheatRNAseq;
 
 import pgl.infra.utils.IOUtils;
+import pgl.infra.utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -22,23 +23,264 @@ public class test {
 
     public test() throws IOException {
 //        this.mkPosGeneMap();
-//        this.wordList();
 //        this.writecode();
 //        this.decimals();
-        this.clonefiles();
+//        this.clonefiles();
 //        this.posAllele();
 //        this.NewFile();
+//        this.readFile();
+//        this.countTable();
+//        this.forfun();
+//        this.test();
+        this.test1();
+//        this.refGene();
     }
 
     /**
      * @throws IOException
      */
 
+    public void refGene() {
+        String infile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/wheat_v1.1_Lulab.gff3";
+        String outputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/";
+        BufferedReader br = IOUtils.getTextReader(infile);
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, "refegeneWheat.txt").getAbsolutePath());
+        String temp = null;
+        String[] temps = null;
+        String mRNA = null;
+        int exonNumber = 0;
+        int CDS = 1;
+        StringBuilder sb1 = new StringBuilder();
+        StringBuilder sb2 = new StringBuilder();
+        String start = null;
+        String end = null;
+        int count = 0;
+        try {
+            while ((temp = br.readLine()) != null) {
+                if (temp.startsWith("##") && !temp.equals("###")) continue;
+                if (!temp.startsWith("###")) {
+                    temps = temp.split("\t");
+                    if (temps[2].equals("gene")) {
+                        String name = temps[8].split(";")[0].replace("ID=", "");
+                        bw.write(name + "\t" + name + "\t" + temps[0] + "\t" + temps[7] + "\t");
+                        continue;
+                    }
+                    if (temps[2].equals("mRNA") && mRNA == null) {
+                        bw.write(temps[3] + "\t" + temps[4] + "\t");
+                        mRNA = "mRNA";
+                        continue;
+                    }
+                    if (temps[2].equals("CDS") & CDS == 1) {
+                        start = temps[3];
+                        end = temps[4];
+                        CDS++;
+                        continue;
+                    }
+                    if (temps[2].equals("CDS") & CDS > 1) {
+                        start = start;
+                        end = temps[4];
+                        CDS++;
+                        continue;
+                    }
+                    if (temps[2].equals("exon")) {
+                        exonNumber++;
+                        sb1.append(temps[3] + ",");
+                        sb2.append(temps[4] + ",");
+                        continue;
+                    }
+                    continue;
+                } else if (temp.startsWith("###")) {
+                    System.out.println(temp);
+                    count++;
+                    System.out.println(count);
+                    bw.write(start + "\t" + end + "\t" + exonNumber + "\t" + sb1.toString() + "\t" + sb2.toString());
+                    bw.newLine();
+                    mRNA = null;
+                    exonNumber = 0;
+                    CDS = 1;
+                    start = null;
+                    end = null;
+                    sb1.replace(0, sb1.length(), "");
+                    sb2.replace(0, sb2.length(), "");
+                    continue;
+                } else {
+                    continue;
+                }
+
+            }
+            br.close();
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void test1() {
+        for (int i = 0; i < 42; i++) {
+            int chr = i + 1;
+            System.out.println("nohup rvtest --inVcf /data2/xiaohan/genotype_root/genotype_rootMaf005/87B18.chr" + chr + ".maf005.vcf.gz  --pheno /data1/home/xiaohan/rareallele/RVtest/phenoDir/S7.ped --geneFile /data1/home/xiaohan/rareallele/RVtest/geneFile/refegeneWheat.txt  --kernel skat,kbac --out chr" + chr + " &");
+        }
+    }
+
+    public void test() {
+        String infile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/tall.txt";
+        String outputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/";
+        String Samplename = "B18-E007,B18-E008,B18-E011,B18-E014,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E038,B18-E043,B18-E046,B18-E049,B18-E051,B18-E052,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E083,B18-E087,B18-E089,B18-E097,B18-E099,B18-E118,B18-E124,B18-E127,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E227,B18-E228,B18-E233,B18-E237,B18-E242,B18-E245,B18-E252,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E355,B18-E356,B18-E357";
+        String[] names = Samplename.split(",");
+        HashMap nametall = new HashMap();
+        String temp = null;
+        String[] temps = null;
+        BufferedReader br = IOUtils.getTextReader(infile);
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, "S7.txt").getAbsolutePath());
+        try {
+            while ((temp = br.readLine()) != null) {
+                temps = temp.split("\t");
+                nametall.put(temps[0], temps[1]);
+            }
+            for (int i = 0; i < names.length; i++) {
+                bw.write(names[i] + "\t" + nametall.get(names[i]));
+                bw.newLine();
+            }
+            br.close();
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void forfun() {
+        String infile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7/SNPsite/allSNPsite.txt";
+        BufferedReader br = IOUtils.getTextReader(infile);
+        String outputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7/SNPsite/";
+        String temp = null;
+        String[] temps = null;
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, "SNPsite.txt").getAbsolutePath());
+        try {
+            while ((temp = br.readLine()) != null) {
+                temps = temp.split("\t");
+                bw.write("SNP_" + temps[0] + "_" + temps[1] + "\t" + temps[0] + "\t" + temps[1]);
+                bw.newLine();
+            }
+            br.close();
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void countTable() {
+        String outputDirS = "/data1/home/xiaohan/rareallele/SiPASpipeline/20200527/Truseq/output/temp/";
+//        String[] subDirS = {};
+        String[] subDirS = {"subFastqs", "sams", "geneCount", "countTable"};
+        String geneAnnotationFileS = "/data1/home/xiaohan/rareallele/SiPASpipeline/reference/ERCC92.gtf";
+        List<String> nameList = new ArrayList<>();
+        List<String> fileList = new ArrayList<>();
+        String subCountDirS = new File(outputDirS, subDirS[2]).getAbsolutePath();
+        File[] fs = new File(subCountDirS).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, "Count.txt");
+        List<File> fList = Arrays.asList(fs);
+        for (int i = 0; i < fList.size(); i++) {
+            fileList.add(fList.get(i).getName().replace("Count.txt", ""));
+        }
+        Collections.sort(fileList);
+        int geneNumber = 0;
+        String geneName = null;
+        ArrayList<String> geneList = new ArrayList();
+        try {
+            BufferedReader br = IOUtils.getTextReader(geneAnnotationFileS);
+            String temp = null;
+            String[] tem = null;
+            while ((temp = br.readLine()) != null) {
+                List<String> tList = PStringUtils.fastSplit(temp);
+                tem = tList.toArray(new String[tList.size()]);
+                if (tem[2].startsWith("CDS")) continue;
+                if (tem[2].startsWith("exon")) {
+                    String[] te = tem[8].split(";");
+                    geneName = te[1].split("\"")[1].substring(0, te[1].split("\"")[1].length());
+                    if (!(geneList.contains(geneName))) {
+                        geneList.add(geneName);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        int[][] count = new int[geneList.size()][fList.size()];
+        fList.stream().forEach(f -> {
+            String temp = null;
+            String[] tem = null;
+            try {
+                BufferedReader br = IOUtils.getTextReader(f.getAbsolutePath());
+                while ((temp = br.readLine()) != null) {
+                    List<String> tList = PStringUtils.fastSplit(temp);
+                    tem = tList.toArray(new String[tList.size()]);
+//                      if(tem[0].startsWith("TraesCS")){
+                    if (!tem[0].startsWith("__")) {
+                        if (!nameList.contains(tem[0])) {
+                            nameList.add(tem[0]);
+                        }
+                        int index = nameList.indexOf(tem[0]);
+                        count[index][fileList.indexOf(f.getName().replace("Count.txt", ""))] = Integer.parseInt(tem[1]);
+                    }
+                }
+
+            } catch (Exception ex) {
+                System.out.println(tem[0] + "\t1234");
+                ex.printStackTrace();
+
+            }
+        });
+        File subDir = new File(outputDirS, subDirS[3]);
+        String outputFileS = new File(subDir, "countResult.txt").getAbsolutePath();
+        try {
+            StringBuilder sb = new StringBuilder();
+            BufferedWriter bw = IOUtils.getTextWriter(new File(outputFileS).getAbsolutePath());
+            sb.append("Gene" + "\t");
+            for (int i = 0; i < fileList.size(); i++) {
+                sb.append(fileList.get(i) + "\t");
+            }
+            bw.write(sb.toString());
+            bw.newLine();
+            for (int i = 0; i < count.length; i++) {
+                sb = new StringBuilder();
+                for (int j = 0; j < fileList.size(); j++) {
+                    if (j == 0) {
+                        sb.append(nameList.get(i) + "\t");
+                    }
+                    sb.append(count[i][j] + "\t");
+                }
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void readFile() {
+        String infile = "/Users/yxh/Desktop/Untitled.rtf";
+        BufferedReader br = IOUtils.getTextReader(infile);
+        String temp = null;
+        try {
+            while ((temp = br.readLine()) != null) {
+                System.out.println(temp);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void NewFile() {
         String outputDirS = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/hapscanner/outputDir";
         for (int i = 0; i < 42; i++) {
             int chrNumber = i + 1;
-            new File(outputDirS, "output_chr"+chrNumber).mkdir();
+            new File(outputDirS, "output_chr" + chrNumber).mkdir();
 
         }
     }
@@ -112,21 +354,31 @@ public class test {
             }
             while ((temp = br.readLine()) != null) {
 //                if (temp.startsWith(prefix)) {
-                    for (int i = 0; i < bw.length; i++) {
-                        int chrNumber = i + 2;
-                        System.out.print(chrNumber);
-                        String temp1 = temp.replace("chr1", "chr" + chrNumber);
-                        System.out.println(temp1);
-                        bw[i].write(temp1);
-                        bw[i].newLine();
-//                    }
-//                } else {
+                for (int i = 0; i < bw.length; i++) {
+                    int chrNumber = i + 2;
+                    System.out.print(chrNumber);
+                    String temp1 = temp.replace("chr1", "chr" + chrNumber);
+                    System.out.println(temp1);
+                    bw[i].write(temp1);
+                    bw[i].newLine();
+                }
+//                } else if (temp.startsWith("1")){
+//                    for(int i = 0;i< bw.length;i++){
+//                        System.out.println(temp);
+//                        int chrNumber = i+2;
+//                        String temp1 = temp.replace("1",chrNumber+"");
+//                        bw[i].write(String.valueOf(temp1));
+////                        bw[i].write("10");
+//                        bw[i].newLine();
+            }
+//                } 
+//                else {
 //                    for (int i = 0; i < bw.length; i++) {
 //                        bw[i].write(temp);
 //                        bw[i].newLine();
 //                    }
-                }
-            }
+//                }
+//            }
             br.close();
             for (int i = 0; i < bw.length; i++) {
                 bw[i].flush();
@@ -169,10 +421,25 @@ public class test {
 //        for (int i = 0; i < Samplenames.length; i++) {
 //            System.out.println(Samplenames[i]);
 //        }
-        for (int i = 0; i < 42; i++) {
-            int chrNumber = i + 1;
-            System.out.println("nohup java -Xmx10g -jar TIGER.jar -a HapScanner -p /data1/home/xiaohan/rareallele/Hapscanner/inputfile/parameter/parameters_hapScanner_chr" + chrNumber + ".txt > log" + chrNumber + ".txt &");
-        }
+//        for (int i = 1; i < 9; i++) {
+//            int chrNumber = i + 1;
+//            System.out.println("nohup java -Xmx10g -jar TIGER.jar -a HapScanner -p /data1/home/xiaohan/rareallele/Hapscanner/inputfile/parameter/parameters_hapScanner_chr" + chrNumber + ".txt > log.txt &");
+//            System.out.println("nohup vcftools --vcf /data1/home/xiaohan/rareallele/Hapscanner/outputDir/VCF/chr0"+i+".vcf --max-missing 0.1 --out /data1/home/xiaohan/rareallele/Hapscanner/outputDir/RNAgenotype/chr0"+i+".vcf &" );
+//            System.out.println("nohup vcftools --gzvcf /data2/junxu/genotype/"+i+".346.B18.recode.vcf.gz --maf 0 --max-maf 0.05 --out /data2/xiaohan/genotypeMaf005/346B18.chr00"+i+".maf005 --recode && bgzip /data2/xiaohan/genotypeMaf005/346B18.chr00"+i+".maf005.recode.vcf &");
+        HashSet p1 = new HashSet();
+        HashSet p2 = new HashSet();
+        p1.add("qitiandasheng");
+        p1.add("sunwukong");
+        p2.add("sunwukong");
+        p2.add("bimawen");
+        HashSet set = new HashSet();
+        set.add(p1);
+        p1.retainAll(p2);
+        System.out.println(p1.isEmpty());
+        System.out.print(p1);
+        System.out.print(set);
+//        }
+
     }
 
     public void mkPosGeneMap() {

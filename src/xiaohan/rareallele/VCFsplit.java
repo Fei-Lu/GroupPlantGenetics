@@ -2,16 +2,114 @@ package xiaohan.rareallele;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class VCFsplit {
 
-    public VCFsplit(){
-        this.split();
+    public VCFsplit() {
+//        this.split();
+        this.splitGerp();
     }
 
-    public void split(){
+    public void splitGerp() {
+        String positionFileS =
+                "1	0	471304005	chr1A	0	471304005\n" +
+                        "3	0	438720154	chr1B	0	438720154\n" +
+                        "5	0	452179604	chr1D	0	452179604\n" +
+                        "7	0	462376173	chr2A	0	462376173\n" +
+                        "9	0	453218924	chr2B	0	453218924\n" +
+                        "11	0	462216879	chr2D	0	462216879\n" +
+                        "13	0	454103970	chr3A	0	454103970\n" +
+                        "15	0	448155269	chr3B	0	448155269\n" +
+                        "17	0	476235359	chr3D	0	476235359\n" +
+                        "19	0	452555092	chr4A	0	452555092\n" +
+                        "21	0	451014251	chr4B	0	451014251\n" +
+                        "23	0	451004620	chr4D	0	451004620\n" +
+                        "25	0	453230519	chr5A	0	453230519\n" +
+                        "27	0	451372872	chr5B	0	451372872\n" +
+                        "29	0	451901030	chr5D	0	451901030\n" +
+                        "31	0	452440856	chr6A	0	452440856\n" +
+                        "33	0	452077197	chr6B	0	452077197\n" +
+                        "35	0	450509124	chr6D	0	450509124\n" +
+                        "37	0	450046986	chr7A	0	450046986\n" +
+                        "39	0	453822637	chr7B	0	453822637\n" +
+                        "41	0	453812268	chr7D	0	453812268\n";
+        HashMap<String, Integer> ChromosomeMap = new HashMap<>();
+        HashMap<String, Integer> ChromosomeLength = new HashMap<>();
+        String[] temps = positionFileS.split("\n");
+        String[] temp = null;
+        for (int i = 0; i < temps.length; i++) {
+            temp = temps[i].split("\t");
+            ChromosomeMap.put(temp[3], Integer.parseInt(temp[0]));
+            ChromosomeLength.put(temp[3], Integer.parseInt(temp[5]));
+        }
+        String infileDir = "/data2/xiaohan/Gerp2";
+        String outputDir = "/data2/xiaohan/Gerp2/chr";
+        File[] fs = new File(infileDir).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, ".gz");
+        HashSet<String> nameSet = new HashSet();
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) continue;
+            String Name = fs[i].getName().split("\\.")[0];
+            nameSet.add(Name);
+            System.out.println(Name);
+        }
+        nameSet.stream().forEach(f -> {
+            try {
+                BufferedReader br = IOUtils.getTextGzipReader(new File(infileDir, f + ".bed.gz").getAbsolutePath());
+                String temp1 = null;
+                String[] temps1 = null;
+                BufferedWriter[] bw = new BufferedWriter[2];
+                String name = "chr"+f.toString();
+                System.out.println(name);
+                int number = ChromosomeMap.get(name);
+                int number1 = number +1;
+                System.out.println(number);
+                bw[0] = IOUtils.getTextWriter(new File(outputDir, "chr" + number + ".bed").getAbsolutePath());
+                bw[1] = IOUtils.getTextWriter(new File(outputDir, "chr" + number1 + ".bed").getAbsolutePath());
+                while ((temp1 = br.readLine()) != null) {
+                    temps1 = temp1.split("\t");
+                    String chrABD = "chr" + temps1[0];
+                    int chrNumber = ChromosomeMap.get(chrABD);
+                    int position = Integer.parseInt(temps1[1]);
+                    if (ChromosomeLength.get(chrABD) >= position) {
+                        bw[0].write(number+"\t");
+                        bw[0].write(temps1[1]+"\t"+temps1[2]+"\t"+temps1[3]+"\t"+temps1[4]);
+                        bw[0].newLine();
+                    } else if (ChromosomeLength.get(chrABD) <= position) {
+                        int pos = position - ChromosomeLength.get(chrABD);
+                        int pos1 = pos +1;
+                        bw[1].write(number1+"\t"+pos+"\t"+pos1+"\t"+temps1[3]+"\t"+temps1[4]);
+                        bw[1].newLine();
+                    }
+                }
+                br.close();
+                bw[0].flush();bw[0].close();
+                bw[1].flush();bw[1].close();
+                System.out.println("Finished split file "+ f);
+                StringBuilder sb = new StringBuilder();
+                sb.append("bgzip chr"+ number +".bed"+" && bgzip chr"+ number1 +".bed");
+                String command = sb.toString();
+                try {
+                    File dir = new File(new File(outputDir).getAbsolutePath());
+                    String[] cmdarry = {"/bin/bash", "-c", command};
+                    Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+                    p.waitFor();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+
+    }
+
+
+    public void split() {
         String positionFileS =
                 "1	0	471304005	chr1A	0	471304005\n" +
                         "2	0	122798051	chr1A	471304005	594102056\n" +
@@ -56,14 +154,14 @@ public class VCFsplit {
                         "41	0	453812268	chr7D	0	453812268\n" +
                         "42	0	184873787	chr7D	453812268	638686055";
 
-        HashMap<Integer,Integer> ChromosomeMap = new HashMap<Integer, Integer>();
-        HashMap<Integer,Integer> ChromosomeLength = new HashMap<Integer, Integer>();
+        HashMap<Integer, Integer> ChromosomeMap = new HashMap<Integer, Integer>();
+        HashMap<Integer, Integer> ChromosomeLength = new HashMap<Integer, Integer>();
         String[] temps = positionFileS.split("\n");
         String[] temp = null;
-        for (int i = 0; i < temps.length; i ++){
+        for (int i = 0; i < temps.length; i++) {
             temp = temps[i].split("\t");
-            ChromosomeMap.put(Integer.parseInt(temp[0]),Integer.parseInt(temp[5]));
-            ChromosomeLength.put(Integer.parseInt(temp[0]),Integer.parseInt(temp[4]));
+            ChromosomeMap.put(Integer.parseInt(temp[0]), Integer.parseInt(temp[5]));
+            ChromosomeLength.put(Integer.parseInt(temp[0]), Integer.parseInt(temp[4]));
         }
         try {
             String infile = "/Users/yxh/Documents/RareAllele/004test/test/genotype20200115.txt";
@@ -71,42 +169,43 @@ public class VCFsplit {
             BufferedWriter bw;
             bw = IOUtils.getTextWriter("/Users/yxh/Documents/RareAllele/004test/test/genotype-2.txt");
             String temp1 = null;
-            while ((temp1 = br.readLine())!= null){
-                if(temp1.startsWith("#")) {
+            while ((temp1 = br.readLine()) != null) {
+                if (temp1.startsWith("#")) {
                     //System.out.println(temp1);
-                    bw.write(temp1);bw.newLine();
+                    bw.write(temp1);
+                    bw.newLine();
                     continue;
                 }
                 String[] temp2 = temp1.split("\t");
                 int chr = Integer.parseInt(temp2[0]);
-                int chrNumber = chr*2 - 1;
+                int chrNumber = chr * 2 - 1;
                 int position = Integer.parseInt(temp2[1]);
-                if (ChromosomeMap.get(chrNumber) >= position)
-                {
+                if (ChromosomeMap.get(chrNumber) >= position) {
                     chr = chrNumber;
                     position = position;
-                    String name = "SNP_"+String.valueOf(chr)+"_"+String.valueOf(position);
+                    String name = "SNP_" + String.valueOf(chr) + "_" + String.valueOf(position);
                     StringBuffer sb = new StringBuffer();
-                    sb.append(chr+"\t"+position+"\t"+name + "\t");
-                    for (int i = 3; i < temp2.length ; i++) {
+                    sb.append(chr + "\t" + position + "\t" + name + "\t");
+                    for (int i = 3; i < temp2.length; i++) {
                         sb.append(temp2[i]);
                         sb.append("\t");
                     }
                     //System.out.println(sb.toString());
-                    bw.write(sb.toString());bw.newLine();
+                    bw.write(sb.toString());
+                    bw.newLine();
                     continue;
-                }
-                else if(ChromosomeMap.get(chrNumber) <= position){
+                } else if (ChromosomeMap.get(chrNumber) <= position) {
                     chr = chrNumber + 1;
-                    position = position-ChromosomeLength.get(chrNumber+1);
-                    String name = "SNP_"+String.valueOf(chr)+"_"+String.valueOf(position);
+                    position = position - ChromosomeLength.get(chrNumber + 1);
+                    String name = "SNP_" + String.valueOf(chr) + "_" + String.valueOf(position);
                     StringBuffer sb = new StringBuffer();
-                    sb.append(chr+"\t"+position+"\t"+name + "\t");
-                    for (int i = 3; i < temp2.length ; i++) {
+                    sb.append(chr + "\t" + position + "\t" + name + "\t");
+                    for (int i = 3; i < temp2.length; i++) {
                         sb.append(temp2[i]);
                         sb.append("\t");
                     }
-                    bw.write(sb.toString());bw.newLine();
+                    bw.write(sb.toString());
+                    bw.newLine();
                     continue;
                 }
             }
@@ -116,8 +215,8 @@ public class VCFsplit {
             e.printStackTrace();
         }
     }
-    
-    public static void main (String[] args){
+
+    public static void main(String[] args) {
         new VCFsplit();
     }
 }
