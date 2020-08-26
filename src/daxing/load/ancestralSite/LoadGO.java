@@ -12,8 +12,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class LoadGO {
@@ -27,7 +25,7 @@ public class LoadGO {
         go(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, triadFile, outDir);
     }
 
-    public static void go(String exonSNPAnnoDir, String exonVCFDir, String vmapIIGroupFile, String triadFile, String outDir){
+    public static void go(String exonSNPAnnoDir, String exonVCFDir, String taxa_InfoDBFile, String triadFile, String outDir){
         System.out.println(DateTime.getDateTimeOfNow());
         String[] subdir={"001_count","002_countMerge","003_retainTriad","004_standardization"};
         for (int i = 0; i < subdir.length; i++) {
@@ -35,11 +33,12 @@ public class LoadGO {
         }
         List<File> exonAnnoFiles=IOUtils.getVisibleFileListInDir(exonSNPAnnoDir);
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
-        Map<String, File> taxonOutDirMap=getTaxonOutDirMap(vmapIIGroupFile, new File(outDir, subdir[0]).getAbsolutePath());
-        IntStream.range(0, exonVCFFiles.size()).forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
+        Map<String, File> taxonOutDirMap=getTaxonOutDirMap(taxa_InfoDBFile, new File(outDir, subdir[0]).getAbsolutePath());
+        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
                 taxonOutDirMap, e+1));
-        merge(new File(outDir, subdir[0]).getAbsolutePath(), vmapIIGroupFile, new File(outDir, subdir[1]).getAbsolutePath());
-        retainTriad(triadFile, new File(outDir, subdir[1]).getAbsolutePath(), new File(outDir, subdir[2]).getAbsolutePath());
+        merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
+        retainTriad(triadFile, taxa_InfoDBFile, new File(outDir, subdir[1]).getAbsolutePath(),
+                new File(outDir, subdir[2]).getAbsolutePath());
 //        normalizedTriadByAncestralNum(new File(outDir, subdir[2]).getAbsolutePath(), new File(outDir, subdir[3]).getAbsolutePath());
     }
 
@@ -119,25 +118,32 @@ public class LoadGO {
         return taxonOutDirMap;
     }
 
-    public static void merge(String inputDir, String vmapIIGroupFile, String outDir){
+    public static void merge(String inputDir, String outDir){
         List<File> dirs=IOUtils.getDirListInDir(inputDir);
-        RowTableTool<String> table=new RowTableTool<>(vmapIIGroupFile);
-        Map<String,String> taxonGroupMap=table.getHashMap(0, 14);
-        Predicate<File> p_diploid= f->taxonGroupMap.get(f.getName()).equals("Ae.tauschii");
+//        RowTableTool<String> table=new RowTableTool<>(vmapIIGroupFile);
+//        Map<String,String> taxonGroupMap=table.getHashMap(0, 14);
+//        String[] subDirs={"001_diploidCountMerge","002_tetraploidCountMerge","003_hexaploidCountMerge"};
+//        File[] outFiles=new File[subDirs.length];
+//        for (int i = 0; i < subDirs.length; i++) {
+//            outFiles[i]=new File(outDir, subDirs[i]);
+//            outFiles[i].mkdir();
+//        }
+//        Predicate<File> p_diploid= f->taxonGroupMap.get(f.getName()).equals("Ae.tauschii");
 //        Predicate<File> p_tetraploid= f->taxonGroupMap.get(f.getName()).equals("Tetraploid");
 //        Predicate<File> p_hexaploid= f->taxonGroupMap.get(f.getName()).equals("Hexaploid");
-        List<File> ldCl=dirs.stream().filter(p_diploid).collect(Collectors.toList());
+//        List<File> ldCl=dirs.stream().filter(p_diploid).collect(Collectors.toList());
         List<File> temp;
         RowTableTool<String> tableTool;
         String outName;
-        for (int i = 0; i < ldCl.size(); i++) {
-            temp= IOUtils.getVisibleFileListInDir(ldCl.get(i).getAbsolutePath());
+        for (int i = 0; i < dirs.size(); i++) {
+            temp= IOUtils.getVisibleFileListInDir(dirs.get(i).getAbsolutePath());
             tableTool=new RowTableTool<>(temp.get(0).getAbsolutePath());
             outName= PStringUtils.fastSplit(temp.get(0).getName(), ".").get(1);
             for (int j = 1; j < temp.size(); j++) {
                 tableTool.add(new RowTableTool<>(temp.get(j).getAbsolutePath()));
             }
             tableTool.write(new File(outDir, outName+".txt.gz"), IOFileFormat.TextGzip);
+            System.out.println("count merge finished: "+outName);
         }
     }
 
@@ -342,18 +348,21 @@ public class LoadGO {
         }
     }
 
-    public static void retainTriad(String triadFile, String inputDir, String outDir){
+    public static void retainTriad(String triadFile, String taxa_InfoDBFile, String inputDir, String outDir){
         List<File> files=IOTool.getVisibleDir(inputDir);
-        IntStream.range(0, files.size()).parallel().forEach(e->retainTriad(triadFile, files.get(e), outDir));
+        IntStream.range(0, files.size()).parallel().forEach(e->retainTriad(triadFile, taxa_InfoDBFile, files.get(e), outDir));
     }
 
-    private static void retainTriad(String triadFile, File inputFile, String outDir){
+    private static void retainTriad(String triadFile, String taxa_InfoDBFile, File inputFile, String outDir){
         Triad triad=new Triad(triadFile);
+        Map<String,String> taxaSubCharMap=RowTableTool.getMap(taxa_InfoDBFile, 0, 3);
+        String taxonName=PStringUtils.fastSplit(inputFile.getName(),".").get(0);
+        Ploidy ploidy=Ploidy.newInstanceFromSubChar(taxaSubCharMap.get(taxonName));
         RowTableTool<String> table=new RowTableTool<>(inputFile.getAbsolutePath());
         List<String> geneNames=table.getColumn(0);
         Collections.sort(geneNames);
         String[] threeName;
-        int indexABD[]=new int[3];
+        int[] index=new int[ploidy.getSubgenomewNum()];
         String triadID, taxon, temp;
         taxon=PStringUtils.fastSplit(inputFile.getName(), ".").get(0);
         StringBuilder sb;
@@ -361,26 +370,37 @@ public class LoadGO {
         int[] cdsLen;
         try {
             bw=IOTool.getTextWriter(new File(outDir, taxon + ".triad.txt.gz"));
-            bw.write("TriadID\tcdsLen\tGeneName\tnumSyn\tnumDerivedInSyn\tnumNonsyn\tnumDerivedInNonsyn" +
-                    "\tnumHGDeleterious\tnumDerivedInHGDeleterious\tsubgenome");
+            bw.write("TriadID\tcdsLen\tGeneName\tnumSyn\tnumDerivedInSyn\tnumHeterInSyn\tnumNonsyn" +
+                    "\tnumDerivedInNonsyn\tnumHeterInNonsyn\tnumHGDeleterious\tnumDerivedInHGDeleterious\tnumHeterInHGDeleterious\tsubgenome");
             bw.newLine();
             String subgenome, geneName;
+            boolean lessThanZero=false;
             for (int i = 0; i < triad.getRowNum(); i++) {
                 threeName=triad.getTriad(i);
-                for (int j = 0; j < indexABD.length; j++) {
-                    indexABD[j]= Collections.binarySearch(geneNames, threeName[j]);
+                if (ploidy.getSubgenomewNum()>1){
+                    for (int j = 0; j < index.length; j++) {
+                        index[j]= Collections.binarySearch(geneNames, threeName[j]);
+                    }
+                }else {
+                    index[0]=Collections.binarySearch(geneNames, threeName[2]);
                 }
-                if (indexABD[0] < 0) continue;
-                if (indexABD[1] < 0) continue;
-                if (indexABD[2] < 0) continue;
+                for (int j = 0; j < index.length; j++) {
+                    if (index[j] < 0){
+                        lessThanZero=true;
+                        break;
+                    }else {
+                        lessThanZero=false;
+                    }
+                }
+                if (lessThanZero) continue;
                 triadID=triad.getTraidID(i);
                 cdsLen=triad.getCDSLen(i);
-                for (int j = 0; j < indexABD.length; j++) {
-                    temp=String.join("\t", table.getRow(indexABD[j]));
+                for (int j = 0; j < index.length; j++) {
+                    temp=String.join("\t", table.getRow(index[j]));
                     sb=new StringBuilder();
                     sb.append(triadID).append("\t").append(cdsLen[j]).append("\t");
                     sb.append(temp).append("\t");
-                    geneName=table.getRow(indexABD[j]).get(0);
+                    geneName=table.getRow(index[j]).get(0);
                     subgenome=geneName.substring(8,9);
                     sb.append(subgenome);
                     bw.write(sb.toString());
@@ -392,6 +412,7 @@ public class LoadGO {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("retainTriad finished: "+taxonName);
     }
 
     public static void normalizedTriadByAncestralNum(String inputDir,String outDir){
