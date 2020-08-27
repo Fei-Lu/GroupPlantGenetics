@@ -1027,7 +1027,9 @@ public class VCF {
      * @param outputDir
      */
     public void writeVcfToSplitedChr(String outputDir){
-        this.changeToRefChr();
+        if (StringTool.isNumeric(this.data.get(0).get(0))){
+            this.changeToRefChr();
+        }
         this.sort();
         List<String> chrList=data.stream().flatMap(e->e.stream().limit(1)).distinct().sorted().collect(Collectors.toList());
         Map<String, BufferedWriter> strToBufferedWriterMap=new HashMap<>();
