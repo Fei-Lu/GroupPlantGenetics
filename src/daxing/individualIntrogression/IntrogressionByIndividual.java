@@ -76,9 +76,9 @@ public class IntrogressionByIndividual {
         }
         RowTableTool<String> taxonTable=new RowTableTool<>(taxa_InfoDB);
         Map<String, String> taxonMap= taxonTable.getHashMap(23,0);
-        IntStream.range(0, chrFdABFiles.length).parallel().forEach(e->calculateNearestFdCByTaxon(abGrid.get(e),taxonMap,
+        IntStream.range(0, chrFdABFiles.length).forEach(e->calculateNearestFdCByTaxon(abGrid.get(e),taxonMap,
                 chrFdABFiles[e], fdOutDir));
-        IntStream.range(0, chrFdDFiles.length).parallel().forEach(e->calculateNearestFdCByTaxon(dGrid.get(e),taxonMap,
+        IntStream.range(0, chrFdDFiles.length).forEach(e->calculateNearestFdCByTaxon(dGrid.get(e),taxonMap,
                 chrFdDFiles[e],fdOutDir));
     }
 
