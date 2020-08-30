@@ -19,11 +19,12 @@ import java.util.stream.IntStream;
 public class Go {
 
     public static void start(){
-        String triadInputDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/006_test/001_triad";
-        String pgfFile="/Users/xudaxing/Documents/deleteriousMutation/001_vmap2.1Before20200525/002_analysis/014_deleterious/wheat_v1.1_Lulab_geneHC.pgf";
-        String triadGeneFile="/Users/xudaxing/Documents/deleteriousMutation/001_vmap2.1Before20200525/002_analysis/014_deleterious/triadGenes1.1_cdsLen_geneHC.txt";
-        String outDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/006_test/002_normalizedAndSlidingWindow";
+        String triadInputDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/006_test/001_triad";
+        String pgfFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/001_vmap2.1Before20200525/002_analysis/014_deleterious/wheat_v1.1_Lulab_geneHC.pgf";
+        String triadGeneFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/001_vmap2.1Before20200525/002_analysis/014_deleterious/triadGenes1.1_cdsLen_geneHC.txt";
+        String outDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/006_test/002_normalizedAndSlidingWindow";
         String[] subDirs={"001_triad.pos","002_forSlidingWindow","003_slidingWindow","004_mergeIndividualDel"};
+        String sub="D";
         File[] subDirFiles=new File[subDirs.length];
         for (int i = 0; i < subDirs.length; i++) {
             subDirFiles[i]=new File(outDir, subDirs[i]);
@@ -31,9 +32,9 @@ public class Go {
         }
 //        addTriadPos(triadInputDir, pgfFile, subDirFiles[0].getAbsolutePath());
 //        forSlidingWindow(subDirFiles[0].getAbsolutePath(), triadGeneFile, subDirFiles[1].getAbsolutePath());
-//        slidingWindow(subDirFiles[1].getAbsolutePath(),"A", 10_000_000, 1_000_000, subDirFiles[2].getAbsolutePath());
+        slidingWindow(subDirFiles[1].getAbsolutePath(),sub, 10_000_000, 1_000_000, subDirFiles[2].getAbsolutePath());
         mergeTaxonDel(subDirFiles[2].getAbsolutePath(),
-                new File(subDirFiles[3],"triadPosA.IndividualMerged.txt.gz").getAbsolutePath());
+                new File(subDirFiles[3],"triadPos"+sub+".IndividualMerged.txt.gz").getAbsolutePath());
     }
 
     public static void addTriadPos(String inputDir, String pgfFile, String outDir){
@@ -196,10 +197,18 @@ public class Go {
         return sb.toString();
     }
 
+    /**
+     *
+     * @param inputDir
+     * @param triadPosition A B D
+     * @param windowSize
+     * @param stepSize
+     * @param outDir
+     */
     public static void slidingWindow(String inputDir, String triadPosition, int windowSize, int stepSize,
                                      String outDir){
         List<File> files= IOUtils.getVisibleFileListInDir(inputDir);
-        Predicate<File> filesAP=file -> file.getName().contains("triadposA");
+        Predicate<File> filesAP=file -> file.getName().contains("triadpos"+triadPosition);
         List<File> filesA=files.stream().filter(filesAP).collect(Collectors.toList());
         String[] outNames=filesA.stream().map(File::getName).map(s -> s.replaceAll("txt.gz",
                 windowSize/1000000+"MbWindow_"+stepSize/1000000)+"MbStep.txt.gz").toArray(String[]::new);
