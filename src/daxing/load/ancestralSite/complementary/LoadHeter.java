@@ -3,14 +3,17 @@ package daxing.load.ancestralSite.complementary;
 import daxing.common.IOTool;
 import daxing.common.NumberTool;
 import daxing.common.PGF;
+import daxing.common.RowTableTool;
+import gnu.trove.list.array.TDoubleArrayList;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class LoadHeter {
 
@@ -104,5 +107,48 @@ public class LoadHeter {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     *
+     * @param countMergeDir
+     * @param taxa_InfoFile
+     * @param outFile
+     */
+    public static void calculateHeterozygousPerSynNonDelSite(String countMergeDir, String taxa_InfoFile,
+                                                             String outFile){
+        List<File> files=IOTool.getVisibleDir(countMergeDir);
+        Map<String, String> taxomSubspecies= RowTableTool.getMap(taxa_InfoFile, 0, 15);
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
+            bw.write("Taxon\tSubspecies\tSynHeterRatio\tNonHeterRatio\tDelHeterRatio");
+            bw.newLine();
+            RowTableTool<String> rowTableTool;
+            TDoubleArrayList numSyn, numHeterInSyn, numNonsyn, numHeterInNonsyn, numHGDeleterious, numHeterInHGDeleterious;
+            StringBuilder sb=new StringBuilder();
+            String taxonName, subspecies;
+            for (int i = 0; i < files.size(); i++) {
+                rowTableTool=new RowTableTool<>(files.get(i).getAbsolutePath());
+                numSyn=new TDoubleArrayList(rowTableTool.getColumnAsDoubleArray("numSyn"));
+                numHeterInSyn=new TDoubleArrayList(rowTableTool.getColumnAsDoubleArray("numHeterInSyn"));
+                numNonsyn=new TDoubleArrayList(rowTableTool.getColumnAsDoubleArray("numNonsyn"));
+                numHeterInNonsyn=new TDoubleArrayList(rowTableTool.getColumnAsDoubleArray("numHeterInNonsyn"));
+                numHGDeleterious=new TDoubleArrayList(rowTableTool.getColumnAsDoubleArray("numHGDeleterious"));
+                numHeterInHGDeleterious=new TDoubleArrayList(rowTableTool.getColumnAsDoubleArray("numHeterInHGDeleterious"));
+                sb.setLength(0);
+                taxonName=PStringUtils.fastSplit(files.get(i).getName(), ".").get(0);
+                subspecies=taxomSubspecies.get(taxonName);
+                sb.append(taxonName).append("\t").append(subspecies).append("\t");
+                sb.append(NumberTool.format(numHeterInSyn.sum()/numSyn.sum(), 5));
+                sb.append("\t").append(NumberTool.format(numHeterInNonsyn.sum()/numNonsyn.sum(), 5)).append("\t");
+                sb.append(NumberTool.format(numHeterInHGDeleterious.sum()/numHGDeleterious.sum(), 5));
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 }
