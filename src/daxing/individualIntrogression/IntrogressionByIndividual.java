@@ -28,7 +28,7 @@ public class IntrogressionByIndividual {
      * @param fdResDir
      */
     public static void calculateNearestFd(String vmap2VCFDir, String taxa_InfoDB, String fdResDir, String fdOutDir){
-        List<File> vmap2FileList= IOUtils.getVisibleFileListInDir(vmap2VCFDir);
+        List<File> vmap2FileList= IOUtils.getFileListInDirEndsWith(vmap2VCFDir, "gz");
         Predicate<File> hidden=File::isHidden;
         List<File> vmap2Files=vmap2FileList.stream().filter(hidden.negate()).collect(Collectors.toList());
         String chr;
@@ -76,9 +76,9 @@ public class IntrogressionByIndividual {
         }
         RowTableTool<String> taxonTable=new RowTableTool<>(taxa_InfoDB);
         Map<String, String> taxonMap= taxonTable.getHashMap(23,0);
-        IntStream.range(0, chrFdABFiles.length).forEach(e->calculateNearestFdCByTaxon(abGrid.get(e),taxonMap,
+        IntStream.range(0, chrFdABFiles.length).parallel().forEach(e->calculateNearestFdCByTaxon(abGrid.get(e),taxonMap,
                 chrFdABFiles[e], fdOutDir));
-        IntStream.range(0, chrFdDFiles.length).forEach(e->calculateNearestFdCByTaxon(dGrid.get(e),taxonMap,
+        IntStream.range(0, chrFdDFiles.length).parallel().forEach(e->calculateNearestFdCByTaxon(dGrid.get(e),taxonMap,
                 chrFdDFiles[e],fdOutDir));
     }
 
@@ -122,7 +122,7 @@ public class IntrogressionByIndividual {
                 subLibIndices[j] = indices[i][0]+j;
             }
             List<Integer> integerList= Arrays.asList(subLibIndices);
-            integerList.stream()
+            integerList.parallelStream()
                     .forEach(index-> findNearestIBSWindow(chrGenotypeGrid, p3List, taxonMap,
                             taxonFdFiles[index], new File(outDir, outNames[index])));
         }
@@ -167,10 +167,10 @@ public class IntrogressionByIndividual {
                 temp=p3Tables.get(j).getRow(i);
                 if (temp.get(8).equals("nan"))continue;
                 if (temp.get(9).equals("nan"))continue;
-                if (Double.parseDouble(temp.get(8))<0)continue;
-                if (Double.parseDouble(temp.get(8))>1)continue;
-                if (Double.parseDouble(temp.get(9))<0)continue;
-                if (Double.parseDouble(temp.get(9))>1)continue;
+                if (Double.parseDouble(temp.get(8))<0)continue; // D < 0 continue
+                if (Double.parseDouble(temp.get(8))>1)continue; // D > 1 continue
+                if (Double.parseDouble(temp.get(9))<0)continue; // fd < 0 continue
+                if (Double.parseDouble(temp.get(9))>1)continue; // fd > 1 continue
                 p3=taxonMap.get(p3List.get(j));
                 p3Index=chrGenotypeGrid.getTaxonIndex(p3);
                 ibs=chrGenotypeGrid.getIBSDistance(p2Index, p3Index, startIndex, endIndex);
