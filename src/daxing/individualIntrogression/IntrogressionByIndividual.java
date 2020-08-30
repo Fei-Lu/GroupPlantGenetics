@@ -25,9 +25,9 @@ public class IntrogressionByIndividual {
      * 并行处理每个染色体
      * @param vmap2VCFDir
      * @param taxa_InfoDB
-     * @param fdRes
+     * @param fdResDir
      */
-    public static void calculateNearestFd(String vmap2VCFDir, String taxa_InfoDB, String fdRes, String fdOutDir){
+    public static void calculateNearestFd(String vmap2VCFDir, String taxa_InfoDB, String fdResDir, String fdOutDir){
         List<File> vmap2FileList= IOUtils.getVisibleFileListInDir(vmap2VCFDir);
         Predicate<File> hidden=File::isHidden;
         List<File> vmap2Files=vmap2FileList.stream().filter(hidden.negate()).collect(Collectors.toList());
@@ -35,31 +35,26 @@ public class IntrogressionByIndividual {
         List<GenotypeGrid> abGrid=new ArrayList<>();
         List<GenotypeGrid> dGrid=new ArrayList<>();
         GenotypeGrid genotypeGrid1, genotypeGrid2, genotypeGrid;
-        genotypeGrid1=new GenotypeGrid(vmap2Files.get(0).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-        genotypeGrid2=new GenotypeGrid(vmap2Files.get(1).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-        genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGrid1, genotypeGrid2);
-        genotypeGrid.sortByTaxa();
-        abGrid.add(genotypeGrid);
-//        for (int i = 0; i < 2; i=i+6) {
-//            genotypeGrid1=new GenotypeGrid(vmap2Files.get(i).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-//            genotypeGrid2=new GenotypeGrid(vmap2Files.get(i+1).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-//            genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGrid1, genotypeGrid2);
-//            genotypeGrid.sortByTaxa();
-//            abGrid.add(genotypeGrid);
-//            genotypeGrid1=new GenotypeGrid(vmap2Files.get(i+2).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-//            genotypeGrid2=new GenotypeGrid(vmap2Files.get(i+3).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-//            genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGrid1, genotypeGrid2);
-//            genotypeGrid.sortByTaxa();
-//            abGrid.add(genotypeGrid);
-//            genotypeGrid1=new GenotypeGrid(vmap2Files.get(i+4).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-//            genotypeGrid2=new GenotypeGrid(vmap2Files.get(i+5).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-//            genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGrid1, genotypeGrid2);
-//            genotypeGrid.sortByTaxa();
-//            dGrid.add(genotypeGrid);
-//        }
-        List<File> fdFiles=IOUtils.getVisibleFileListInDir(fdRes);
-        List<File>[] chrFdABFiles=new List[1];
-        List<File>[] chrFdDFiles=new List[1];
+        for (int i = 0; i < 2; i=i+6) {
+            genotypeGrid1=new GenotypeGrid(vmap2Files.get(i).getAbsolutePath(), GenoIOFormat.VCF_GZ);
+            genotypeGrid2=new GenotypeGrid(vmap2Files.get(i+1).getAbsolutePath(), GenoIOFormat.VCF_GZ);
+            genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGrid1, genotypeGrid2);
+            genotypeGrid.sortByTaxa();
+            abGrid.add(genotypeGrid);
+            genotypeGrid1=new GenotypeGrid(vmap2Files.get(i+2).getAbsolutePath(), GenoIOFormat.VCF_GZ);
+            genotypeGrid2=new GenotypeGrid(vmap2Files.get(i+3).getAbsolutePath(), GenoIOFormat.VCF_GZ);
+            genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGrid1, genotypeGrid2);
+            genotypeGrid.sortByTaxa();
+            abGrid.add(genotypeGrid);
+            genotypeGrid1=new GenotypeGrid(vmap2Files.get(i+4).getAbsolutePath(), GenoIOFormat.VCF_GZ);
+            genotypeGrid2=new GenotypeGrid(vmap2Files.get(i+5).getAbsolutePath(), GenoIOFormat.VCF_GZ);
+            genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGrid1, genotypeGrid2);
+            genotypeGrid.sortByTaxa();
+            dGrid.add(genotypeGrid);
+        }
+        List<File> fdFiles=IOUtils.getVisibleFileListInDir(fdResDir);
+        List<File>[] chrFdABFiles=new List[14];
+        List<File>[] chrFdDFiles=new List[7];
         for (int i = 0; i < chrFdABFiles.length; i++) {
             chrFdABFiles[i]=new ArrayList<>();
         }
@@ -83,8 +78,8 @@ public class IntrogressionByIndividual {
         Map<String, String> taxonMap= taxonTable.getHashMap(23,0);
         IntStream.range(0, chrFdABFiles.length).forEach(e->calculateNearestFdCByTaxon(abGrid.get(e),taxonMap,
                 chrFdABFiles[e], fdOutDir));
-//        IntStream.range(0, chrFdDFiles.length).forEach(e->calculateNearestFdCByTaxon(dGrid.get(e),taxonMap,
-//                chrFdDFiles[e],fdOutDir));
+        IntStream.range(0, chrFdDFiles.length).forEach(e->calculateNearestFdCByTaxon(dGrid.get(e),taxonMap,
+                chrFdDFiles[e],fdOutDir));
     }
 
     /**
