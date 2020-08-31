@@ -40,7 +40,8 @@ public class StringTool {
     public static boolean isNumeric(String str){
         byte[] a=str.getBytes();
         for (int i = 0; i < a.length; i++) {
-            if (a[i]<48 || a[i]>57) return false;
+            if (a[i]<46 || a[i]>57) return false;
+            if (a[i]==47) return false;
         }
         return true;
     }
