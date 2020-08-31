@@ -195,8 +195,8 @@ public class IntrogressionByIndividual {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("****** "+p2+" finished in "+String.format("%.4f", Benchmark.getTimeSpanMinutes(start)) +
-                " minutes ******");
+        System.out.println("****** "+p2+" finished in "+String.format("%.4f", Benchmark.getTimeSpanSeconds(start)) +
+                " seconds ******");
     }
 
     /**
