@@ -19,19 +19,19 @@ import java.util.stream.IntStream;
 public class Go {
 
     public static void start(){
-        String triadInputDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/006_test/001_triad";
+        String triadInputDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/005_test/001_triad";
         String pgfFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/001_vmap2.1Before20200525/002_analysis/014_deleterious/wheat_v1.1_Lulab_geneHC.pgf";
         String triadGeneFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/001_vmap2.1Before20200525/002_analysis/014_deleterious/triadGenes1.1_cdsLen_geneHC.txt";
-        String outDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/006_test/002_normalizedAndSlidingWindow";
+        String outDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/005_test/002_normalizedAndSlidingWindow";
         String[] subDirs={"001_triad.pos","002_forSlidingWindow","003_slidingWindow","004_mergeIndividualDel"};
-        String sub="D";
+        String sub="A";
         File[] subDirFiles=new File[subDirs.length];
         for (int i = 0; i < subDirs.length; i++) {
             subDirFiles[i]=new File(outDir, subDirs[i]);
             subDirFiles[i].mkdir();
         }
-//        addTriadPos(triadInputDir, pgfFile, subDirFiles[0].getAbsolutePath());
-//        forSlidingWindow(subDirFiles[0].getAbsolutePath(), triadGeneFile, subDirFiles[1].getAbsolutePath());
+        addTriadPos(triadInputDir, pgfFile, subDirFiles[0].getAbsolutePath());
+        forSlidingWindow(subDirFiles[0].getAbsolutePath(), triadGeneFile, subDirFiles[1].getAbsolutePath());
         slidingWindow(subDirFiles[1].getAbsolutePath(),sub, 10_000_000, 1_000_000, subDirFiles[2].getAbsolutePath());
         mergeTaxonDel(subDirFiles[2].getAbsolutePath(),
                 new File(subDirFiles[3],"triadPos"+sub+".IndividualMerged.txt.gz").getAbsolutePath());
