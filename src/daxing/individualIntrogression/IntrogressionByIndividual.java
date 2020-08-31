@@ -7,8 +7,8 @@ import pgl.infra.dna.genot.GenotypeGrid;
 import pgl.infra.dna.genot.GenotypeOperation;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
-import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -118,16 +118,8 @@ public class IntrogressionByIndividual {
         }
         String[] outNames= IntStream.range(0, p2List.size()).boxed().map(e->
                                    chrFdFiles.get(0).getName().substring(0,14)+p2List.get(e)+".csv").toArray(String[]::new);
-        int[][] indices= PArrayUtils.getSubsetsIndicesBySubsetSize(taxonFdFiles.length, 32);
-        for (int i = 0; i < indices.length; i++) {
-            Integer[] subLibIndices = new Integer[indices[i][1]-indices[i][0]];
-            for (int j = 0; j < subLibIndices.length; j++) {
-                subLibIndices[j] = indices[i][0]+j;
-            }
-            List<Integer> integerList= Arrays.asList(subLibIndices);
-            integerList.parallelStream()
-                    .forEach(index-> findNearestIBSWindow(genotypeGrid, p3List, taxonMap,
-                            taxonFdFiles[index], new File(outDir, outNames[index])));
+        for (int i = 0; i < taxonFdFiles.length; i++) {
+            findNearestIBSWindow(genotypeGrid, p3List, taxonMap, taxonFdFiles[i], new File(outDir, outNames[i]));
         }
     }
 
