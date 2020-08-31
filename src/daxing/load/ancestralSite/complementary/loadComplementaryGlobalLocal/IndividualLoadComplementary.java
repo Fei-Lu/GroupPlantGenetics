@@ -1,4 +1,4 @@
-package daxing.load.ancestralSite.complementary;
+package daxing.load.ancestralSite.complementary.loadComplementaryGlobalLocal;
 
 import daxing.common.*;
 import gnu.trove.list.array.TDoubleArrayList;
@@ -16,7 +16,11 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class Go {
+/**
+ * 在六倍体retainTriad文件中，使用triadA pos进行滑窗，查看亚基因组load的互补
+ * load包括杂合子
+ */
+public class IndividualLoadComplementary {
 
     public static void start(){
         String triadInputDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/005_test/001_triad";

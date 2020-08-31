@@ -1,9 +1,10 @@
-package daxing.load.ancestralSite.complementary;
+package daxing.load.ancestralSite.complementary.loadHeterozygositeGenotype;
 
 import daxing.common.IOTool;
 import daxing.common.NumberTool;
 import daxing.common.PGF;
 import daxing.common.RowTableTool;
+import daxing.load.ancestralSite.complementary.loadComplementaryGlobalLocal.SlidingWindowForLoadComplement;
 import gnu.trove.list.array.TDoubleArrayList;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
@@ -110,7 +111,7 @@ public class LoadHeter {
     }
 
     /**
-     *
+     * 使用boxplot 计算syn non del 在群体水平上的的杂合分布
      * @param countMergeDir
      * @param taxa_InfoFile
      * @param outFile
