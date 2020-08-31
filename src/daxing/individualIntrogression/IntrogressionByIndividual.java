@@ -62,12 +62,12 @@ public class IntrogressionByIndividual {
         }
         RowTableTool<String> taxonTable=new RowTableTool<>(taxa_InfoDB);
         Map<String, String> taxonMap= taxonTable.getHashMap(23,0);
-        for (int i = 0; i < chrFdABFiles.length; i++) {
+        for (int i = 0; i < 2; i++) {
             System.out.println("----------- Start calculate: "+chrAB.get(i)+" -----------");
             calculateNearestFdCByTaxon(abFiles.get(2*i), abFiles.get(2*i+1), taxonMap, chrFdABFiles[i], fdOutDir);
             System.out.println("----------- finished: "+chrAB.get(i)+" -----------");
         }
-        for (int i = 0; i < chrFdDFiles.length; i++) {
+        for (int i = 0; i < 1; i++) {
             System.out.println("----------- Start calculate: "+chrD.get(i)+" -----------");
             calculateNearestFdCByTaxon(dFiles.get(2*i), dFiles.get(2*i+1), taxonMap, chrFdDFiles[i],fdOutDir);
             System.out.println("----------- finished: "+chrD.get(i)+" -----------");
@@ -202,7 +202,6 @@ public class IntrogressionByIndividual {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("completed in " + String.format("%.4f", Benchmark.getTimeSpanMinutes(start)) + " minutes");
         System.out.println("****** "+p2+" finished in "+String.format("%.4f", Benchmark.getTimeSpanMinutes(start)) +
                 " minutes ******");
     }
