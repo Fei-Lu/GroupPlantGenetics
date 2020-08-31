@@ -1,9 +1,7 @@
 package daxing.individualIntrogression;
 
-import daxing.common.ChrRange;
-import daxing.common.IOTool;
-import daxing.common.RowTableTool;
-import daxing.common.WheatLineage;
+import daxing.common.*;
+import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.dna.genot.GenoIOFormat;
 import pgl.infra.dna.genot.GenotypeGrid;
 import pgl.infra.dna.genot.GenotypeOperation;
@@ -32,26 +30,12 @@ public class IntrogressionByIndividual {
         Predicate<File> hidden=File::isHidden;
         List<File> vmap2Files=vmap2FileList.stream().filter(hidden.negate()).collect(Collectors.toList());
         String chr;
-        List<GenotypeGrid> abGrid=new ArrayList<>();
-        List<GenotypeGrid> dGrid=new ArrayList<>();
-        GenotypeGrid genotypeGrid1, genotypeGrid2, genotypeGrid;
-        for (int i = 0; i < 2; i=i+6) {
-            genotypeGrid1=new GenotypeGrid(vmap2Files.get(i).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-            genotypeGrid2=new GenotypeGrid(vmap2Files.get(i+1).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-            genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGrid1, genotypeGrid2);
-            genotypeGrid.sortByTaxa();
-            abGrid.add(genotypeGrid);
-            genotypeGrid1=new GenotypeGrid(vmap2Files.get(i+2).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-            genotypeGrid2=new GenotypeGrid(vmap2Files.get(i+3).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-            genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGrid1, genotypeGrid2);
-            genotypeGrid.sortByTaxa();
-            abGrid.add(genotypeGrid);
-            genotypeGrid1=new GenotypeGrid(vmap2Files.get(i+4).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-            genotypeGrid2=new GenotypeGrid(vmap2Files.get(i+5).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-            genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGrid1, genotypeGrid2);
-            genotypeGrid.sortByTaxa();
-            dGrid.add(genotypeGrid);
-        }
+        TIntArrayList abChrs=new TIntArrayList(WheatLineage.ablineage());
+        TIntArrayList dChrs=new TIntArrayList(WheatLineage.valueOf("D").getChrID());
+        Predicate<File> abP=file -> abChrs.contains(StringTool.getNumFromString(file.getName().substring(3,6)));
+        Predicate<File> dP=file -> dChrs.contains(StringTool.getNumFromString(file.getName().substring(3,6)));
+        List<File> abFiles=vmap2Files.stream().filter(abP).sorted().collect(Collectors.toList());
+        List<File> dFiles=vmap2Files.stream().filter(dP).sorted().collect(Collectors.toList());
         List<File> fdFiles=IOUtils.getVisibleFileListInDir(fdResDir);
         List<File>[] chrFdABFiles=new List[14];
         List<File>[] chrFdDFiles=new List[7];
@@ -76,21 +60,26 @@ public class IntrogressionByIndividual {
         }
         RowTableTool<String> taxonTable=new RowTableTool<>(taxa_InfoDB);
         Map<String, String> taxonMap= taxonTable.getHashMap(23,0);
-        IntStream.range(0, chrFdABFiles.length).forEach(e->calculateNearestFdCByTaxon(abGrid.get(e),taxonMap,
-                chrFdABFiles[e], fdOutDir));
-        IntStream.range(0, chrFdDFiles.length).forEach(e->calculateNearestFdCByTaxon(dGrid.get(e),taxonMap,
-                chrFdDFiles[e],fdOutDir));
+        IntStream.range(0, chrFdABFiles.length).forEach(e->calculateNearestFdCByTaxon(abFiles.get(2*e),
+                abFiles.get(2*e+1), taxonMap, chrFdABFiles[e], fdOutDir));
+        IntStream.range(0, chrFdDFiles.length).forEach(e->calculateNearestFdCByTaxon(dFiles.get(2*e), dFiles.get(2*e+1),
+                taxonMap, chrFdDFiles[e],fdOutDir));
     }
 
     /**
      * 在每个染色体内部，并行处理每个p2
-     * @param chrGenotypeGrid
+     * @param vcfA
+     * @param vcfB
      * @param taxonMap
      * @param chrFdFiles
      * @param outDir
      */
-    private static void calculateNearestFdCByTaxon(GenotypeGrid chrGenotypeGrid, Map<String, String> taxonMap,
+    private static void calculateNearestFdCByTaxon(File vcfA, File vcfB, Map<String, String> taxonMap,
                                                    List<File> chrFdFiles, String outDir){
+        GenotypeGrid genotypeGridA=new GenotypeGrid(vcfA.getAbsolutePath(),GenoIOFormat.VCF_GZ);
+        GenotypeGrid genotypeGridB=new GenotypeGrid(vcfB.getAbsolutePath(),GenoIOFormat.VCF_GZ);
+        GenotypeGrid genotypeGrid=GenotypeOperation.mergeGenotypesBySite(genotypeGridA, genotypeGridB);
+        genotypeGrid.sortByTaxa();
         String p2, p3;
         Set<String> p2Set=new HashSet<>(), p3Set=new HashSet<>();
         for (int i = 0; i < chrFdFiles.size(); i++) {
@@ -123,7 +112,7 @@ public class IntrogressionByIndividual {
             }
             List<Integer> integerList= Arrays.asList(subLibIndices);
             integerList.parallelStream()
-                    .forEach(index-> findNearestIBSWindow(chrGenotypeGrid, p3List, taxonMap,
+                    .forEach(index-> findNearestIBSWindow(genotypeGrid, p3List, taxonMap,
                             taxonFdFiles[index], new File(outDir, outNames[index])));
         }
     }
@@ -165,8 +154,8 @@ public class IntrogressionByIndividual {
             int miniIBSP3Index=-1;
             for (int j = 0; j < p3List.size(); j++) {
                 temp=p3Tables.get(j).getRow(i);
-                if (temp.get(8).equals("nan"))continue;
-                if (temp.get(9).equals("nan"))continue;
+                if (!StringTool.isNumeric(temp.get(8))) continue;
+                if (!StringTool.isNumeric(temp.get(9))) continue;
                 if (Double.parseDouble(temp.get(8))<0)continue; // D < 0 continue
                 if (Double.parseDouble(temp.get(8))>1)continue; // D > 1 continue
                 if (Double.parseDouble(temp.get(9))<0)continue; // fd < 0 continue
