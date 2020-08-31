@@ -5,6 +5,7 @@ import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.dna.genot.GenoIOFormat;
 import pgl.infra.dna.genot.GenotypeGrid;
 import pgl.infra.dna.genot.GenotypeOperation;
+import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;
@@ -26,6 +27,7 @@ public class IntrogressionByIndividual {
      * @param fdResDir
      */
     public static void calculateNearestFd(String vmap2VCFDir, String taxa_InfoDB, String fdResDir, String fdOutDir){
+        System.out.println(DateTime.getDateTimeOfNow());
         List<File> vmap2FileList= IOUtils.getFileListInDirEndsWith(vmap2VCFDir, "gz");
         Predicate<File> hidden=File::isHidden;
         List<File> vmap2Files=vmap2FileList.stream().filter(hidden.negate()).collect(Collectors.toList());
@@ -60,10 +62,21 @@ public class IntrogressionByIndividual {
         }
         RowTableTool<String> taxonTable=new RowTableTool<>(taxa_InfoDB);
         Map<String, String> taxonMap= taxonTable.getHashMap(23,0);
-        IntStream.range(0, chrFdABFiles.length).forEach(e->calculateNearestFdCByTaxon(abFiles.get(2*e),
-                abFiles.get(2*e+1), taxonMap, chrFdABFiles[e], fdOutDir));
-        IntStream.range(0, chrFdDFiles.length).forEach(e->calculateNearestFdCByTaxon(dFiles.get(2*e), dFiles.get(2*e+1),
-                taxonMap, chrFdDFiles[e],fdOutDir));
+        for (int i = 0; i < chrFdABFiles.length; i++) {
+            System.out.println("----------- Start calculate: "+chrAB.get(i)+" -----------");
+            calculateNearestFdCByTaxon(abFiles.get(2*i), abFiles.get(2*i+1), taxonMap, chrFdABFiles[i], fdOutDir);
+            System.out.println("----------- finished: "+chrAB.get(i)+" -----------");
+        }
+        for (int i = 0; i < chrFdDFiles.length; i++) {
+            System.out.println("----------- Start calculate: "+chrD.get(i)+" -----------");
+            calculateNearestFdCByTaxon(dFiles.get(2*i), dFiles.get(2*i+1), taxonMap, chrFdDFiles[i],fdOutDir);
+            System.out.println("----------- finished: "+chrD.get(i)+" -----------");
+        }
+//        IntStream.range(0, chrFdABFiles.length).forEach(e->calculateNearestFdCByTaxon(abFiles.get(2*e),
+//                abFiles.get(2*e+1), taxonMap, chrFdABFiles[e], fdOutDir));
+//        IntStream.range(0, chrFdDFiles.length).forEach(e->calculateNearestFdCByTaxon(dFiles.get(2*e), dFiles.get(2*e+1),
+//                taxonMap, chrFdDFiles[e],fdOutDir));
+        System.out.println(DateTime.getDateTimeOfNow());
     }
 
     /**
@@ -127,6 +140,7 @@ public class IntrogressionByIndividual {
     private static void findNearestIBSWindow(GenotypeGrid chrGenotypeGrid, List<String> p3List,
                                              Map<String, String> taxonMap, List<File> p3FdFilesPerP2,
                                              File outFile){
+        long start= System.nanoTime();
         Collections.sort(p3FdFilesPerP2);
         List<ChrRange> chrRanges=extractWindow(p3FdFilesPerP2.get(0));
         String p2 =p3FdFilesPerP2.get(0).getName().substring(14,19);
@@ -188,6 +202,9 @@ public class IntrogressionByIndividual {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("completed in " + String.format("%.4f", Benchmark.getTimeSpanMinutes(start)) + " minutes");
+        System.out.println("****** "+p2+" finished in "+String.format("%.4f", Benchmark.getTimeSpanMinutes(start)) +
+                " minutes ******");
     }
 
     /**
