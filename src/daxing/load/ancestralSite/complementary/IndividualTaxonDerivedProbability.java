@@ -56,7 +56,6 @@ public class IndividualTaxonDerivedProbability {
                 br=IOTool.getReader(fileList.get(i));
                 br.readLine();
                 taxonName=PStringUtils.fastSplit(fileList.get(i).getName(), ".").get(0);
-                if (!taxonTreeValidatedPloidyMap.get(taxonName).equals("Hexaploid")) continue;
                 ploidy=Ploidy.newInstanceFromSubChar(taxonPloidyMap.get(taxonName));
                 treeValidatedPloid=taxonTreeValidatedPloidyMap.get(taxonName);
                 subspecies=taxonSubspeciesMap.get(taxonName);
@@ -75,6 +74,7 @@ public class IndividualTaxonDerivedProbability {
                     temp=PStringUtils.fastSplit(line);
                     subgenome=temp.get(0).substring(8,9);
                     subgenomeIndex= Arrays.binarySearch(subArray, subgenome);
+                    subgenomeIndex= subNum==1 ? subgenomeIndex-2 : subgenomeIndex;
                     numSyn=Integer.parseInt(temp.get(1));
                     numDerivedSyn=Integer.parseInt(temp.get(2));
                     numHeterInSyn=Integer.parseInt(temp.get(3));
