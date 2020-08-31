@@ -267,10 +267,10 @@ public class IndividualLoadComplementary {
                 for (int j = 0; j < windowNum; j++) {
                     windowStart=slidingWindows[i].getWindowStarts()[j];
                     windowEnd=slidingWindows[i].getWindowEnds()[j];
-                    geneNum=slidingWindows[i].getGeneNum(j);
-                    synValueList=slidingWindows[i].getSynWindowValue(j);
-                    nonValueList=slidingWindows[i].getNonWindowValue(j);
-                    delValueList=slidingWindows[i].getDelWindowValue(j);
+                    geneNum=slidingWindows[i].getCountInWindow(j);
+                    synValueList=slidingWindows[i].getWindow1Value(j);
+                    nonValueList=slidingWindows[i].getWindow2Value(j);
+                    delValueList=slidingWindows[i].getWindow3Value(j);
                     mean_NormalizedSynLoad=synValueList.sum()/geneNum;
                     mean_NormalizedNonLoad=nonValueList.sum()/geneNum;
                     mean_NormalizedDelLoad=delValueList.sum()/geneNum;

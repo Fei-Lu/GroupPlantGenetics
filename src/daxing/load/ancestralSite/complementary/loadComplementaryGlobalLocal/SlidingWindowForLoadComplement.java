@@ -12,9 +12,9 @@ public class SlidingWindowForLoadComplement {
     int[] starts = null;
     //exclusive
     int[] ends = null;
-    TDoubleArrayList[] windowValueSynList=null;
-    TDoubleArrayList[] windowValueNonList=null;
-    TDoubleArrayList[] windowValueDelList=null;
+    TDoubleArrayList[] windowValue1List =null;
+    TDoubleArrayList[] windowValue2List =null;
+    TDoubleArrayList[] windowValue3List =null;
     int windowSize = Integer.MIN_VALUE;
     int windowStep = Integer.MIN_VALUE;
     int chrLength = Integer.MIN_VALUE;
@@ -46,20 +46,20 @@ public class SlidingWindowForLoadComplement {
         return this.ends.length;
     }
 
-    public TDoubleArrayList getSynWindowValue(int windowIndex){
-        return this.windowValueSynList[windowIndex];
+    public TDoubleArrayList getWindow1Value(int windowIndex){
+        return this.windowValue1List[windowIndex];
     }
 
-    public TDoubleArrayList getNonWindowValue(int windowIndex){
-        return this.windowValueNonList[windowIndex];
+    public TDoubleArrayList getWindow2Value(int windowIndex){
+        return this.windowValue2List[windowIndex];
     }
 
-    public TDoubleArrayList getDelWindowValue(int windowIndex){
-        return this.windowValueDelList[windowIndex];
+    public TDoubleArrayList getWindow3Value(int windowIndex){
+        return this.windowValue3List[windowIndex];
     }
 
-    public int getGeneNum(int windowIndex){
-        return this.getSynWindowValue(windowIndex).size();
+    public int getCountInWindow(int windowIndex){
+        return this.getWindow1Value(windowIndex).size();
     }
 
 
@@ -89,17 +89,17 @@ public class SlidingWindowForLoadComplement {
     /**
      *
      * @param position
-     * @param synNonDelValue
+     * @param value123
      */
-    public void addValue(int position, double[] synNonDelValue){
+    public void addValue(int position, double[] value123){
         int firstIndex = -1;
         int lastIndex = -1;
         firstIndex = this.getFirstWindowIndex(position);
         lastIndex = this.getLastWindowIndex(position);
         for (int i = firstIndex; i < lastIndex; i++) {
-            this.windowValueSynList[i].add(synNonDelValue[0]);
-            this.windowValueNonList[i].add(synNonDelValue[1]);
-            this.windowValueDelList[i].add(synNonDelValue[2]);
+            this.windowValue1List[i].add(value123[0]);
+            this.windowValue2List[i].add(value123[1]);
+            this.windowValue3List[i].add(value123[2]);
         }
     }
 
@@ -118,13 +118,13 @@ public class SlidingWindowForLoadComplement {
         endList.add(end);
         this.starts = startList.toArray();
         this.ends = endList.toArray();
-        this.windowValueSynList=new TDoubleArrayList[ends.length];
-        this.windowValueNonList=new TDoubleArrayList[ends.length];
-        this.windowValueDelList=new TDoubleArrayList[ends.length];
-        for (int i = 0; i < this.windowValueSynList.length; i++) {
-            this.windowValueSynList[i]=new TDoubleArrayList();
-            this.windowValueNonList[i]=new TDoubleArrayList();
-            this.windowValueDelList[i]=new TDoubleArrayList();
+        this.windowValue1List =new TDoubleArrayList[ends.length];
+        this.windowValue2List =new TDoubleArrayList[ends.length];
+        this.windowValue3List =new TDoubleArrayList[ends.length];
+        for (int i = 0; i < this.windowValue1List.length; i++) {
+            this.windowValue1List[i]=new TDoubleArrayList();
+            this.windowValue2List[i]=new TDoubleArrayList();
+            this.windowValue3List[i]=new TDoubleArrayList();
         }
     }
 }
