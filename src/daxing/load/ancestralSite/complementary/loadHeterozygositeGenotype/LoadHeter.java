@@ -76,15 +76,15 @@ public class LoadHeter {
             StringBuilder sb=new StringBuilder();
             for (int i = 0; i < totalSimpleWindowArray.length; i++) {
                 for (int j = 0; j < totalSimpleWindowArray[i].getWindowNum(); j++) {
-                    synInWindowSum=totalSimpleWindowArray[i].getSynWindowValue(j).sum();
-                    synHeterInWindowSum= heterSimpleWindowArray[i].getSynWindowValue(j).sum();
-                    nonInWindowSum=totalSimpleWindowArray[i].getNonWindowValue(j).sum();
-                    nonHeterInWindowSum=heterSimpleWindowArray[i].getNonWindowValue(j).sum();
-                    delInWindowSum=totalSimpleWindowArray[i].getDelWindowValue(j).sum();
-                    delHeterInWindowSum=heterSimpleWindowArray[i].getDelWindowValue(j).sum();
+                    synInWindowSum=totalSimpleWindowArray[i].getWindow1Value(j).sum();
+                    synHeterInWindowSum= heterSimpleWindowArray[i].getWindow1Value(j).sum();
+                    nonInWindowSum=totalSimpleWindowArray[i].getWindow2Value(j).sum();
+                    nonHeterInWindowSum=heterSimpleWindowArray[i].getWindow2Value(j).sum();
+                    delInWindowSum=totalSimpleWindowArray[i].getWindow3Value(j).sum();
+                    delHeterInWindowSum=heterSimpleWindowArray[i].getWindow3Value(j).sum();
                     sb.setLength(0);
                     sb.append(chrs[i]).append("\t").append(totalSimpleWindowArray[i].getWindowStarts()[j]).append("\t");
-                    sb.append(totalSimpleWindowArray[i].getWindowEnds()[j]).append("\t").append(totalSimpleWindowArray[i].getGeneNum(j)).append("\t");
+                    sb.append(totalSimpleWindowArray[i].getWindowEnds()[j]).append("\t").append(totalSimpleWindowArray[i].getCountInWindow(j)).append("\t");
                     if (Double.isNaN(synHeterInWindowSum/synInWindowSum)){
                         sb.append("NaN").append("\t");
                     }else {

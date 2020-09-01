@@ -190,7 +190,7 @@ public class IndividualLoadComplementary {
         }
     }
 
-    private static String getTriadPosChr(String[] triadsABD, String triadPosSubgenome, String chr){
+    public static String getTriadPosChr(String[] triadsABD, String triadPosSubgenome, String chr){
         String[] abd={"A","B","D"};
         int index=Arrays.binarySearch(abd, triadPosSubgenome);
         String chrTriad=triadsABD[index];

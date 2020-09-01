@@ -3,15 +3,18 @@ package daxing.load.ancestralSite.complementary;
 import daxing.common.IOTool;
 import daxing.common.Ploidy;
 import daxing.common.RowTableTool;
+import daxing.common.Triad;
+import daxing.load.ancestralSite.complementary.loadComplementaryGlobalLocal.IndividualLoadComplementary;
+import daxing.load.ancestralSite.complementary.loadComplementaryGlobalLocal.SlidingWindowForLoadComplement;
+import gnu.trove.list.array.TDoubleArrayList;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
+import umontreal.iro.lecuyer.probdistmulti.MultinomialDist;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 该类用于存储每个个体在亚基因水平上syn non del在cds区域为derived的概率
@@ -110,6 +113,120 @@ public class IndividualTaxonDerivedProbability {
                     bw.write(sb.toString());
                     bw.newLine();
                 }
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public enum LoadType{
+        Syn, Non, Del
+    }
+
+    /**
+     *
+     * @param triadPosFile
+     * @param window_triadIDNum
+     * @param step_triadIDNum
+     * @param p_ABD
+     * @param outFile
+     */
+    public static void calculateIndividualTaxonLocalDerivedProbability(String triadPosFile, String triadGeneFile,
+                                                                       int window_triadIDNum,
+                                                                       int step_triadIDNum,
+                                                                       double[] p_ABD, String outFile){
+        Triad triad=new Triad(triadGeneFile);
+        try (BufferedReader br = IOTool.getReader(triadPosFile);
+             BufferedWriter bw =IOTool.getWriter(outFile)) {
+            int[] subgenomeAIDArray={1,2,3,4,5,6,7};
+            br.readLine();
+            bw.write("TriadPosASubID\tWindow_Start\tWindow_End\tTriadIDNum\tObservedA\tObservedB\t" +
+                    "ObservedD\tObservedHomoAncestral\tExpectedA\tExpectedB\tExpectedD\tExpectedHomoAncestral" +
+                    "\tp_value");
+            bw.newLine();
+            String line, triadID, chr, triadPosChr;
+            int subgenomeID, subIDIndex=-1;
+            List<String> temp[]=new List[subgenomeAIDArray.length];
+            for (int i = 0; i < temp.length; i++) {
+                temp[i]=new ArrayList<>();
+            }
+            while ((line=br.readLine())!=null){
+                triadID=PStringUtils.fastSplit(line).get(0);
+                chr=PStringUtils.fastSplit(line).get(2).substring(8,10);
+                triadPosChr= IndividualLoadComplementary.getTriadPosChr(triad.getTraidGenes(triadID), "A",chr);
+                subgenomeID=Integer.parseInt(triadPosChr.substring(0,1));
+                subIDIndex=Arrays.binarySearch(subgenomeAIDArray, subgenomeID);
+                temp[subIDIndex].add(line);
+            }
+            SlidingWindowForLoadComplement window, windowDerived;
+            Comparator<String> comparator=Comparator.comparing(s -> Integer.parseInt(PStringUtils.fastSplit(s).get(4)));
+            comparator=comparator.thenComparing(s -> PStringUtils.fastSplit(s).get(16));
+            double[] valueABD;
+            List<String> tempA, tempB, tempD;
+            TDoubleArrayList valueAList, valueBList, valueDList;
+            TDoubleArrayList valueDerivedAList, valueDerivedBList, valueDerivedDList;
+            StringBuilder sb=new StringBuilder();
+            MultinomialDist multinomialDist;
+            double[] pArray=new double[4];
+            int[] observations;
+            for (int i = 0; i < p_ABD.length; i++) {
+                pArray[i]=p_ABD[i];
+            }
+            pArray[3]=1-p_ABD[0]-p_ABD[1]-p_ABD[2];
+            for (int i = 0; i < temp.length; i++) {
+                Collections.sort(temp[i], comparator);
+                window=new SlidingWindowForLoadComplement(temp[i].size(),window_triadIDNum*3, step_triadIDNum*3);
+                windowDerived=new SlidingWindowForLoadComplement(temp[i].size(), window_triadIDNum*3, step_triadIDNum*3);
+                for (int j = 0; j < temp[i].size(); j=j+3) {
+                    valueABD=new double[3];
+                    tempA=PStringUtils.fastSplit(temp[i].get(j));
+                    tempB=PStringUtils.fastSplit(temp[i].get(j+1));
+                    tempD=PStringUtils.fastSplit(temp[i].get(j+2));
+                    valueABD[0]=Double.parseDouble(tempA.get(13));
+                    valueABD[1]=Double.parseDouble(tempB.get(13));
+                    valueABD[2]=Double.parseDouble(tempD.get(13));
+                    window.addValue(j+1, valueABD);
+                    valueABD=new double[3];
+                    valueABD[0]=Double.parseDouble(tempA.get(14));
+                    valueABD[1]=Double.parseDouble(tempB.get(14));
+                    valueABD[2]=Double.parseDouble(tempD.get(14));
+                    windowDerived.addValue(j+1, valueABD);
+                }
+                for (int j = 0; j < window.getWindowNum(); j++) {
+                    valueAList=window.getWindow1Value(j);
+                    valueBList=window.getWindow2Value(j);
+                    valueDList=window.getWindow3Value(j);
+                    observations=new int[4];
+                    valueDerivedAList=windowDerived.getWindow1Value(j);
+                    valueDerivedBList=windowDerived.getWindow2Value(j);
+                    valueDerivedDList=windowDerived.getWindow3Value(j);
+                    double total=valueAList.sum()+valueBList.sum()+valueDList.sum();
+                    double homoAncestralNum=total-(valueDerivedAList.sum()+valueDerivedBList.sum()+valueDerivedDList.sum());
+                    sb.setLength(0);
+                    sb.append(subgenomeAIDArray[i]).append("\t").append(window.getWindowStarts()[j]).append("\t");
+                    sb.append(window.getWindowEnds()[j]).append("\t").append(window.getCountInWindow(j)).append("\t");
+                    sb.append(valueDerivedAList.sum()).append("\t").append(valueDerivedBList.sum()).append("\t");
+                    sb.append(valueDerivedDList.sum()).append("\t").append(homoAncestralNum).append("\t");
+                    double expectedA=total*p_ABD[0];
+                    double expectedB=total*p_ABD[1];
+                    double expectedD=total*p_ABD[2];
+                    double expectedHomoAncestral=total*(1-p_ABD[0]-p_ABD[1]-p_ABD[2]);
+                    sb.append(expectedA).append("\t").append(expectedB).append("\t");
+                    sb.append(expectedD).append("\t").append(expectedHomoAncestral).append("\t");
+                    multinomialDist=new MultinomialDist((int)total, pArray);
+                    observations[0]=(int) valueDerivedAList.sum();
+                    observations[1]=(int) valueDerivedBList.sum();
+                    observations[2]=(int) valueDerivedDList.sum();
+                    observations[3]=(int) homoAncestralNum;
+                    double p =multinomialDist.cdf(observations);
+                    double[] mean=multinomialDist.getMean();
+                    sb.append(p).append("\t").append(mean[0]).append("\t").append(mean[1]).append("\t");
+                    sb.append(mean[2]).append("\t").append(mean[3]);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+
             }
             bw.flush();
         } catch (IOException e) {
