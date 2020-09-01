@@ -26,7 +26,8 @@ public class IntrogressionByIndividual {
      * @param taxa_InfoDB
      * @param fdResDir
      */
-    public static void calculateNearestFd(String vmap2VCFDir, String taxa_InfoDB, String fdResDir, String fdOutDir){
+    public static void calculateNearestFd(String vmap2VCFDir, String taxa_InfoDB, String fdResDir, String fdOutDir,
+                                          int index){
         System.out.println(DateTime.getDateTimeOfNow());
         List<File> vmap2FileList= IOUtils.getFileListInDirEndsWith(vmap2VCFDir, "gz");
         Predicate<File> hidden=File::isHidden;
@@ -63,11 +64,18 @@ public class IntrogressionByIndividual {
         RowTableTool<String> taxonTable=new RowTableTool<>(taxa_InfoDB);
         Map<String, String> taxonMap= taxonTable.getHashMap(23,0);
         GenotypeGrid genotypeGridA, genotypeGridB, genotypeGrid;
+//        System.out.println("----------- Start calculate: "+chrD.get(index)+" -----------");
+//        genotypeGridA=new GenotypeGrid(dFiles.get(2*index).getAbsolutePath(), GenoIOFormat.VCF_GZ);
+//        genotypeGridB=new GenotypeGrid(dFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
+//        genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
+//        genotypeGrid.sortByTaxa();
+//        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdDFiles[index], fdOutDir);
+//        System.out.println("----------- finished: "+chrD.get(index)+" -----------");
         for (int i = 0; i < chrFdABFiles.length; i++) {
             System.out.println("----------- Start calculate: "+chrAB.get(i)+" -----------");
-            genotypeGridA=new GenotypeGrid(abFiles.get(2*i).getAbsolutePath(),GenoIOFormat.VCF_GZ);
+            genotypeGridA=new GenotypeGrid(abFiles.get(2*i).getAbsolutePath(), GenoIOFormat.VCF_GZ);
             genotypeGridB=new GenotypeGrid(abFiles.get(2*i+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
-            genotypeGrid=GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
+            genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
             genotypeGrid.sortByTaxa();
             calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdABFiles[i], fdOutDir);
             System.out.println("----------- finished: "+chrAB.get(i)+" -----------");
