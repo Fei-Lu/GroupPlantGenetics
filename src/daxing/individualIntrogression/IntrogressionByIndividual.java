@@ -64,32 +64,39 @@ public class IntrogressionByIndividual {
         RowTableTool<String> taxonTable=new RowTableTool<>(taxa_InfoDB);
         Map<String, String> taxonMap= taxonTable.getHashMap(23,0);
         GenotypeGrid genotypeGridA, genotypeGridB, genotypeGrid;
-//        System.out.println("----------- Start calculate: "+chrD.get(index)+" -----------");
-//        genotypeGridA=new GenotypeGrid(dFiles.get(2*index).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-//        genotypeGridB=new GenotypeGrid(dFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
+//        System.out.println("----------- Start calculate: "+chrAB.get(index)+" -----------");
+//        genotypeGridA=new GenotypeGrid(abFiles.get(2*index).getAbsolutePath(), GenoIOFormat.VCF_GZ);
+//        genotypeGridB=new GenotypeGrid(abFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
 //        genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
 //        genotypeGrid.sortByTaxa();
-//        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdDFiles[index], fdOutDir);
-//        System.out.println("----------- finished: "+chrD.get(index)+" -----------");
-        for (int i = 0; i < chrFdABFiles.length; i++) {
-            System.out.println("----------- Start calculate: "+chrAB.get(i)+" -----------");
-            genotypeGridA=new GenotypeGrid(abFiles.get(2*i).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-            genotypeGridB=new GenotypeGrid(abFiles.get(2*i+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
-            genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
-            genotypeGrid.sortByTaxa();
-            calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdABFiles[i], fdOutDir);
-            System.out.println("----------- finished: "+chrAB.get(i)+" -----------");
-        }
-        for (int i = 0; i < chrFdDFiles.length; i++) {
-            System.out.println("----------- Start calculate: "+chrD.get(i)+" -----------");
-            genotypeGridA=new GenotypeGrid(dFiles.get(2*i).getAbsolutePath(),GenoIOFormat.VCF_GZ);
-            genotypeGridB=new GenotypeGrid(dFiles.get(2*i+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
-            genotypeGrid=GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
-            genotypeGrid.sortByTaxa();
-            calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdDFiles[i],fdOutDir);
-            System.out.println("----------- finished: "+chrD.get(i)+" -----------");
-        }
-        System.out.println(DateTime.getDateTimeOfNow());
+//        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdABFiles[index], fdOutDir);
+//        System.out.println("----------- finished: "+chrAB.get(index)+" -----------");
+        System.out.println("----------- Start calculate: "+chrD.get(index)+" -----------");
+        genotypeGridA=new GenotypeGrid(dFiles.get(2*index).getAbsolutePath(), GenoIOFormat.VCF_GZ);
+        genotypeGridB=new GenotypeGrid(dFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
+        genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
+        genotypeGrid.sortByTaxa();
+        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdDFiles[index], fdOutDir);
+        System.out.println("----------- finished: "+chrD.get(index)+" -----------");
+//        for (int i = 0; i < chrFdABFiles.length; i++) {
+//            System.out.println("----------- Start calculate: "+chrAB.get(i)+" -----------");
+//            genotypeGridA=new GenotypeGrid(abFiles.get(2*i).getAbsolutePath(), GenoIOFormat.VCF_GZ);
+//            genotypeGridB=new GenotypeGrid(abFiles.get(2*i+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
+//            genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
+//            genotypeGrid.sortByTaxa();
+//            calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdABFiles[i], fdOutDir);
+//            System.out.println("----------- finished: "+chrAB.get(i)+" -----------");
+//        }
+//        for (int i = 0; i < chrFdDFiles.length; i++) {
+//            System.out.println("----------- Start calculate: "+chrD.get(i)+" -----------");
+//            genotypeGridA=new GenotypeGrid(dFiles.get(2*i).getAbsolutePath(),GenoIOFormat.VCF_GZ);
+//            genotypeGridB=new GenotypeGrid(dFiles.get(2*i+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
+//            genotypeGrid=GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
+//            genotypeGrid.sortByTaxa();
+//            calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdDFiles[i],fdOutDir);
+//            System.out.println("----------- finished: "+chrD.get(i)+" -----------");
+//        }
+//        System.out.println(DateTime.getDateTimeOfNow());
     }
 
     /**
@@ -169,12 +176,24 @@ public class IntrogressionByIndividual {
             int miniIBSP3Index=-1;
             for (int j = 0; j < p3List.size(); j++) {
                 temp=p3Tables.get(j).getRow(i);
-                if (!StringTool.isNumeric(temp.get(8))) continue;
-                if (!StringTool.isNumeric(temp.get(9))) continue;
-                if (Double.parseDouble(temp.get(8))<0)continue; // D < 0 continue
-                if (Double.parseDouble(temp.get(8))>1)continue; // D > 1 continue
-                if (Double.parseDouble(temp.get(9))<0)continue; // fd < 0 continue
-                if (Double.parseDouble(temp.get(9))>1)continue; // fd > 1 continue
+                if (!StringTool.isNumeric(temp.get(8))){
+                    p3Tables.get(j).setCell(i, 9, "0"); // if D 为nan 或-inf inf, 将fd转换为0
+                    p3Tables.get(j).setCell(i, 8, "0"); // if D 为nan 或-inf inf, 将D转换为0
+                }
+                if (!StringTool.isNumeric(temp.get(9))){
+                    p3Tables.get(j).setCell(i, 9, "0"); // if fd 为nan 或-inf inf, 将fd转换为0
+                    p3Tables.get(j).setCell(i, 8, "0"); // if D 为nan 或-inf inf, 将D转换为0
+                }
+                if (Double.parseDouble(temp.get(8))<0){
+                    p3Tables.get(j).setCell(i, 9, "0"); // if D < 0, 将fd转换为0
+                }
+//                if (Double.parseDouble(temp.get(8))>1)continue; // D > 1 continue
+                if (Double.parseDouble(temp.get(9))<0){
+                    p3Tables.get(j).setCell(i, 9, "0"); // if fd < 0, 将fd转换为0
+                }
+                if (Double.parseDouble(temp.get(9))>1){
+                    p3Tables.get(j).setCell(i, 9, "0"); // if fd > 1, 将fd转换为0
+                }
                 p3=taxonMap.get(p3List.get(j));
                 p3Index=chrGenotypeGrid.getTaxonIndex(p3);
                 ibs=chrGenotypeGrid.getIBSDistance(p2Index, p3Index, startIndex, endIndex);
