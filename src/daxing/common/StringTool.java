@@ -33,16 +33,21 @@ public class StringTool {
     }
 
     /**
-     * if the given string is all numeric, return true
+     * if the given string is numeric (eg. -1.2 0.3 12 et al.), return true
      * @param str
      * @return true, if the given string is all numeric
      */
     public static boolean isNumeric(String str){
         byte[] a=str.getBytes();
-        for (int i = 0; i < a.length; i++) {
+        if (a[0]<45 || a[0]>57) return false;
+        if (a[0]==46 || a[0]==47) return false;
+        if (a[0]==45 && a[1]==46) return false;
+        if (a[0]==45 && a[1]==47) return false;
+        for (int i = 1; i < a.length; i++) {
             if (a[i]<46 || a[i]>57) return false;
             if (a[i]==47) return false;
         }
+        if (a[a.length-1]==46) return false;
         return true;
     }
 
