@@ -1,9 +1,6 @@
 package daxing.load.ancestralSite.complementary;
 
-import daxing.common.IOTool;
-import daxing.common.Ploidy;
-import daxing.common.RowTableTool;
-import daxing.common.Triad;
+import daxing.common.*;
 import daxing.load.ancestralSite.complementary.loadComplementaryGlobalLocal.IndividualLoadComplementary;
 import daxing.load.ancestralSite.complementary.loadComplementaryGlobalLocal.SlidingWindowForLoadComplement;
 import gnu.trove.list.array.TDoubleArrayList;
@@ -137,11 +134,12 @@ public class IndividualTaxonDerivedProbability {
                                                                        int step_triadIDNum,
                                                                        double[] p_ABD, String outFile){
         Triad triad=new Triad(triadGeneFile);
+        RowTableTool<String> triadPosFileTable=new RowTableTool<>(triadPosFile);
         try (BufferedReader br = IOTool.getReader(triadPosFile);
              BufferedWriter bw =IOTool.getWriter(outFile)) {
             int[] subgenomeAIDArray={1,2,3,4,5,6,7};
             br.readLine();
-            bw.write("TriadPosASubID\tWindow_Start\tWindow_End\tTriadIDNum\tObservedA\tObservedB\t" +
+            bw.write("TriadPosASubID\tWindow_Start\tWindow_End\tTriadIDNum\tWindow_MidPos\tObservedA\tObservedB\t" +
                     "ObservedD\tObservedHomoAncestral\tExpectedA\tExpectedB\tExpectedD\tExpectedHomoAncestral" +
                     "\tp_value");
             bw.newLine();
@@ -159,7 +157,7 @@ public class IndividualTaxonDerivedProbability {
                 subIDIndex=Arrays.binarySearch(subgenomeAIDArray, subgenomeID);
                 temp[subIDIndex].add(line);
             }
-            SlidingWindowForLoadComplement window, windowDerived;
+            SlidingWindowForLoadComplement windowTotal, windowDerived;
             Comparator<String> comparator=Comparator.comparing(s -> Integer.parseInt(PStringUtils.fastSplit(s).get(4)));
             comparator=comparator.thenComparing(s -> PStringUtils.fastSplit(s).get(16));
             double[] valueABD;
@@ -176,27 +174,27 @@ public class IndividualTaxonDerivedProbability {
             pArray[3]=1-p_ABD[0]-p_ABD[1]-p_ABD[2];
             for (int i = 0; i < temp.length; i++) {
                 Collections.sort(temp[i], comparator);
-                window=new SlidingWindowForLoadComplement(temp[i].size(),window_triadIDNum*3, step_triadIDNum*3);
+                windowTotal=new SlidingWindowForLoadComplement(temp[i].size(),window_triadIDNum*3, step_triadIDNum*3);
                 windowDerived=new SlidingWindowForLoadComplement(temp[i].size(), window_triadIDNum*3, step_triadIDNum*3);
                 for (int j = 0; j < temp[i].size(); j=j+3) {
                     valueABD=new double[3];
                     tempA=PStringUtils.fastSplit(temp[i].get(j));
                     tempB=PStringUtils.fastSplit(temp[i].get(j+1));
                     tempD=PStringUtils.fastSplit(temp[i].get(j+2));
-                    valueABD[0]=Double.parseDouble(tempA.get(13));
+                    valueABD[0]=Double.parseDouble(tempA.get(13))-Double.parseDouble(tempA.get(15));
                     valueABD[1]=Double.parseDouble(tempB.get(13));
                     valueABD[2]=Double.parseDouble(tempD.get(13));
-                    window.addValue(j+1, valueABD);
+                    windowTotal.addValue(j+1, valueABD);
                     valueABD=new double[3];
                     valueABD[0]=Double.parseDouble(tempA.get(14));
                     valueABD[1]=Double.parseDouble(tempB.get(14));
                     valueABD[2]=Double.parseDouble(tempD.get(14));
                     windowDerived.addValue(j+1, valueABD);
                 }
-                for (int j = 0; j < window.getWindowNum(); j++) {
-                    valueAList=window.getWindow1Value(j);
-                    valueBList=window.getWindow2Value(j);
-                    valueDList=window.getWindow3Value(j);
+                for (int j = 0; j < windowTotal.getWindowNum(); j++) {
+                    valueAList=windowTotal.getWindow1Value(j);
+                    valueBList=windowTotal.getWindow2Value(j);
+                    valueDList=windowTotal.getWindow3Value(j);
                     observations=new int[4];
                     valueDerivedAList=windowDerived.getWindow1Value(j);
                     valueDerivedBList=windowDerived.getWindow2Value(j);
@@ -204,14 +202,16 @@ public class IndividualTaxonDerivedProbability {
                     double total=valueAList.sum()+valueBList.sum()+valueDList.sum();
                     double homoAncestralNum=total-(valueDerivedAList.sum()+valueDerivedBList.sum()+valueDerivedDList.sum());
                     sb.setLength(0);
-                    sb.append(subgenomeAIDArray[i]).append("\t").append(window.getWindowStarts()[j]).append("\t");
-                    sb.append(window.getWindowEnds()[j]).append("\t").append(window.getCountInWindow(j)).append("\t");
+                    sb.append(subgenomeAIDArray[i]).append("\t").append(windowTotal.getWindowStarts()[j]).append("\t");
+                    sb.append(windowTotal.getWindowEnds()[j]).append("\t").append(windowTotal.getCountInWindow(j)).append("\t");
+                    int rowIndexOfTriadPos= windowTotal.getWindowStarts()[j]+(windowTotal.getWindowEnds()[j]-windowTotal.getWindowStarts()[j])/2;
+                    sb.append(triadPosFileTable.getCell(rowIndexOfTriadPos, 4)).append("\t");
                     sb.append(valueDerivedAList.sum()).append("\t").append(valueDerivedBList.sum()).append("\t");
                     sb.append(valueDerivedDList.sum()).append("\t").append(homoAncestralNum).append("\t");
-                    double expectedA=total*p_ABD[0];
-                    double expectedB=total*p_ABD[1];
-                    double expectedD=total*p_ABD[2];
-                    double expectedHomoAncestral=total*(1-p_ABD[0]-p_ABD[1]-p_ABD[2]);
+                    double expectedA= NumberTool.format(total*p_ABD[0], 5);
+                    double expectedB=NumberTool.format(total*p_ABD[1], 5);
+                    double expectedD=NumberTool.format(total*p_ABD[2], 5);
+                    double expectedHomoAncestral=NumberTool.format(total*(1-p_ABD[0]-p_ABD[1]-p_ABD[2]), 5);
                     sb.append(expectedA).append("\t").append(expectedB).append("\t");
                     sb.append(expectedD).append("\t").append(expectedHomoAncestral).append("\t");
                     multinomialDist=new MultinomialDist((int)total, pArray);
@@ -219,10 +219,116 @@ public class IndividualTaxonDerivedProbability {
                     observations[1]=(int) valueDerivedBList.sum();
                     observations[2]=(int) valueDerivedDList.sum();
                     observations[3]=(int) homoAncestralNum;
-                    double p =multinomialDist.cdf(observations);
-                    double[] mean=multinomialDist.getMean();
-                    sb.append(p).append("\t").append(mean[0]).append("\t").append(mean[1]).append("\t");
-                    sb.append(mean[2]).append("\t").append(mean[3]);
+                    double p =NumberTool.format(multinomialDist.cdf(observations), 5);
+                    sb.append(p);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void calculateIndividualTaxonLocalDerivedProbability_synNonDel(String triadPosFile,
+                                                                                 String triadGeneFile,
+                                                                                 int window_triadIDNum,
+                                                                                 int step_triadIDNum,
+                                                                                 String outFile){
+        Triad triad=new Triad(triadGeneFile);
+        RowTableTool<String> triadPosFileTable=new RowTableTool<>(triadPosFile);
+        try (BufferedReader br = IOTool.getReader(triadPosFile);
+             BufferedWriter bw =IOTool.getWriter(outFile)) {
+            int[] subgenomeAIDArray={1,2,3,4,5,6,7};
+            br.readLine();
+            bw.write("TriadPosASubID\tWindow_Start\tWindow_End\tTriadIDNum\tWindow_MidPos\tObservedA\tObservedB\t" +
+                    "ObservedD\tObservedHomoAncestral\tExpectedA\tExpectedB\tExpectedD\tExpectedHomoAncestral" +
+                    "\tp_value");
+            bw.newLine();
+            String line, triadID, chr, triadPosChr;
+            int subgenomeID, subIDIndex=-1;
+            List<String> temp[]=new List[subgenomeAIDArray.length];
+            for (int i = 0; i < temp.length; i++) {
+                temp[i]=new ArrayList<>();
+            }
+            while ((line=br.readLine())!=null){
+                triadID=PStringUtils.fastSplit(line).get(0);
+                chr=PStringUtils.fastSplit(line).get(2).substring(8,10);
+                triadPosChr= IndividualLoadComplementary.getTriadPosChr(triad.getTraidGenes(triadID), "A",chr);
+                subgenomeID=Integer.parseInt(triadPosChr.substring(0,1));
+                subIDIndex=Arrays.binarySearch(subgenomeAIDArray, subgenomeID);
+                temp[subIDIndex].add(line);
+            }
+            SlidingWindowForLoadComplement synWindowTotal, synWindowDerived;
+            SlidingWindowForLoadComplement nonWindowTotal, nonWindowDerived;
+            SlidingWindowForLoadComplement delWindowTotal, delWindowDerived;
+            Comparator<String> comparator=Comparator.comparing(s -> Integer.parseInt(PStringUtils.fastSplit(s).get(4)));
+            comparator=comparator.thenComparing(s -> PStringUtils.fastSplit(s).get(16));
+            double[] valueABD;
+            List<String> tempA, tempB, tempD;
+            TDoubleArrayList valueAList, valueBList, valueDList;
+            StringBuilder sb=new StringBuilder();
+            for (int i = 0; i < temp.length; i++) {
+                Collections.sort(temp[i], comparator);
+                synWindowTotal=new SlidingWindowForLoadComplement(temp[i].size(), window_triadIDNum*3, step_triadIDNum*3);
+                synWindowDerived=new SlidingWindowForLoadComplement(temp[i].size(), window_triadIDNum*3, step_triadIDNum*3);
+                nonWindowTotal=new SlidingWindowForLoadComplement(temp[i].size(), window_triadIDNum*3, step_triadIDNum*3);
+                nonWindowDerived=new SlidingWindowForLoadComplement(temp[i].size(), window_triadIDNum*3, step_triadIDNum*3);
+                delWindowTotal=new SlidingWindowForLoadComplement(temp[i].size(),window_triadIDNum*3, step_triadIDNum*3);
+                delWindowDerived=new SlidingWindowForLoadComplement(temp[i].size(), window_triadIDNum*3, step_triadIDNum*3);
+                for (int j = 0; j < temp[i].size(); j=j+3) {
+                    tempA=PStringUtils.fastSplit(temp[i].get(j));
+                    tempB=PStringUtils.fastSplit(temp[i].get(j+1));
+                    tempD=PStringUtils.fastSplit(temp[i].get(j+2));
+                    valueABD=new double[3];
+                    valueABD[0]=Double.parseDouble(tempA.get(7));
+                    valueABD[1]=Double.parseDouble(tempB.get(7));
+                    valueABD[2]=Double.parseDouble(tempD.get(7));
+                    synWindowTotal.addValue(j+1, valueABD);
+                    valueABD=new double[3];
+                    valueABD[0]=Double.parseDouble(tempA.get(8));
+                    valueABD[1]=Double.parseDouble(tempB.get(8));
+                    valueABD[2]=Double.parseDouble(tempD.get(8));
+                    synWindowDerived.addValue(j+1, valueABD);
+                    valueABD=new double[3];
+                    valueABD[0]=Double.parseDouble(tempA.get(10));
+                    valueABD[1]=Double.parseDouble(tempB.get(10));
+                    valueABD[2]=Double.parseDouble(tempD.get(10));
+                    nonWindowTotal.addValue(j+1, valueABD);
+                    valueABD=new double[3];
+                    valueABD[0]=Double.parseDouble(tempA.get(11));
+                    valueABD[1]=Double.parseDouble(tempB.get(11));
+                    valueABD[2]=Double.parseDouble(tempD.get(11));
+                    nonWindowDerived.addValue(j+1, valueABD);
+                    valueABD=new double[3];
+                    valueABD[0]=Double.parseDouble(tempA.get(13));
+                    valueABD[1]=Double.parseDouble(tempB.get(13));
+                    valueABD[2]=Double.parseDouble(tempD.get(13));
+                    delWindowTotal.addValue(j+1, valueABD);
+                    valueABD=new double[3];
+                    valueABD[0]=Double.parseDouble(tempA.get(14));
+                    valueABD[1]=Double.parseDouble(tempB.get(14));
+                    valueABD[2]=Double.parseDouble(tempD.get(14));
+                    delWindowDerived.addValue(j+1, valueABD);
+                }
+                for (int j = 0; j < delWindowTotal.getWindowNum(); j++) {
+                    valueAList=delWindowTotal.getWindow1Value(j);
+                    valueBList=delWindowTotal.getWindow2Value(j);
+                    valueDList=delWindowTotal.getWindow3Value(j);
+                    valueABD=new double[3];
+                    valueABD[0]=delWindowDerived.getWindow1Value(j).sum();
+                    valueABD[1]=delWindowDerived.getWindow2Value(j).sum();
+                    valueABD[2]=delWindowDerived.getWindow3Value(j).sum();
+                    double total=valueAList.sum()+valueBList.sum()+valueDList.sum();
+                    double homoAncestralNum=total-(valueABD[0]+valueABD[1]+valueABD[2]);
+                    sb.setLength(0);
+                    sb.append(subgenomeAIDArray[i]).append("\t").append(delWindowTotal.getWindowStarts()[j]).append("\t");
+                    sb.append(delWindowTotal.getWindowEnds()[j]).append("\t").append(delWindowTotal.getCountInWindow(j)).append("\t");
+                    int rowIndexOfTriadPos= delWindowTotal.getWindowStarts()[j]+(delWindowTotal.getWindowEnds()[j]-delWindowTotal.getWindowStarts()[j])/2;
+                    sb.append(triadPosFileTable.getCell(rowIndexOfTriadPos, 4)).append("\t");
+                    sb.append(valueABD[0]).append("\t").append(valueABD[1]).append("\t");
+                    sb.append(valueABD[2]).append("\t").append(homoAncestralNum).append("\t");
                     bw.write(sb.toString());
                     bw.newLine();
                 }
