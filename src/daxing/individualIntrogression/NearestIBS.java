@@ -226,6 +226,26 @@ public class NearestIBS {
                 " seconds ******");
     }
 
+    public static void merge(String fdChrDir, String outDir){
+        System.out.println(DateTime.getDateTimeOfNow());
+        List<File> files=IOUtils.getVisibleFileListInDir(fdChrDir);
+        Map<String, List<File>> taxaMap= files.stream().collect(Collectors.groupingBy(file -> file.getName().substring(14,19)));
+        String taxaName;
+        List<File> taxaChrFiles;
+        RowTableTool<String> table0, table;
+        for(Map.Entry<String,List<File>> entry : taxaMap.entrySet()){
+            taxaName=entry.getKey();
+            taxaChrFiles=entry.getValue();
+            table0=new RowTableTool<>(taxaChrFiles.get(0).getAbsolutePath());
+            for (int i = 1; i < taxaChrFiles.size(); i++) {
+                table=new RowTableTool<>(taxaChrFiles.get(i).getAbsolutePath());
+                table0.add(table);
+            }
+            table0.write(new File(outDir, taxaName+"_vmap2.1.csv.gz"));
+        }
+        System.out.println(DateTime.getDateTimeOfNow());
+    }
+
     /**
      * 提取window
      * @param fdres
