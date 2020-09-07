@@ -18,7 +18,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class IntrogressionByIndividual {
+public class NearestIBS {
 
     /**
      * 并行处理每个染色体
