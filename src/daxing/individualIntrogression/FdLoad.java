@@ -29,6 +29,7 @@ public class FdLoad {
         String individualFdDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/001_vmap2" +
                 ".1Before20200525/002_analysis/014_deleterious/triadGenes1.1_cdsLen_geneHC.txt";
         String outDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftPerSite";
+        go(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, individualFdDir, outDir);
     }
 
     public static void go(String exonSNPAnnoDir, String exonVCFDir, String taxa_InfoDBFile, String individualFdDir, String outDir){
