@@ -46,8 +46,8 @@ public class VCFsplit {
             ChromosomeMap.put(temp[3], Integer.parseInt(temp[0]));
             ChromosomeLength.put(temp[3], Integer.parseInt(temp[5]));
         }
-        String infileDir = "/data2/xiaohan/Gerp2";
-        String outputDir = "/data2/xiaohan/Gerp2/chr";
+        String infileDir = "/data2/xiaohan/GerpOrigin";
+        String outputDir = "/data2/xiaohan/GerpOrigin/chr";
         File[] fs = new File(infileDir).listFiles();
         fs = IOUtils.listFilesEndsWith(fs, ".gz");
         HashSet<String> nameSet = new HashSet();

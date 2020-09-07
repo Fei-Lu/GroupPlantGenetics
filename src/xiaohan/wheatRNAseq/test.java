@@ -8,7 +8,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -32,13 +34,326 @@ public class test {
 //        this.countTable();
 //        this.forfun();
 //        this.test();
-        this.test1();
+//        this.test1();
 //        this.refGene();
+//        this.mahatten();
+//        this.pvalueFilter();
+//        this.getGerpValueTable();
+//        this.getGerpdensity();
+//        this.printpos();
+        this.printRcode();
     }
+
 
     /**
      * @throws IOException
      */
+
+    public void printRcode(){
+//        String name = "Tam_1,Tam_2,Tam_3,R1_1,R1_2,R1_3,R1_4,R1_5,R1_6,S1_1,S1_2,S1_3,S1_4,S1_5,S1_6,U1_1,U1_2,U1_3,U1_4,U1_5,U1_6,UR1_1,UR1_2,UR1_3,UR1_4,UR1_5,UR1_6";
+        String name = "Tpm_1,Tpm_2,Tpm_3,R2_1,R2_2,R2_3,R2_4,R2_5,R2_6,S2_1,S2_2,S2_3,S2_4,S2_5,S2_6,U2_1,U2_2,U2_3,U2_4,U2_5,U2_6,UR2_1,UR2_2,UR2_3,UR2_4,UR2_5,UR2_6";        
+        String[] names = name.split(",");
+        for(int i = 0;i<names.length; i++ ){
+            int number = i+1;
+            System.out.println("pdf("+"\""+names[i]+".pdf"+"\""+",width=8,height=8)\n" +
+                               "y <- database$"+names[i]+"\n" +
+                                "plot(x,y,pch=16 , cex=1.3,xlab = \"Expected mix2 Log 2 transcript molecules\",ylab = \"Observed mix2 Log 2 transcript molecules\")\n" +
+                                "model <- lm(y ~ x )\n" +
+                                "myPredict <- predict( model ) \n" +
+                                "ix <- sort(x,index.return=T)$ix\n" +
+                                "lines(x[ix], myPredict[ix], lwd=2 )  \n" +
+                                "coeff <- round(model$coefficients , 5)\n" +
+                                "text(12,2.6,paste(\"n = \",length(x)))\n" +
+                                "text(12,1.8,paste(\"r = \",round(summary(model)$adj.r,4)))\n" +
+                                "text(12,1.0,paste(\"slope = \",coeff[2]))\n" +
+                                "text(12,0.2,paste(\"y-intercept = \",coeff[1]))\n" +
+                                "dev.off()\n" +
+                                "count["+number+"] = round(summary(model)$adj.r,4)");
+        }
+    }
+
+    public void printpos(){
+        String infile = "/data2/xiaohan/GerpOrigin/chr/chr9.bed.gz";
+        String output = new File("/data2/xiaohan/GerpOrigin/chr/","pos.txt").getAbsolutePath();
+        BufferedReader br = IOUtils.getTextGzipReader(infile);
+        BufferedWriter bw = IOUtils.getTextWriter(output);
+        String temp = null;
+        String[] temps = null;
+        try{
+            while((temp = br.readLine())!=null){
+                temps = temp.split("\t");
+                bw.write(temps[1]);
+                bw.newLine();
+            }
+            br.close();
+            bw.flush();
+            bw.close();
+        }catch (Exception e ){
+            e.printStackTrace();
+        }
+    }
+    
+    public void getGerpdensity() throws IOException {
+        String inputDir = "/data2/xiaohan/GerpOrigin/";
+        String outputDir = "/data2/xiaohan/GerpOrigin/Density2";
+        File[] fs = new File(inputDir).listFiles();
+        fs = xiaohan.rareallele.IOUtils.listFilesEndsWith(fs, ".gz");
+        HashSet<String> nameSet = new HashSet();
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) continue;
+            String Name = fs[i].getName().split("\\.")[0];
+            nameSet.add(Name);
+            System.out.println(Name);
+        }
+        nameSet.stream().forEach(f -> {
+            try{
+                BufferedReader br = xiaohan.rareallele.IOUtils.getTextGzipReader(new File(inputDir,f + ".bed.gz").getAbsolutePath());
+                BufferedWriter bw = xiaohan.rareallele.IOUtils.getTextWriter(new File(outputDir,f + "DensityPlot.txt").getAbsolutePath());
+                bw.write(f + "\t");
+//                bw.newLine();
+//                int gerp01 = 0;
+                int gerp12 = 0;
+                int gerp23 = 0;
+                int gerp34 = 0;
+//                int gerp45 = 0;
+//                int gerp56 = 0;
+//                int gerp67 = 0;
+                int gerp10 = 0;
+                int gerp21 = 0;
+                int gerp32 = 0;
+//                int gerp43 = 0;
+//                int gerphigh = 0;
+//                int gerplow = 0;
+                int gerp0002 = 0;
+                int gerp0204 = 0;
+                int gerp0406 = 0;
+                int gerp0608 = 0;
+                int gerp0810 = 0;
+                String temp = null;
+                String[] temps = null;
+                while((temp = br.readLine())!=null){
+                    temps = temp.split("\t");
+                    double gerp = Double.parseDouble(temps[temps.length-1]);
+//                    if(gerp >= 0 && gerp <1){
+//                        gerp01++;
+//                    }
+                    if(gerp >=1 && gerp <2){
+                        gerp12 ++;
+                    }
+                    if(gerp >=2 && gerp <3){
+                        gerp23 ++;
+                    }
+                    if(gerp >=3 && gerp <4){
+                        gerp34 ++;
+                    }
+//                    if(gerp >=4 && gerp <5){
+//                        gerp45 ++;
+//                    }
+//                    if(gerp >=5 && gerp <6){
+//                        gerp56 ++;
+//                    }
+//                    if(gerp >=6 && gerp <7){
+//                        gerp67++;
+//                    }
+                    if(gerp >=-1 && gerp <0){
+                        gerp10 ++;
+                    }
+                    if(gerp >=-2 && gerp <-1){
+                        gerp21 ++;
+                    }
+                    if(gerp >=-3 && gerp <-2){
+                        gerp32 ++;
+                    }
+//                    if(gerp >=-4 && gerp <-3){
+//                        gerp43 ++;
+//                    }
+//                    if(gerp >= 7){
+//                        gerphigh ++;
+//                    }
+//                    if(gerp < -4){
+//                        gerplow ++;
+//                    }
+                    if(gerp >=0 && gerp <0.2){
+                        gerp0002 ++;
+                    }
+                    if(gerp >=0.2 && gerp <0.4){
+                        gerp0204 ++;
+                    }
+                    if(gerp >=0.4 && gerp <0.6){
+                        gerp0406 ++;
+                    }
+                    if(gerp >=0.6 && gerp <0.8){
+                        gerp0608 ++;
+                    }
+                    if(gerp >=0.8 && gerp <1){
+                        gerp0810 ++;
+                    }
+                }
+                br.close();
+                bw.write("\tgerp0002\t"  + gerp0002);
+                bw.newLine();
+                bw.write("\tgerp0204\t"  + gerp0204);
+                bw.newLine();
+                bw.write("\tgerp0406\t"  + gerp0406);
+                bw.newLine();
+                bw.write("\tgerp0608\t"  + gerp0608);
+                bw.newLine();
+                bw.write("\tgerp0810\t"  + gerp0810);
+                bw.newLine();
+                bw.write("\tgerp12\t"  + gerp12);
+                bw.newLine();
+                bw.write("\tgerp23\t"  + gerp23);
+                bw.newLine();
+                bw.write("\tgerp34\t"  + gerp34);
+                bw.newLine();
+//                bw.write("gerp45\t"  + gerp45);
+//                bw.newLine();
+//                bw.write("gerp56\t"  + gerp56);
+//                bw.newLine();
+//                bw.write("gerp67\t"  + gerp67);
+                bw.newLine();
+                bw.write("\tgerp10\t"  + gerp10);
+                bw.newLine();
+                bw.write("\tgerp21\t"  + gerp21);
+                bw.newLine();
+                bw.write("\tgerp32\t"  + gerp32);
+                bw.newLine();
+//                bw.write("gerp43\t"  + gerp43);
+//                bw.newLine();
+//                bw.write("gerphigh\t"  + gerphigh);
+//                bw.newLine();
+//                bw.write("gerplow\t"  + gerplow);
+//                bw.newLine();
+                bw.flush();
+                bw.close();
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+        });
+
+    }
+
+    public void getGerpValueTable() throws IOException {
+        String inputDir = "/data2/xiaohan/GerpOrigin";
+        String outputDir = "/data2/xiaohan/GerpOrigin";
+        BufferedWriter bw = xiaohan.rareallele.IOUtils.getTextWriter(new File(outputDir, "GerpValue.txt").getAbsolutePath());
+        DecimalFormat decFor = new DecimalFormat("0.000");
+        bw.write("Gerp");
+        bw.newLine();
+        AtomicInteger count = new AtomicInteger();
+        File[] fs = new File(inputDir).listFiles();
+        fs = xiaohan.rareallele.IOUtils.listFilesEndsWith(fs, ".gz");
+        HashSet<String> nameSet = new HashSet();
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) continue;
+            String Name = fs[i].getName().split("\\.")[0];
+            nameSet.add(Name);
+            System.out.println(Name);
+        }
+        nameSet.stream().forEach(f -> {
+            try {
+                int countline = 0;
+                BufferedReader br = IOUtils.getTextGzipReader(new File(inputDir, f + ".bed.gz").getAbsolutePath());
+                String temp = null;
+                String[] temps = null;
+                while ((temp = br.readLine()) != null) {
+                    temps = temp.split("\t");
+                    double value = Double.parseDouble(temps[temps.length - 1]);
+                    if (value == 0) {
+                        count.getAndIncrement();
+                        countline++;
+                        continue;
+                    }
+                    String value1 = decFor.format(value);
+                    bw.write(String.valueOf(value1));
+                    bw.newLine();
+                    countline++;
+                }
+                if (countline % 5000 == 0) {
+                    System.out.println(countline);
+                }
+                br.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+//        System.out.printf(String.valueOf(count));
+        bw.flush();
+        bw.close();
+    }
+
+    public void pvalueFilter() {
+        String infile = "/Users/yxh/Documents/RareAllele/004test/RVtest/metaScore/metaScoremahatten.txt";
+        String outputDir = "/Users/yxh/Documents/RareAllele/004test/RVtest/metaScore/";
+        String temp = null;
+        String[] temps = null;
+        try {
+            BufferedReader br = IOUtils.getTextReader(infile);
+            BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, "metaScoremahattenA.txt").getAbsolutePath());
+            int count = 0;
+            while ((temp = br.readLine()) != null) {
+                if (temp.startsWith("CHR")) {
+                    bw.write(temp);
+                    bw.newLine();
+                    continue;
+                }
+                temps = temp.split("\t");
+                if (Integer.parseInt(temps[0]) == 1 | Integer.parseInt(temps[0]) == 2) {
+                    bw.write(temp);
+                    bw.newLine();
+                }
+            }
+            System.out.println(count);
+            br.close();
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void mahatten() throws IOException {
+        String inputDir = "/data1/home/xiaohan/rareallele/RVtest/output/metaScore";
+        String ouputfile = "/data1/home/xiaohan/rareallele/RVtest/output/metaScore/mahatten";
+        File[] fs = new File(inputDir).listFiles();
+        List<File> fList = new ArrayList(Arrays.asList());
+        fs = xiaohan.rareallele.IOUtils.listFilesEndsWith(fs, ".gz");
+        HashSet<String> nameSet = new HashSet();
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) continue;
+            String Name = fs[i].getName().split("\\.")[0];
+            nameSet.add(Name);
+            System.out.println(Name);
+        }
+        BufferedWriter bw = IOUtils.getTextWriter(new File(ouputfile, "metaScoremahatten.txt").getAbsolutePath());
+        bw.write("CHR" + "\t" + "BP" + "\t" + "SNP" + "\t" + "P");
+        bw.newLine();
+        nameSet.stream().forEach(f -> {
+            try {
+                int countline = 0;
+                BufferedReader br = IOUtils.getTextGzipReader(new File(inputDir, f + ".MetaScore.assoc.gz").getAbsolutePath());
+
+                String temp = null;
+                String[] temps = null;
+                while ((temp = br.readLine()) != null) {
+                    if (temp.startsWith("##") | temp.startsWith("CH")) continue;
+                    countline++;
+                    temps = temp.split("\t");
+                    if (!temps[temps.length - 1].equals("NA")) {
+                        bw.write(temps[0] + "\t" + temps[1] + "\t" + "snp_" + temps[0] + "_" + temps[1] + "\t" + temps[temps.length - 1]);
+                        bw.newLine();
+                    }
+                }
+                br.close();
+                bw.flush();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        bw.close();
+    }
 
     public void refGene() {
         String infile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/wheat_v1.1_Lulab.gff3";
@@ -119,7 +434,8 @@ public class test {
     public void test1() {
         for (int i = 0; i < 42; i++) {
             int chr = i + 1;
-            System.out.println("nohup rvtest --inVcf /data2/xiaohan/genotype_root/genotype_rootMaf005/87B18.chr" + chr + ".maf005.vcf.gz  --pheno /data1/home/xiaohan/rareallele/RVtest/phenoDir/S7.ped --geneFile /data1/home/xiaohan/rareallele/RVtest/geneFile/refegeneWheat.txt  --kernel skat,kbac --out chr" + chr + " &");
+            System.out.println("nohup rvtest --inVcf /data2/xiaohan/genotype_root/genotype_rootMaf005/87B18.chr" + chr + ".maf005.vcf.gz  --pheno /data1/home/xiaohan/rareallele/RVtest/phenoDir/S7.ped --geneFile /data1/home/xiaohan/rareallele/RVtest/geneFile/refegeneWheat.txt --vt price --out chr" + chr + " &");
+            //--geneFile /data1/home/xiaohan/rareallele/RVtest/geneFile/refegeneWheat.txt
         }
     }
 
