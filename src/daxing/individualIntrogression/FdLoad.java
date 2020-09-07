@@ -2,18 +2,22 @@ package daxing.individualIntrogression;
 
 import daxing.common.DateTime;
 import daxing.common.IOTool;
+import daxing.common.RowTableTool;
 import daxing.load.ancestralSite.ChrSNPAnnoDB;
+import pgl.infra.range.Range;
 import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
+import pgl.infra.utils.wheat.RefV1Utils;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class FdLoad {
 
@@ -28,7 +32,7 @@ public class FdLoad {
 
     public static void go(String exonSNPAnnoDir, String exonVCFDir, String taxa_InfoDBFile, String triadFile, String outDir){
         System.out.println(DateTime.getDateTimeOfNow());
-        String[] subdir={"001_count","002_countMerge","003_addFd"};
+        String[] subdir={"001_count","002_countMerge","003_retainTreeValidatedAndIndianDwarf"};
         for (int i = 0; i < subdir.length; i++) {
             new File(outDir, subdir[i]).mkdir();
         }
@@ -37,7 +41,9 @@ public class FdLoad {
         Map<String, File> taxonOutDirMap=getTaxonOutDirMap(taxa_InfoDBFile, new File(outDir, subdir[0]).getAbsolutePath());
 //        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
 //                taxonOutDirMap, e+1));
-        merge(new File(outDir, subdir[0]).getAbsolutePath(), taxa_InfoDBFile, new File(outDir, subdir[1]).getAbsolutePath());
+//        merge(new File(outDir, subdir[0]).getAbsolutePath(), taxa_InfoDBFile, new File(outDir, subdir[1]).getAbsolutePath());
+        retainTreeValidatedLandraceCultivar(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
+                new File(outDir, subdir[2]).getAbsolutePath());
         System.out.println(DateTime.getDateTimeOfNow());
     }
 
@@ -151,9 +157,91 @@ public class FdLoad {
         }
     }
 
-    public static void addFd(String fdDir, String countMergeDir, String taxa_InfoDB, String outDir){
-        List<File> fdFiles=IOUtils.getVisibleFileListInDir(fdDir);
+    /**
+     * retain TreeValidated Landrace Cultivar, do not include indian dwarf
+     * @param countMergeDir
+     * @param taxa_InfoDB
+     * @param outDir
+     */
+    public static void retainTreeValidatedLandraceCultivar(String countMergeDir, String taxa_InfoDB, String outDir){
+        List<File> files=IOUtils.getVisibleFileListInDir(countMergeDir);
+        Map<String, String> taxaTreeValidatedGroupbySubspeciesMap=RowTableTool.getMap(taxa_InfoDB, 0, 15);
+        Map<String, String> taxaFdIDMap=RowTableTool.getMap(taxa_InfoDB, 0, 23);
+        Map<String, String> taxaFdBySubspeciesMap=RowTableTool.getMap(taxa_InfoDB, 0, 25);
+        Predicate<File> landraceP= file -> taxaTreeValidatedGroupbySubspeciesMap.get(PStringUtils.fastSplit(file.getName(), ".").get(0)).equals("Landrace");
+        Predicate<File> cultivarP= file -> taxaTreeValidatedGroupbySubspeciesMap.get(PStringUtils.fastSplit(file.getName(), ".").get(0)).equals("Cultivar");
+        Predicate<File> indianDwarfP= file -> taxaFdBySubspeciesMap.get(PStringUtils.fastSplit(file.getName(),".").get(0)).equals("IndianDwarfWheat");
+        Predicate<File> predicateLRCL=landraceP.or(cultivarP).and(indianDwarfP.negate());
+        List<File> landraceCultivarFiles=files.stream().filter(predicateLRCL).collect(Collectors.toList());
+        String[] outFileFdID= landraceCultivarFiles.stream().map(File::getName).map(f->taxaFdIDMap.get(PStringUtils.fastSplit(f,
+                        ".").get(0))).toArray(String[]::new);
+        try {
+            for (int i = 0; i < landraceCultivarFiles.size(); i++) {
+                Files.copy(landraceCultivarFiles.get(i).toPath(), new File(outDir,outFileFdID[i]+".del.load.perSite" +
+                        ".txt.gz").toPath());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    public static void addFd(String fdDir, String taxa_InfoDB,  String countMergeDir, String outDir){
+        List<File> fdFiles=IOUtils.getVisibleFileListInDir(fdDir);
+        List<Range>[] fdFilesRange=new List[fdFiles.size()];
+        List<String> fdIDList=new ArrayList<>();
+        for (int i = 0; i < fdFiles.size(); i++) {
+            fdFilesRange[i]=getIndividualRangeList(fdFiles.get(i).getAbsolutePath());
+            fdIDList.add(fdFiles.get(i).getName().substring(0, 5));
+        }
+        Map<String,String> taxaFdIDMap= RowTableTool.getMap(taxa_InfoDB, 0, 23);
+        List<File> taxaFiles=IOUtils.getDirListInDir(countMergeDir);
+        Predicate<File> inFdIDList=
+                f -> fdIDList.contains(taxaFdIDMap.get(PStringUtils.fastSplit(f.getName(), ".").get(0)));
+        List<File> hexaploidFiles=taxaFiles.stream().filter(inFdIDList).collect(Collectors.toList());
+
+
+    }
+
+    private static List<Range> getIndividualRangeList(String fdFile){
+        List<Range> ranges=new ArrayList<>();
+        Range range;
+        try (BufferedReader br = IOTool.getReader(fdFile)) {
+            br.readLine();
+            String line;
+            List<String> temp;
+            String chr;
+            int refPos, refStart, refEnd, chrID, start, end;
+            double fd;
+            while ((line=br.readLine())!=null){
+                temp=PStringUtils.fastSplit(line,",");
+                fd=Double.parseDouble(temp.get(9));
+                if ( fd < 1) continue;
+                chr=temp.get(0);
+                refPos=Integer.parseInt(temp.get(1));
+                chrID= RefV1Utils.getChrID(chr, refPos);
+                refStart=Integer.parseInt(temp.get(1));
+                refEnd=Integer.parseInt(temp.get(2));
+                start= RefV1Utils.getPosOnChrID(chr,refStart);
+                end=RefV1Utils.getPosOnChrID(chr, refEnd);
+                range=new Range(chrID, start, end+1);
+                ranges.add(range);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        List<Range> res=new ArrayList<>();
+        range=ranges.get(0);
+        for (int i = 1; i < ranges.size(); i++) {
+            if (range.isOverlap(ranges.get(i))){
+                range=new Range(range.chr, range.start, ranges.get(i).end);
+            }else {
+                res.add(range);
+                range=ranges.get(i);
+            }
+        }
+        res.add(range);
+        return res;
     }
 
 }
