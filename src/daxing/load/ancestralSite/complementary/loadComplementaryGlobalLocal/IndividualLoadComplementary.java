@@ -23,10 +23,10 @@ import java.util.stream.IntStream;
 public class IndividualLoadComplementary {
 
     public static void start(){
-        String triadInputDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/005_test/001_triad";
+        String triadInputDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/006_test_C1_C2_C11_C12/003_triad";
         String pgfFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/001_vmap2.1Before20200525/002_analysis/014_deleterious/wheat_v1.1_Lulab_geneHC.pgf";
         String triadGeneFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/001_vmap2.1Before20200525/002_analysis/014_deleterious/triadGenes1.1_cdsLen_geneHC.txt";
-        String outDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/005_test/002_normalizedAndSlidingWindow";
+        String outDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/006_test_C1_C2_C11_C12/004_nonmalizedAndSlidingWindow";
         String[] subDirs={"001_triad.pos","002_forSlidingWindow","003_slidingWindow","004_mergeIndividualDel"};
         String sub="A";
         File[] subDirFiles=new File[subDirs.length];
