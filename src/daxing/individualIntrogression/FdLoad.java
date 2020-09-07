@@ -2,6 +2,7 @@ package daxing.individualIntrogression;
 
 import daxing.common.DateTime;
 import daxing.common.IOTool;
+import daxing.common.NumberTool;
 import daxing.common.RowTableTool;
 import daxing.load.ancestralSite.ChrSNPAnnoDB;
 import pgl.infra.range.Range;
@@ -9,15 +10,15 @@ import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class FdLoad {
 
@@ -25,25 +26,33 @@ public class FdLoad {
         String exonSNPAnnoDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/002_deleteriousPosLib/002_exonAnnotationByDerivedSift/001_exonSNPAnnotationByChrID";
         String exonVCFDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/003_exon/001_exonVCF";
         String taxa_InfoDB="/Users/xudaxing/Documents/deleteriousMutation/002_vmapII_taxaGroup/taxa_InfoDB.txt";
-        String triadFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/001_vmap2.1Before20200525/002_analysis/014_deleterious/triadGenes1.1_cdsLen_geneHC.txt";
+        String individualFdDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/001_vmap2" +
+                ".1Before20200525/002_analysis/014_deleterious/triadGenes1.1_cdsLen_geneHC.txt";
         String outDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftPerSite";
-        go(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, triadFile, outDir);
     }
 
-    public static void go(String exonSNPAnnoDir, String exonVCFDir, String taxa_InfoDBFile, String triadFile, String outDir){
+    public static void go(String exonSNPAnnoDir, String exonVCFDir, String taxa_InfoDBFile, String individualFdDir, String outDir){
         System.out.println(DateTime.getDateTimeOfNow());
-        String[] subdir={"001_count","002_countMerge","003_retainTreeValidatedAndIndianDwarf"};
+        String[] subdir={"001_count","002_countMerge","003_retainLandraceCutivarNotIncludeIndianDwarf", "004_addFd",
+                "005_individualLoadFd"};
         for (int i = 0; i < subdir.length; i++) {
             new File(outDir, subdir[i]).mkdir();
         }
         List<File> exonAnnoFiles= IOUtils.getVisibleFileListInDir(exonSNPAnnoDir);
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
         Map<String, File> taxonOutDirMap=getTaxonOutDirMap(taxa_InfoDBFile, new File(outDir, subdir[0]).getAbsolutePath());
-//        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
-//                taxonOutDirMap, e+1));
-//        merge(new File(outDir, subdir[0]).getAbsolutePath(), taxa_InfoDBFile, new File(outDir, subdir[1]).getAbsolutePath());
+        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
+                taxonOutDirMap, e+1));
+        merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
         retainTreeValidatedLandraceCultivar(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
                 new File(outDir, subdir[2]).getAbsolutePath());
+        addFd(individualFdDir, new File(outDir, subdir[2]).getAbsolutePath(), new File(outDir, subdir[3]).getAbsolutePath());
+        summaryIndividualLoadFd(new File(outDir, subdir[3]).getAbsolutePath(),
+                new File(outDir, subdir[4]).getAbsolutePath(), IndividualChrPosLoad.LoadType.Del);
+        summaryIndividualLoadFd(new File(outDir, subdir[3]).getAbsolutePath(),
+                new File(outDir, subdir[4]).getAbsolutePath(), IndividualChrPosLoad.LoadType.Non);
+        summaryIndividualLoadFd(new File(outDir, subdir[3]).getAbsolutePath(),
+                new File(outDir, subdir[4]).getAbsolutePath(), IndividualChrPosLoad.LoadType.Syn);
         System.out.println(DateTime.getDateTimeOfNow());
     }
 
@@ -117,7 +126,7 @@ public class FdLoad {
         return taxonOutDirMap;
     }
 
-    public static void merge(String inputDir, String taxa_InfoDB, String outDir){
+    public static void merge(String inputDir, String outDir){
         List<File> dirs=IOUtils.getDirListInDir(inputDir);
         List<File> temp;
         String outName, header, line;
@@ -185,20 +194,68 @@ public class FdLoad {
         }
     }
 
-    public static void addFd(String fdDir, String taxa_InfoDB,  String countMergeDir, String outDir){
+    /**
+     * add IfIntrogression
+     * @param fdDir
+     * @param lrClDir
+     * @param outDir
+     */
+    public static void addFd(String fdDir, String lrClDir, String outDir){
         List<File> fdFiles=IOUtils.getVisibleFileListInDir(fdDir);
         List<Range>[] fdFilesRange=new List[fdFiles.size()];
-        List<String> fdIDList=new ArrayList<>();
         for (int i = 0; i < fdFiles.size(); i++) {
             fdFilesRange[i]=getIndividualRangeList(fdFiles.get(i).getAbsolutePath());
-            fdIDList.add(fdFiles.get(i).getName().substring(0, 5));
         }
-        Map<String,String> taxaFdIDMap= RowTableTool.getMap(taxa_InfoDB, 0, 23);
-        List<File> taxaFiles=IOUtils.getDirListInDir(countMergeDir);
-        Predicate<File> inFdIDList=
-                f -> fdIDList.contains(taxaFdIDMap.get(PStringUtils.fastSplit(f.getName(), ".").get(0)));
-        List<File> hexaploidFiles=taxaFiles.stream().filter(inFdIDList).collect(Collectors.toList());
-
+        List<File> taxaLoadFiles=IOUtils.getVisibleFileListInDir(lrClDir);
+        if (taxaLoadFiles.size()!=fdFiles.size()){
+            System.out.println("check your fdDir and lrClDir");
+            System.exit(1);
+        }
+        BufferedReader br;
+        BufferedWriter bw;
+        try {
+            String line, outFile;
+            List<String> temp;
+            int chrID, pos, index;
+            Range range;
+            List<Range> ranges;
+            for (int i = 0; i < taxaLoadFiles.size(); i++) {
+                br=IOTool.getReader(taxaLoadFiles.get(i));
+                outFile=taxaLoadFiles.get(i).getName().replaceAll(".csv.gz",".fdLoad.txt.gz");
+                bw=IOTool.getWriter(new File(outDir, outFile));
+                br.readLine();
+                bw.write("Chr\tPos\tLoadType\tIfHeter\tIfHomozygousDerived\tIfIntrogression");
+                bw.newLine();
+                ranges=fdFilesRange[i];
+                Collections.sort(ranges);
+                while ((line=br.readLine())!=null){
+                    temp=PStringUtils.fastSplit(line);
+                    chrID=Integer.parseInt(temp.get(0));
+                    pos=Integer.parseInt(temp.get(1));
+                    range=new Range(chrID, pos, pos+1);
+                    index=Collections.binarySearch(ranges, range);
+                    if (index < -1){
+                        index=-index-2;
+                        if (ranges.get(index).isOverlap(range)){
+                            temp.add("1");
+                        }else {
+                            temp.add("0");
+                        }
+                    }else if (index == -1){
+                        temp.add("0");
+                    }else {
+                        temp.add("1");
+                    }
+                    bw.write(String.join("\t", temp));
+                    bw.newLine();
+                }
+                br.close();
+                bw.flush();
+                bw.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -242,6 +299,56 @@ public class FdLoad {
         }
         res.add(range);
         return res;
+    }
+
+    public static void summaryIndividualLoadFd(String addFdDir, String summaryOutDir, IndividualChrPosLoad.LoadType loadType){
+        List<File> files=IOTool.getVisibleDir(addFdDir);
+        BufferedReader br;
+        BufferedWriter bw;
+        try {
+            bw = IOTool.getWriter(new File(summaryOutDir, loadType.name()+".load.txt.gz"));
+            bw.write("Taxa\tSub\tIfFd\tLoad");
+            bw.newLine();
+            String line, taxaName, sub, group;
+            int chrID, ifFd, groupIndex, total;
+            StringBuilder sb=new StringBuilder();
+            List<String> temp;
+            String[] groupArray={"A0","A1","B0","B1","D0","D1"};
+            double[] loadSum;
+            for (int i = 0; i < files.size(); i++) {
+                taxaName=PStringUtils.fastSplit(files.get(i).getName(), ".").get(0);
+                br=IOTool.getReader(files.get(i));
+                br.readLine();
+                loadSum=new double[groupArray.length];
+                total=0;
+                while ((line=br.readLine())!=null){
+                    temp=PStringUtils.fastSplit(line);
+                    if (!temp.get(2).equals(loadType.name())) continue;
+                    total++;
+                    chrID=Integer.parseInt(temp.get(0));
+                    sub=RefV1Utils.getSubgenomeFromChrID(chrID);
+                    ifFd=Integer.parseInt(temp.get(5));
+                    sb.setLength(0);
+                    sb.append(sub).append(ifFd);
+                    group=sb.toString();
+                    groupIndex=Arrays.binarySearch(groupArray, group);
+                    loadSum[groupIndex]+=Double.parseDouble(temp.get(3))*0.5+Double.parseDouble(temp.get(4));
+                }
+                br.close();
+                for (int j = 0; j < groupArray.length; j++) {
+                   sb.setLength(0);
+                   group=groupArray[j];
+                   sb.append(taxaName).append("\t").append(group.substring(0,1)).append("\t");
+                   sb.append(group.substring(1,2)).append("\t").append(NumberTool.format(loadSum[j]/total, 4));
+                   bw.write(sb.toString());
+                   bw.newLine();
+                }
+            }
+            bw.flush();
+            bw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }
