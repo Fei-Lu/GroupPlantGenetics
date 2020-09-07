@@ -6,6 +6,7 @@ import pgl.infra.dna.genot.GenoIOFormat;
 import pgl.infra.dna.genot.GenotypeGrid;
 import pgl.infra.dna.genot.GenotypeOperation;
 import pgl.infra.utils.Benchmark;
+import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 
@@ -241,7 +242,7 @@ public class NearestIBS {
                 table=new RowTableTool<>(taxaChrFiles.get(i).getAbsolutePath());
                 table0.add(table);
             }
-            table0.write(new File(outDir, taxaName+"_vmap2.1.csv.gz"));
+            table0.write(new File(outDir, taxaName+"_vmap2.1.csv.gz"), IOFileFormat.TextGzip);
         }
         System.out.println(DateTime.getDateTimeOfNow());
     }
