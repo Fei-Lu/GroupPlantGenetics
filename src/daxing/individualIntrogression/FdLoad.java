@@ -302,12 +302,79 @@ public class FdLoad {
         return res;
     }
 
+    /**
+     * outFile
+     * Taxa	Sub	IfFd	Load
+     * CL001	A	0	0.0449
+     * CL001	A	1	0.0687
+     * CL001	B	0	0.0558
+     * CL001	B	1	0.0708
+     * CL001	D	0	0.0708
+     * CL001	D	1	0.0265
+     * @param addFdDir
+     * @param summaryOutDir
+     * @param loadType
+     */
     public static void summaryIndividualLoadFd(String addFdDir, String summaryOutDir, IndividualChrPosLoad.LoadType loadType){
+        if (loadType.equals("Non")){
+            summaryIndividualLoadFdNon(addFdDir, summaryOutDir);
+        }else {
+            List<File> files=IOTool.getVisibleDir(addFdDir);
+            BufferedReader br;
+            BufferedWriter bw;
+            try {
+                bw = IOTool.getWriter(new File(summaryOutDir, loadType.name()+".load.txt.gz"));
+                bw.write("Taxa\tSub\tIfFd\tLoad");
+                bw.newLine();
+                String line, taxaName, sub, group;
+                int chrID, ifFd, groupIndex, total;
+                StringBuilder sb=new StringBuilder();
+                List<String> temp;
+                String[] groupArray={"A0","A1","B0","B1","D0","D1"};
+                double[] loadSum;
+                for (int i = 0; i < files.size(); i++) {
+                    taxaName=PStringUtils.fastSplit(files.get(i).getName(), ".").get(0);
+                    br=IOTool.getReader(files.get(i));
+                    br.readLine();
+                    loadSum=new double[groupArray.length];
+                    total=0;
+                    while ((line=br.readLine())!=null){
+                        temp=PStringUtils.fastSplit(line);
+                        if (!temp.get(2).equals(loadType.name())) continue;
+                        total++;
+                        chrID=Integer.parseInt(temp.get(0));
+                        sub=RefV1Utils.getSubgenomeFromChrID(chrID);
+                        ifFd=Integer.parseInt(temp.get(5));
+                        sb.setLength(0);
+                        sb.append(sub).append(ifFd);
+                        group=sb.toString();
+                        groupIndex=Arrays.binarySearch(groupArray, group);
+                        loadSum[groupIndex]+=Double.parseDouble(temp.get(3))*0.5+Double.parseDouble(temp.get(4));
+                    }
+                    br.close();
+                    for (int j = 0; j < groupArray.length; j++) {
+                        sb.setLength(0);
+                        group=groupArray[j];
+                        sb.append(taxaName).append("\t").append(group.substring(0,1)).append("\t");
+                        sb.append(group.substring(1,2)).append("\t").append(NumberTool.format(loadSum[j]/total, 4));
+                        bw.write(sb.toString());
+                        bw.newLine();
+                    }
+                }
+                bw.flush();
+                bw.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void summaryIndividualLoadFdNon(String addFdDir, String summaryOutDir){
         List<File> files=IOTool.getVisibleDir(addFdDir);
         BufferedReader br;
         BufferedWriter bw;
         try {
-            bw = IOTool.getWriter(new File(summaryOutDir, loadType.name()+".load.txt.gz"));
+            bw = IOTool.getWriter(new File(summaryOutDir, "non.load.txt.gz"));
             bw.write("Taxa\tSub\tIfFd\tLoad");
             bw.newLine();
             String line, taxaName, sub, group;
@@ -324,7 +391,7 @@ public class FdLoad {
                 total=0;
                 while ((line=br.readLine())!=null){
                     temp=PStringUtils.fastSplit(line);
-                    if (!temp.get(2).equals(loadType.name())) continue;
+                    if (temp.get(2).equals("Syn")) continue;
                     total++;
                     chrID=Integer.parseInt(temp.get(0));
                     sub=RefV1Utils.getSubgenomeFromChrID(chrID);
@@ -337,12 +404,12 @@ public class FdLoad {
                 }
                 br.close();
                 for (int j = 0; j < groupArray.length; j++) {
-                   sb.setLength(0);
-                   group=groupArray[j];
-                   sb.append(taxaName).append("\t").append(group.substring(0,1)).append("\t");
-                   sb.append(group.substring(1,2)).append("\t").append(NumberTool.format(loadSum[j]/total, 4));
-                   bw.write(sb.toString());
-                   bw.newLine();
+                    sb.setLength(0);
+                    group=groupArray[j];
+                    sb.append(taxaName).append("\t").append(group.substring(0,1)).append("\t");
+                    sb.append(group.substring(1,2)).append("\t").append(NumberTool.format(loadSum[j]/total, 4));
+                    bw.write(sb.toString());
+                    bw.newLine();
                 }
             }
             bw.flush();

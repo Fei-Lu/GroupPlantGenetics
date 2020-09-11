@@ -227,6 +227,11 @@ public class NearestIBS {
                 " seconds ******");
     }
 
+    /**
+     * merge all chromosome of an individual
+     * @param fdChrDir
+     * @param outDir
+     */
     public static void merge(String fdChrDir, String outDir){
         System.out.println(DateTime.getDateTimeOfNow());
         List<File> files=IOUtils.getVisibleFileListInDir(fdChrDir);
