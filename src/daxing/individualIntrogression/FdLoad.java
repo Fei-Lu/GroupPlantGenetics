@@ -20,6 +20,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * 将个体load分为introgression区和nonintrogression区，introgression区的load是否低于nonintrogression区的load
+ */
 public class FdLoad {
 
     public static void start(){
