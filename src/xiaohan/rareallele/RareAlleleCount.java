@@ -7,10 +7,11 @@ import java.math.BigDecimal;
 import java.util.*;
 
 public class RareAlleleCount {
+
     String Samplename = "B18-E007,B18-E008,B18-E011,B18-E014,B18-E018,B18-E023,B18-E024,B18-E029,B18-E032,B18-E038,B18-E043,B18-E046,B18-E049,B18-E051,B18-E052,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E083,B18-E087,B18-E089,B18-E097,B18-E099,B18-E118,B18-E124,B18-E127,B18-E138,B18-E139,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E203,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E227,B18-E228,B18-E233,B18-E237,B18-E242,B18-E245,B18-E252,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E320,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E347,B18-E355,B18-E356,B18-E357";
-    String SNPfileDir = "/data2/xiaohan/genotype_root/genotype_rootMaf010-25";//根据不同MAF值过滤得到的VCF文件存放位置
+    String SNPfileDir = "/data2/xiaohan/genotype_root/genotype_rootGerp01";//根据不同MAF值过滤得到的VCF文件存放位置
     String TSSpositionfileDir = "/data1/home/xiaohan/rareallele/fastQTL/expression/S7";//存储不同基因的位置区域的文件存放位置chr + start + end + gene
-    String rareAlleleCountDir = "/data1/home/xiaohan/rareallele/rankcorrelation/root/rareAlleleCount/MAF010-25";//不同的上游rare allele数目统计的文件存放位置
+    String rareAlleleCountDir = "/data2/xiaohan/count/codingcount";//不同的上游rare allele数目统计的文件存放位置
     String inforDir = "/data2/xiaohan/GerpOrigin/subchr01";
 //    String SNPfileDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/test/VCF";//根据不同MAF值过滤得到的VCF文件存放位置
 //    String TSSpositionfileDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/test/expression";//存储不同基因的位置区域的文件存放位置chr + start + end + gene
@@ -25,9 +26,9 @@ public class RareAlleleCount {
 
     String[] subDir = {"chr1-42", "all", "donor02", "sub", "subhomo"};
 //    String[] FileNames = {"0k_200k", "200k_400k", "400k_600k", "600k_800k", "800k_1000k", "0k_1000k"};
-//    String[] FileNames = {"0k_2k", "2k_4k", "4k_6k", "6k_8k", "8k_10k", "0k_10k"};
-    String[] FileNames = {"0k_2k", "2k_4k", "4k_6k", "6k_8k", "8k_10k", "0k_10k", "10k_12k", "12k_14k", "14k_16k", "16k_18k", "18k_20k", "10k_20k"};
-
+    String[] FileNames = {"0k_2k", "2k_4k", "4k_6k", "6k_8k", "8k_10k", "0k_10k"};
+//    String[] FileNames = {"0k_2k", "2k_4k", "4k_6k", "6k_8k", "8k_10k", "0k_10k", "10k_12k", "12k_14k", "14k_16k", "16k_18k", "18k_20k", "10k_20k"};
+    String mafDir = "/data2/xiaohan/genotype/genotypeMaf005";
 //    String Samplename = null;
 //    String SNPfileDir = null;
 //    String TSSpositionfileDir = null;
@@ -38,12 +39,12 @@ public class RareAlleleCount {
 //    String homoGeneNamelistfile = null;
 //    String[] subDir = {"chr1-42", "all", "donor02", "sub", "subhomo"};
 
-
     public RareAlleleCount() {
 //        this.parseParameters(arg);
-//        this.mkFileDir();
-//        this.getupstreamSNPcount();//根据上游的不同位置call出rare allele count
-//        this.mergeUprareCount();
+        this.mkFileDir();
+        this.getupstreamSNPcount();//根据上游的不同位置call出rare allele count
+//        this.getcodingSNPcount();
+        this.mergeUprareCount();
         this.getdonor02File();
         this.getsubdonor02File();
     }
@@ -54,17 +55,27 @@ public class RareAlleleCount {
             BufferedReader br = IOUtils.getTextReader(infileS);
             String temp = null;
             boolean ifOut = false;
-            if (!(temp = br.readLine()).equals("RareAllele-Count")) ifOut = true;
-            if (!(temp = br.readLine()).equals("Author: Xiaohan Yang")) ifOut = true;
-            if (!(temp = br.readLine()).equals("Email: yangxh0120@gmail.com")) ifOut = true;
+            if (!(temp = br.readLine()).equals("RareAllele-Count")) {
+                ifOut = true;
+            }
+            if (!(temp = br.readLine()).equals("Author: Xiaohan Yang")) {
+                ifOut = true;
+            }
+            if (!(temp = br.readLine()).equals("Email: yangxh0120@gmail.com")) {
+                ifOut = true;
+            }
             if (ifOut) {
                 System.out.println("Thanks for using RareAllele-Count.");
                 System.out.println("Please keep the authorship in the parameter file. Program stops.");
                 System.exit(0);
             }
             while ((temp = br.readLine()) != null) {
-                if (temp.startsWith("#")) continue;
-                if (temp.isEmpty()) continue;
+                if (temp.startsWith("#")) {
+                    continue;
+                }
+                if (temp.isEmpty()) {
+                    continue;
+                }
                 pLineList.add(temp);
             }
         } catch (Exception e) {
@@ -104,7 +115,9 @@ public class RareAlleleCount {
         fs = IOUtils.listFilesStartsWith(fs, prefix);
         HashSet<String> nameSet = new HashSet();
         for (int i = 0; i < fs.length; i++) {
-            if (fs[i].isHidden()) continue;
+            if (fs[i].isHidden()) {
+                continue;
+            }
             String Name = fs[i].getName();
             nameSet.add(Name);
             System.out.println(Name);
@@ -212,7 +225,9 @@ public class RareAlleleCount {
         fs = IOUtils.listFilesStartsWith(fs, "all");
         HashSet<String> nameSet = new HashSet();
         for (int i = 0; i < fs.length; i++) {
-            if (fs[i].isHidden()) continue;
+            if (fs[i].isHidden()) {
+                continue;
+            }
             String Name = fs[i].getName();
             nameSet.add(Name);
             System.out.println(Name);
@@ -272,6 +287,17 @@ public class RareAlleleCount {
                 e.printStackTrace();
             }
         }
+        StringBuilder sb1 = new StringBuilder();
+        sb1.append("cat chr*" + "_codingRACount.txt | sort | uniq > " + this.rareAlleleCountDir + "/" + subDir[1] + "/all" + "_codingRACount.txt \n");
+        String command1 = sb1.toString();
+        try {
+            File dir = new File(new File(this.rareAlleleCountDir, subDir[0]).getAbsolutePath());
+            String[] cmdarry = {"/bin/bash", "-c", command1};
+            Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+            p.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void getupstreamSNPcount() {
@@ -307,8 +333,10 @@ public class RareAlleleCount {
         File[] fs = new File(VCFfileDir).listFiles();
         fs = IOUtils.listFilesEndsWith(fs, "vcf.gz");
         for (int i = 0; i < fs.length; i++) {
-            if (fs[i].isHidden()) continue;
-            String Name = fs[i].getName().split("\\.")[0].replace("chr","");
+            if (fs[i].isHidden()) {
+                continue;
+            }
+            String Name = fs[i].getName().split("\\.")[0].replace("chr", "");
             nameSet.add(Name);
             System.out.println(Name);
         }
@@ -324,10 +352,9 @@ public class RareAlleleCount {
                     BufferedReader brexpr = IOUtils.getTextGzipReader(new File(positionfileDir, "S7expression" + j + ".bed.gz").getAbsolutePath());
                     BufferedWriter bwS = IOUtils.getTextWriter(new File(outputDir, "chr" + j + "_" + FileNames[i] + "_RACount.txt").getAbsolutePath());
                     BufferedReader brinfo = IOUtils.getTextGzipReader(new File(inforDir, "chr" + j + ".bed.gz").getAbsolutePath());
-                    System.out.println("This is reading file : "+new File(VCFfileDir, "87B18.chr" + j + ".maf005.vcf.gz").getAbsolutePath());
-                    System.out.println("This is reading file : "+new File(positionfileDir, "S7expression" + j + ".bed.gz").getAbsolutePath());
-                    System.out.println("This is reading file : "+new File(outputDir, "chr" + j + "_" + FileNames[i] + "_RACount.txt").getAbsolutePath());
-                    System.out.println("This is reading file : "+new File(inforDir, "chr" + j + ".bed.gz").getAbsolutePath());
+                    BufferedReader brmaf = IOUtils.getTextReader(new File(mafDir, "chr" + j + "freq.txt.frq").getAbsolutePath());
+                    System.out.println("This is reading maffile : " + new File(mafDir, "chr" + j + "freq.txt.frq").getAbsolutePath());
+                    //创建scoreMap
                     HashMap<Integer, Double> scoreMap = new HashMap();
                     Set scoreSet = new HashSet();
                     String info = null;
@@ -336,10 +363,26 @@ public class RareAlleleCount {
                         infos = info.split("\t");
                         double score = Double.parseDouble(infos[4]);
                         score = new BigDecimal(score).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
-                        scoreMap.put(Integer.parseInt(infos[1]), score);
-                        scoreSet.add(Integer.parseInt(infos[1]));
+                        scoreMap.put(Integer.parseInt(infos[2]), score);
+                        scoreSet.add(Integer.parseInt(infos[2]));
+                        
 //                        System.out.println(scoreMap.get(Integer.parseInt(infos[1])));
                     }
+                    System.out.println("Finished creating scoreMap………………………………");
+                    //创建MAFMap
+                    HashMap<Integer, Double> mafMap = new HashMap();
+                    String maftemp = null;
+                    String[] maftemps = null;
+                    while ((maftemp = brmaf.readLine()) != null) {
+                        if(maftemp.startsWith("CHR"))continue;
+                        maftemps = maftemp.split("\t");
+                        double maf = Double.parseDouble(maftemps[maftemps.length-1].split(":")[1]);
+                        maf = new BigDecimal(maf).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+                        mafMap.put(Integer.parseInt(maftemps[1]), maf);
+//                         scoreSet.add(Integer.parseInt(infos[1]));
+                        
+                    }
+                    System.out.println("Finished creating mafMap………………………………");
                     //1.根据输出的矩阵SNPfile来对不同基因进行计数。
                     bwS.write("gene\t");
                     for (int m = 0; m < Samplenames.length; m++) {
@@ -352,7 +395,9 @@ public class RareAlleleCount {
                     HashMap<String, String> TSSMap = new HashMap<>();
                     Set<String> TSSset = new HashSet<>();
                     while ((tempexpr = brexpr.readLine()) != null) {
-                        if (tempexpr.startsWith("#")) continue;
+                        if (tempexpr.startsWith("#")) {
+                            continue;
+                        }
                         List<String> tList = pgl.infra.utils.PStringUtils.fastSplit(tempexpr);
                         expr = tList.toArray(new String[tList.size()]);
                         TSSMap.put(expr[3], expr[1]);
@@ -388,7 +433,9 @@ public class RareAlleleCount {
                         if (countline % 5000 == 0) {
                             System.out.print(countline + "\n");
                         }
-                        if (tempVCF.startsWith("##")) continue;
+                        if (tempVCF.startsWith("##")) {
+                            continue;
+                        }
                         if (tempVCF.startsWith("#C")) {
                             VCF = tempVCF.split("\t");
                             for (int m = 9; m < VCF.length; m++) {
@@ -426,28 +473,35 @@ public class RareAlleleCount {
                                             site1++;
                                         }
                                     }
+//                                     double MAF = 0.0000;
                                     int minorAllele = Integer.MAX_VALUE;
+                                    int sitesum = site0 + site1;
                                     if (site0 > site1) {
                                         minorAllele = 1;
+//                                        MAF = new BigDecimal((float) site1 / sitesum).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
                                     }
                                     if (site1 > site0) {
                                         minorAllele = 0;
+//                                        MAF = new BigDecimal((float) site0 / sitesum).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
                                     }
                                     double score = 0.000;
-                                    if(scoreSet.contains(snpsite)){
+                                    if (scoreSet.contains(snpsite)) {
                                         score = scoreMap.get(snpsite);
-                                        if(score > 0){
+                                        if (score > 0) {
                                             score = score;
                                         }
-                                        if(score <= 0){
+                                        if (score <= 0) {
                                             score = 0.00;
                                         }
                                     }
+                                    double MAF = mafMap.get(snpsite);
                                     if (minorAllele == 0) {
                                         for (int m = 0; m < Samplenames.length; m++) {
                                             if (VCFforGT[VCFMap.get(Samplenames[m]) - 9].equals("0/0")) {
                                                 count[TSSrow][m] += 2 * score;
 //                                                count[TSSrow][m] += 2 ;
+//                                                count[TSSrow][m] += 2 * score * (1 / MAF) / 10;
+//                                                
                                             }
                                             if (VCFforGT[VCFMap.get(Samplenames[m]) - 9].equals("1/1")) {
                                                 count[TSSrow][m] += 0;
@@ -461,6 +515,7 @@ public class RareAlleleCount {
                                             }
                                             if (VCFforGT[VCFMap.get(Samplenames[m]) - 9].equals("1/1")) {
                                                 count[TSSrow][m] += 2 * score;
+                                                count[TSSrow][m] += 2 * score * (1 / MAF) / 10;
 //                                                count[TSSrow][m] += 2 ;
                                             }
 //                                            System.out.println(TSSrow + "\t" + m + "\t" + count[TSSrow][m]);
@@ -485,11 +540,252 @@ public class RareAlleleCount {
                     brVCF.close();
                     bwS.flush();
                     bwS.close();
-                } catch (
-                        Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
+        });
+    }
+
+    public void getcodingSNPcount() {
+//        String VCFfileDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/genotype";
+//        String outputDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/output";
+//        String expressionfileDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/phenotype";
+        String VCFfileDir = this.SNPfileDir;
+        String outputDir = this.rareAlleleCountDir + "/" + subDir[0];
+        String positionfileDir = this.TSSpositionfileDir;
+//        String inforDir = "/data2/xiaohan/GerpOrigin/subchr";
+        String infoDir = this.inforDir;
+//        S3
+//        String name = "B18-E007,B18-E010,B18-E011,B18-E014,B18-E016,B18-E018,B18-E029,B18-E032,B18-E035,B18-E043,B18-E045,B18-E046,B18-E049,B18-E051,B18-E062,B18-E065,B18-E070,B18-E072,B18-E074,B18-E081,B18-E082,B18-E089,B18-E097,B18-E099,B18-E115,B18-E118,B18-E124,B18-E127,B18-E134,B18-E138,B18-E141,B18-E152,B18-E166,B18-E170,B18-E180,B18-E184,B18-E185,B18-E188,B18-E199,B18-E204,B18-E205,B18-E210,B18-E214,B18-E215,B18-E218,B18-E219,B18-E228,B18-E233,B18-E236,B18-E237,B18-E242,B18-E244,B18-E245,B18-E252,B18-E253,B18-E256,B18-E262,B18-E265,B18-E267,B18-E270,B18-E271,B18-E273,B18-E277,B18-E280,B18-E286,B18-E288,B18-E289,B18-E290,B18-E298,B18-E299,B18-E305,B18-E306,B18-E312,B18-E316,B18-E318,B18-E324,B18-E330,B18-E332,B18-E335,B18-E337,B18-E346,B18-E348,B18-E355,B18-E356,B18-E357";
+//        S7
+        //建立对应的name位点表
+        String[] Samplenames = Samplename.split(",");
+//
+//        String[] FileNames = {"0k_2k"};
+//        String[] FileNames = {"2k_4k"};
+//        String[] FileNames = {"4k_6k"};
+//        String[] FileNames = {"6k_8k"};
+//        String[] FileNames = {"8k_10k"};
+//        String[] FileNames = {"0k_10k"};
+        //对于多个区间"i"，多个chr"j"进行rare allele count计数
+        System.out.println("This program is going to calculate minor allele count in every gene in different distance to TSS");
+        System.out.println("The calculation form is : 1.Deciding the minor allele: 0 or 1");
+        System.out.println("                          2.calculate the MAF and discard SNPs which MAF > 0.05");
+        System.out.println("                          3.0/0 or 1/1 will be counting as 0 allele count or 2 allele count decided by which one is minor allele");
+        System.out.println("                          4.Sum of every snp upstream genes");
+        System.out.println("                          5.Output file form : gene B18-E007    B18-E009");
+        System.out.println("                                               TraeCS4D355900 0 12");
+        HashSet<String> nameSet = new HashSet();
+        File[] fs = new File(VCFfileDir).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, "vcf.gz");
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) {
+                continue;
+            }
+            String Name = fs[i].getName().split("\\.")[1].replace("chr", "");
+            nameSet.add(Name);
+            System.out.println(Name);
+        }
+        nameSet.stream().forEach((String j) -> {
+                try {
+                    //0.读入文件和创建输出文件
+                    BufferedReader brVCF = IOUtils.getTextGzipReader(new File(VCFfileDir, "87B18.chr" + j + ".maf005.vcf.gz").getAbsolutePath());
+//                    BufferedReader brVCF = IOUtils.getTextGzipReader(new File(VCFfileDir,"chr" + j + ".vcf.gz").getAbsolutePath());
+                    BufferedReader brexpr = IOUtils.getTextGzipReader(new File(positionfileDir, "S7expression" + j + ".bed.gz").getAbsolutePath());
+                    BufferedWriter bwS = IOUtils.getTextWriter(new File(outputDir, "chr" + j + "_codingRACount.txt").getAbsolutePath());
+//                    BufferedReader brinfo = IOUtils.getTextGzipReader(new File(inforDir, "chr" + j + ".bed.gz").getAbsolutePath());
+//                    BufferedReader brmaf = IOUtils.getTextReader(new File(mafDir, "chr" + j + "freq.txt.frq").getAbsolutePath());
+//                    System.out.println("This is reading file chr" + j +"freq.txt.frq");
+                    //创建scoreMap
+//                    HashMap<Integer, Double> scoreMap = new HashMap();
+//                    Set scoreSet = new HashSet();
+//                    String info = null;
+//                    String[] infos = null;
+//                    while ((info = brinfo.readLine()) != null) {
+//                        infos = info.split("\t");
+//                        double score = Double.parseDouble(infos[4]);
+//                        score = new BigDecimal(score).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+//                        scoreMap.put(Integer.parseInt(infos[1]), score);
+//                        scoreSet.add(Integer.parseInt(infos[1]));
+////                        System.out.println(scoreMap.get(Integer.parseInt(infos[1])));
+//                    }
+//                    System.out.println("Finished creating scoreMap………………………………");
+//                    //创建MAFMap
+//                    HashMap<Integer, Double> mafMap = new HashMap();
+//                    String maftemp = null;
+//                    String[] maftemps = null;
+//                    while ((maftemp = brmaf.readLine()) != null) {
+//                        if(maftemp.startsWith("CHR"))continue;
+//                        maftemps = maftemp.split("\t");
+//                        double maf = Double.parseDouble(maftemps[maftemps.length-1].split(":")[1]);
+//                        maf = new BigDecimal(maf).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+//                        mafMap.put(Integer.parseInt(maftemps[1]), maf);
+////                         scoreSet.add(Integer.parseInt(infos[1]));
+////                        System.out.println(scoreMap.get(Integer.parseInt(infos[1])));
+//                    }
+//                    System.out.println("Finished creating mafMap………………………………");
+                    //1.根据输出的矩阵SNPfile来对不同基因进行计数。
+                    bwS.write("gene\t");
+                    for (int m = 0; m < Samplenames.length; m++) {
+                        bwS.write(Samplenames[m] + "\t");
+                    }
+                    bwS.newLine();
+                    //2.创建一个关于基因和转录起始位点与终止位点的对应关系表
+                    String tempexpr = null;
+                    String[] expr = null;
+                    HashMap<String, String[]> TSSMap = new HashMap<>();
+                    Set<String> TSSset = new HashSet<>();
+                    while ((tempexpr = brexpr.readLine()) != null) {
+                        if (tempexpr.startsWith("#")) {
+                            continue;
+                        }
+                        List<String> tList = pgl.infra.utils.PStringUtils.fastSplit(tempexpr);
+                        expr = tList.toArray(new String[tList.size()]);
+                        String[] site = new String[2];
+                        site[0] = expr[1];
+                        site[1] = expr[2];
+                        TSSMap.put(expr[3], site);
+                        TSSset.add(expr[3]);
+                        //TSSMap --> gene -- start
+                        //TSSset --> gene
+                    }
+                    System.out.println("Finish creating gene site map");
+                    String[] TSS = TSSset.toArray(new String[TSSset.size()]);
+                    Arrays.sort(TSS);
+                    //3.创建计数矩阵并将其初始化为0
+                    double[][] count = new double[TSS.length][Samplenames.length];
+                    for (int m = 0; m < TSS.length; m++) {
+                        for (int n = 0; n < Samplenames.length; n++) {
+                            count[m][n] = 0;
+                        }
+                    }
+                    System.out.println("Finished initializing count matrix");
+                    //4.对VCF文件读入每一行进行处理输出MAF<0.05的SNPfile矩阵
+                    String[] VCF = null;
+                    String tempVCF = null;
+                    //4.1根据FileName定下所筛选的TSS上游的位置范围
+//                    int DiscontrolS = Integer.parseInt(FileNames[i].split("_")[0].replace("k", "")) * 1000;
+//                    int DiscontrolE = Integer.parseInt(FileNames[i].split("_")[1].replace("k", "")) * 1000;
+//                    System.out.println(DiscontrolE + "\t" + DiscontrolS);
+//                    int first = Integer.parseInt(FileNames[i].split("_")[0].replace("k", ""));
+//                    int last = Integer.parseInt(FileNames[i].split("_")[1].replace("k", ""));
+//                    System.out.println("This is calculating " + first + "k to " + last + "k rare allele count");
+                    HashMap<String, Integer> VCFMap = new HashMap();
+                    int countline = 0;
+                    while ((tempVCF = brVCF.readLine()) != null) {
+                        countline++;
+                        if (countline % 5000 == 0) {
+                            System.out.print(countline + "\n");
+                        }
+                        if (tempVCF.startsWith("##")) {
+                            continue;
+                        }
+                        if (tempVCF.startsWith("#C")) {
+                            VCF = tempVCF.split("\t");
+                            for (int m = 9; m < VCF.length; m++) {
+                                VCFMap.put(VCF[m], m);
+                            }
+                            continue;
+                        } else {
+                            VCF = tempVCF.split("\t");
+                            int snpsite = Integer.parseInt(VCF[1]);
+                            int TSSrow = Integer.MAX_VALUE;
+                            for (int l = 0; l < TSS.length; l++) {
+                                int startsite = Integer.parseInt(TSSMap.get(TSS[l])[0]);
+                                int stopsite = Integer.parseInt(TSSMap.get(TSS[l])[1]);
+//                                int distance = (int) (startsite - snpsite);
+//                                int distance = (int) (snpsite - startsite);
+                                if (snpsite >= startsite && snpsite <= stopsite) {
+                                    TSSrow = l;
+//                                    System.out.println(l);
+                                    String[] VCFforGT = new String[VCF.length - 9];
+                                    for (int m = 0; m < VCFforGT.length; m++) {
+                                        VCFforGT[m] = VCF[m + 9].split(":")[0];
+                                    }
+                                    int site0 = 0;
+                                    int site1 = 0;
+                                    for (int m = 0; m < VCFforGT.length; m++) {//读出0和1的个数，按照小值计算MAF。
+                                        if (VCFforGT[m].equals("0/0")) {
+                                            site0++;
+                                            site0++;
+                                        }
+                                        if (VCFforGT[m].equals("0/1")) {
+                                            site0++;
+                                            site1++;
+                                        }
+                                        if (VCFforGT[m].equals("1/1")) {
+                                            site1++;
+                                            site1++;
+                                        }
+                                    }
+//                                     double MAF = 0.0000;
+                                    int minorAllele = Integer.MAX_VALUE;
+                                    int sitesum = site0 + site1;
+                                    if (site0 > site1) {
+                                        minorAllele = 1;
+//                                        MAF = new BigDecimal((float) site1 / sitesum).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+                                    }
+                                    if (site1 > site0) {
+                                        minorAllele = 0;
+//                                        MAF = new BigDecimal((float) site0 / sitesum).setScale(4, BigDecimal.ROUND_HALF_UP).doubleValue();
+                                    }
+//                                    double score = 0.000;
+//                                    if (scoreSet.contains(snpsite)) {
+//                                        score = scoreMap.get(snpsite);
+//                                        if (score > 0) {
+//                                            score = score;
+//                                        }
+//                                        if (score <= 0) {
+//                                            score = 0.00;
+//                                        }
+//                                    }
+//                                    double MAF = mafMap.get(snpsite);
+                                    if (minorAllele == 0) {
+                                        for (int m = 0; m < Samplenames.length; m++) {
+                                            if (VCFforGT[VCFMap.get(Samplenames[m]) - 9].equals("0/0")) {
+//                                                count[TSSrow][m] += 2 * score * (1 / MAF) / 10;
+                                                count[TSSrow][m] += 2 ;
+                                            }
+                                            if (VCFforGT[VCFMap.get(Samplenames[m]) - 9].equals("1/1")) {
+                                                count[TSSrow][m] += 0;
+                                            }
+                                        }
+                                    }
+                                    if (minorAllele == 1) {
+                                        for (int m = 0; m < Samplenames.length; m++) {
+                                            if (VCFforGT[VCFMap.get(Samplenames[m]) - 9].equals("0/0")) {
+                                                count[TSSrow][m] += 0;
+                                            }
+                                            if (VCFforGT[VCFMap.get(Samplenames[m]) - 9].equals("1/1")) {
+//                                                count[TSSrow][m] += 2 * score * (1 / MAF) / 10;
+                                                count[TSSrow][m] += 2 ;
+                                            }
+//                                            System.out.println(TSSrow + "\t" + m + "\t" + count[TSSrow][m]);
+                                        }
+                                    }
+//                                    System.out.print(count[TSSrow][m]);
+                                } else {
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                    for (int m = 0; m < TSS.length; m++) {
+                        bwS.write(TSS[m] + "\t");
+                        for (int n = 0; n < Samplenames.length; n++) {
+                            bwS.write(count[m][n] + "\t");
+                        }
+                        bwS.newLine();
+                    }
+                    System.out.println("complete writing file : " + "chr" + j);
+                    brexpr.close();
+                    brVCF.close();
+                    bwS.flush();
+                    bwS.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
         });
     }
 
