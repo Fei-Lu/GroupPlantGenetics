@@ -183,7 +183,7 @@ public class NearestIBS {
                 }
                 if (!StringTool.isNumeric(temp.get(9))){
                     p3Tables.get(j).setCell(i, 9, "0"); // if fd 为nan 或-inf inf, 将fd转换为0
-                    p3Tables.get(j).setCell(i, 8, "0"); // if D 为nan 或-inf inf, 将D转换为0
+                    p3Tables.get(j).setCell(i, 8, "0"); // if fd 为nan 或-inf inf, 将D转换为0
                 }
                 if (Double.parseDouble(temp.get(8))<0){
                     p3Tables.get(j).setCell(i, 9, "0"); // if D < 0, 将fd转换为0
