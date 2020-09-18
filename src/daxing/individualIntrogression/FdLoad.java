@@ -10,6 +10,7 @@ import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -18,7 +19,6 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * 将个体load分为introgression区和nonintrogression区，introgression区的load是否低于nonintrogression区的load
@@ -29,8 +29,7 @@ public class FdLoad {
         String exonSNPAnnoDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/002_deleteriousPosLib/002_exonAnnotationByDerivedSift/001_exonSNPAnnotationByChrID";
         String exonVCFDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/003_exon/001_exonVCF";
         String taxa_InfoDB="/Users/xudaxing/Documents/deleteriousMutation/002_vmapII_taxaGroup/taxa_InfoDB.txt";
-        String individualFdDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/001_vmap2" +
-                ".1Before20200525/002_analysis/014_deleterious/triadGenes1.1_cdsLen_geneHC.txt";
+        String individualFdDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/006_fdResByIndividual/002_fdByIndividual";
         String outDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftPerSite";
         go(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, individualFdDir, outDir);
     }
@@ -45,18 +44,18 @@ public class FdLoad {
         List<File> exonAnnoFiles= IOUtils.getVisibleFileListInDir(exonSNPAnnoDir);
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
         Map<String, File> taxonOutDirMap=getTaxonOutDirMap(taxa_InfoDBFile, new File(outDir, subdir[0]).getAbsolutePath());
-        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
-                taxonOutDirMap, e+1));
-        merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
-        retainTreeValidatedLandraceCultivar(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
-                new File(outDir, subdir[2]).getAbsolutePath());
+//        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
+//                taxonOutDirMap, e+1));
+//        merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
+//        retainTreeValidatedLandraceCultivar(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
+//                new File(outDir, subdir[2]).getAbsolutePath());
         addFd(individualFdDir, new File(outDir, subdir[2]).getAbsolutePath(), new File(outDir, subdir[3]).getAbsolutePath());
-        summaryIndividualLoadFd(new File(outDir, subdir[3]).getAbsolutePath(),
-                new File(outDir, subdir[4]).getAbsolutePath(), IndividualChrPosLoad.LoadType.Del);
-        summaryIndividualLoadFd(new File(outDir, subdir[3]).getAbsolutePath(),
-                new File(outDir, subdir[4]).getAbsolutePath(), IndividualChrPosLoad.LoadType.Non);
-        summaryIndividualLoadFd(new File(outDir, subdir[3]).getAbsolutePath(),
-                new File(outDir, subdir[4]).getAbsolutePath(), IndividualChrPosLoad.LoadType.Syn);
+//        summaryIndividualLoadFd(new File(outDir, subdir[3]).getAbsolutePath(),
+//                new File(outDir, subdir[4]).getAbsolutePath(), IndividualChrPosLoad.LoadType.Del);
+//        summaryIndividualLoadFd(new File(outDir, subdir[3]).getAbsolutePath(),
+//                new File(outDir, subdir[4]).getAbsolutePath(), IndividualChrPosLoad.LoadType.Non);
+//        summaryIndividualLoadFd(new File(outDir, subdir[3]).getAbsolutePath(),
+//                new File(outDir, subdir[4]).getAbsolutePath(), IndividualChrPosLoad.LoadType.Syn);
         System.out.println(DateTime.getDateTimeOfNow());
     }
 
@@ -206,9 +205,9 @@ public class FdLoad {
      */
     public static void addFd(String fdDir, String lrClDir, String outDir){
         List<File> fdFiles=IOUtils.getVisibleFileListInDir(fdDir);
-        List<Range>[] fdFilesRange=new List[fdFiles.size()];
+        Map<Range, String>[] fdFilesRangeP3Map=new Map[fdFiles.size()];
         for (int i = 0; i < fdFiles.size(); i++) {
-            fdFilesRange[i]=getIndividualRangeList(fdFiles.get(i).getAbsolutePath());
+            fdFilesRangeP3Map[i]=getIndividualRangeList(fdFiles.get(i).getAbsolutePath());
         }
         List<File> taxaLoadFiles=IOUtils.getVisibleFileListInDir(lrClDir);
         if (taxaLoadFiles.size()!=fdFiles.size()){
@@ -223,6 +222,8 @@ public class FdLoad {
             int chrID, pos, index;
             Range range;
             List<Range> ranges;
+            Map<Range, String> fdRangeP3map;
+            StringBuilder sb=new StringBuilder();
             for (int i = 0; i < taxaLoadFiles.size(); i++) {
                 br=IOTool.getReader(taxaLoadFiles.get(i));
                 outFile=taxaLoadFiles.get(i).getName().replaceAll(".csv.gz",".fdLoad.txt.gz");
@@ -230,7 +231,8 @@ public class FdLoad {
                 br.readLine();
                 bw.write("Chr\tPos\tLoadType\tIfHeter\tIfHomozygousDerived\tIfIntrogression");
                 bw.newLine();
-                ranges=fdFilesRange[i];
+                fdRangeP3map=fdFilesRangeP3Map[i];
+                ranges=new ArrayList<>(fdRangeP3map.keySet());
                 Collections.sort(ranges);
                 while ((line=br.readLine())!=null){
                     temp=PStringUtils.fastSplit(line);
@@ -238,17 +240,45 @@ public class FdLoad {
                     pos=Integer.parseInt(temp.get(1));
                     range=new Range(chrID, pos, pos+1);
                     index=Collections.binarySearch(ranges, range);
-                    if (index < -1){
+                    if (index < -2){
+                        index=-index-2;
+                        if (ranges.get(index).isOverlap(range) && ranges.get(index-1).isOverlap(range)){
+                            sb.setLength(0);
+                            temp.add("1");
+                            sb.append(fdRangeP3map.get(ranges.get(index-1))).append("_").append(fdRangeP3map.get(ranges.get(index)));
+                            temp.add(sb.toString());
+                        }else if (ranges.get(index).isOverlap(range) && !(ranges.get(index-1).isOverlap(range))){
+                            temp.add("1");
+                            temp.add(fdRangeP3map.get(ranges.get(index)));
+                        }else {
+                            temp.add("0");
+                            temp.add("."); //. no introgression
+                        }
+                    }else if (index == -2){
                         index=-index-2;
                         if (ranges.get(index).isOverlap(range)){
                             temp.add("1");
+                            temp.add(fdRangeP3map.get(ranges.get(index)));
                         }else {
                             temp.add("0");
+                            temp.add("."); //. no introgression
                         }
-                    }else if (index == -1){
+                    } else if (index == -1){
                         temp.add("0");
+                        temp.add("."); //. no introgression
+                    }else if (index > 0){
+                        if (ranges.get(index-1).isOverlap(range)){
+                            temp.add("1");
+                            sb.setLength(0);
+                            sb.append(fdRangeP3map.get(ranges.get(index-1))).append("_").append(fdRangeP3map.get(ranges.get(index)));
+                            temp.add(sb.toString());
+                        }else {
+                            temp.add("1");
+                            temp.add(fdRangeP3map.get(ranges.get(index)));
+                        }
                     }else {
                         temp.add("1");
+                        temp.add(fdRangeP3map.get(ranges.get(index)));
                     }
                     bw.write(String.join("\t", temp));
                     bw.newLine();
@@ -263,8 +293,10 @@ public class FdLoad {
 
     }
 
-    private static List<Range> getIndividualRangeList(String fdFile){
+    private static Map<Range, String> getIndividualRangeList(String fdFile){
         List<Range> ranges=new ArrayList<>();
+        List<String> p3List=new ArrayList<>();
+        Map<Range, String> resMap=new HashMap<>();
         Range range;
         try (BufferedReader br = IOTool.getReader(fdFile)) {
             br.readLine();
@@ -286,23 +318,25 @@ public class FdLoad {
                 end=RefV1Utils.getPosOnChrID(chr, refEnd);
                 range=new Range(chrID, start, end+1);
                 ranges.add(range);
+                p3List.add(temp.get(11).substring(0,2));
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-        List<Range> res=new ArrayList<>();
         range=ranges.get(0);
+        String p3=p3List.get(0);
         for (int i = 1; i < ranges.size(); i++) {
-            if (range.isOverlap(ranges.get(i))){
+            if (range.isOverlap(ranges.get(i)) && p3.equals(p3List.get(i))){
                 range=new Range(range.chr, range.start, ranges.get(i).end);
             }else {
-                res.add(range);
+                resMap.put(range, p3);
                 range=ranges.get(i);
+                p3=p3List.get(i);
             }
         }
-        res.add(range);
-        return res;
+        resMap.put(range, p3);
+        return resMap;
     }
 
     /**
