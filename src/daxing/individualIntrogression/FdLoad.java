@@ -1,12 +1,13 @@
 package daxing.individualIntrogression;
 
-import daxing.common.DateTime;
-import daxing.common.IOTool;
-import daxing.common.NumberTool;
-import daxing.common.RowTableTool;
+import com.google.common.collect.Table;
+import com.google.common.collect.TreeBasedTable;
+import daxing.common.*;
 import daxing.load.ancestralSite.ChrSNPAnnoDB;
+import pgl.infra.pos.ChrPos;
 import pgl.infra.range.Range;
 import pgl.infra.table.RowTable;
+import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
@@ -37,7 +38,7 @@ public class FdLoad {
     public static void go(String exonSNPAnnoDir, String exonVCFDir, String taxa_InfoDBFile, String individualFdDir, String outDir){
         System.out.println(DateTime.getDateTimeOfNow());
         String[] subdir={"001_count","002_countMerge","003_retainLandraceCutivarNotIncludeIndianDwarf", "004_addFd",
-                "005_individualLoadFd"};
+                "005_individualLoadFd", "007_individualLoadFdSummary"};
         for (int i = 0; i < subdir.length; i++) {
             new File(outDir, subdir[i]).mkdir();
         }
@@ -56,6 +57,8 @@ public class FdLoad {
 //                new File(outDir, subdir[4]).getAbsolutePath(), IndividualChrPosLoad.LoadType.Non);
 //        summaryIndividualLoadFd(new File(outDir, subdir[3]).getAbsolutePath(),
 //                new File(outDir, subdir[4]).getAbsolutePath(), IndividualChrPosLoad.LoadType.Syn);
+        FdLoad.mergeIndividualLoadFdToSummary(new File(outDir, subdir[3]).getAbsolutePath(), new File(outDir,
+                subdir[5]).getAbsolutePath());
         System.out.println(DateTime.getDateTimeOfNow());
     }
 
@@ -78,7 +81,7 @@ public class FdLoad {
             boolean isRefAlleleAncestral=true;
             boolean isSyn, isNonsyn, isDeleterious;
             byte genotypeByte;
-            IndividualChrPosLoad.LoadType loadType;
+            LoadType loadType;
             boolean ifHeter, ifHomozygousDerived;
             while ((line=br.readLine())!=null){
                 temp=PStringUtils.fastSplit(line);
@@ -98,8 +101,8 @@ public class FdLoad {
                     depthList=PStringUtils.fastSplit(genotypeList.get(1),",");
                     depth=Integer.parseInt(depthList.get(0))+Integer.parseInt(depthList.get(1));
                     if (depth < 2) continue;
-                    loadType= IndividualChrPosLoad.LoadType.newInstanceFrom(transcriptDB.getVariantType(chr, pos));
-                    loadType= isDeleterious ? IndividualChrPosLoad.LoadType.Del : loadType;
+                    loadType= LoadType.newInstanceFrom(transcriptDB.getVariantType(chr, pos));
+                    loadType= isDeleterious ? LoadType.Del : loadType;
                     genotypeByte= IndividualChrPosLoad.caculateGenotype(genotype, isRefAlleleAncestral);
                     ifHeter = genotypeByte==2 ? true : false;
                     ifHomozygousDerived = genotypeByte==1 ? true : false;
@@ -229,7 +232,7 @@ public class FdLoad {
                 outFile=taxaLoadFiles.get(i).getName().replaceAll(".csv.gz",".fdLoad.txt.gz");
                 bw=IOTool.getWriter(new File(outDir, outFile));
                 br.readLine();
-                bw.write("Chr\tPos\tLoadType\tIfHeter\tIfHomozygousDerived\tIfIntrogression");
+                bw.write("Chr\tPos\tLoadType\tIfHeter\tIfHomozygousDerived\tIfIntrogression\tMiniIBSP3");
                 bw.newLine();
                 fdRangeP3map=fdFilesRangeP3Map[i];
                 ranges=new ArrayList<>(fdRangeP3map.keySet());
@@ -352,7 +355,7 @@ public class FdLoad {
      * @param summaryOutDir
      * @param loadType
      */
-    public static void summaryIndividualLoadFd(String addFdDir, String summaryOutDir, IndividualChrPosLoad.LoadType loadType){
+    public static void summaryIndividualLoadFd(String addFdDir, String summaryOutDir, LoadType loadType){
         if (loadType.equals("Non")){
             summaryIndividualLoadFdNon(addFdDir, summaryOutDir);
         }else {
@@ -456,4 +459,194 @@ public class FdLoad {
         }
     }
 
+    public static void mergeIndividualLoadFdToSummary(String inputAddFdDir, String outDir){
+        List<File> files=IOUtils.getVisibleFileListInDir(inputAddFdDir);
+        long start=System.nanoTime();
+        Table<Integer, Integer, String> chrPosLoadTypeTable= TreeBasedTable.create();
+        BufferedReader br;
+        try {
+            String line, miniIBSP3;
+            List<String> temp;
+            int chrID, pos;
+            for (int i = 0; i < files.size(); i++) {
+                long start1=System.nanoTime();
+                br=IOTool.getReader(files.get(i));
+                br.readLine();
+                while ((line=br.readLine())!=null){
+                    temp=PStringUtils.fastSplit(line);
+                    chrID=Integer.parseInt(temp.get(0));
+                    pos=Integer.parseInt(temp.get(1));
+                    miniIBSP3=temp.get(2);
+                    chrPosLoadTypeTable.put(chrID, pos, miniIBSP3);
+                }
+                br.close();
+                System.out.println(files.get(i).getName()+ " extract completed in "+Benchmark.getTimeSpanMilliseconds(start1)+ " ms");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println("extract completed in "+ Benchmark.getTimeSpanSeconds(start)+ " s");
+        IndividualLoadFdToSummary individualLoadFdToSummary=new IndividualLoadFdToSummary(chrPosLoadTypeTable);
+        for (int i = 0; i < files.size(); i++) {
+            individualLoadFdToSummary.addIndividual(files.get(i).getAbsolutePath());
+        }
+        individualLoadFdToSummary.write(new File(outDir, "IndividualLoadFdSummary.txt").getAbsolutePath());
+    }
+
+    private static class ChrPosLoadType extends ChrPos{
+
+        LoadType loadType;
+
+        public ChrPosLoadType(int chrID, int pos, String loadType){
+            super((short) chrID, pos);
+            this.loadType=LoadType.valueOf(loadType);
+        }
+
+        public LoadType getLoadType() {
+            return loadType;
+        }
+    }
+
+    private static class IndividualLoadFdToSummary{
+
+        List<ChrPosLoadType> chrPosLoadTypes;
+        List<IndividualLoadFdRecord[]> individualSummary;
+        List<String> taxonNames;
+
+        private IndividualLoadFdToSummary(Table<Integer, Integer, String> chrPosLoadTypeTable){
+            List<ChrPosLoadType> chrPosLoadTypes=new ArrayList<>(chrPosLoadTypeTable.size());
+            ChrPosLoadType chrPosLoadType;
+            Map<Integer, Map<Integer, String>> rowMapMap=chrPosLoadTypeTable.rowMap();
+            for (Map.Entry<Integer, Map<Integer, String>> entry1 : rowMapMap.entrySet()){
+                for (Map.Entry<Integer, String> entry2 : entry1.getValue().entrySet()){
+                    chrPosLoadType=new ChrPosLoadType(entry1.getKey(), entry2.getKey(), entry2.getValue());
+                    chrPosLoadTypes.add(chrPosLoadType);
+                }
+            }
+            Collections.sort(chrPosLoadTypes);
+            this.chrPosLoadTypes=chrPosLoadTypes;
+            individualSummary=new ArrayList<>();
+            taxonNames=new ArrayList<>();
+        }
+
+        private int getSNPNum(){
+            return this.chrPosLoadTypes.size();
+        }
+
+        private int getTaxonNum(){
+            return this.individualSummary.size();
+        }
+
+        private int binarySearch(ChrPos chrPos){
+            return Collections.binarySearch(chrPosLoadTypes, chrPos);
+        }
+
+        private ChrPosLoadType getChrPosLoadType(int snpIndex){
+            return this.chrPosLoadTypes.get(snpIndex);
+        }
+
+        private IndividualLoadFdRecord getIndividualLoadFdRecord(int snpIndex, int taxonIndex){
+            return this.individualSummary.get(taxonIndex)[snpIndex];
+        }
+
+        private void addIndividual(String individualLoadFdFile){
+            String taxaName=new File(individualLoadFdFile).getName().substring(0, 5);
+            IndividualLoadFdRecord[] individualLoadFdRecords=new IndividualLoadFdRecord[this.getSNPNum()];
+            Arrays.fill(individualLoadFdRecords, IndividualLoadFdRecord.getDefault());
+            try (BufferedReader br = IOTool.getReader(individualLoadFdFile)) {
+                br.readLine();
+                String line, miniIBSP3;
+                List<String> temp;
+                int chrID, pos, index;
+                ChrPosLoadType chrPosLoadType;
+                int[] ifHeterIfHomozygousDerivedIfIntrogression;
+                IndividualLoadFdRecord individualLoadFdRecord;
+                while ((line= br.readLine())!=null){
+                    temp=PStringUtils.fastSplit(line);
+                    chrID=Integer.parseInt(temp.get(0));
+                    pos=Integer.parseInt(temp.get(1));
+                    chrPosLoadType=new ChrPosLoadType(chrID, pos, temp.get(2));
+                    index=binarySearch(chrPosLoadType);
+                    ifHeterIfHomozygousDerivedIfIntrogression=new int[3];
+                    ifHeterIfHomozygousDerivedIfIntrogression[0]=Integer.parseInt(temp.get(3));
+                    ifHeterIfHomozygousDerivedIfIntrogression[1]=Integer.parseInt(temp.get(4));
+                    ifHeterIfHomozygousDerivedIfIntrogression[2]=Integer.parseInt(temp.get(5));
+                    miniIBSP3=temp.get(6);
+                    individualLoadFdRecord=new IndividualLoadFdRecord(ifHeterIfHomozygousDerivedIfIntrogression, miniIBSP3);
+                    individualLoadFdRecords[index]=individualLoadFdRecord;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            individualSummary.add(individualLoadFdRecords);
+            taxonNames.add(taxaName);
+        }
+
+        private void write(String outFile){
+            try (BufferedWriter bw = IOTool.getWriter(outFile)) {
+                StringBuilder sb=new StringBuilder();
+                sb.append("Chr\tPos\tLoadType\t").append(String.join("\t", this.taxonNames));
+                bw.write(sb.toString());
+                bw.newLine();
+                int snpNum=this.getSNPNum();
+                int taxonNum=this.getTaxonNum();
+                ChrPosLoadType chrPosLoadType;
+                IndividualLoadFdRecord individualLoadFdRecord;
+                for (int i = 0; i < snpNum; i++) {
+                    chrPosLoadType=this.getChrPosLoadType(i);
+                    sb.setLength(0);
+                    sb.append(chrPosLoadType.getChromosome()).append("\t").append(chrPosLoadType.getPosition()).append("\t");
+                    sb.append(chrPosLoadType.getLoadType()).append("\t");
+                    for (int j = 0; j < taxonNum; j++) {
+                        individualLoadFdRecord=this.getIndividualLoadFdRecord(i, j);
+                        sb.append(individualLoadFdRecord.toString()).append("\t");
+                    }
+                    sb.deleteCharAt(sb.length()-1);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+                bw.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static class IndividualLoadFdRecord{
+
+        int[] ifHeterIfHomozygousDerivedIfIntrogression;
+        String miniIBSP3;
+
+        public static final IndividualLoadFdRecord DEFAULT = getDefault();
+
+        private static final IndividualLoadFdRecord getDefault(){
+            int[] ifHeterIfHomozygousDerivedIfIntrogression={-1,-1,-1};
+            return new IndividualLoadFdRecord(ifHeterIfHomozygousDerivedIfIntrogression, ".");
+        }
+
+        private IndividualLoadFdRecord(int[] ifHeterIfHomozygousDerivedIfIntrogression,
+                                      String miniIBSP3){
+            this.ifHeterIfHomozygousDerivedIfIntrogression=ifHeterIfHomozygousDerivedIfIntrogression;
+            this.miniIBSP3=miniIBSP3;
+        }
+
+        private int[] getIfHeterIfHomozygousDerivedIfIntrogression() {
+            return ifHeterIfHomozygousDerivedIfIntrogression;
+        }
+
+        private String getMiniIBSP3() {
+            return miniIBSP3;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb=new StringBuilder();
+            for (int i = 0; i < ifHeterIfHomozygousDerivedIfIntrogression.length; i++) {
+                sb.append(ifHeterIfHomozygousDerivedIfIntrogression[i]).append(",");
+            }
+            sb.deleteCharAt(sb.length()-1);
+            sb.append("|").append(miniIBSP3);
+            return sb.toString();
+        }
+    }
 }
