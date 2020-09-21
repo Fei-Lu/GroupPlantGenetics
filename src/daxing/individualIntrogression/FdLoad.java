@@ -459,6 +459,11 @@ public class FdLoad {
         }
     }
 
+    /**
+     * 将个体load和fd以vcf的形式输出
+     * @param inputAddFdDir
+     * @param outDir
+     */
     public static void mergeIndividualLoadFdToSummary(String inputAddFdDir, String outDir){
         List<File> files=IOUtils.getVisibleFileListInDir(inputAddFdDir);
         long start=System.nanoTime();
