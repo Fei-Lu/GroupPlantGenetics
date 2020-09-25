@@ -124,45 +124,11 @@ public class PopulationIndividualFd {
             return p2p3IfIntrogressionTaxonIndexList;
         }
 
-        public static String getHeaderAB(){
+        public static String getHeader(){
             StringBuilder sb=new StringBuilder();
-            sb.append("Chr").append("\t").append("Start").append("\t").append("End").append("\t");
-            String[] weakStrong={"WeakDel", "StrongDel"};
-            String[] p2={"CL","LR"};
-            String[] p3={"WE","DE","FT"};
-            for (int i = 0; i < p2.length; i++) {
-                for (int j = 0; j < p3.length; j++) {
-                    for (int k = 0; k < weakStrong.length; k++) {
-                        sb.append(p2[i]).append("_").append(p3[j]).append("_").append(weakStrong[k]).append("\t");
-                        if (k>0){
-                            sb.append(p2[i]).append("_").append(p3[j]).append("_").append("fdInPop").append("\t");
-                        }
-                    }
-                }
-
-            }
-            sb.deleteCharAt(sb.length()-1);
-            return sb.toString();
-        }
-
-        public static String getHeaderD(){
-            StringBuilder sb=new StringBuilder();
-            sb.append("Chr").append("\t").append("Start").append("\t").append("End").append("\t");
-            String[] weakStrong={"WeakDel", "StrongDel"};
-            String[] p2={"CL","LR"};
-            String[] p3={"AT"};
-            for (int i = 0; i < p2.length; i++) {
-                for (int j = 0; j < p3.length; j++) {
-                    for (int k = 0; k < weakStrong.length; k++) {
-                        sb.append(p2[i]).append("_").append(p3[j]).append("_").append(weakStrong[k]).append("\t");
-                        if (k>0){
-                            sb.append(p2[i]).append("_").append(p3[j]).append("_").append("fdInPop").append("\t");
-                        }
-                    }
-                }
-
-            }
-            sb.deleteCharAt(sb.length()-1);
+            sb.append("Chr").append("\t").append("Start").append("\t").append("End").append("\t").append("P2");
+            sb.append("\t").append("P3").append("\t").append("PopulationFd").append("\t");
+            sb.append("WeakLoad").append("\t").append("StrongLoad");
             return sb.toString();
         }
 
@@ -217,14 +183,21 @@ public class PopulationIndividualFd {
             double[][] p2p3FdArray;
             chrRange=this.chrRange;
             p2p3FdArray=this.getFd();
-            sb.append(chrRange.getChr()).append("\t").append(chrRange.getStart()).append("\t");
-            sb.append(chrRange.getEnd()).append("\t");
+            sb.setLength(0);
             for (int i = 0; i < this.load_P2P3LoadType.length; i++) {
                 for (int j = 0; j < this.load_P2P3LoadType[i].length; j++) {
                     if (chrRange.getChr().substring(1,2).equals("D")){
                         if (j < 3) continue;
                     }else{
                         if (j==3) continue;
+                    }
+                    sb.append(chrRange.getChr()).append("\t").append(chrRange.getStart()).append("\t");
+                    sb.append(chrRange.getEnd()).append("\t").append(P2.newInstanceFrom(i).name()).append("\t");
+                    sb.append(P3.newInstanceFrom(j).name()).append("\t");
+                    if (0 <= p2p3FdArray[i][j] && p2p3FdArray[i][j] <= 1){
+                        sb.append(p2p3FdArray[i][j]).append("\t");
+                    }else {
+                        sb.append("NA").append("\t");
                     }
                     for (int k = 0; k < this.load_P2P3LoadType[i][j].length; k++) {
                         if(this.load_P2P3LoadType[i][j][k]==Double.MIN_VALUE){
@@ -235,11 +208,8 @@ public class PopulationIndividualFd {
                             sb.append(this.load_P2P3LoadType[i][j][k]).append("\t");
                         }
                     }
-                    if (0 <= p2p3FdArray[i][j] && p2p3FdArray[i][j] <= 1){
-                        sb.append(p2p3FdArray[i][j]).append("\t");
-                    }else {
-                        sb.append("NA").append("\t");
-                    }
+                    sb.deleteCharAt(sb.length()-1);
+                    sb.append("\n");
                 }
             }
             sb.deleteCharAt(sb.length()-1);
@@ -459,14 +429,11 @@ public class PopulationIndividualFd {
         }
     }
 
-    public void addLoadPerWindow(String individualLoadSummaryFile, String outFileAB, String outFileD){
+    public void addLoadPerWindow(String individualLoadSummaryFile, String outFile){
         try (BufferedReader br = IOTool.getReader(individualLoadSummaryFile);
-             BufferedWriter bwAB =IOTool.getWriter(outFileAB);
-             BufferedWriter bwD = IOTool.getWriter(outFileD)) {
-            bwAB.write(SingleWindow.getHeaderAB());
-            bwAB.newLine();
-            bwD.write(SingleWindow.getHeaderD());
-            bwD.newLine();
+             BufferedWriter bw =IOTool.getWriter(outFile)) {
+            bw.write(SingleWindow.getHeader());
+            bw.newLine();
             String header=br.readLine();
             List<String> headerList=PStringUtils.fastSplit(header);
             int windowNum=this.getChrRangeNum();
@@ -495,16 +462,10 @@ public class PopulationIndividualFd {
                     }
                 }
                 singleWindow.allLoad(tempMap, headerList);
-                if (chrRange.getChr().substring(1,2).equals("D")){
-                    bwD.write(singleWindow.toString());
-                    bwD.newLine();
-                }else {
-                    bwAB.write(singleWindow.toString());
-                    bwAB.newLine();
-                }
+                bw.write(singleWindow.toString());
+                bw.newLine();
             }
-            bwAB.flush();
-            bwD.flush();
+            bw.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -525,18 +486,17 @@ public class PopulationIndividualFd {
 
 
     public static void start(){
-        String popFdFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/002_fdResBySubspecies/002_plot_100SNPwindow_50Step/fdBySubspecies.csv.gz";
+        String popFdFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/002_fdResBySubspecies/004_plot_2MWindow_1MStep/fdBySubspecies.2MWindow.1MStep.csv";
         String individualFdDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/006_fdResByIndividual/002_fdByIndividual";
         String individualLoadSummaryFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftPerSite/007_individualLoadFdSummary/IndividualLoadFdSummary.txt";
-        String outFileAB="/Users/xudaxing/Desktop/resAB.txt";
-        String outFileD="/Users/xudaxing/Desktop/resD.txt";
-        writeWindowSize(popFdFile, individualFdDir, individualLoadSummaryFile, outFileAB, outFileD);
+        String outFile="/Users/xudaxing/Desktop/fdLoadBySubspeciesWindow2MbStep1MbStep.txt";
+        writeWindowSize(popFdFile, individualFdDir, individualLoadSummaryFile, outFile);
     }
 
     public static void writeWindowSize(String popFdFile, String individualFdDir,
-                                       String individualLoadSummaryFile, String outFileAB, String outFileD){
+                                       String individualLoadSummaryFile, String outFile){
         PopulationIndividualFd populationIndividualFd=new PopulationIndividualFd(popFdFile, individualFdDir);
-        populationIndividualFd.addLoadPerWindow(individualLoadSummaryFile, outFileAB, outFileD);
+        populationIndividualFd.addLoadPerWindow(individualLoadSummaryFile, outFile);
 //        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
 //            bw.write("Chr\tStart\tEnd\tCL_WE\tCL_DE\tCL_FT\tLR_WE\tLR_DE\tLR_FT");
 //            bw.newLine();
