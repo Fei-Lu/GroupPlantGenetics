@@ -2,6 +2,8 @@ package daxing.individualIntrogression;
 
 import daxing.common.*;
 import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 import pgl.infra.dna.genot.GenoIOFormat;
 import pgl.infra.dna.genot.GenotypeGrid;
 import pgl.infra.dna.genot.GenotypeOperation;
@@ -160,9 +162,12 @@ public class NearestIBS {
         Arrays.fill(windowP3Index, -1);
         String p3;
         p2Index= chrGenotypeGrid.getTaxonIndex(taxonMap.get(p2));
-        float[] ibsArray;
         List<RowTableTool<String>> p3Tables=getP3TablesPerP2(p3FdFilesPerP2);
         List<String> temp;
+        TIntSet maxFdIndexSet;
+        TIntArrayList maxFdIndexList;
+        double maxFd;
+        double[] p3FdArray;
         for (int i = 0; i < chrRanges.size(); i++) {
             startPosVCF=chrRanges.get(i).getVCFStart();
             endPosVCF=chrRanges.get(i).getVCFEnd();
@@ -172,35 +177,50 @@ public class NearestIBS {
             endIndex=chrGenotypeGrid.getSiteIndex(endChrID, endPosVCF);
             if (startIndex < 0 || endIndex < 0) continue;
             ibsMini=2;
-            ibsArray=new float[p3List.size()];
-            Arrays.fill(ibsArray, ibsMini);
             int miniIBSP3Index=-1;
+            p3FdArray=new double[p3List.size()];
             for (int j = 0; j < p3List.size(); j++) {
                 temp=p3Tables.get(j).getRow(i);
                 if (!StringTool.isNumeric(temp.get(8))){
                     p3Tables.get(j).setCell(i, 9, "0"); // if D 为nan 或-inf inf, 将fd转换为0
                     p3Tables.get(j).setCell(i, 8, "0"); // if D 为nan 或-inf inf, 将D转换为0
+                    continue;
                 }
                 if (!StringTool.isNumeric(temp.get(9))){
                     p3Tables.get(j).setCell(i, 9, "0"); // if fd 为nan 或-inf inf, 将fd转换为0
                     p3Tables.get(j).setCell(i, 8, "0"); // if fd 为nan 或-inf inf, 将D转换为0
+                    continue;
                 }
                 if (Double.parseDouble(temp.get(8))<0){
                     p3Tables.get(j).setCell(i, 9, "0"); // if D < 0, 将fd转换为0
+                    continue;
                 }
 //                if (Double.parseDouble(temp.get(8))>1)continue; // D > 1 continue
                 if (Double.parseDouble(temp.get(9))<0){
                     p3Tables.get(j).setCell(i, 9, "0"); // if fd < 0, 将fd转换为0
+                    continue;
                 }
                 if (Double.parseDouble(temp.get(9))>1){
                     p3Tables.get(j).setCell(i, 9, "0"); // if fd > 1, 将fd转换为0
+                    continue;
                 }
-                p3=taxonMap.get(p3List.get(j));
+                p3FdArray[j]=Double.parseDouble(temp.get(9));
+            }
+            maxFd= Arrays.stream(p3FdArray).max().getAsDouble();
+            maxFdIndexSet=new TIntHashSet();
+            for (int j = 0; j < p3FdArray.length; j++) {
+                if (p3FdArray[j]==maxFd){
+                    maxFdIndexSet.add(j);
+                }
+            }
+            maxFdIndexList=new TIntArrayList(maxFdIndexSet);
+            maxFdIndexList.sort();
+            for (int j = 0; j < maxFdIndexList.size(); j++) {
+                p3=taxonMap.get(p3List.get(maxFdIndexList.get(j)));
                 p3Index=chrGenotypeGrid.getTaxonIndex(p3);
                 ibs=chrGenotypeGrid.getIBSDistance(p2Index, p3Index, startIndex, endIndex);
-                ibsArray[j]=ibs;
                 if (ibs < ibsMini){
-                    miniIBSP3Index=j;
+                    miniIBSP3Index=maxFdIndexList.get(j);
                     ibsMini=ibs;
                 }
             }
