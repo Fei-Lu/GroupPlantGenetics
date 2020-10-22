@@ -15,13 +15,15 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import deprecated.analysis.maizeGeneticLoad.CrossMapUtils;
+//import deprecated.analysis.maizeGeneticLoad.CrossMapUtils;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;
 
-/**
+import static com.ibm.icu.impl.ValidIdentifiers.Datasubtype.deprecated;
+
+ /**
  *
  * @author Aoyue
  */
@@ -507,12 +509,12 @@ import pgl.infra.utils.PStringUtils;
             chr[i] = Integer.parseInt(t.getCell(i, 0));
             pos[i] = Integer.parseInt(t.getCell(i, 4));
         }
-        CrossMapUtils cm = new CrossMapUtils(chr, pos, tempInputbedFileS);
-        cm = new CrossMapUtils(myPythonPath, myCrossMapPath, myMaizeChainPath, tempInputbedFileS, outputbedFileS );
-        cm.convert();
-        List<int[]> l = cm.getConvertedCoordinate();
-        chr = l.get(0);
-        pos = l.get(1);
+//        CrossMapUtils cm = new CrossMapUtils(chr, pos, tempInputbedFileS);
+//        cm = new CrossMapUtils(myPythonPath, myCrossMapPath, myMaizeChainPath, tempInputbedFileS, outputbedFileS );
+//        cm.convert();
+//        List<int[]> l = cm.getConvertedCoordinate();
+//        chr = l.get(0);
+//        pos = l.get(1);
         for (int i = 0; i < t.getRowNumber(); i++) {
             t.setCell(i, 0, String.valueOf(chr[i]));
             t.setCell(i, 4, String.valueOf(pos[i]));
@@ -855,14 +857,14 @@ Table is written to /Users/Aoyue/Documents/maizeGeneticLoad/002recombination/why
             chr[i] = Integer.parseInt(t.getCell(i, 0));
             pos[i] = Integer.parseInt(t.getCell(i, 5));
         }
-        CrossMapUtils cm = new CrossMapUtils(chr, pos, tempInputbedFileS);
-        /*chain file download position: ftp://ftp.ensemblgenomes.org/pub/plants/release-40/assembly_chain/zea_mays/ */
-        cm = new CrossMapUtils(myPythonPath, myCrossMapPath, myMaizeChainPath, tempInputbedFileS, outputbedFileS );
-        cm.convert();
-        List<int[]> l = cm.getConvertedCoordinate();
+//        CrossMapUtils cm = new CrossMapUtils(chr, pos, tempInputbedFileS);
+//        /*chain file download position: ftp://ftp.ensemblgenomes.org/pub/plants/release-40/assembly_chain/zea_mays/ */
+//        cm = new CrossMapUtils(myPythonPath, myCrossMapPath, myMaizeChainPath, tempInputbedFileS, outputbedFileS );
+//        cm.convert();
+//        List<int[]> l = cm.getConvertedCoordinate();
         //cm.deleteBedFiles();
-        chr = l.get(0);
-        pos = l.get(1);
+//        chr = l.get(0);
+//        pos = l.get(1);
         for (int i = 0; i < t.getRowNumber(); i++) {
             t.setCell(i, 5, String.valueOf(pos[i]));
             //t.setCell(i, 0, String.valueOf(chr[i]));
@@ -890,14 +892,14 @@ Table is written to /Users/Aoyue/Documents/maizeGeneticLoad/002recombination/why
             chr[i] = Integer.parseInt(t.getCell(i, 0));
             pos[i] = Integer.parseInt(t.getCell(i, 5));
         }
-        CrossMapUtils cm = new CrossMapUtils(chr, pos, tempInputbedFileS);
-        /*chain file download position: ftp://ftp.ensemblgenomes.org/pub/plants/release-40/assembly_chain/zea_mays/ */
-        cm = new CrossMapUtils(myPythonPath, myCrossMapPath, myMaizeChainPath, tempInputbedFileS, outputbedFileS );
-        cm.convert();
-        List<int[]> l = cm.getConvertedCoordinate();
+//        CrossMapUtils cm = new CrossMapUtils(chr, pos, tempInputbedFileS);
+//        /*chain file download position: ftp://ftp.ensemblgenomes.org/pub/plants/release-40/assembly_chain/zea_mays/ */
+//        cm = new CrossMapUtils(myPythonPath, myCrossMapPath, myMaizeChainPath, tempInputbedFileS, outputbedFileS );
+//        cm.convert();
+//        List<int[]> l = cm.getConvertedCoordinate();
         //cm.deleteBedFiles();
-        chr = l.get(0);
-        pos = l.get(1);
+//        chr = l.get(0);
+//        pos = l.get(1);
         for (int i = 0; i < t.getRowNumber(); i++) {
             t.setCell(i, 5, String.valueOf(pos[i]));
             //t.setCell(i, 0, String.valueOf(chr[i]));
@@ -925,14 +927,14 @@ Table is written to /Users/Aoyue/Documents/maizeGeneticLoad/002recombination/why
             chr[i] = Integer.parseInt(t.getCell(i, 0));
             pos[i] = Integer.parseInt(t.getCell(i, 4));
         }
-        CrossMapUtils cm = new CrossMapUtils(chr, pos, tempInputbedFileS);
-        /*chain file download position: ftp://ftp.ensemblgenomes.org/pub/plants/release-40/assembly_chain/zea_mays/ */
-        cm = new CrossMapUtils(myPythonPath, myCrossMapPath, myMaizeChainPath, tempInputbedFileS, outputbedFileS );
-        cm.convert();
-        List<int[]> l = cm.getConvertedCoordinate();
+//        CrossMapUtils cm = new CrossMapUtils(chr, pos, tempInputbedFileS);
+//        /*chain file download position: ftp://ftp.ensemblgenomes.org/pub/plants/release-40/assembly_chain/zea_mays/ */
+//        cm = new CrossMapUtils(myPythonPath, myCrossMapPath, myMaizeChainPath, tempInputbedFileS, outputbedFileS );
+//        cm.convert();
+//        List<int[]> l = cm.getConvertedCoordinate();
         //cm.deleteBedFiles();
-        chr = l.get(0);
-        pos = l.get(1);
+//        chr = l.get(0);
+//        pos = l.get(1);
         for (int i = 0; i < t.getRowNumber(); i++) {
             t.setCell(i, 0, String.valueOf(chr[i]));
             t.setCell(i, 4, String.valueOf(pos[i]));
@@ -955,14 +957,14 @@ Table is written to /Users/Aoyue/Documents/maizeGeneticLoad/002recombination/why
             chr[i] = Integer.parseInt(t.getCell(i, 0));
             pos[i] = Integer.parseInt(t.getCell(i, 4));
         }
-        CrossMapUtils cm = new CrossMapUtils(chr, pos, tempInputbedFileS);
-        /*chain file download position: ftp://ftp.ensemblgenomes.org/pub/plants/release-40/assembly_chain/zea_mays/ */
-        cm = new CrossMapUtils(myPythonPath, myCrossMapPath, myMaizeChainPath, tempInputbedFileS, outputbedFileS );
-        cm.convert();
-        List<int[]> l = cm.getConvertedCoordinate();
+//        CrossMapUtils cm = new CrossMapUtils(chr, pos, tempInputbedFileS);
+//        /*chain file download position: ftp://ftp.ensemblgenomes.org/pub/plants/release-40/assembly_chain/zea_mays/ */
+//        cm = new CrossMapUtils(myPythonPath, myCrossMapPath, myMaizeChainPath, tempInputbedFileS, outputbedFileS );
+//        cm.convert();
+//        List<int[]> l = cm.getConvertedCoordinate();
         //cm.deleteBedFiles();
-        chr = l.get(0);
-        pos = l.get(1);
+//        chr = l.get(0);
+//        pos = l.get(1);
         for (int i = 0; i < t.getRowNumber(); i++) {
             t.setCell(i, 0, String.valueOf(chr[i]));
             t.setCell(i, 4, String.valueOf(pos[i]));

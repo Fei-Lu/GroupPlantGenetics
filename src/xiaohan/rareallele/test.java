@@ -44,101 +44,206 @@ public class test {
 //        this.getGerpdensity();
 //        this.printpos();
 //        this.printRcode();
-        this.getgeneRegion();
+//        this.getgeneRegion();
+//        this.mkFileDir();
+        this.print();
+//        this.changedosagename();
+//        this.fastQTL();
     }
 
-    public void getgeneRegion(){
-        String inputDirS="/data1/home/junxu/eQTL/7check/";
+    public void fastQTL() {
+        String outputDir = "/data1/home/xiaohan/rareallele/fastQTL/output/per5";
+        StringBuilder sb = new StringBuilder();
+        for(int i = 20;i < 27;i++){
+        sb.append("nohup sh -c 'for j in $(seq 1 10); do /data1/home/xiaohan/myprogram/fastqtl-master/bin/fastQTL --vcf /data2/xiaohan/genotype_root/dosagesort/87B18.chr"+i+".maf005.DS.vcf.gz --bed /data1/home/xiaohan/rareallele/fastQTL/pheno/S7/S7expression"+i+".bed.gz --cov /data1/home/xiaohan/rareallele/fastQTL/covariates/S7/covS7template5.txt --permute 10000 --out chr"+i+".chunk$j.permutations.txt.gz --chunk $j 10 > log"+i+"_$j.txt ;done 2>&1' &");
+        String command = sb.toString();
+        try {
+            File dir = new File(new File(outputDir).getAbsolutePath());
+            String[] cmdarry = {"/bin/bash", "-c", command};
+            Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+            p.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }}
+
+    public void changedosagename() {
+        String inputDir = "/data2/xiaohan/genotype_root/dosage";
+        String outputDir = "/data2/xiaohan/genotype_root/dosagesort";
+        HashSet<String> nameSet = new HashSet();
+        for (int i = 20; i < 42; i++) {
+            int chr = i + 1;
+            String Name = String.valueOf(chr);
+            nameSet.add(Name);
+            System.out.println(Name);
+        }
+        nameSet.parallelStream().forEach(f -> {
+            BufferedReader br = IOUtils.getTextGzipReader(new File(inputDir, "87B18.chr" + f + ".maf005.DS.vcf.gz").getAbsolutePath());
+            BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, "87B18.chr" + f + ".maf005.DS.vcf").getAbsolutePath());
+            String temp = null;
+            String[] temps = null;
+            try {
+//                bw.write("##fileformat=VCFv4.1");
+//                bw.newLine();
+                while ((temp = br.readLine()) != null) {
+                    temps = temp.split("\t");
+                    if (temp.startsWith("#")) {
+                        bw.write("#CHROM" + "\t" + "POS" + "\t" + "ID" + "\t" + "REF" + "\t" + "ALT" + "\t");
+                        bw.write("QUAL" + "\t" + "FILTER" + "\t" + "INFO" + "\t" + "FORMAT" + "\t");
+                        for (int i = 4; i < temps.length; i++) {
+                            bw.write(temps[i].split("]")[1] + "\t");
+                        }
+                        bw.newLine();
+                        continue;
+                    }
+                    for (int i = 0; i < 2; i++) {
+                        bw.write(temps[i] + "\t");
+                    }
+                    bw.write(temps[0] + "_" + temps[1] + "\t");
+                    for (int i = 2; i < 4; i++) {
+                        bw.write(temps[i] + "\t");
+                    }
+                    bw.write("100\tPASS\tICNFO\tDS\t");
+                    for (int i = 4; i < temps.length; i++) {
+                        bw.write(temps[i] + "\t");
+                    }
+                    bw.newLine();
+                }
+                br.close();
+                bw.flush();
+                bw.close();
+                StringBuilder sb = new StringBuilder();
+                sb.append("bgzip 87B18.chr" + f + ".maf005.DS.vcf && tabix -p vcf 87B18.chr" + f + ".maf005.DS.vcf.gz");
+                String command = sb.toString();
+                File dir = new File(new File(outputDir).getAbsolutePath());
+                String[] cmdarry = {"/bin/bash", "-c", command};
+                Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+                p.waitFor();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void print() {
+        String[] ABD = {"A","B","D"};
+        for (int i = 0; i < 42; i++) {
+//            for(int j = 0;j <ABD.length;j++){
+            int number = i + 1;
+//            System.out.println("nohup sh -c 'for j in $(seq 1 10); do /data1/home/xiaohan/myprogram/fastqtl-master/bin/fastQTL --vcf /data2/xiaohan/genotype_root/dosagesort/87B18.chr" + number + ".maf005.DS.vcf.gz --bed /data1/home/xiaohan/rareallele/fastQTL/pheno/S7/S7expression" + number + ".bed.gz --cov /data1/home/xiaohan/rareallele/fastQTL/covariates/S7/covS7template20.txt --out chr" + number + ".chunk$j.nominals.txt.gz --chunk $j 10 > log" + number + "_$j.txt ;done 2>&1' &");
+            System.out.println("nohup sh -c 'for j in $(seq 1 10); do /data1/home/xiaohan/myprogram/fastqtl-master/bin/fastQTL --vcf /data2/xiaohan/genotype_root/dosagesort/87B18.chr"+number+".maf005.DS.vcf.gz --bed /data1/home/xiaohan/rareallele/fastQTL/pheno/S7/S7expression"+number+".bed.gz --cov /data1/home/xiaohan/rareallele/fastQTL/covariates/S7/covS7template10.txt --out chr"+number+".chunk$j.nominals.txt.gz --chunk $j 10 > log1_$j.txt ;done 2>&1' &");
+//            System.out.print("\""+number + "\""+",");
+//            System.out.print("\"" +i + ABD[j] + "\""+",");
+//            System.out.print("\"" +i + ABD[j] + "\""+",");
+//            System.out.println("zcat chr"+number+".chunk* > chr"+number+".all.nominals.txt && bgzip chr"+number+".all.nominals.txt &");
+//            System.out.println("database"+number+" <- read.table(file = paste(\"/Users/yxh/Documents/eQTL/009ERCC test/20200907/reproducibility/\",dir["+number+"],\"/\",dir["+number+"],\"_reproducibility.txt\",sep = \"\"),sep = \"\\t\",header = T)");
+//        }
+        }
+    }
+
+    public void mkFileDir() {
+        String outputDir = "/Users/yxh/Documents/eQTL/009ERCC test/20200907/reproducibility";
+        String[] subDir = {"mix1_20k","mix1_25k","mix1_30k","mix1_35k","mix1_40k","mix1_45k","mix1_50k","mix2_20k","mix2_25k","mix2_30k","mix2_35k","mix2_40k","mix2_45k","mix2_50k"};
+        for (int i = 0; i < subDir.length; i++) {
+            new File(outputDir, subDir[i]).mkdir();
+        }
+    }
+
+    public void getgeneRegion() {
+        String inputDirS = "/data2/xiaohan/genotype/genotypeMaf005/";
 //        String inputDirS="/data1/home/junxu/eQTL/FastQTL2/genotype/41.snp.maf001.mis01.DS.vcf.gz";
         File[] fs = new File(inputDirS).listFiles();
-        fs = IOUtils.listFilesEndsWith(fs, "recode.vcf.gz");
+        fs = IOUtils.listFilesEndsWith(fs, ".vcf.gz");
         List<File> fList = Arrays.asList(fs);
         Collections.sort(fList);
-        GeneFeature gf = new GeneFeature("/data1/home/junxu/wheat_v1.1_Lulab.gff3");
+        GeneFeature gf = new GeneFeature("/data1/home/xiaohan/rareallele/SiPASpipeline/reference/wheat_v1.1_Lulab.gff3");
 //        GeneFeature gf = new GeneFeature("/Users/xujun/Desktop/eQTL/N344/wheat_v1.1_Lulab.gff3");
         HashIntIntMap[] posGeneMaps = new HashIntIntMap[45];
-        for(int i=0;i<45;i++){
+        for (int i = 0; i < 45; i++) {
             posGeneMaps[i] = HashIntIntMaps.getDefaultFactory().withDefaultValue(-1).newMutableMap();
         }
-        for(int i=0;i<gf.genes.length;i++){
-            int index=gf.getGeneIndex(gf.genes[i].geneName);
-            int chr=gf.genes[i].geneRange.chr;
-            int start= gf.genes[i].geneRange.start;
+        for (int i = 0; i < gf.genes.length; i++) {
+            int index = gf.getGeneIndex(gf.genes[i].geneName);
+            int chr = gf.genes[i].geneRange.chr;
+            int start = gf.genes[i].geneRange.start;
             int end = gf.genes[i].geneRange.end;
-            for(int j=start;j<end;j++){
-                posGeneMaps[chr].put(j,index);
+            for (int j = start; j < end; j++) {
+                posGeneMaps[chr].put(j, index);
             }
         }
-        int index =posGeneMaps[10].get(54303);
-        String gene =gf.getGeneName(index);
-        try{
+        int index = posGeneMaps[10].get(54303);
+        String gene = gf.getGeneName(index);
+        try {
             fList.stream().forEach(f -> {
-                try{
-                    String temp=null;String [] tem = null;List<String> tList=new ArrayList();
-                    BufferedReader br =IOUtils.getTextGzipReader(f.getAbsolutePath());
-                    BufferedWriter bw =IOUtils.getTextGzipWriter("/data1/home/junxu/eQTL/7check/"+f.getName().replace("recode.vcf.gz","geneRegion.vcf.gz"));
-                    while((temp=br.readLine())!=null){
-                        if(temp.startsWith("##") || temp.startsWith("#")){
-                            bw.write(temp);bw.newLine();
+                try {
+                    String temp = null;
+                    String[] tem = null;
+                    List<String> tList = new ArrayList();
+                    BufferedReader br = IOUtils.getTextGzipReader(f.getAbsolutePath());
+                    BufferedWriter bw = IOUtils.getTextGzipWriter("/data2/xiaohan/genotype/genotypeMaf005_geneRegion/" + f.getName().replace(".vcf.gz", "geneRegion.vcf.gz"));
+                    while ((temp = br.readLine()) != null) {
+                        if (temp.startsWith("##") || temp.startsWith("#")) {
+                            bw.write(temp);
+                            bw.newLine();
                             continue;
                         }
-                        tList= PStringUtils.fastSplit(temp);
+                        tList = PStringUtils.fastSplit(temp);
                         tem = tList.toArray(new String[tList.size()]);
-                        int pos=Integer.valueOf(Integer.valueOf(tem[1]));
-                        if(posGeneMaps[Integer.valueOf(tem[0])].get(pos)!=-1){
-                            bw.write(temp);bw.newLine();
+                        int pos = Integer.valueOf(Integer.valueOf(tem[1]));
+                        if (posGeneMaps[Integer.valueOf(tem[0])].get(pos) != -1) {
+                            bw.write(temp);
+                            bw.newLine();
                         }
                     }
                     br.close();
-                    bw.flush();bw.close();
-                }
-                catch(Exception ex){
+                    bw.flush();
+                    bw.close();
+                } catch (Exception ex) {
                     ex.getStackTrace();
                 }
 
             });
-        }
-        catch(Exception ex){
+        } catch (Exception ex) {
             ex.getStackTrace();
         }
     }
-    
+
     /**
      * @throws IOException
      */
 
-    public void printRcode(){
+    public void printRcode() {
 //        String name = "Tam_1,Tam_2,Tam_3,R1_1,R1_2,R1_3,R1_4,R1_5,R1_6,S1_1,S1_2,S1_3,S1_4,S1_5,S1_6,U1_1,U1_2,U1_3,U1_4,U1_5,U1_6,UR1_1,UR1_2,UR1_3,UR1_4,UR1_5,UR1_6";
-        String name = "Tpm_1,Tpm_2,Tpm_3,R2_1,R2_2,R2_3,R2_4,R2_5,R2_6,S2_1,S2_2,S2_3,S2_4,S2_5,S2_6,U2_1,U2_2,U2_3,U2_4,U2_5,U2_6,UR2_1,UR2_2,UR2_3,UR2_4,UR2_5,UR2_6";        
+        String name = "Tpm_1,Tpm_2,Tpm_3,R2_1,R2_2,R2_3,R2_4,R2_5,R2_6,S2_1,S2_2,S2_3,S2_4,S2_5,S2_6,U2_1,U2_2,U2_3,U2_4,U2_5,U2_6,UR2_1,UR2_2,UR2_3,UR2_4,UR2_5,UR2_6";
         String[] names = name.split(",");
-        for(int i = 0;i<names.length; i++ ){
-            int number = i+1;
-            System.out.println("pdf("+"\""+names[i]+".pdf"+"\""+",width=8,height=8)\n" +
-                               "y <- database$"+names[i]+"\n" +
-                                "plot(x,y,pch=16 , cex=1.3,xlab = \"Expected mix2 Log 2 transcript molecules\",ylab = \"Observed mix2 Log 2 transcript molecules\")\n" +
-                                "model <- lm(y ~ x )\n" +
-                                "myPredict <- predict( model ) \n" +
-                                "ix <- sort(x,index.return=T)$ix\n" +
-                                "lines(x[ix], myPredict[ix], lwd=2 )  \n" +
-                                "coeff <- round(model$coefficients , 5)\n" +
-                                "text(12,2.6,paste(\"n = \",length(x)))\n" +
-                                "text(12,1.8,paste(\"r = \",round(summary(model)$adj.r,4)))\n" +
-                                "text(12,1.0,paste(\"slope = \",coeff[2]))\n" +
-                                "text(12,0.2,paste(\"y-intercept = \",coeff[1]))\n" +
-                                "dev.off()\n" +
-                                "count["+number+"] = round(summary(model)$adj.r,4)");
+        for (int i = 0; i < names.length; i++) {
+            int number = i + 1;
+            System.out.println("pdf(" + "\"" + names[i] + ".pdf" + "\"" + ",width=8,height=8)\n" +
+                    "y <- database$" + names[i] + "\n" +
+                    "plot(x,y,pch=16 , cex=1.3,xlab = \"Expected mix2 Log 2 transcript molecules\",ylab = \"Observed mix2 Log 2 transcript molecules\")\n" +
+                    "model <- lm(y ~ x )\n" +
+                    "myPredict <- predict( model ) \n" +
+                    "ix <- sort(x,index.return=T)$ix\n" +
+                    "lines(x[ix], myPredict[ix], lwd=2 )  \n" +
+                    "coeff <- round(model$coefficients , 5)\n" +
+                    "text(12,2.6,paste(\"n = \",length(x)))\n" +
+                    "text(12,1.8,paste(\"r = \",round(summary(model)$adj.r,4)))\n" +
+                    "text(12,1.0,paste(\"slope = \",coeff[2]))\n" +
+                    "text(12,0.2,paste(\"y-intercept = \",coeff[1]))\n" +
+                    "dev.off()\n" +
+                    "count[" + number + "] = round(summary(model)$adj.r,4)");
         }
     }
 
-    public void printpos(){
+    public void printpos() {
         String infile = "/data2/xiaohan/GerpOrigin/chr/chr9.bed.gz";
-        String output = new File("/data2/xiaohan/GerpOrigin/chr/","pos.txt").getAbsolutePath();
+        String output = new File("/data2/xiaohan/GerpOrigin/chr/", "pos.txt").getAbsolutePath();
         BufferedReader br = IOUtils.getTextGzipReader(infile);
         BufferedWriter bw = IOUtils.getTextWriter(output);
         String temp = null;
         String[] temps = null;
-        try{
-            while((temp = br.readLine())!=null){
+        try {
+            while ((temp = br.readLine()) != null) {
                 temps = temp.split("\t");
                 bw.write(temps[1]);
                 bw.newLine();
@@ -146,11 +251,11 @@ public class test {
             br.close();
             bw.flush();
             bw.close();
-        }catch (Exception e ){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    
+
     public void getGerpdensity() throws IOException {
         String inputDir = "/data2/xiaohan/GerpOrigin/";
         String outputDir = "/data2/xiaohan/GerpOrigin/Density2";
@@ -164,9 +269,9 @@ public class test {
             System.out.println(Name);
         }
         nameSet.stream().forEach(f -> {
-            try{
-                BufferedReader br = xiaohan.rareallele.IOUtils.getTextGzipReader(new File(inputDir,f + ".bed.gz").getAbsolutePath());
-                BufferedWriter bw = xiaohan.rareallele.IOUtils.getTextWriter(new File(outputDir,f + "DensityPlot.txt").getAbsolutePath());
+            try {
+                BufferedReader br = xiaohan.rareallele.IOUtils.getTextGzipReader(new File(inputDir, f + ".bed.gz").getAbsolutePath());
+                BufferedWriter bw = xiaohan.rareallele.IOUtils.getTextWriter(new File(outputDir, f + "DensityPlot.txt").getAbsolutePath());
                 bw.write(f + "\t");
 //                bw.newLine();
 //                int gerp01 = 0;
@@ -189,20 +294,20 @@ public class test {
                 int gerp0810 = 0;
                 String temp = null;
                 String[] temps = null;
-                while((temp = br.readLine())!=null){
+                while ((temp = br.readLine()) != null) {
                     temps = temp.split("\t");
-                    double gerp = Double.parseDouble(temps[temps.length-1]);
+                    double gerp = Double.parseDouble(temps[temps.length - 1]);
 //                    if(gerp >= 0 && gerp <1){
 //                        gerp01++;
 //                    }
-                    if(gerp >=1 && gerp <2){
-                        gerp12 ++;
+                    if (gerp >= 1 && gerp < 2) {
+                        gerp12++;
                     }
-                    if(gerp >=2 && gerp <3){
-                        gerp23 ++;
+                    if (gerp >= 2 && gerp < 3) {
+                        gerp23++;
                     }
-                    if(gerp >=3 && gerp <4){
-                        gerp34 ++;
+                    if (gerp >= 3 && gerp < 4) {
+                        gerp34++;
                     }
 //                    if(gerp >=4 && gerp <5){
 //                        gerp45 ++;
@@ -213,14 +318,14 @@ public class test {
 //                    if(gerp >=6 && gerp <7){
 //                        gerp67++;
 //                    }
-                    if(gerp >=-1 && gerp <0){
-                        gerp10 ++;
+                    if (gerp >= -1 && gerp < 0) {
+                        gerp10++;
                     }
-                    if(gerp >=-2 && gerp <-1){
-                        gerp21 ++;
+                    if (gerp >= -2 && gerp < -1) {
+                        gerp21++;
                     }
-                    if(gerp >=-3 && gerp <-2){
-                        gerp32 ++;
+                    if (gerp >= -3 && gerp < -2) {
+                        gerp32++;
                     }
 //                    if(gerp >=-4 && gerp <-3){
 //                        gerp43 ++;
@@ -231,38 +336,38 @@ public class test {
 //                    if(gerp < -4){
 //                        gerplow ++;
 //                    }
-                    if(gerp >=0 && gerp <0.2){
-                        gerp0002 ++;
+                    if (gerp >= 0 && gerp < 0.2) {
+                        gerp0002++;
                     }
-                    if(gerp >=0.2 && gerp <0.4){
-                        gerp0204 ++;
+                    if (gerp >= 0.2 && gerp < 0.4) {
+                        gerp0204++;
                     }
-                    if(gerp >=0.4 && gerp <0.6){
-                        gerp0406 ++;
+                    if (gerp >= 0.4 && gerp < 0.6) {
+                        gerp0406++;
                     }
-                    if(gerp >=0.6 && gerp <0.8){
-                        gerp0608 ++;
+                    if (gerp >= 0.6 && gerp < 0.8) {
+                        gerp0608++;
                     }
-                    if(gerp >=0.8 && gerp <1){
-                        gerp0810 ++;
+                    if (gerp >= 0.8 && gerp < 1) {
+                        gerp0810++;
                     }
                 }
                 br.close();
-                bw.write("\tgerp0002\t"  + gerp0002);
+                bw.write("\tgerp0002\t" + gerp0002);
                 bw.newLine();
-                bw.write("\tgerp0204\t"  + gerp0204);
+                bw.write("\tgerp0204\t" + gerp0204);
                 bw.newLine();
-                bw.write("\tgerp0406\t"  + gerp0406);
+                bw.write("\tgerp0406\t" + gerp0406);
                 bw.newLine();
-                bw.write("\tgerp0608\t"  + gerp0608);
+                bw.write("\tgerp0608\t" + gerp0608);
                 bw.newLine();
-                bw.write("\tgerp0810\t"  + gerp0810);
+                bw.write("\tgerp0810\t" + gerp0810);
                 bw.newLine();
-                bw.write("\tgerp12\t"  + gerp12);
+                bw.write("\tgerp12\t" + gerp12);
                 bw.newLine();
-                bw.write("\tgerp23\t"  + gerp23);
+                bw.write("\tgerp23\t" + gerp23);
                 bw.newLine();
-                bw.write("\tgerp34\t"  + gerp34);
+                bw.write("\tgerp34\t" + gerp34);
                 bw.newLine();
 //                bw.write("gerp45\t"  + gerp45);
 //                bw.newLine();
@@ -270,11 +375,11 @@ public class test {
 //                bw.newLine();
 //                bw.write("gerp67\t"  + gerp67);
                 bw.newLine();
-                bw.write("\tgerp10\t"  + gerp10);
+                bw.write("\tgerp10\t" + gerp10);
                 bw.newLine();
-                bw.write("\tgerp21\t"  + gerp21);
+                bw.write("\tgerp21\t" + gerp21);
                 bw.newLine();
-                bw.write("\tgerp32\t"  + gerp32);
+                bw.write("\tgerp32\t" + gerp32);
                 bw.newLine();
 //                bw.write("gerp43\t"  + gerp43);
 //                bw.newLine();
@@ -284,8 +389,7 @@ public class test {
 //                bw.newLine();
                 bw.flush();
                 bw.close();
-            }
-            catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         });
