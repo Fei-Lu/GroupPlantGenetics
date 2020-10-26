@@ -127,4 +127,13 @@ public class PGI {
         }
         return genomeSize;
     }
+
+    public static void start() {
+        String fdByIndividualDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/006_fdResByIndividual/003_fdByIndividual.newMethod";
+        String coordinateFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/006_fdResByIndividual/fdLoadBySubspecies100SNPwindow_50Step.txt";
+        String taxaInfoDBFile="/Users/xudaxing/Documents/deleteriousMutation/002_vmapII_taxaGroup/taxa_InfoDB.txt";
+        String outFilePGI="/Users/xudaxing/RStudio/FdLoad/005_fdByIndividual.newMethod.PGI/PGI100SNPwindow_50Step" +
+                ".newMethodBySub.txt";
+        PGI.calculatePGI(fdByIndividualDir, coordinateFile, taxaInfoDBFile, outFilePGI);
+    }
 }
