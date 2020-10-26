@@ -302,4 +302,13 @@ public class NearestIBS {
         }
         return p3tables;
     }
+
+    public static void start() {
+        String vmapIIVCFDir="/Users/xudaxing/Desktop/fdTest/001_vmap2.1_0.001vcf";
+        String taxaInfoFile="/Users/xudaxing/Documents/deleteriousMutation/002_vmapII_taxaGroup/taxa_InfoDB.txt";
+        String fdResDir="/Users/xudaxing/Desktop/fdTest/003_fdRes_2";
+        String outDir="/Users/xudaxing/Desktop/fdTest/005_fdOutDir2";
+        int index=0;
+        NearestIBS.calculateNearestFd(vmapIIVCFDir, taxaInfoFile, fdResDir, outDir, index);
+    }
 }
