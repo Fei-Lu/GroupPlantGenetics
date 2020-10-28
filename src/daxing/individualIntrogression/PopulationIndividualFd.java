@@ -16,8 +16,8 @@ public class PopulationIndividualFd {
     ChrRange[] chrRangeArray;
     double[][][][] dFdValueArray; // dimension 1,2,3,4: chrRange,p2,p3,d fd
 
-    List<IndividualFdRecord[]> individualFdRecords;
-    List<String> taxaNameList;
+    static List<IndividualFdRecord[]> individualFdRecords;
+    static List<String> taxaNameList;
 
     static final double threshForIndividualHasIntrogression=0.5;
     static final double threshForIndividualHasNoIntrogression=0.5;
@@ -76,11 +76,10 @@ public class PopulationIndividualFd {
             this.chrRange=chrRange;
             this.fd=fd;
             this.p2P3IfIntrogressionTaxonList = p2P3IfIntrogressionTaxonArray;
-            double[][][] p2P3IfIntrogressionLoadType=new double[p2P3IfIntrogressionTaxonArray.length][][];
+            double[][][] p2P3IfIntrogressionLoadType=new double[P2.values().length][][];
             for (int i = 0; i < p2P3IfIntrogressionLoadType.length; i++) {
-                p2P3IfIntrogressionLoadType[i]=new double[p2P3IfIntrogressionTaxonArray[i].length][];
+                p2P3IfIntrogressionLoadType[i]=new double[P3.values().length][];
                 for (int j = 0; j < p2P3IfIntrogressionLoadType[i].length; j++) {
-                    p2P3IfIntrogressionLoadType[i][j]=new double[p2P3IfIntrogressionTaxonArray[i][j].length];
                     p2P3IfIntrogressionLoadType[i][j]=new double[2];
                     Arrays.fill(p2P3IfIntrogressionLoadType[i][j], Double.MIN_VALUE);
                 }
@@ -98,10 +97,9 @@ public class PopulationIndividualFd {
 
         /**
          * 返回SingleWindow.p2P3IfIntrogressionTaxonList在 taxaNameList 中对应的index
-         * @param headerList
          * @return
          */
-        private TIntArrayList[][][] getP2P3IfIntrogressionTaxonIndexFrom(List<String> headerList){
+        private TIntArrayList[][][] getP2P3IfIntrogressionTaxonIndexFrom(){
             List<String>[][][] p2p3IfIntrogressionTaxonList=this.p2P3IfIntrogressionTaxonList;
             TIntArrayList[][][] p2p3IfIntrogressionTaxonIndexList=new TIntArrayList[p2p3IfIntrogressionTaxonList.length][][];
             for (int i = 0; i < p2p3IfIntrogressionTaxonIndexList.length; i++) {
@@ -118,7 +116,7 @@ public class PopulationIndividualFd {
                 for (int j = 0; j < p2p3IfIntrogressionTaxonList[i].length; j++) {
                     for (int k = 0; k < p2p3IfIntrogressionTaxonList[i][j].length; k++) {
                         for (int l = 0; l < p2p3IfIntrogressionTaxonList[i][j][k].size(); l++) {
-                            taxonIndex=Collections.binarySearch(headerList,p2p3IfIntrogressionTaxonList[i][j][k].get(l));
+                            taxonIndex=Collections.binarySearch(PopulationIndividualFd.taxaNameList, p2p3IfIntrogressionTaxonList[i][j][k].get(l));
                             p2p3IfIntrogressionTaxonIndexList[i][j][k].add(taxonIndex);
                         }
                     }
@@ -135,8 +133,8 @@ public class PopulationIndividualFd {
             return sb.toString();
         }
 
-        public void allLoad(Map<ChrPos, String> chrPosLineMap, List<String> taxaNameList){
-            TIntArrayList[][][] p2P3IfIntrogressionTaxonIndex=getP2P3IfIntrogressionTaxonIndexFrom(taxaNameList);
+        public void allLoad(Map<ChrPos, String> chrPosLineMap){
+            TIntArrayList[][][] p2P3IfIntrogressionTaxonIndex=getP2P3IfIntrogressionTaxonIndexFrom();
             List<String> temp, tem;
             LoadType loadType;
             double[] synNonDelTotalDerivedCount;
@@ -158,7 +156,7 @@ public class PopulationIndividualFd {
                             temp=PStringUtils.fastSplit(entry.getValue());
                             loadType=LoadType.valueOf(temp.get(2));
                             for (int l = 0; l < p2P3IfIntrogressionTaxonIndex[i][j][k].size(); l++) {
-                                int index=p2P3IfIntrogressionTaxonIndex[i][j][k].get(l);
+                                int index=p2P3IfIntrogressionTaxonIndex[i][j][k].get(l) + 3;
                                 tem=PStringUtils.fastSplit(temp.get(index), ",");
                                 if (Double.parseDouble(tem.get(0)) < 0) continue;
                                 heter=Double.parseDouble(tem.get(0));
@@ -267,8 +265,8 @@ public class PopulationIndividualFd {
         }
         this.chrRangeArray=chrRanges;
         this.dFdValueArray=dFdValueArray;
-        this.individualFdRecords=new ArrayList<>();
-        this.taxaNameList=new ArrayList<>();
+        PopulationIndividualFd.individualFdRecords=new ArrayList<>();
+        PopulationIndividualFd.taxaNameList=new ArrayList<>();
         List<File> individualFdFiles=IOUtils.getVisibleFileListInDir(individualFdDir);
         for (int i = 0; i < individualFdFiles.size(); i++) {
             this.addIndividual(individualFdFiles.get(i));
@@ -352,8 +350,8 @@ public class PopulationIndividualFd {
                 rangeIndex=binarySearch(chrRange);
                 individualFdRecords[rangeIndex]=individualFdRecord;
             }
-            this.individualFdRecords.add(individualFdRecords);
-            this.taxaNameList.add(taxaName);
+            PopulationIndividualFd.individualFdRecords.add(individualFdRecords);
+            PopulationIndividualFd.taxaNameList.add(taxaName);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -402,7 +400,7 @@ public class PopulationIndividualFd {
                     individualFd=individualFdRecord.fdValue;
                     if (individualFdRecord.contain(p3) && individualFd >= threshForIndividualHasIntrogression){
                         introgressionTaxonList.add(taxaNameList.get(k));
-                    }else if (individualFd <= threshForIndividualHasNoIntrogression){
+                    }else if (individualFd < threshForIndividualHasNoIntrogression){
                         nonIntrogressionTaxonList.add(taxaNameList.get(k));
                     }
                 }
@@ -437,8 +435,7 @@ public class PopulationIndividualFd {
              BufferedWriter bw =IOTool.getWriter(outFile)) {
             bw.write(SingleWindow.getHeader());
             bw.newLine();
-            String header=br.readLine();
-            List<String> headerList=PStringUtils.fastSplit(header);
+            br.readLine();
             int windowNum=this.getChrRangeNum();
             SingleWindow singleWindow;
             String line, refChr;
@@ -464,7 +461,7 @@ public class PopulationIndividualFd {
                         break;
                     }
                 }
-                singleWindow.allLoad(tempMap, headerList);
+                singleWindow.allLoad(tempMap);
                 bw.write(singleWindow.toString());
                 bw.newLine();
             }
@@ -496,6 +493,14 @@ public class PopulationIndividualFd {
         writeWindowSize(popFdFile, individualFdDir, individualLoadSummaryFile, outFile);
     }
 
+    /**
+     * WeakLoad and StrongLoad特殊值解释 NaN: 0/0 NA: 为初始化的默认值(即没有渗入) Infinity: 分母为0(即NonIntrogression load为0)
+     * PopulationFd特殊值解释 NA: D值不在[0,1]之间或fd值不在[0,1]之间
+     * @param popFdFile
+     * @param individualFdDir
+     * @param individualLoadSummaryFile
+     * @param outFile
+     */
     public static void writeWindowSize(String popFdFile, String individualFdDir,
                                        String individualLoadSummaryFile, String outFile){
         PopulationIndividualFd populationIndividualFd=new PopulationIndividualFd(popFdFile, individualFdDir);
