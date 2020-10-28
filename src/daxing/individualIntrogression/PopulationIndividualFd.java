@@ -19,6 +19,9 @@ public class PopulationIndividualFd {
     List<IndividualFdRecord[]> individualFdRecords;
     List<String> taxaNameList;
 
+    static final double threshForIndividualHasIntrogression=0.5;
+    static final double threshForIndividualHasNoIntrogression=0.5;
+
     private static class IndividualFdRecord{
 
         double dValue;
@@ -236,7 +239,7 @@ public class PopulationIndividualFd {
         }
         try (BufferedReader br = IOTool.getReader(popFdFile)) {
             br.readLine();
-            String line, chr;
+            String line, chr, dValue, fdValue;
             List<String> temp;
             int start, end, chrRangeIndex;
             double d, fd;
@@ -248,8 +251,10 @@ public class PopulationIndividualFd {
                 chr=temp.get(0);
                 start=Integer.parseInt(temp.get(1));
                 end=Integer.parseInt(temp.get(2));
-                d = StringTool.isNumeric(temp.get(8)) ? Double.parseDouble(temp.get(8)) : Double.NaN;
-                fd= StringTool.isNumeric(temp.get(9)) ? Double.parseDouble(temp.get(9)) : Double.NaN;
+                dValue=temp.get(8);
+                fdValue=temp.get(9);
+                d= NearestIBS.ifDChangeTo0(dValue) ? -1 : Double.parseDouble(dValue);
+                fd = NearestIBS.ifFdChangeTo0(dValue, fdValue) ? -1 : Double.parseDouble(fdValue);
                 p2=P2.valueOf(temp.get(11));
                 p3=P3.valueOf(temp.get(12));
                 chrRange=new ChrRange(chr, start, end);
@@ -378,6 +383,8 @@ public class PopulationIndividualFd {
         List<String> introgressionTaxonList, nonIntrogressionTaxonList;
         P2 p2;
         P3 p3;
+        IndividualFdRecord individualFdRecord;
+        double individualFd;
         for (int i = 0; i < p2P3DFdValueArray.length; i++) {
             p2=P2.newInstanceFrom(i);
             for (int j = 0; j < p2P3DFdValueArray[i].length; j++) {
@@ -385,21 +392,17 @@ public class PopulationIndividualFd {
                 d=p2P3DFdValueArray[i][j][0];
                 fd=p2P3DFdValueArray[i][j][1];
                 p2p3FdArray[i][j]=fd;
-                if (Double.isNaN(d)) continue;
-                if (Double.isNaN(fd)) continue;
                 if (d==Double.MIN_VALUE) continue;
                 if (fd==Double.MIN_VALUE) continue;
-                if (d <= 0) continue; // include Double.MIN_VALUE
-                if (d > 1) continue;
-                if (fd <= 0) continue; // include Double.MIN_VALUE
-                if (fd > 1) continue;
                 introgressionTaxonList=new ArrayList<>();
                 nonIntrogressionTaxonList=new ArrayList<>();
                 for (int k = 0; k < individualFdRecordList.size(); k++) {
                     if (!(taxaNameList.get(k).substring(0,1).equals(p2.name().substring(0,1)))) continue;
-                    if (individualFdRecordList.get(k).contain(p3)){
+                    individualFdRecord=individualFdRecordList.get(k);
+                    individualFd=individualFdRecord.fdValue;
+                    if (individualFdRecord.contain(p3) && individualFd >= threshForIndividualHasIntrogression){
                         introgressionTaxonList.add(taxaNameList.get(k));
-                    }else {
+                    }else if (individualFd <= threshForIndividualHasNoIntrogression){
                         nonIntrogressionTaxonList.add(taxaNameList.get(k));
                     }
                 }

@@ -18,7 +18,7 @@ import java.util.Map;
 public class PGI {
 
     public static void calculatePGI(String fdByIndividualDir, String coordinateFile,
-                                    String taxaInfoDBFile, String outFilePGI){
+                                    String taxaInfoDBFile, String outFilePGI, double threshForIndividualFd){
         List<File> fileList= IOUtils.getVisibleFileListInDir(fdByIndividualDir);
         Map<String, String> groupBySubspeciesMap= RowTableTool.getMap(taxaInfoDBFile, 23, 25);
         Map<String, String> groupBySubcontinentMap= RowTableTool.getMap(taxaInfoDBFile, 23, 24);
@@ -33,7 +33,7 @@ public class PGI {
             String sub=null;
             for (int i = 0; i < fileList.size(); i++) {
                 introgressionID=fileList.get(i).getName().substring(0,5);
-                pgi=calculatePGI(fileList.get(i), coordinateFile);
+                pgi=calculatePGI(fileList.get(i), coordinateFile, threshForIndividualFd);
                 for (int j = 0; j < pgi.length; j++) {
                     for (int k = 0; k < pgi[j].length; k++) {
                         if (pgi[j][k] < 0) continue;
@@ -60,7 +60,7 @@ public class PGI {
         }
     }
 
-    private static double[][] calculatePGI(File fdByIndividualFile, String coordinateFile){
+    private static double[][] calculatePGI(File fdByIndividualFile, String coordinateFile, double threshForIndividualFd){
         // WE DE FT AT
         String[] p3Array={"WE","DE","FT","AT"};
         double[][] pgiArray=new double[4][2];
@@ -78,8 +78,9 @@ public class PGI {
                 start=Integer.parseInt(temp.get(1));
                 end=Integer.parseInt(temp.get(2));
                 p3=temp.get(11).substring(0,2);
-                fd=Double.parseDouble(temp.get(9));
                 p3Index=Arrays.binarySearch(p3Array, p3);
+                fd=Double.parseDouble(temp.get(9));
+                if (fd < threshForIndividualFd) continue;
                 switch (chrSub){
                     case "A":
                         p3SubIndex=0;
@@ -133,7 +134,8 @@ public class PGI {
         String coordinateFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/006_fdResByIndividual/fdLoadBySubspecies100SNPwindow_50Step.txt";
         String taxaInfoDBFile="/Users/xudaxing/Documents/deleteriousMutation/002_vmapII_taxaGroup/taxa_InfoDB.txt";
         String outFilePGI="/Users/xudaxing/RStudio/FdLoad/005_fdByIndividual.newMethod.PGI/PGI100SNPwindow_50Step" +
-                ".newMethodBySub.txt";
-        PGI.calculatePGI(fdByIndividualDir, coordinateFile, taxaInfoDBFile, outFilePGI);
+                ".newMethodBySub.thresh0.txt";
+        double threshForIndividualFd=0.5;
+        PGI.calculatePGI(fdByIndividualDir, coordinateFile, taxaInfoDBFile, outFilePGI, threshForIndividualFd);
     }
 }

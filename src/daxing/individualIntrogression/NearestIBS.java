@@ -181,27 +181,13 @@ public class NearestIBS {
             p3FdArray=new double[p3List.size()];
             for (int j = 0; j < p3List.size(); j++) {
                 temp=p3Tables.get(j).getRow(i);
-                if (!StringTool.isNumeric(temp.get(8))){
+                if (ifDChangeTo0(temp.get(8))){
                     p3Tables.get(j).setCell(i, 9, "0"); // if D 为nan 或-inf inf, 将fd转换为0
                     p3Tables.get(j).setCell(i, 8, "0"); // if D 为nan 或-inf inf, 将D转换为0
                     continue;
                 }
-                if (!StringTool.isNumeric(temp.get(9))){
-                    p3Tables.get(j).setCell(i, 9, "0"); // if fd 为nan 或-inf inf, 将fd转换为0
-                    p3Tables.get(j).setCell(i, 8, "0"); // if fd 为nan 或-inf inf, 将D转换为0
-                    continue;
-                }
-                if (Double.parseDouble(temp.get(8))<0){
-                    p3Tables.get(j).setCell(i, 9, "0"); // if D < 0, 将fd转换为0
-                    continue;
-                }
-//                if (Double.parseDouble(temp.get(8))>1)continue; // D > 1 continue
-                if (Double.parseDouble(temp.get(9))<0){
-                    p3Tables.get(j).setCell(i, 9, "0"); // if fd < 0, 将fd转换为0
-                    continue;
-                }
-                if (Double.parseDouble(temp.get(9))>1){
-                    p3Tables.get(j).setCell(i, 9, "0"); // if fd > 1, 将fd转换为0
+                if (ifFdChangeTo0(temp.get(8), temp.get(9))){
+                    p3Tables.get(j).setCell(i, 9, "0");
                     continue;
                 }
                 p3FdArray[j]=Double.parseDouble(temp.get(9));
@@ -245,6 +231,20 @@ public class NearestIBS {
         }
         System.out.println("****** "+p2+" finished in "+String.format("%.4f", Benchmark.getTimeSpanSeconds(start)) +
                 " seconds ******");
+    }
+
+    public static boolean ifFdChangeTo0(String D, String fd){
+        if (ifDChangeTo0(D)) return true;
+        if (!StringTool.isNumeric(fd)) return true;
+        if (Double.parseDouble(D) < 0) return true;
+        if (Double.parseDouble(fd) < 0) return true;
+        if (Double.parseDouble(fd) > 1) return true;
+        return false;
+    }
+
+    public static boolean ifDChangeTo0(String D){
+        if (!StringTool.isNumeric(D)) return true;
+        return false;
     }
 
     /**
