@@ -278,7 +278,7 @@ public class VCF {
                 br1=IOTool.getReader(f[i].getAbsolutePath());
                 br2=IOTool.getReader(f[i+1].getAbsolutePath());
                 chrNum=Integer.parseInt(f[i].getName().substring(3,6));
-                bw= IOUtils.getTextWriter(new File(outDir, "chr"+RefV1Utils.getChromosome(chrNum, 0)+".vcf").getAbsolutePath());
+                bw= IOTool.getWriter(new File(outDir, "chr"+RefV1Utils.getChromosome(chrNum, 0)+".vcf.gz").getAbsolutePath());
                 while ((line=br1.readLine()).startsWith("##")){
                     bw.write(line);
                     bw.newLine();
