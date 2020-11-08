@@ -4,7 +4,6 @@ import daxing.common.NumberTool;
 import daxing.common.RowTableTool;
 import daxing.common.WheatLineage;
 import gnu.trove.list.array.TDoubleArrayList;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import pgl.infra.utils.IOFileFormat;
@@ -16,7 +15,10 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
@@ -326,9 +328,6 @@ public class LD {
         File[] bims=Arrays.stream(bimFiles).filter(p.negate()).sorted().toArray(File[]::new);
         String[] outNames= Arrays.stream(lds).map(File::getName).map(str->str.replaceAll("ld$", "distance_r2.txt"))
                 .toArray(String[]::new);
-        files=null;
-        ldFiles=null;
-        bimFiles=null;
         int[][] indices= PArrayUtils.getSubsetsIndicesBySubsetSize(lds.length, numThreads);
         for (int i = 0; i < indices.length; i++) {
             Integer[] subLibIndices = new Integer[indices[i][1]-indices[i][0]];
