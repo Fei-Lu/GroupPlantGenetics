@@ -683,6 +683,19 @@ public class VCF {
         return res;
     }
 
+    public static double getHeterozygousProportionBySite(List<String> temp){
+        List<String> genotypeList=temp.subList(9, temp.size());
+        double heteroCount=0, totalCount=0;
+        for (int i = 0; i < genotypeList.size(); i++) {
+            if (genotypeList.get(i).startsWith("./.")) continue;
+            totalCount++;
+            if (genotypeList.get(i).startsWith("0/0")) continue;
+            if (genotypeList.get(i).startsWith("1/1")) continue;
+            heteroCount++;
+        }
+        return heteroCount/totalCount;
+    }
+
     /**
      *
      * @return 返回VCF文件所有taxa的总数
@@ -777,9 +790,20 @@ public class VCF {
         return new VCF(this.meta, subHeader, subData);
     }
 
-//    public double caculateR2(int rowIndex1, int rowIndex2){
-//
-//    }
+    /**
+     *
+     * @param heterozygousProportionBySite
+     * @return
+     */
+    public void filterOnHeterozygousProportionBySite(double heterozygousProportionBySite){
+        List<List<String>> data=this.data;
+        List<List<String>> newdata=new ArrayList<>();
+        for (int i = 0; i < data.size(); i++) {
+            if (VCF.getHeterozygousProportionBySite(data.get(i)) > heterozygousProportionBySite) continue;
+            newdata.add(data.get(i));
+        }
+        this.data=newdata;
+    }
 
 
     /**
