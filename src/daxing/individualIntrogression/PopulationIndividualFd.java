@@ -49,144 +49,126 @@ public class PopulationIndividualFd {
         }
     }
 
-    /**
-     *  循环每一个window
-     *  每个window内部都有 2*3 (p2*p3)种组合(introgression list和nonintrogression list)
-     */
-    private static class SingleWindow {
-
-
+    private static class  SingleWindow2{
         ChrRange chrRange;
-        /**
-         * dimension 1,2: p2,p3
-         */
-        double[][] fd;
-        /**
-         * dimension 1,2,3: p2,p3,Introgression_NonIntrogression
-         */
-        List<String>[][][] p2P3IfIntrogressionTaxonList;
-        /**
-         * non load and del load
-         * dimension 1,2,3,4: p2,p3,Introgression_NonIntrogression,LoadType
-         * default Double.MIN_VALUE
-         */
-        double[][][] load_P2P3LoadType;
+        double[][] p2P3_popFd;
+        List<String>[][] p2P3_IntrogressedTaxonList;
+        List<String>[] p2_nonIntrogressedTaxonList;
+        double[][][] p2P3LoadType_introgressedDerivedTotalCount;
+        double[][] p2LoadType_nonIntrogressedDerivedTotalCount;
 
-        SingleWindow(ChrRange chrRange, double[][] fd, List<String>[][][] p2P3IfIntrogressionTaxonArray){
+        SingleWindow2(ChrRange chrRange, double[][] p2P3_popFd, List<String>[][] p2P3_IntrogressedTaxonList, List<String>[] p2_nonIntrogressedTaxonList){
             this.chrRange=chrRange;
-            this.fd=fd;
-            this.p2P3IfIntrogressionTaxonList = p2P3IfIntrogressionTaxonArray;
-            double[][][] p2P3IfIntrogressionLoadType=new double[P2.values().length][][];
-            for (int i = 0; i < p2P3IfIntrogressionLoadType.length; i++) {
-                p2P3IfIntrogressionLoadType[i]=new double[P3.values().length][];
-                for (int j = 0; j < p2P3IfIntrogressionLoadType[i].length; j++) {
-                    p2P3IfIntrogressionLoadType[i][j]=new double[2];
-                    Arrays.fill(p2P3IfIntrogressionLoadType[i][j], Double.MIN_VALUE);
+            this.p2P3_popFd=p2P3_popFd;
+            this.p2P3_IntrogressedTaxonList=p2P3_IntrogressedTaxonList;
+            this.p2_nonIntrogressedTaxonList=p2_nonIntrogressedTaxonList;
+
+            /**
+             * 初始化并赋值为-1
+             */
+            this.p2P3LoadType_introgressedDerivedTotalCount= new double[P2.values().length][P3.values().length][LoadType.values().length];
+            this.p2LoadType_nonIntrogressedDerivedTotalCount= new double[P2.values().length][LoadType.values().length];
+            for (int i = 0; i < this.p2P3LoadType_introgressedDerivedTotalCount.length; i++) {
+                for (int j = 0; j < p2P3LoadType_introgressedDerivedTotalCount[i].length; j++) {
+                    Arrays.fill(p2P3LoadType_introgressedDerivedTotalCount[i][j], -1);
                 }
             }
-            this.load_P2P3LoadType =p2P3IfIntrogressionLoadType;
+            for (int i = 0; i < p2LoadType_nonIntrogressedDerivedTotalCount.length; i++) {
+                Arrays.fill(p2LoadType_nonIntrogressedDerivedTotalCount[i], -1);
+            }
         }
 
-        public ChrRange getChrRange() {
-            return chrRange;
-        }
-
-        public double[][] getFd() {
-            return fd;
-        }
-
-        /**
-         * 返回SingleWindow.p2P3IfIntrogressionTaxonList在 taxaNameList 中对应的index
-         * @return
-         */
-        private TIntArrayList[][][] getP2P3IfIntrogressionTaxonIndexFrom(){
-            List<String>[][][] p2p3IfIntrogressionTaxonList=this.p2P3IfIntrogressionTaxonList;
-            TIntArrayList[][][] p2p3IfIntrogressionTaxonIndexList=new TIntArrayList[p2p3IfIntrogressionTaxonList.length][][];
-            for (int i = 0; i < p2p3IfIntrogressionTaxonIndexList.length; i++) {
-                p2p3IfIntrogressionTaxonIndexList[i]=new TIntArrayList[p2p3IfIntrogressionTaxonList[i].length][];
-                for (int j = 0; j < p2p3IfIntrogressionTaxonIndexList[i].length; j++) {
-                    p2p3IfIntrogressionTaxonIndexList[i][j]=new TIntArrayList[p2p3IfIntrogressionTaxonList[i][j].length];
-                    for (int k = 0; k < p2p3IfIntrogressionTaxonIndexList[i][j].length; k++) {
-                        p2p3IfIntrogressionTaxonIndexList[i][j][k]=new TIntArrayList();
+        private TIntArrayList[][] getP2P3_IntrogressedTaxonIndex(){
+            TIntArrayList[][] p2p3_IntrogressedTaxonIndex=new TIntArrayList[P2.values().length][];
+            for (int i = 0; i < p2p3_IntrogressedTaxonIndex.length; i++) {
+                p2p3_IntrogressedTaxonIndex[i]=new TIntArrayList[P3.values().length];
+                for (int j = 0; j < p2p3_IntrogressedTaxonIndex[i].length; j++) {
+                    p2p3_IntrogressedTaxonIndex[i][j]=new TIntArrayList();
+                }
+            }
+            int index;
+            for (int i = 0; i < p2P3_IntrogressedTaxonList.length; i++) {
+                for (int j = 0; j < p2P3_IntrogressedTaxonList[i].length; j++) {
+                    for (int k = 0; k < p2P3_IntrogressedTaxonList[i][j].size(); k++) {
+                        index=Collections.binarySearch(taxaNameList, p2P3_IntrogressedTaxonList[i][j].get(k));
+                        p2p3_IntrogressedTaxonIndex[i][j].add(index);
                     }
+                    p2p3_IntrogressedTaxonIndex[i][j].sort();
                 }
             }
-            int taxonIndex;
-            for (int i = 0; i < p2p3IfIntrogressionTaxonList.length; i++) {
-                for (int j = 0; j < p2p3IfIntrogressionTaxonList[i].length; j++) {
-                    for (int k = 0; k < p2p3IfIntrogressionTaxonList[i][j].length; k++) {
-                        for (int l = 0; l < p2p3IfIntrogressionTaxonList[i][j][k].size(); l++) {
-                            taxonIndex=Collections.binarySearch(PopulationIndividualFd.taxaNameList, p2p3IfIntrogressionTaxonList[i][j][k].get(l));
-                            p2p3IfIntrogressionTaxonIndexList[i][j][k].add(taxonIndex);
-                        }
-                    }
-                }
+            return p2p3_IntrogressedTaxonIndex;
+        }
+
+        private TIntArrayList[] getP2_NonIntrogressedTaxonIndex(){
+            TIntArrayList[] p2_NonIntrogressedTaxonIndex=new TIntArrayList[P2.values().length];
+            for (int i = 0; i < p2_NonIntrogressedTaxonIndex.length; i++) {
+                p2_NonIntrogressedTaxonIndex[i]=new TIntArrayList();
             }
-            return p2p3IfIntrogressionTaxonIndexList;
+            int index;
+            for (int i = 0; i < p2_nonIntrogressedTaxonList.length; i++) {
+                for (int j = 0; j < p2_nonIntrogressedTaxonList[i].size(); j++) {
+                    index=Collections.binarySearch(taxaNameList, p2_nonIntrogressedTaxonList[i].get(j));
+                    p2_NonIntrogressedTaxonIndex[i].add(index);
+                }
+                p2_NonIntrogressedTaxonIndex[i].sort();
+            }
+            return p2_NonIntrogressedTaxonIndex;
         }
 
-        public static String getHeader(){
-            StringBuilder sb=new StringBuilder();
-            sb.append("Chr").append("\t").append("Start").append("\t").append("End").append("\t").append("P2");
-            sb.append("\t").append("P3").append("\t").append("PopulationFd").append("\t");
-            sb.append("WeakLoad").append("\t").append("StrongLoad");
-            return sb.toString();
-        }
-
-        public void allLoad(Map<ChrPos, String> chrPosLineMap){
-            TIntArrayList[][][] p2P3IfIntrogressionTaxonIndex=getP2P3IfIntrogressionTaxonIndexFrom();
+        public void allLoad(Map<ChrPos, String> chrPosLinesMap){
+            TIntArrayList[][] p2P3_IntrogressedTaxonIndex=this.getP2P3_IntrogressedTaxonIndex();
+            TIntArrayList[] p2_nonIntrogressedTaxonIndex=this.getP2_NonIntrogressedTaxonIndex();
             List<String> temp, tem;
             LoadType loadType;
-            double[] synNonDelTotalDerivedCount;
+            double[] loadType_TotalDerivedCount;
             double heter, derived;
-            double[] nonLoad_IntrogressionNonIntrogression, delLoad_Introgression_NonIntrogression;
-            for (int i = 0; i < p2P3IfIntrogressionTaxonIndex.length; i++) {
-                for (int j = 0; j < p2P3IfIntrogressionTaxonIndex[i].length; j++) {
-                    if (p2P3IfIntrogressionTaxonIndex[i][j][0].size()==0) continue;
-                    if (p2P3IfIntrogressionTaxonIndex[i][j][1].size()==0) continue;
-                    nonLoad_IntrogressionNonIntrogression=new double[2];
-                    delLoad_Introgression_NonIntrogression=new double[2];
-                    for (int k = 0; k < p2P3IfIntrogressionTaxonIndex[i][j].length; k++) {
-                        synNonDelTotalDerivedCount=new double[3];
-                        /**
-                         * default load is zero
-                         */
-                        Arrays.fill(synNonDelTotalDerivedCount, 0);
-                        for (Map.Entry<ChrPos, String> entry: chrPosLineMap.entrySet()){
-                            temp=PStringUtils.fastSplit(entry.getValue());
-                            loadType=LoadType.valueOf(temp.get(2));
-                            for (int l = 0; l < p2P3IfIntrogressionTaxonIndex[i][j][k].size(); l++) {
-                                int index=p2P3IfIntrogressionTaxonIndex[i][j][k].get(l) + 3;
-                                tem=PStringUtils.fastSplit(temp.get(index), ",");
-                                if (Double.parseDouble(tem.get(0)) < 0) continue;
-                                heter=Double.parseDouble(tem.get(0));
-                                derived=Double.parseDouble(tem.get(1));
-                                synNonDelTotalDerivedCount[loadType.getIndex()]+=heter*0.5+derived;
-                            }
+            for (int i = 0; i < p2P3_IntrogressedTaxonIndex.length; i++) {
+                for (int j = 0; j < p2P3_IntrogressedTaxonIndex[i].length; j++) {
+                    if (p2P3_IntrogressedTaxonIndex[i][j].size()==0) continue;
+                    loadType_TotalDerivedCount=new double[3];
+                    for (Map.Entry<ChrPos, String> entry : chrPosLinesMap.entrySet()){
+                        temp=PStringUtils.fastSplit(entry.getValue());
+                        loadType=LoadType.valueOf(temp.get(2));
+                        for (int l = 0; l < p2P3_IntrogressedTaxonIndex[i][j].size(); l++) {
+                            int index=p2P3_IntrogressedTaxonIndex[i][j].get(l) + 3;
+                            tem=PStringUtils.fastSplit(temp.get(index), ",");
+                            if (Double.parseDouble(tem.get(0)) < 0) continue;
+                            heter=Double.parseDouble(tem.get(0));
+                            derived=Double.parseDouble(tem.get(1));
+                            loadType_TotalDerivedCount[loadType.getIndex()]+=heter*0.5+derived;
                         }
-                        nonLoad_IntrogressionNonIntrogression[k]=
-                                (synNonDelTotalDerivedCount[1]+synNonDelTotalDerivedCount[2])/synNonDelTotalDerivedCount[0];
-                        delLoad_Introgression_NonIntrogression[k]=
-                                synNonDelTotalDerivedCount[2]/synNonDelTotalDerivedCount[0];
                     }
-                    this.load_P2P3LoadType[i][j][0]=
-                            nonLoad_IntrogressionNonIntrogression[0]/nonLoad_IntrogressionNonIntrogression[1];
-                    this.load_P2P3LoadType[i][j][1]=
-                            delLoad_Introgression_NonIntrogression[0]/delLoad_Introgression_NonIntrogression[1];
+                    p2P3LoadType_introgressedDerivedTotalCount[i][j]=loadType_TotalDerivedCount;
                 }
+            }
+            for (int i = 0; i < p2_nonIntrogressedTaxonIndex.length; i++) {
+                if (p2_nonIntrogressedTaxonIndex[i].size()==0) continue;
+                loadType_TotalDerivedCount=new double[3];
+                for (Map.Entry<ChrPos, String> entry : chrPosLinesMap.entrySet()){
+                    temp=PStringUtils.fastSplit(entry.getValue());
+                    loadType=LoadType.valueOf(temp.get(2));
+                    for (int l = 0; l < p2_nonIntrogressedTaxonIndex[i].size(); l++) {
+                        int index=p2_nonIntrogressedTaxonIndex[i].get(l) + 3;
+                        tem=PStringUtils.fastSplit(temp.get(index), ",");
+                        if (Double.parseDouble(tem.get(0)) < 0) continue;
+                        heter=Double.parseDouble(tem.get(0));
+                        derived=Double.parseDouble(tem.get(1));
+                        loadType_TotalDerivedCount[loadType.getIndex()]+=heter*0.5+derived;
+                    }
+                }
+                p2LoadType_nonIntrogressedDerivedTotalCount[i]=loadType_TotalDerivedCount;
             }
         }
 
-        @Override
-        public String toString() {
+        public String toString(){
             StringBuilder sb=new StringBuilder();
             ChrRange chrRange;
-            double[][] p2p3FdArray;
+            double[][] p2p3_popFd;
             chrRange=this.chrRange;
-            p2p3FdArray=this.getFd();
+            p2p3_popFd=this.p2P3_popFd;
             sb.setLength(0);
-            for (int i = 0; i < this.load_P2P3LoadType.length; i++) {
-                for (int j = 0; j < this.load_P2P3LoadType[i].length; j++) {
+            for (int i = 0; i < this.p2P3LoadType_introgressedDerivedTotalCount.length; i++) {
+                for (int j = 0; j < this.p2P3LoadType_introgressedDerivedTotalCount[i].length; j++) {
                     if (chrRange.getChr().substring(1,2).equals("D")){
                         if (j < 3) continue;
                     }else{
@@ -195,18 +177,29 @@ public class PopulationIndividualFd {
                     sb.append(chrRange.getChr()).append("\t").append(chrRange.getStart()).append("\t");
                     sb.append(chrRange.getEnd()).append("\t").append(P2.newInstanceFrom(i).name()).append("\t");
                     sb.append(P3.newInstanceFrom(j).name()).append("\t");
-                    if (0 <= p2p3FdArray[i][j] && p2p3FdArray[i][j] <= 1){
-                        sb.append(p2p3FdArray[i][j]).append("\t");
+                    if (0 <= p2p3_popFd[i][j] && p2p3_popFd[i][j] <= 1){
+                        sb.append(p2p3_popFd[i][j]).append("\t");
                     }else {
                         sb.append("NA").append("\t");
                     }
-                    for (int k = 0; k < this.load_P2P3LoadType[i][j].length; k++) {
-                        if(this.load_P2P3LoadType[i][j][k]==Double.MIN_VALUE){
+                    sb.append(p2P3_IntrogressedTaxonList[i][j].size()).append("\t");
+                    sb.append(p2_nonIntrogressedTaxonList[i].size()).append("\t");
+                    for (int k = 0; k < this.p2P3LoadType_introgressedDerivedTotalCount[i][j].length; k++) {
+                        if(this.p2P3LoadType_introgressedDerivedTotalCount[i][j][k] < 0){
                             sb.append("NA").append("\t");
-                        }else if (Double.isFinite(this.load_P2P3LoadType[i][j][k])){
-                            sb.append(NumberTool.format(this.load_P2P3LoadType[i][j][k], 5)).append("\t");
+                        }else if (Double.isFinite(this.p2P3LoadType_introgressedDerivedTotalCount[i][j][k])){
+                            sb.append(NumberTool.format(this.p2P3LoadType_introgressedDerivedTotalCount[i][j][k], 5)).append("\t");
                         }else {
-                            sb.append(this.load_P2P3LoadType[i][j][k]).append("\t");
+                            sb.append(this.p2P3LoadType_introgressedDerivedTotalCount[i][j][k]).append("\t");
+                        }
+                    }
+                    for (int k = 0; k < this.p2LoadType_nonIntrogressedDerivedTotalCount[i].length; k++) {
+                        if(this.p2LoadType_nonIntrogressedDerivedTotalCount[i][k] < 0){
+                            sb.append("NA").append("\t");
+                        }else if (Double.isFinite(this.p2LoadType_nonIntrogressedDerivedTotalCount[i][k])){
+                            sb.append(NumberTool.format(this.p2LoadType_nonIntrogressedDerivedTotalCount[i][k], 5)).append("\t");
+                        }else {
+                            sb.append(this.p2LoadType_nonIntrogressedDerivedTotalCount[i][k]).append("\t");
                         }
                     }
                     sb.deleteCharAt(sb.length()-1);
@@ -214,6 +207,18 @@ public class PopulationIndividualFd {
                 }
             }
             sb.deleteCharAt(sb.length()-1);
+            return sb.toString();
+        }
+
+        public static String getHeader(){
+            StringBuilder sb=new StringBuilder();
+            sb.append("Chr").append("\t").append("Start").append("\t").append("End").append("\t").append("P2");
+            sb.append("\t").append("P3").append("\t").append("PopulationFd").append("\t");
+            sb.append("NumAccessionIntrogressed").append("\t").append("NumAccessionNonIntrogressed");
+            sb.append("\t").append("IntrogressedSynTotalCount").append("\t").append("IntrogressedNonTotalCount");
+            sb.append("\t").append("IntrogressedDelTotalCount").append("\t");
+            sb.append("NonIntrogressedSynTotalCount").append("\t").append("NonIntrogressedNonTotalCount").append("\t");
+            sb.append("NonIntrogressedDelTotalCount");
             return sb.toString();
         }
     }
@@ -357,58 +362,69 @@ public class PopulationIndividualFd {
         }
     }
 
-    private SingleWindow getSingleWindowDFd(int chrRangeIndex){
+    private SingleWindow2 getSingleWindow2(int chrRangeIndex){
         ChrRange chrRange=this.getChrRangeArray()[chrRangeIndex];
         List<IndividualFdRecord> individualFdRecordList=new ArrayList<>();
         for (int i = 0; i < this.getIndividualFdRecords().size(); i++) {
             individualFdRecordList.add(this.getIndividualFdRecords().get(i)[chrRangeIndex]);
         }
-        List<String>[][][] p2P3IfIntrogressionTaxonList=new List[2][][];
-        double[][] p2p3FdArray=new double[2][];
-        for (int i = 0; i < p2P3IfIntrogressionTaxonList.length; i++) {
-            p2P3IfIntrogressionTaxonList[i]=new List[4][];
-            p2p3FdArray[i]=new double[4];
-            Arrays.fill(p2p3FdArray[i], Double.MIN_VALUE);
-            for (int j = 0; j < p2P3IfIntrogressionTaxonList[i].length; j++) {
-                p2P3IfIntrogressionTaxonList[i][j]=new List[2];
-                for (int k = 0; k < p2P3IfIntrogressionTaxonList[i][j].length; k++) {
-                    p2P3IfIntrogressionTaxonList[i][j][k]=new ArrayList<>();
-                }
+        Set<String>[][] p2P3_IntrogressedTaxonSet=new Set[P2.values().length][];
+        Set<String>[] p2_NonIntrogressedTaxonSet=new Set[P2.values().length];
+        double[][] p2p3_popFdArray=new double[P2.values().length][];
+        for (int i = 0; i < p2P3_IntrogressedTaxonSet.length; i++) {
+            p2P3_IntrogressedTaxonSet[i]=new Set[P3.values().length];
+            p2_NonIntrogressedTaxonSet[i]=new HashSet<>();
+            p2p3_popFdArray[i]=new double[P3.values().length];
+            Arrays.fill(p2p3_popFdArray[i], Double.MIN_VALUE);
+            for (int j = 0; j < p2P3_IntrogressedTaxonSet[i].length; j++) {
+                p2P3_IntrogressedTaxonSet[i][j]=new HashSet<>();
             }
         }
-        double[][][] p2P3DFdValueArray=this.getdFdValueArray()[chrRangeIndex];
-        double d, fd;
-        List<String> introgressionTaxonList, nonIntrogressionTaxonList;
+        double[][][] p2P3_DFdValueArray=this.getdFdValueArray()[chrRangeIndex];
+        double fd;
         P2 p2;
         P3 p3;
         IndividualFdRecord individualFdRecord;
         double individualFd;
-        for (int i = 0; i < p2P3DFdValueArray.length; i++) {
+        for (int i = 0; i < p2P3_DFdValueArray.length; i++) {
             p2=P2.newInstanceFrom(i);
-            for (int j = 0; j < p2P3DFdValueArray[i].length; j++) {
+            for (int j = 0; j < p2P3_DFdValueArray[i].length; j++) {
                 p3=P3.newInstanceFrom(j);
-                d=p2P3DFdValueArray[i][j][0];
-                fd=p2P3DFdValueArray[i][j][1];
-                p2p3FdArray[i][j]=fd;
-                if (d==Double.MIN_VALUE) continue;
-                if (fd==Double.MIN_VALUE) continue;
-                introgressionTaxonList=new ArrayList<>();
-                nonIntrogressionTaxonList=new ArrayList<>();
+                fd=p2P3_DFdValueArray[i][j][1];
+                p2p3_popFdArray[i][j]=fd;
                 for (int k = 0; k < individualFdRecordList.size(); k++) {
                     if (!(taxaNameList.get(k).substring(0,1).equals(p2.name().substring(0,1)))) continue;
                     individualFdRecord=individualFdRecordList.get(k);
                     individualFd=individualFdRecord.fdValue;
-                    if (individualFdRecord.contain(p3) && individualFd >= threshForIndividualHasIntrogression){
-                        introgressionTaxonList.add(taxaNameList.get(k));
-                    }else if (individualFd < threshForIndividualHasNoIntrogression){
-                        nonIntrogressionTaxonList.add(taxaNameList.get(k));
+                    if (individualFd < threshForIndividualHasIntrogression){
+                        p2_NonIntrogressedTaxonSet[i].add(taxaNameList.get(k));
                     }
+                    if (!individualFdRecord.contain(p3)) continue;
+                    if (individualFd < threshForIndividualHasIntrogression) continue;
+                    p2P3_IntrogressedTaxonSet[i][j].add(taxaNameList.get(k));
                 }
-                p2P3IfIntrogressionTaxonList[i][j][0]=introgressionTaxonList;
-                p2P3IfIntrogressionTaxonList[i][j][1]=nonIntrogressionTaxonList;
             }
         }
-        return new SingleWindow(chrRange, p2p3FdArray, p2P3IfIntrogressionTaxonList);
+        List<String>[][] p2P3_IntrogressedTaxonList=new List[P2.values().length][];
+        for (int i = 0; i < p2P3_IntrogressedTaxonList.length; i++) {
+            p2P3_IntrogressedTaxonList[i]=new List[P3.values().length];
+            for (int j = 0; j < p2P3_IntrogressedTaxonList[i].length; j++) {
+                p2P3_IntrogressedTaxonList[i][j]=new ArrayList<>();
+            }
+        }
+        List<String>[] p2_NonIntrogressedTaxonList=new List[P2.values().length];
+        for (int i = 0; i < p2_NonIntrogressedTaxonList.length; i++) {
+            p2_NonIntrogressedTaxonList[i]=new ArrayList<>();
+        }
+        for (int i = 0; i < p2P3_IntrogressedTaxonList.length; i++) {
+            p2_NonIntrogressedTaxonList[i]=new ArrayList<>(p2_NonIntrogressedTaxonSet[i]);
+            Collections.sort(p2_NonIntrogressedTaxonList[i]);
+            for (int j = 0; j < p2P3_IntrogressedTaxonList[i].length; j++) {
+                p2P3_IntrogressedTaxonList[i][j]=new ArrayList<>(p2P3_IntrogressedTaxonSet[i][j]);
+                Collections.sort(p2P3_IntrogressedTaxonList[i][j]);
+            }
+        }
+        return new SingleWindow2(chrRange, p2p3_popFdArray, p2P3_IntrogressedTaxonList, p2_NonIntrogressedTaxonList);
     }
 
     private void writeChrRange(String outFile){
@@ -433,11 +449,11 @@ public class PopulationIndividualFd {
     public void addLoadPerWindow(String individualLoadSummaryFile, String outFile){
         try (BufferedReader br = IOTool.getReader(individualLoadSummaryFile);
              BufferedWriter bw =IOTool.getWriter(outFile)) {
-            bw.write(SingleWindow.getHeader());
+            bw.write(SingleWindow2.getHeader());
             bw.newLine();
             br.readLine();
             int windowNum=this.getChrRangeNum();
-            SingleWindow singleWindow;
+            SingleWindow2 singleWindow;
             String line, refChr;
             List<String> temp;
             int chrID, posOnChrID, refPos;
@@ -445,7 +461,7 @@ public class PopulationIndividualFd {
             ChrPos chrPos;
             Map<ChrPos, String> tempMap=new HashMap<>();
             for (int i = 0; i < windowNum; i++) {
-                singleWindow=this.getSingleWindowDFd(i);
+                singleWindow=this.getSingleWindow2(i);
                 chrRange=singleWindow.chrRange;
                 retainAll(tempMap, chrRange);
                 while ((line=br.readLine())!=null){
