@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -27,9 +28,11 @@ public class ABBA_BABA {
                                               int indexOfAncestralAllele){
         System.out.println(DateTime.getDateTimeOfNow()+" start");
         long start=System.nanoTime();
-        List<File> files1= IOUtils.getVisibleFileListInDir(vcfDir);
+        List<File> files1= IOUtils.getFileListInDirEndsWith(vcfDir,"gz");
+        Comparator<File> comparator= Comparator.comparing(file -> Integer.parseInt(PStringUtils.fastSplit(file.getName(),".").get(0).substring(3)));
+        Collections.sort(files1, comparator);
         List<File> files2= IOUtils.getVisibleFileListInDir(ancestralVCFDir);
-        String[] outNames=files1.stream().map(File::getName).map(str->str.replaceAll("vcf", "geno")).toArray(String[]::new);
+        String[] outNames= files1.stream().map(File::getName).map(str->str.replaceAll("vcf.gz", "geno")).toArray(String[]::new);
         IntStream.range(0, files1.size()).forEach(e-> convertVCFToGenoFormat(files1.get(e), files2.get(e),
                 new File(genoOutDir, outNames[e]), indexOfAncestralAllele));
         System.out.println("completed in "+Benchmark.getTimeSpanHours(start)+" hours");
@@ -41,9 +44,9 @@ public class ABBA_BABA {
         long start=System.nanoTime();
         Table<String, String, String> outGroupChrPosAllele= RowTableTool.getTable(ancestralFile.getAbsolutePath(), indexOfAncestralAllele);
         try (BufferedReader br1 = IOTool.getReader(vcfFile);
-             BufferedWriter bw= IOUtils.getTextWriter(outFile.getAbsolutePath())) {
-            String line;
-            List<String> temp, tem;
+             BufferedWriter bw= IOTool.getWriter(outFile.getAbsolutePath())) {
+            String line, genotype;
+            List<String> temp;
             StringBuilder sb=new StringBuilder(100);
             while ((line=br1.readLine()).startsWith("##")){}
             temp=PStringUtils.fastSplit(line);
@@ -63,13 +66,24 @@ public class ABBA_BABA {
                 altAllele=temp.get(4);
                 sb=new StringBuilder(1000);
                 sb.append(temp.get(0)).append("\t").append(temp.get(1)).append("\t");
-                tem=temp.stream().skip(9).map(str->StringUtils.split(str, ":")[0])
-                        .map(str->str.replaceAll("\\./\\.", "N/N")).collect(Collectors.toList());
-                Collections.replaceAll(tem, "0/0", refAllele+"/"+refAllele);
-                Collections.replaceAll(tem, "0/1", refAllele+"/"+altAllele);
-                Collections.replaceAll(tem, "1/1", altAllele+"/"+altAllele);
-                sb.append(StringUtils.join(tem, "\t"));
-                sb.append("\t").append(outgroupAllele+"/"+outgroupAllele);
+                for (int i = 9; i < temp.size(); i++) {
+                    genotype=temp.get(i).substring(0, 3);
+                    switch (genotype){
+                        case "0/1":
+                            sb.append(refAllele).append("/").append(altAllele).append("\t");
+                            break;
+                        case "0/0":
+                            sb.append(refAllele).append("/").append(refAllele).append("\t");
+                            break;
+                        case "1/1":
+                            sb.append(altAllele).append("/").append(altAllele).append("\t");
+                            break;
+                        case "./.":
+                            sb.append("N/N").append("\t");
+                            break;
+                    }
+                }
+                sb.append(outgroupAllele).append("/").append(outgroupAllele);
                 bw.write(sb.toString());
                 bw.newLine();
             }
