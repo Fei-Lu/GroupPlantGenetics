@@ -4,6 +4,7 @@ import com.koloboke.collect.map.hash.HashIntIntMap;
 import com.koloboke.collect.map.hash.HashIntIntMaps;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
+import xujun.analysis.rnaseq.KMeans;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -28,8 +29,9 @@ public class test {
     public test() throws IOException {
 //        this.mkPosGeneMap();
 //        this.writecode();
-//        this.decimals();
+        this.decimals();
 //        this.clonefiles();
+//        this.clonefiles2();
 //        this.posAllele();
 //        this.NewFile();
 //        this.readFile();
@@ -46,26 +48,121 @@ public class test {
 //        this.printRcode();
 //        this.getgeneRegion();
 //        this.mkFileDir();
-        this.print();
+//        this.print();
 //        this.changedosagename();
 //        this.fastQTL();
+//        this.subsample();
+//        this.mkdir();
+    }
+
+    public void mkdir() {
+        String inputdir = "/data2/xiaohan/ERCCdouble/";
+        String[] subdir = {"SiPAS/output/", "SiPASR/output/", "SiPASU/output/", "SiPASUR/output/", "Truseq/output/"};
+        StringBuilder sb = new StringBuilder();
+        sb.append("mkdir subFastqs");
+        String command = sb.toString();
+        try {
+            for (int i = 0; i < subdir.length; i++) {
+                for (int j = 0; j < 12; j++) {
+                    int M = j + 1;
+
+                    String input = inputdir + subdir[i] + M + "M";
+                    File dir = new File(new File(input).getAbsolutePath());
+                    String[] cmdarry = {"/bin/bash", "-c", command};
+                    System.out.println(new File(input).getAbsolutePath());
+                    System.out.println(command);
+                    Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+                    p.waitFor();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void subsample() {
+        String infile = "/Users/yxh/Documents/eQTL/009ERCC test/20201029/readstoSample.txt";
+        String outfile = "/Users/yxh/Documents/eQTL/009ERCC test/20201029/subSample.txt";
+        BufferedReader br = xiaohan.rareallele.IOUtils.getTextReader(infile);
+        String temp = null;
+        String[] temps = null;
+        BufferedWriter bw = xiaohan.rareallele.IOUtils.getTextWriter(outfile);
+//        String outputdir = "";
+//        String[] subdir = {"",""};
+        try {
+            temp = br.readLine();
+            int countline = 0;
+            while ((temp = br.readLine()) != null) {
+                countline++;
+                temps = temp.split("\t");
+                int species = Integer.parseInt(temps[0]);
+                int sample = Integer.parseInt(temps[1]);
+                int S = Integer.parseInt(temps[2]);
+                int R = Integer.parseInt(temps[3]);
+                int U = Integer.parseInt(temps[4]);
+                int UR = Integer.parseInt(temps[5]);
+                bw.write("nohup seqtk sample -s100 /data2/junxu/SiPASResult/ERCC/SiPASam/SiPASam" + sample + "_R1.fq.gz " + S + " > /data2/xiaohan/ERCCdouble/SiPAS/output/" + species + "M/subFastqs/200415_SiPASam" + sample + "_R1.fq && bgzip /data2/xiaohan/ERCCdouble/SiPAS/output/" + species + "M/subFastqs/200415_SiPASam" + sample + "_R1.fq &");
+                bw.newLine();
+                bw.write("nohup seqtk sample -s100 /data2/junxu/SiPASResult/ERCC/SiPASam/SiPASam" + sample + "_R2.fq.gz " + S + " > /data2/xiaohan/ERCCdouble/SiPAS/output/" + species + "M/subFastqs/200415_SiPASam" + sample + "_R2.fq && bgzip /data2/xiaohan/ERCCdouble/SiPAS/output/" + species + "M/subFastqs/200415_SiPASam" + sample + "_R2.fq &");
+                bw.newLine();
+                bw.write("nohup seqtk sample -s100 /data2/junxu/SiPASResult/ERCC/SiPASRam/SiPASRam" + sample + "_R1.fq.gz " + R + " > /data2/xiaohan/ERCCdouble/SiPASR/output/" + species + "M/subFastqs/200415_SiPASRam" + sample + "_R1.fq && bgzip /data2/xiaohan/ERCCdouble/SiPASR/output/" + species + "M/subFastqs/200415_SiPASRam" + sample + "_R1.fq &");
+                bw.newLine();
+                bw.write("nohup seqtk sample -s100 /data2/junxu/SiPASResult/ERCC/SiPASRam/SiPASRam" + sample + "_R2.fq.gz " + R + " > /data2/xiaohan/ERCCdouble/SiPASR/output/" + species + "M/subFastqs/200415_SiPASRam" + sample + "_R2.fq && bgzip /data2/xiaohan/ERCCdouble/SiPASR/output/" + species + "M/subFastqs/200415_SiPASRam" + sample + "_R2.fq &");
+                bw.newLine();
+                bw.write("nohup seqtk sample -s100 /data2/junxu/SiPASResult/ERCC/SiPASUam/SiPASUam" + sample + "_R1.fq.gz " + U + " > /data2/xiaohan/ERCCdouble/SiPASU/output/" + species + "M/subFastqs/200415_SiPASUam" + sample + "_R1.fq && bgzip /data2/xiaohan/ERCCdouble/SiPASU/output/" + species + "M/subFastqs/200415_SiPASUam" + sample + "_R1.fq &");
+                bw.newLine();
+                bw.write("nohup seqtk sample -s100 /data2/junxu/SiPASResult/ERCC/SiPASUam/SiPASUam" + sample + "_R2.fq.gz " + U + " > /data2/xiaohan/ERCCdouble/SiPASU/output/" + species + "M/subFastqs/200415_SiPASUam" + sample + "_R2.fq && bgzip /data2/xiaohan/ERCCdouble/SiPASU/output/" + species + "M/subFastqs/200415_SiPASUam" + sample + "_R2.fq &");
+                bw.newLine();
+                bw.write("nohup seqtk sample -s100 /data2/junxu/SiPASResult/ERCC/SiPASURam/SiPASURam" + sample + "_R1.fq.gz " + UR + " > /data2/xiaohan/ERCCdouble/SiPASUR/output/" + species + "M/subFastqs/200415_SiPASURam" + sample + "_R1.fq && bgzip /data2/xiaohan/ERCCdouble/SiPASUR/output/" + species + "M/subFastqs/200415_SiPASURam" + sample + "_R1.fq &");
+                bw.newLine();
+                bw.write("nohup seqtk sample -s100 /data2/junxu/SiPASResult/ERCC/SiPASURam/SiPASURam" + sample + "_R2.fq.gz " + UR + " > /data2/xiaohan/ERCCdouble/SiPASUR/output/" + species + "M/subFastqs/200415_SiPASURam" + sample + "_R2.fq && bgzip /data2/xiaohan/ERCCdouble/SiPASUR/output/" + species + "M/subFastqs/200415_SiPASURam" + sample + "_R2.fq &");
+                bw.newLine();
+                if (temps[6].equals("NA")) {
+                    continue;
+                } else if (sample == 1 || sample == 2 || sample == 3) {
+                    int T = Integer.parseInt(temps[6]);
+                    bw.write("nohup seqtk sample -s100 /data2/junxu/SiPASResult/ERCC/TruSeqam/TruSeqam" + sample + "_R1.fq.gz " + T + " > /data2/xiaohan/ERCCdouble/Truseq/output/" + species + "M/subFastqs/TRU_am" + sample + "_R1.fq && bgzip /data2/xiaohan/ERCCdouble/Truseq/output/" + species + "M/subFastqs/TRU_am" + sample + "_R1.fq &");
+                    bw.newLine();
+                    bw.write("nohup seqtk sample -s100 /data2/junxu/SiPASResult/ERCC/TruSeqam/TruSeqam" + sample + "_R2.fq.gz " + T + " > /data2/xiaohan/ERCCdouble/Truseq/output/" + species + "M/subFastqs/TRU_am" + sample + "_R2.fq && bgzip /data2/xiaohan/ERCCdouble/Truseq/output/" + species + "M/subFastqs/TRU_am" + sample + "_R2.fq &");
+                    bw.newLine();
+                } else if (sample == 4 || sample == 5 || sample == 6) {
+                    int sample1 = sample - 3;
+                    int T = Integer.parseInt(temps[6]);
+                    bw.write("nohup seqtk sample -s100 /data2/junxu/SiPASResult/ERCC/TruSeqpm/TruSeqpm" + sample1 + "_R1.fq.gz " + T + " > /data2/xiaohan/ERCCdouble/Truseq/output/" + species + "M/subFastqs/TRU_pm" + sample1 + "_R1.fq && bgzip /data2/xiaohan/ERCCdouble/Truseq/output/" + species + "M/subFastqs/TRU_pm" + sample1 + "_R1.fq &");
+                    bw.newLine();
+                    bw.write("nohup seqtk sample -s100 /data2/junxu/SiPASResult/ERCC/TruSeqpm/TruSeqpm" + sample1 + "_R2.fq.gz " + T + " > /data2/xiaohan/ERCCdouble/Truseq/output/" + species + "M/subFastqs/TRU_pm" + sample1 + "_R2.fq && bgzip /data2/xiaohan/ERCCdouble/Truseq/output/" + species + "M/subFastqs/TRU_pm" + sample1 + "_R2.fq &");
+                    bw.newLine();
+                }
+//                File dir = new File(new File(outputdir, subdir[0]).getAbsolutePath());
+//                String[] cmdarry = {"/bin/bash", "-c", command};
+//                Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+//                p.waitFor();
+            }
+            br.close();
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void fastQTL() {
         String outputDir = "/data1/home/xiaohan/rareallele/fastQTL/output/per5";
         StringBuilder sb = new StringBuilder();
-        for(int i = 20;i < 27;i++){
-        sb.append("nohup sh -c 'for j in $(seq 1 10); do /data1/home/xiaohan/myprogram/fastqtl-master/bin/fastQTL --vcf /data2/xiaohan/genotype_root/dosagesort/87B18.chr"+i+".maf005.DS.vcf.gz --bed /data1/home/xiaohan/rareallele/fastQTL/pheno/S7/S7expression"+i+".bed.gz --cov /data1/home/xiaohan/rareallele/fastQTL/covariates/S7/covS7template5.txt --permute 10000 --out chr"+i+".chunk$j.permutations.txt.gz --chunk $j 10 > log"+i+"_$j.txt ;done 2>&1' &");
-        String command = sb.toString();
-        try {
-            File dir = new File(new File(outputDir).getAbsolutePath());
-            String[] cmdarry = {"/bin/bash", "-c", command};
-            Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
-            p.waitFor();
-        } catch (Exception e) {
-            e.printStackTrace();
+        for (int i = 20; i < 27; i++) {
+            sb.append("nohup sh -c 'for j in $(seq 1 10); do /data1/home/xiaohan/myprogram/fastqtl-master/bin/fastQTL --vcf /data2/xiaohan/genotype_root/dosagesort/87B18.chr" + i + ".maf005.DS.vcf.gz --bed /data1/home/xiaohan/rareallele/fastQTL/pheno/S7/S7expression" + i + ".bed.gz --cov /data1/home/xiaohan/rareallele/fastQTL/covariates/S7/covS7template5.txt --permute 10000 --out chr" + i + ".chunk$j.permutations.txt.gz --chunk $j 10 > log" + i + "_$j.txt ;done 2>&1' &");
+            String command = sb.toString();
+            try {
+                File dir = new File(new File(outputDir).getAbsolutePath());
+                String[] cmdarry = {"/bin/bash", "-c", command};
+                Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+                p.waitFor();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-    }}
+    }
 
     public void changedosagename() {
         String inputDir = "/data2/xiaohan/genotype_root/dosage";
@@ -126,12 +223,12 @@ public class test {
     }
 
     public void print() {
-        String[] ABD = {"A","B","D"};
+        String[] ABD = {"A", "B", "D"};
         for (int i = 0; i < 42; i++) {
 //            for(int j = 0;j <ABD.length;j++){
             int number = i + 1;
 //            System.out.println("nohup sh -c 'for j in $(seq 1 10); do /data1/home/xiaohan/myprogram/fastqtl-master/bin/fastQTL --vcf /data2/xiaohan/genotype_root/dosagesort/87B18.chr" + number + ".maf005.DS.vcf.gz --bed /data1/home/xiaohan/rareallele/fastQTL/pheno/S7/S7expression" + number + ".bed.gz --cov /data1/home/xiaohan/rareallele/fastQTL/covariates/S7/covS7template20.txt --out chr" + number + ".chunk$j.nominals.txt.gz --chunk $j 10 > log" + number + "_$j.txt ;done 2>&1' &");
-            System.out.println("nohup sh -c 'for j in $(seq 1 10); do /data1/home/xiaohan/myprogram/fastqtl-master/bin/fastQTL --vcf /data2/xiaohan/genotype_root/dosagesort/87B18.chr"+number+".maf005.DS.vcf.gz --bed /data1/home/xiaohan/rareallele/fastQTL/pheno/S7/S7expression"+number+".bed.gz --cov /data1/home/xiaohan/rareallele/fastQTL/covariates/S7/covS7template10.txt --out chr"+number+".chunk$j.nominals.txt.gz --chunk $j 10 > log1_$j.txt ;done 2>&1' &");
+            System.out.println("nohup sh -c 'for j in $(seq 1 10); do /data1/home/xiaohan/myprogram/fastqtl-master/bin/fastQTL --vcf /data2/xiaohan/genotype_root/dosagesort/87B18.chr" + number + ".maf005.DS.vcf.gz --bed /data1/home/xiaohan/rareallele/fastQTL/pheno/S7/S7expression" + number + ".bed.gz --cov /data1/home/xiaohan/rareallele/fastQTL/covariates/S7/covS7template10.txt --out chr" + number + ".chunk$j.nominals.txt.gz --chunk $j 10 > log1_$j.txt ;done 2>&1' &");
 //            System.out.print("\""+number + "\""+",");
 //            System.out.print("\"" +i + ABD[j] + "\""+",");
 //            System.out.print("\"" +i + ABD[j] + "\""+",");
@@ -143,7 +240,7 @@ public class test {
 
     public void mkFileDir() {
         String outputDir = "/Users/yxh/Documents/eQTL/009ERCC test/20200907/reproducibility";
-        String[] subDir = {"mix1_20k","mix1_25k","mix1_30k","mix1_35k","mix1_40k","mix1_45k","mix1_50k","mix2_20k","mix2_25k","mix2_30k","mix2_35k","mix2_40k","mix2_45k","mix2_50k"};
+        String[] subDir = {"mix1_20k", "mix1_25k", "mix1_30k", "mix1_35k", "mix1_40k", "mix1_45k", "mix1_50k", "mix2_20k", "mix2_25k", "mix2_30k", "mix2_35k", "mix2_40k", "mix2_45k", "mix2_50k"};
         for (int i = 0; i < subDir.length; i++) {
             new File(outputDir, subDir[i]).mkdir();
         }
@@ -811,6 +908,49 @@ public class test {
                 bw2[i].flush();
                 bw2[i].close();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void clonefiles2() {
+        String infile = "/data2/xiaohan/ERCCdouble/SiPAS/S1M.txt";
+        String inputdir = "/data2/xiaohan/ERCCdouble/";
+        String[] subdir = {"SiPAS/output/", "SiPASR/output/", "SiPASU/output/", "SiPASUR/output/", "Truseq/output/"};
+        String temp = null;
+        String[] temps = null;
+        try {
+            for (int i = 0; i < subdir.length; i++) {
+                for (int j = 0; j < 12; j++) {
+                    int M = j + 1;
+                    String input = inputdir + subdir[i];
+                    String input1 = input.replace("/output/", "/"+subdir[i].replace("/output/","")+"information.txt");
+                    String input2 = input.replace("/output", "");
+                    String input3 = inputdir + subdir[i] + M +"M";
+                    BufferedReader br = xiaohan.rareallele.IOUtils.getTextReader(infile);
+                    BufferedWriter bw = xiaohan.rareallele.IOUtils.getTextWriter(new File(input2,subdir[i].replace("/output/","")+M+"M.txt").getAbsolutePath());
+                    int countline = 0;
+                    while ((temp = br.readLine()) != null) {
+                        countline++;
+                        if (countline == 17) {
+                            bw.write(input1);
+                            bw.newLine();
+                            continue;
+                        }
+                        if (countline == 19) {
+                            bw.write(input3);
+                            bw.newLine();
+                            continue;
+                        }
+                        bw.write(temp);
+                        bw.newLine();
+                    }
+                    br.close();
+                    bw.flush();
+                    bw.close();
+                }
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
