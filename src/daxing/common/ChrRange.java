@@ -12,7 +12,7 @@ public class ChrRange implements Comparable<ChrRange>{
     String chr;
     int start;
     /**
-     * Inclusive
+     * Exclusive
      */
     int end;
 
@@ -55,16 +55,21 @@ public class ChrRange implements Comparable<ChrRange>{
     }
 
     public short getVCFEndChrID(){
-        return (short) RefV1Utils.getChrID(chr, end);
+        return (short) RefV1Utils.getChrID(chr, end-1);
     }
 
     public boolean contain(String chr, int pos){
         if (!this.getChr().equals(chr)) return false;
         if (pos < start) return false;
-        if (pos > end) return false;
+        if (pos >= end) return false;
         return true;
     }
 
+    /**
+     * Daxing's utils on ChrPos
+     * @param chrPos
+     * @return
+     */
     public boolean contain(ChrPos chrPos){
         return contain(chrPos.chr, chrPos.pos);
     }
