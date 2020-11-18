@@ -25,6 +25,7 @@
          * @author Fei Lu
          */
         public class GeneFeature {
+
             Gene[] genes;
             //0 sort by position, 1 by sort by name
             int sortType = 0;
@@ -444,58 +445,53 @@
             public void writeFile (String outfileS) {
                 try {
                     BufferedWriter bw = IOUtils.getTextWriter(outfileS);
-//                    bw.write("GeneNumber\t"+String.valueOf(this.getGeneNumber()));
-//                    bw.newLine();
+                    bw.write("GeneNumber\t"+String.valueOf(this.getGeneNumber()));
+                    bw.newLine();
                     for (int i = 0; i < this.getGeneNumber(); i++) {
                         StringBuilder sb = new StringBuilder();
-//                        sb.append("Gene\t").append(this.getGeneName(i)).append("\t").append(this.getGeneChromosome(i)).append("\t").append(this.getGeneStart(i)).append("\t").append(this.getGeneEnd(i));
-                        sb.append(this.getGeneName(i)).append("\t").append(this.getGeneName(i)).append("\t").append(this.getGeneChromosome(i)).append("\t").append(this.getGeneStrand(i)).append("\t").append(this.getTranscriptStart(i, 0)).append("\t").append(this.getTranscriptEnd(i, 0)).append("\t");
-                        sb.append("\t").append(this.getTranscriptEnd(i, 0)).append("\t").append(this.getTranscriptStrand(i,0)).append("\t").append(this.getCDSPositionString(i, 0).replace(",","\t"));
-                        sb.append("\t").append(this.get3UTRList(i, 0));    
-//                        sb.append("\t").append(this.getGeneBiotype(i)).append("\t").append(this.getGeneDescription(i));
-//                        bw.write(sb.toString());
-//                        bw.newLine();
-//                        sb = new StringBuilder("TranscriptNumber\t");
-//                        sb.append(this.getTranscriptNumber(i)).append("\t").append(genes[i].longestTranscriptIndex);
-//                        bw.write(sb.toString());
-//                        bw.newLine();
-//                        for (int j = 0; j < this.getTranscriptNumber(i); j++) {
-//                            sb = new StringBuilder();
-//                            sb.append("Transcript\t").append(this.getTranscriptName(i, j)).append("\t").append(this.getTranscriptChromosome(i, j)).append("\t").append(this.getTranscriptStart(i, j));
-//                            sb.append("\t").append(this.getTranscriptEnd(i, j)).append("\t").append(this.getTranscriptStrand(i,j)).append("\t").append(this.getCDSPositionString(i, j).replace(",","\t"));
-//                            sb.append("\t").append(this.get3UTRList(i, 0));
-//                            bw.write(sb.toString());
-//                            bw.newLine();
-//                            sb = new StringBuilder();
-//                            sb.append("5'UTR\t");
-//                            if (this.isThere5UTR(i, j)) {
-//                                sb.append(this.get5UTRPositionString(i, j));
-//                            }
-//                            else {
-//                                sb.append("NA");
-//                            }
-//                            bw.write(sb.toString());
-//                            bw.newLine();
-//                            bw.write("CDS\t"+this.getCDSPositionString(i, j));
-//                            bw.newLine();
-//                            if (this.getIntronPositionString(i, j).equals("")) {
-//                                bw.write("Intron\t"+"NA");
-//                            }
-//                            else {
-//                                bw.write("Intron\t"+this.getIntronPositionString(i, j));
-//                            }
-//                            bw.newLine();
-//                            sb = new StringBuilder();
-//                            sb.append("3'UTR\t");
-//                            if (this.isThere3UTR(i, j)) {
-//                                sb.append(this.get3UTRPositionString(i, j));
-//                            }
-//                            else {
-//                                sb.append("NA");
-//                            }
-//                            bw.write(sb.toString());
-//                            bw.newLine();
-//                        }
+                        sb.append("Gene\t").append(this.getGeneName(i)).append("\t").append(this.getGeneChromosome(i)).append("\t").append(this.getGeneStart(i)).append("\t").append(this.getGeneEnd(i)).append("\t").append(this.getGeneStrand(i));
+                        sb.append("\t").append(this.getGeneBiotype(i)).append("\t").append(this.getGeneDescription(i));
+                        bw.write(sb.toString());
+                        bw.newLine();
+                        sb = new StringBuilder("TranscriptNumber\t");
+                        sb.append(this.getTranscriptNumber(i)).append("\t").append(genes[i].longestTranscriptIndex);
+                        bw.write(sb.toString());
+                        bw.newLine();
+                        for (int j = 0; j < this.getTranscriptNumber(i); j++) {
+                            sb = new StringBuilder();
+                            sb.append("Transcript\t").append(this.getTranscriptName(i, j)).append("\t").append(this.getTranscriptChromosome(i, j)).append("\t").append(this.getTranscriptStart(i, j)).append("\t").append(this.getTranscriptEnd(i, j)).append("\t").append(this.getTranscriptStrand(i,j));
+                            bw.write(sb.toString());
+                            bw.newLine();
+                            sb = new StringBuilder();
+                            sb.append("5'UTR\t");
+                            if (this.isThere5UTR(i, j)) {
+                                sb.append(this.get5UTRPositionString(i, j));
+                            }
+                            else {
+                                sb.append("NA");
+                            }
+                            bw.write(sb.toString());
+                            bw.newLine();
+                            bw.write("CDS\t"+this.getCDSPositionString(i, j));
+                            bw.newLine();
+                            if (this.getIntronPositionString(i, j).equals("")) {
+                                bw.write("Intron\t"+"NA");
+                            }
+                            else {
+                                bw.write("Intron\t"+this.getIntronPositionString(i, j));
+                            }
+                            bw.newLine();
+                            sb = new StringBuilder();
+                            sb.append("3'UTR\t");
+                            if (this.isThere3UTR(i, j)) {
+                                sb.append(this.get3UTRPositionString(i, j));
+                            }
+                            else {
+                                sb.append("NA");
+                            }
+                            bw.write(sb.toString());
+                            bw.newLine();
+                        }
                     }
                     bw.flush();
                     bw.close();
@@ -504,68 +500,6 @@
                     e.printStackTrace();
                 }
             }
-            
-            
-            //original
-//            public void writeFile (String outfileS) {
-//                try {
-//                    BufferedWriter bw = IOUtils.getTextWriter(outfileS);
-//                    bw.write("GeneNumber\t"+String.valueOf(this.getGeneNumber()));
-//                    bw.newLine();
-//                    for (int i = 0; i < this.getGeneNumber(); i++) {
-//                        StringBuilder sb = new StringBuilder();
-////                        sb.append("Gene\t").append(this.getGeneName(i)).append("\t").append(this.getGeneChromosome(i)).append("\t").append(this.getGeneStart(i)).append("\t").append(this.getGeneEnd(i));
-//                        sb.append("Gene\t").append(this.getGeneName(i)).append("\t").append(this.getGeneChromosome(i)).append("\t").append(this.getGeneStart(i)).append("\t").append(this.getGeneEnd(i)).append("\t").append(this.getGeneStrand(i));
-//                        sb.append("\t").append(this.getGeneBiotype(i)).append("\t").append(this.getGeneDescription(i));
-//                        bw.write(sb.toString());
-//                        bw.newLine();
-//                        sb = new StringBuilder("TranscriptNumber\t");
-//                        sb.append(this.getTranscriptNumber(i)).append("\t").append(genes[i].longestTranscriptIndex);
-//                        bw.write(sb.toString());
-//                        bw.newLine();
-//                        for (int j = 0; j < this.getTranscriptNumber(i); j++) {
-//                            sb = new StringBuilder();
-//                            sb.append("Transcript\t").append(this.getTranscriptName(i, j)).append("\t").append(this.getTranscriptChromosome(i, j)).append("\t").append(this.getTranscriptStart(i, j)).append("\t").append(this.getTranscriptEnd(i, j)).append("\t").append(this.getTranscriptStrand(i,j));
-//                            bw.write(sb.toString());
-//                            bw.newLine();
-//                            sb = new StringBuilder();
-//                            sb.append("5'UTR\t");
-//                            if (this.isThere5UTR(i, j)) {
-//                                sb.append(this.get5UTRPositionString(i, j));
-//                            }
-//                            else {
-//                                sb.append("NA");
-//                            }
-//                            bw.write(sb.toString());
-//                            bw.newLine();
-//                            bw.write("CDS\t"+this.getCDSPositionString(i, j));
-//                            bw.newLine();
-//                            if (this.getIntronPositionString(i, j).equals("")) {
-//                                bw.write("Intron\t"+"NA");
-//                            }
-//                            else {
-//                                bw.write("Intron\t"+this.getIntronPositionString(i, j));
-//                            }
-//                            bw.newLine();
-//                            sb = new StringBuilder();
-//                            sb.append("3'UTR\t");
-//                            if (this.isThere3UTR(i, j)) {
-//                                sb.append(this.get3UTRPositionString(i, j));
-//                            }
-//                            else {
-//                                sb.append("NA");
-//                            }
-//                            bw.write(sb.toString());
-//                            bw.newLine();
-//                        }
-//                    }
-//                    bw.flush();
-//                    bw.close();
-//                }
-//                catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
 
             /**
              * Return transcription start site (TSS) of a gene, null if 5'UTR does not exist.

@@ -29,7 +29,7 @@ public class test {
     public test() throws IOException {
 //        this.mkPosGeneMap();
 //        this.writecode();
-        this.decimals();
+//        this.decimals();
 //        this.clonefiles();
 //        this.clonefiles2();
 //        this.posAllele();
@@ -53,6 +53,34 @@ public class test {
 //        this.fastQTL();
 //        this.subsample();
 //        this.mkdir();
+        this.testutils();
+
+    }
+
+    public void testutils(){
+        String infile = "/Users/yxh/Documents/RareAllele/004test/chr36map.txt";
+        HashMap<String, ArrayList<String>> siteGeneMap = xiaohan.utils.geneUpstreamSnp.getSnpGeneMap(infile);
+        ArrayList<String> list = siteGeneMap.get("21559");
+        String[] lists = list.toArray(new String[list.size()]);
+        for (int i = 0; i < lists.length; i++) {
+            System.out.println(lists[i]);
+        }
+//        HashSet<String> siteSet = xiaohan.utils.geneUpstreamSnp.getSites(infile);
+//        String[] sites = siteSet.toArray(new String[siteSet.size()]);
+//        Arrays.sort(sites);
+//        for (int i = 0; i < sites.length; i++) {
+//            System.out.println(sites[i]);
+//        }
+//        try{
+//            BufferedReader br = xiaohan.rareallele.IOUtils.getTextReader(infile);
+//            String temp = br.readLine();
+//            String[] temps = temp.split("\t");
+//            String gene = temps[1].split(";")[0].split("=")[1];
+//            System.out.println(gene);
+//        }
+//        catch (Exception e){
+//            e.printStackTrace();
+//        }
     }
 
     public void mkdir() {
