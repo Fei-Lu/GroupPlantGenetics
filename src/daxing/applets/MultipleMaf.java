@@ -37,7 +37,7 @@ public class MultipleMaf {
                 chr=sb.append(temp[2].substring(3)).append(abd).toString();
                 refStart=Integer.parseInt(temp[3])+1;
                 len=Integer.parseInt(temp[4]);
-                range=new ChrRange(chr, refStart, refStart+len);
+                range=new ChrRange(chr, refStart, refStart+len+1);
                 rangeInterfaceList.add(range);
             }while ((line=br1.readLine())!=null && !(line.equals("##eof maf")));
 
