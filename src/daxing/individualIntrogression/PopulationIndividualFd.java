@@ -19,7 +19,6 @@ public class PopulationIndividualFd {
     static List<IndividualFdRecord[]> individualFdRecords;
     static List<String> taxaNameList;
 
-    static final double threshForIndividualHasIntrogression=0.5;
     static final double threshForIndividualHasNoIntrogression=0.5;
 
     private static class IndividualFdRecord{
@@ -406,13 +405,6 @@ public class PopulationIndividualFd {
                     if (!(taxaNameList.get(k).substring(0,1).equals(p2.name().substring(0,1)))) continue;
                     individualFdRecord=individualFdRecordList.get(k);
                     individualFd=individualFdRecord.fdValue;
-//                    if (individualFd < threshForIndividualHasNoIntrogression){
-//                        p2_NonIntrogressedTaxonSet[i].add(taxaNameList.get(k));
-//                    }
-//                    if (!individualFdRecord.contain(p3)) continue;
-//                    if (individualFd < threshForIndividualHasIntrogression) continue;
-//                    p2P3_IntrogressedTaxonSet[i][j].add(taxaNameList.get(k));
-
                     /**
                      * why set not list? because when we iterator 299 taxa, it will be distributed into CL-WE CL-DE
                      * CL-FTT LR-WE LR-DE LR-FTT or CL-noIntrogressed or LR-onIntrogressed
@@ -548,43 +540,6 @@ public class PopulationIndividualFd {
                                        String individualLoadSummaryFile, String outFile){
         PopulationIndividualFd populationIndividualFd=new PopulationIndividualFd(popFdFile, individualFdDir);
         populationIndividualFd.addLoadPerWindow(individualLoadSummaryFile, outFile);
-//        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
-//            bw.write("Chr\tStart\tEnd\tCL_WE\tCL_DE\tCL_FT\tLR_WE\tLR_DE\tLR_FT");
-//            bw.newLine();
-//            StringBuilder sb=new StringBuilder();
-//            StringBuilder size=new StringBuilder();
-//            SingleWindow singleWindow;
-//            ChrRange chrRange;
-//            double[][] p2p3FdArray;
-//            for (int i = 0; i < populationIndividualFd.getChrRangeNum(); i++) {
-//                singleWindow=populationIndividualFd.getSingleWindowDFd(i);
-//                chrRange=singleWindow.chrRange;
-//                p2p3FdArray=singleWindow.getFd();
-//                sb.setLength(0);
-//                sb.append(chrRange.getChr()).append("\t").append(chrRange.getStart()).append("\t");
-//                sb.append(chrRange.getEnd()).append("\t");
-//                for (int j = 0; j < singleWindow.p2P3IfIntrogressionTaxonList.length; j++) {
-//                    for (int k = 0; k < singleWindow.p2P3IfIntrogressionTaxonList[j].length; k++) {
-//                        if (chrRange.getChr().substring(1,2).equals("D")){
-//                            if (k < 3) continue;
-//                        }else{
-//                            if (k==3) continue;
-//                        }
-//                        int size0=singleWindow.p2P3IfIntrogressionTaxonList[j][k][0].size();
-//                        int size1=singleWindow.p2P3IfIntrogressionTaxonList[j][k][1].size();
-//                        size.setLength(0);
-//                        size.append(size0).append("_").append(size1);
-//                        sb.append(size.toString()).append(",").append(p2p3FdArray[j][k]).append("\t");
-//                    }
-//                }
-//                sb.deleteCharAt(sb.length()-1);
-//                bw.write(sb.toString());
-//                bw.newLine();
-//            }
-//            bw.flush();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
     }
 
 }
