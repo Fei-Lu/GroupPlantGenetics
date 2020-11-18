@@ -122,6 +122,9 @@ public class PopulationIndividualFd {
             LoadType loadType;
             double[] loadType_TotalDerivedCount;
             double heter, derived;
+            /**
+             * one chrRange, one P2P3 combination, one LoadType -> all taxa derived count
+             */
             for (int i = 0; i < p2P3_IntrogressedTaxonIndex.length; i++) {
                 for (int j = 0; j < p2P3_IntrogressedTaxonIndex[i].length; j++) {
                     if (p2P3_IntrogressedTaxonIndex[i][j].size()==0) continue;
@@ -132,7 +135,7 @@ public class PopulationIndividualFd {
                         for (int l = 0; l < p2P3_IntrogressedTaxonIndex[i][j].size(); l++) {
                             int index=p2P3_IntrogressedTaxonIndex[i][j].get(l) + 3;
                             tem=PStringUtils.fastSplit(temp.get(index), ",");
-                            if (Double.parseDouble(tem.get(0)) < 0) continue;
+                            if (Double.parseDouble(tem.get(0)) < 0) continue; //
                             heter=Double.parseDouble(tem.get(0));
                             derived=Double.parseDouble(tem.get(1));
                             loadType_TotalDerivedCount[loadType.getIndex()]+=heter*0.5+derived;
@@ -153,7 +156,7 @@ public class PopulationIndividualFd {
                         if (Double.parseDouble(tem.get(0)) < 0) continue;
                         heter=Double.parseDouble(tem.get(0));
                         derived=Double.parseDouble(tem.get(1));
-                        loadType_TotalDerivedCount[loadType.getIndex()]+=heter*0.5+derived;
+                        loadType_TotalDerivedCount[loadType.getIndex()]+=(heter*0.5+derived);
                     }
                 }
                 p2LoadType_nonIntrogressedDerivedTotalCount[i]=loadType_TotalDerivedCount;
@@ -185,10 +188,8 @@ public class PopulationIndividualFd {
                     sb.append(p2P3_IntrogressedTaxonList[i][j].size()).append("\t");
                     sb.append(p2_nonIntrogressedTaxonList[i].size()).append("\t");
                     for (int k = 0; k < this.p2P3LoadType_introgressedDerivedTotalCount[i][j].length; k++) {
-                        if(this.p2P3LoadType_introgressedDerivedTotalCount[i][j][k] < 0){
+                        if(this.p2P3LoadType_introgressedDerivedTotalCount[i][j][k] < 0){ //-1
                             sb.append("NA").append("\t");
-                        }else if (Double.isFinite(this.p2P3LoadType_introgressedDerivedTotalCount[i][j][k])){
-                            sb.append(NumberTool.format(this.p2P3LoadType_introgressedDerivedTotalCount[i][j][k], 5)).append("\t");
                         }else {
                             sb.append(this.p2P3LoadType_introgressedDerivedTotalCount[i][j][k]).append("\t");
                         }
@@ -196,8 +197,6 @@ public class PopulationIndividualFd {
                     for (int k = 0; k < this.p2LoadType_nonIntrogressedDerivedTotalCount[i].length; k++) {
                         if(this.p2LoadType_nonIntrogressedDerivedTotalCount[i][k] < 0){
                             sb.append("NA").append("\t");
-                        }else if (Double.isFinite(this.p2LoadType_nonIntrogressedDerivedTotalCount[i][k])){
-                            sb.append(NumberTool.format(this.p2LoadType_nonIntrogressedDerivedTotalCount[i][k], 5)).append("\t");
                         }else {
                             sb.append(this.p2LoadType_nonIntrogressedDerivedTotalCount[i][k]).append("\t");
                         }
@@ -206,6 +205,9 @@ public class PopulationIndividualFd {
                     sb.append("\n");
                 }
             }
+            /**
+             * 一共写出6行，并去掉最后一行的换行符
+             */
             sb.deleteCharAt(sb.length()-1);
             return sb.toString();
         }
@@ -364,7 +366,8 @@ public class PopulationIndividualFd {
 
     private SingleWindow2 getSingleWindow2(int chrRangeIndex){
         ChrRange chrRange=this.getChrRangeArray()[chrRangeIndex];
-        List<IndividualFdRecord> individualFdRecordList=new ArrayList<>();
+        List<IndividualFdRecord> individualFdRecordList=new ArrayList<>(); //switch individual all ranges to one
+        // range from all individual
         for (int i = 0; i < this.getIndividualFdRecords().size(); i++) {
             individualFdRecordList.add(this.getIndividualFdRecords().get(i)[chrRangeIndex]);
         }
@@ -386,6 +389,13 @@ public class PopulationIndividualFd {
         P3 p3;
         IndividualFdRecord individualFdRecord;
         double individualFd;
+        /**
+         * fori CL LR; forj WE DE FTT AT; based on indivi fd value
+         * if fd(indi) > fdThreshod(0.5) -> introgression
+         * p2P3_IntrogressedTaxonSet[i][j] : taxa list: num_1
+         * p2_NonIntrogressedTaxonSet[i] : taxa list: num_2, so num1 + num_2 = 299
+         * @Author: Aoyue
+         */
         for (int i = 0; i < p2P3_DFdValueArray.length; i++) {
             p2=P2.newInstanceFrom(i);
             for (int j = 0; j < p2P3_DFdValueArray[i].length; j++) {
@@ -396,12 +406,24 @@ public class PopulationIndividualFd {
                     if (!(taxaNameList.get(k).substring(0,1).equals(p2.name().substring(0,1)))) continue;
                     individualFdRecord=individualFdRecordList.get(k);
                     individualFd=individualFdRecord.fdValue;
-                    if (individualFd < threshForIndividualHasIntrogression){
+//                    if (individualFd < threshForIndividualHasNoIntrogression){
+//                        p2_NonIntrogressedTaxonSet[i].add(taxaNameList.get(k));
+//                    }
+//                    if (!individualFdRecord.contain(p3)) continue;
+//                    if (individualFd < threshForIndividualHasIntrogression) continue;
+//                    p2P3_IntrogressedTaxonSet[i][j].add(taxaNameList.get(k));
+
+                    /**
+                     * why set not list? because when we iterator 299 taxa, it will be distributed into CL-WE CL-DE
+                     * CL-FTT LR-WE LR-DE LR-FTT or CL-noIntrogressed or LR-onIntrogressed
+                     * E.G. CL_005在个体fd小于0.5时，遍历WE DDE FTT 都加入到p2_NonIntrogressedTaxonSet中，故用set
+                     */
+                    if (individualFd < threshForIndividualHasNoIntrogression){
                         p2_NonIntrogressedTaxonSet[i].add(taxaNameList.get(k));
+                    }else{
+                        if (!individualFdRecord.contain(p3)) continue;
+                        p2P3_IntrogressedTaxonSet[i][j].add(taxaNameList.get(k));
                     }
-                    if (!individualFdRecord.contain(p3)) continue;
-                    if (individualFd < threshForIndividualHasIntrogression) continue;
-                    p2P3_IntrogressedTaxonSet[i][j].add(taxaNameList.get(k));
                 }
             }
         }
@@ -458,12 +480,12 @@ public class PopulationIndividualFd {
             List<String> temp;
             int chrID, posOnChrID, refPos;
             ChrRange chrRange;
-            ChrPos chrPos;
-            Map<ChrPos, String> tempMap=new HashMap<>();
+            ChrPos chrPos; //daxing's util
+            Map<ChrPos, String> tempMap=new HashMap<>(); //
             for (int i = 0; i < windowNum; i++) {
                 singleWindow=this.getSingleWindow2(i);
                 chrRange=singleWindow.chrRange;
-                retainAll(tempMap, chrRange);
+                retainAll(tempMap, chrRange); //
                 while ((line=br.readLine())!=null){
                     temp=PStringUtils.fastSplit(line);
                     chrID=Integer.parseInt(temp.get(0));
@@ -474,12 +496,13 @@ public class PopulationIndividualFd {
                     if (chrRange.contain(refChr, refPos)){
                         tempMap.put(chrPos, line);
                     }else {
+                        singleWindow.allLoad(tempMap);
+                        bw.write(singleWindow.toString());
+                        bw.newLine();
+                        tempMap.put(chrPos, line);
                         break;
                     }
                 }
-                singleWindow.allLoad(tempMap);
-                bw.write(singleWindow.toString());
-                bw.newLine();
             }
             bw.flush();
         } catch (IOException e) {
@@ -492,7 +515,7 @@ public class PopulationIndividualFd {
         ChrPos chrPosKey;
         while (iterator.hasNext()){
             chrPosKey=iterator.next();
-            if (chrRange.contain(chrPosKey)){
+            if (!chrRange.contain(chrPosKey)){
                 iterator.remove();
             }
         }
@@ -502,10 +525,14 @@ public class PopulationIndividualFd {
 
 
     public static void start(){
-        String popFdFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/002_fdResBySubspecies/002_plot_100SNPwindow_50Step/fdBySubspecies.csv";
-        String individualFdDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/006_fdResByIndividual/003_fdByIndividual.newMethod";
-        String individualLoadSummaryFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftPerSite/007_individualLoadFdSummary/IndividualLoadFdSummary.txt.gz";
-        String outFile="/Users/xudaxing/Desktop/fdLoadBySubspecies100SNPwindow_50Step.txt";
+//        String popFdFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/002_fdResBySubspecies/002_plot_100SNPwindow_50Step/fdBySubspecies.csv";
+//        String individualFdDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/006_fdResByIndividual/003_fdByIndividual.newMethod";
+//        String individualLoadSummaryFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftPerSite/007_individualLoadFdSummary/IndividualLoadFdSummary.txt.gz";
+//        String outFile="/Users/xudaxing/Desktop/fdLoadBySubspecies100SNPwindow_50Step.txt";
+        String popFdFile="/Users/xudaxing/Desktop/fdLoadRelationship/001_fdBysubspecies/fdBySubspecies.subset.csv";
+        String individualFdDir="/Users/xudaxing/Desktop/fdLoadRelationship/002_fdByIndividual";
+        String individualLoadSummaryFile="/Users/xudaxing/Desktop/fdLoadRelationship/003_IndividualLoadFdSummary/IndividualLoadFdSummary.txt";
+        String outFile="//Users/xudaxing/Desktop/fdLoadRelationship/004_outFile/res2.txt";
         writeWindowSize(popFdFile, individualFdDir, individualLoadSummaryFile, outFile);
     }
 
