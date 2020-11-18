@@ -178,7 +178,7 @@ public class PopulationIndividualFd {
                         if (j==3) continue;
                     }
                     sb.append(chrRange.getChr()).append("\t").append(chrRange.getStart()).append("\t");
-                    sb.append(chrRange.getEnd()).append("\t").append(P2.newInstanceFrom(i).name()).append("\t");
+                    sb.append(chrRange.getEnd()-1).append("\t").append(P2.newInstanceFrom(i).name()).append("\t");
                     sb.append(P3.newInstanceFrom(j).name()).append("\t");
                     if (0 <= p2p3_popFd[i][j] && p2p3_popFd[i][j] <= 1){
                         sb.append(p2p3_popFd[i][j]).append("\t");
@@ -262,7 +262,7 @@ public class PopulationIndividualFd {
                 fd = NearestIBS.ifFdChangeTo0(dValue, fdValue) ? -1 : Double.parseDouble(fdValue);
                 p2=P2.valueOf(temp.get(11));
                 p3=P3.valueOf(temp.get(12));
-                chrRange=new ChrRange(chr, start, end);
+                chrRange=new ChrRange(chr, start, end+1);
                 chrRangeIndex=Arrays.binarySearch(chrRanges, chrRange);
                 dFdValueArray[chrRangeIndex][p2.index][p3.index][0]=d;
                 dFdValueArray[chrRangeIndex][p2.index][p3.index][1]=fd;
@@ -293,7 +293,7 @@ public class PopulationIndividualFd {
                 chr=temp.get(0);
                 start=Integer.parseInt(temp.get(1));
                 end=Integer.parseInt(temp.get(2));
-                chrRange=new ChrRange(chr, start, end);
+                chrRange=new ChrRange(chr, start, end+1);
                 chrRangeSet.add(chrRange);
             }
         } catch (IOException e) {
@@ -353,7 +353,7 @@ public class PopulationIndividualFd {
                 fd=StringTool.isNumeric(temp.get(9)) ? Double.parseDouble(temp.get(9)) : Double.NaN;
                 miniIBSP3=temp.get(11);
                 individualFdRecord=new IndividualFdRecord(d, fd, miniIBSP3);
-                chrRange=new ChrRange(chr, start, end);
+                chrRange=new ChrRange(chr, start, end+1);
                 rangeIndex=binarySearch(chrRange);
                 individualFdRecords[rangeIndex]=individualFdRecord;
             }
@@ -458,7 +458,7 @@ public class PopulationIndividualFd {
             for (int i = 0; i < chrRanges.length; i++) {
                 sb.setLength(0);
                 sb.append(chrRanges[i].getChr()).append("\t").append(chrRanges[i].getStart());
-                sb.append("\t").append(chrRanges[i].getEnd());
+                sb.append("\t").append(chrRanges[i].getEnd()-1);
                 bw.write(sb.toString());
                 bw.newLine();
             }
@@ -525,14 +525,14 @@ public class PopulationIndividualFd {
 
 
     public static void start(){
-//        String popFdFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/002_fdResBySubspecies/002_plot_100SNPwindow_50Step/fdBySubspecies.csv";
-//        String individualFdDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/006_fdResByIndividual/003_fdByIndividual.newMethod";
-//        String individualLoadSummaryFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftPerSite/007_individualLoadFdSummary/IndividualLoadFdSummary.txt.gz";
-//        String outFile="/Users/xudaxing/Desktop/fdLoadBySubspecies100SNPwindow_50Step.txt";
-        String popFdFile="/Users/xudaxing/Desktop/fdLoadRelationship/001_fdBysubspecies/fdBySubspecies.subset.csv";
-        String individualFdDir="/Users/xudaxing/Desktop/fdLoadRelationship/002_fdByIndividual";
-        String individualLoadSummaryFile="/Users/xudaxing/Desktop/fdLoadRelationship/003_IndividualLoadFdSummary/IndividualLoadFdSummary.txt";
-        String outFile="//Users/xudaxing/Desktop/fdLoadRelationship/004_outFile/res2.txt";
+        String popFdFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/002_fdResBySubspecies/002_plot_100SNPwindow_50Step/fdBySubspecies.csv";
+        String individualFdDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/006_fdResByIndividual/003_fdByIndividual.newMethod";
+        String individualLoadSummaryFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftPerSite/007_individualLoadFdSummary/IndividualLoadFdSummary.txt.gz";
+        String outFile="/Users/xudaxing/Desktop/fdLoadBySubspecies100SNPwindow_50Step.txt";
+//        String popFdFile="/Users/xudaxing/Desktop/fdLoadRelationship/001_fdBysubspecies/fdBySubspecies.subset.csv";
+//        String individualFdDir="/Users/xudaxing/Desktop/fdLoadRelationship/002_fdByIndividual";
+//        String individualLoadSummaryFile="/Users/xudaxing/Desktop/fdLoadRelationship/003_IndividualLoadFdSummary/IndividualLoadFdSummary.txt";
+//        String outFile="//Users/xudaxing/Desktop/fdLoadRelationship/004_outFile/res2.txt";
         writeWindowSize(popFdFile, individualFdDir, individualLoadSummaryFile, outFile);
     }
 
