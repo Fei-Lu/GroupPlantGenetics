@@ -1,9 +1,8 @@
 package daxing.individualIntrogression;
 
 import daxing.common.*;
+import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
 import pgl.infra.dna.genot.GenoIOFormat;
 import pgl.infra.dna.genot.GenotypeGrid;
 import pgl.infra.dna.genot.GenotypeOperation;
@@ -11,7 +10,6 @@ import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -157,28 +155,28 @@ public class NearestIBS {
         String p2 =p3FdFilesPerP2.get(0).getName().substring(14,19);
         int p2Index, p3Index, startPosVCF, endPosVCF, startIndex, endIndex;
         short startChrID, endChrID;
-        float ibsMini, ibs;
-        int[] windowP3Index=new int[chrRanges.size()];
-        Arrays.fill(windowP3Index, -1);
+        float ibs;
+        TIntArrayList[] windowP3IndexArray=new TIntArrayList[chrRanges.size()];
         String p3;
         p2Index= chrGenotypeGrid.getTaxonIndex(taxonMap.get(p2));
         List<RowTableTool<String>> p3Tables=getP3TablesPerP2(p3FdFilesPerP2);
         List<String> temp;
-        TIntSet maxFdIndexSet;
         TIntArrayList maxFdIndexList;
         double maxFd;
         double[] p3FdArray;
+        TDoubleArrayList ibsListOfMaxFd;
+        TIntArrayList indexListOfMaxFdMiniIBS;
+        TIntArrayList windowP3Index;
         for (int i = 0; i < chrRanges.size(); i++) {
             startPosVCF=chrRanges.get(i).getVCFStart();
-            endPosVCF=chrRanges.get(i).getVCFEnd();
+            endPosVCF=chrRanges.get(i).getVCFEnd()-1;
             startChrID=chrRanges.get(i).getVCFStartChrID();
             endChrID=chrRanges.get(i).getVCFEndChrID();
             startIndex=chrGenotypeGrid.getSiteIndex(startChrID, startPosVCF);
             endIndex=chrGenotypeGrid.getSiteIndex(endChrID, endPosVCF);
             if (startIndex < 0 || endIndex < 0) continue;
-            ibsMini=2;
-            int miniIBSP3Index=-1;
             p3FdArray=new double[p3List.size()];
+            Arrays.fill(p3FdArray,-1);
             for (int j = 0; j < p3List.size(); j++) {
                 temp=p3Tables.get(j).getRow(i);
                 if (ifDChangeTo0(temp.get(8))){
@@ -193,36 +191,44 @@ public class NearestIBS {
                 p3FdArray[j]=Double.parseDouble(temp.get(9));
             }
             maxFd= Arrays.stream(p3FdArray).max().getAsDouble();
-            maxFdIndexSet=new TIntHashSet();
+            maxFdIndexList=new TIntArrayList();
             for (int j = 0; j < p3FdArray.length; j++) {
                 if (p3FdArray[j]==maxFd){
-                    maxFdIndexSet.add(j);
+                    maxFdIndexList.add(j);
                 }
             }
-            maxFdIndexList=new TIntArrayList(maxFdIndexSet);
-            maxFdIndexList.sort();
+            ibsListOfMaxFd=new TDoubleArrayList();
+            indexListOfMaxFdMiniIBS=new TIntArrayList();
             for (int j = 0; j < maxFdIndexList.size(); j++) {
                 p3=taxonMap.get(p3List.get(maxFdIndexList.get(j)));
                 p3Index=chrGenotypeGrid.getTaxonIndex(p3);
                 ibs=chrGenotypeGrid.getIBSDistance(p2Index, p3Index, startIndex, endIndex);
-                if (ibs < ibsMini){
-                    miniIBSP3Index=maxFdIndexList.get(j);
-                    ibsMini=ibs;
-                }
+                ibsListOfMaxFd.add(ibs);
             }
-            windowP3Index[i]=miniIBSP3Index;
+            double miniIBS=ibsListOfMaxFd.min();
+            for (int j = 0; j < ibsListOfMaxFd.size(); j++) {
+                if (ibsListOfMaxFd.get(j) > miniIBS) continue;
+                indexListOfMaxFdMiniIBS.add(maxFdIndexList.get(j));
+            }
+            windowP3IndexArray[i]=indexListOfMaxFdMiniIBS;
         }
+        StringBuilder sb=new StringBuilder();
         try (BufferedWriter bw = IOTool.getWriter(outFile)) {
             bw.write("chr,start,end,mid,sites,sitesUsed,ABBA,BABA,D,fd,fdM,MiniIBSP3");
             bw.newLine();
             List<String> line;
             for (int i = 0; i < chrRanges.size(); i++) {
-                p3Index=windowP3Index[i];
-                if (p3Index < 0) continue;
-                line=p3Tables.get(p3Index).getRow(i);
-                line.add(p3List.get(p3Index));
+                windowP3Index=windowP3IndexArray[i];
+                if (windowP3Index.size()==0) continue;
+                line=p3Tables.get(windowP3Index.get(0)).getRow(i);
                 bw.write(String.join(",",line));
-                bw.write("\t");
+                sb.setLength(0);
+                sb.append(",");
+                for (int j = 0; j < windowP3Index.size(); j++) {
+                    sb.append(p3List.get(windowP3Index.get(j))).append("|");
+                }
+                sb.deleteCharAt(sb.length()-1);
+                bw.write(sb.toString());
                 bw.newLine();
             }
             bw.flush();
@@ -286,7 +292,7 @@ public class NearestIBS {
             br.readLine();
             while ((line=br.readLine())!=null){
                 temp= PStringUtils.fastSplit(line, ",");
-                chrRange=new ChrRange(temp.get(0), Integer.parseInt(temp.get(1)), Integer.parseInt(temp.get(2)));
+                chrRange=new ChrRange(temp.get(0), Integer.parseInt(temp.get(1)), Integer.parseInt(temp.get(2))+1);
                 chrRanges.add(chrRange);
             }
         } catch (IOException e) {
@@ -306,8 +312,8 @@ public class NearestIBS {
     public static void start() {
         String vmapIIVCFDir="/Users/xudaxing/Desktop/fdTest/001_vmap2.1_0.001vcf";
         String taxaInfoFile="/Users/xudaxing/Documents/deleteriousMutation/002_vmapII_taxaGroup/taxa_InfoDB.txt";
-        String fdResDir="/Users/xudaxing/Desktop/fdTest/003_fdRes_2";
-        String outDir="/Users/xudaxing/Desktop/fdTest/005_fdOutDir2";
+        String fdResDir="/Users/xudaxing/Desktop/fdTest/003_fdRes";
+        String outDir="/Users/xudaxing/Desktop/fdTest/004_fdOut";
         int index=0;
         NearestIBS.calculateNearestFd(vmapIIVCFDir, taxaInfoFile, fdResDir, outDir, index);
     }
