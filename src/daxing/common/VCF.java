@@ -262,9 +262,9 @@ public class VCF {
     public static void fastMergeVCFtoChr(String inputVcfDir, String outDir){
         System.out.println(DateTime.getDateTimeOfNow()+ "start");
         long start= System.nanoTime();
-        File[] files=IOUtils.listRecursiveFiles(new File(inputVcfDir));
+        List<File> files=IOUtils.getFileListInDirEndsWith(inputVcfDir, "gz");
         Predicate<File> hidden=File::isHidden;
-        File[] f=Arrays.stream(files).filter(hidden.negate()).sorted().toArray(File[]::new);
+        File[] f=files.stream().filter(hidden.negate()).sorted().toArray(File[]::new);
         List<String> outChrs=WheatLineage.abdLineage();
         try{
             BufferedReader br1, br2;
