@@ -261,7 +261,8 @@ public class NearestIBS {
     public static void merge(String fdChrDir, String outDir){
         System.out.println(DateTime.getDateTimeOfNow());
         List<File> files=IOUtils.getVisibleFileListInDir(fdChrDir);
-        Map<String, List<File>> taxaMap= files.stream().collect(Collectors.groupingBy(file -> file.getName().substring(14,19)));
+        Map<String, List<File>> taxaMap=
+                files.stream().collect(Collectors.groupingBy(file -> PStringUtils.fastSplit(file.getName(), "_").get(2)));
         String taxaName;
         List<File> taxaChrFiles;
         RowTableTool<String> table0, table;
