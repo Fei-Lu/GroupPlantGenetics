@@ -17,11 +17,11 @@ import java.util.stream.IntStream;
 public class LoadGO {
 
     public static void start(){
-        String exonSNPAnnoDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/002_deleteriousPosLib/002_exonAnnotationByDerivedSift/001_exonSNPAnnotationByChrID";
-        String exonVCFDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/003_exon/001_exonVCF";
-        String taxa_InfoDB="/Users/xudaxing/Desktop/VMAP2/taxa_InfoDB.txt";
-        String triadFile="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/triadGenes1.1_cdsLen_geneHC.txt";
-        String outDir="/Users/xudaxing/Documents/deleteriousMutation/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift";
+        String exonSNPAnnoDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/002_exon/002_exonVCFAnno/002_exonAnnotationByDerivedSift/001_exonSNPAnnotationByChrID";
+        String exonVCFDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/002_exon/001_exonVCF";
+        String taxa_InfoDB="/Users/xudaxing/Documents/deleteriousMutation/002_vmapII_taxaGroup/taxa_InfoDB.txt";
+        String triadFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/triadGenes1.1_cdsLen_geneHC.txt";
+        String outDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftLoadComplementary";
         go(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, triadFile, outDir);
     }
 
@@ -34,11 +34,11 @@ public class LoadGO {
         List<File> exonAnnoFiles=IOUtils.getVisibleFileListInDir(exonSNPAnnoDir);
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
         Map<String, File> taxonOutDirMap=getTaxonOutDirMap(taxa_InfoDBFile, new File(outDir, subdir[0]).getAbsolutePath());
-        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
+        IntStream.range(0, exonVCFFiles.size()).forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
                 taxonOutDirMap, e+1));
         merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
-        retainTriad(triadFile, taxa_InfoDBFile, new File(outDir, subdir[1]).getAbsolutePath(),
-                new File(outDir, subdir[2]).getAbsolutePath());
+//        retainTriad(triadFile, taxa_InfoDBFile, new File(outDir, subdir[1]).getAbsolutePath(),
+//                new File(outDir, subdir[2]).getAbsolutePath());
 //        normalizedTriadByAncestralNum(new File(outDir, subdir[2]).getAbsolutePath(), new File(outDir, subdir[3]).getAbsolutePath());
     }
 
