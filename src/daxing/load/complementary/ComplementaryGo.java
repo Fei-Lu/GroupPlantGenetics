@@ -138,6 +138,7 @@ public class ComplementaryGo {
             for (int j = 1; j < temp.size(); j++) {
                 tableTool.add(new RowTableTool<>(temp.get(j).getAbsolutePath()));
             }
+            tableTool.sortAsText("geneName");
             tableTool.write(new File(outDir, outName+".txt.gz"), IOFileFormat.TextGzip);
             System.out.println("count merge finished: "+outName);
         }
@@ -227,12 +228,16 @@ public class ComplementaryGo {
             brTetraploid.readLine();
             bw.write(header);
             bw.newLine();
+            List<String> lines=new ArrayList<>(80000);
             while ((line=brTetraploid.readLine())!=null){
-                bw.write(line);
-                bw.newLine();
+                lines.add(line);
             }
             while ((line=brDiploid.readLine())!=null){
-                bw.write(line);
+                lines.add(line);
+            }
+            Collections.sort(lines);
+            for (int i = 0; i < lines.size(); i++) {
+                bw.write(lines.get(i));
                 bw.newLine();
             }
             bw.flush();
