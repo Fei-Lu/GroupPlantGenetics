@@ -1050,6 +1050,67 @@ public class PGF {
 
     /**
      *
+     * @param chr
+     * @return all genes on all target chromosome
+     */
+    public PGF getGeneOnChr(int[] chr){
+        this.sortGeneByGeneRange();
+        List<Gene> list=new ArrayList<>();
+        Gene[] genes;
+        for (int i = 0; i < chr.length; i++) {
+            int chrIndexA=this.getStartIndexOfChromosome(chr[i]);
+            int chrIndexB=this.getEndIndexOfChromosome(chr[i]);
+            genes=ArrayUtils.subarray(this.genes, chrIndexA, chrIndexB);
+            for (int j = 0; j < genes.length; j++) {
+                list.add(genes[j]);
+            }
+        }
+        Gene[] resGene=new Gene[list.size()];
+        for (int i = 0; i < list.size(); i++) {
+            resGene[i]=list.get(i);
+        }
+        return new PGF(resGene);
+    }
+
+    /**
+     *
+     * @param chr
+     * @return all genesName on all target chromosome
+     */
+    public List<String> getGeneNameOnChr(int[] chr){
+        this.sortGeneByGeneRange();
+        List<String> list=new ArrayList<>();
+        Gene[] genes;
+        for (int i = 0; i < chr.length; i++) {
+            int chrIndexA=this.getStartIndexOfChromosome(chr[i]);
+            int chrIndexB=this.getEndIndexOfChromosome(chr[i]);
+            genes=ArrayUtils.subarray(this.genes, chrIndexA, chrIndexB);
+            for (int j = 0; j < genes.length; j++) {
+                list.add(genes[j].getGeneName());
+            }
+        }
+        Collections.sort(list);
+        return list;
+    }
+
+    public List<Gene> getGeneList(int[] chr){
+        this.sortGeneByGeneRange();
+        List<Gene> list=new ArrayList<>();
+        Gene[] genes;
+        for (int i = 0; i < chr.length; i++) {
+            int chrIndexA=this.getStartIndexOfChromosome(chr[i]);
+            int chrIndexB=this.getEndIndexOfChromosome(chr[i]);
+            genes=ArrayUtils.subarray(this.genes, chrIndexA, chrIndexB);
+            for (int j = 0; j < genes.length; j++) {
+                list.add(genes[j]);
+            }
+        }
+        Collections.sort(list);
+        return list;
+    }
+
+    /**
+     *
      * @return genes on each chromosome
      */
     public PGF[] getGeneOnAllChr(){
@@ -1159,6 +1220,11 @@ public class PGF {
 
         public int getTranscriptIndex (String transcriptName) {
             return Collections.binarySearch(ts, new Transcript(transcriptName));
+        }
+
+        public int getLongestTranscriptCDSLen(){
+            int longestTranscriptIndex=this.getLongestTranscriptIndex();
+            return this.getTs().get(longestTranscriptIndex).getCDSLen();
         }
 
         public void calculateLongestTranscriptIndex () {

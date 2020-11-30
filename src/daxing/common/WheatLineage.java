@@ -14,7 +14,17 @@ import java.util.stream.Stream;
  * @author Daxing Xu
  */
 public enum WheatLineage {
-    A, B, D;
+
+    A(0), B(1), D(2);
+
+    int index;
+    WheatLineage(int index) {
+        this.index=index;
+    }
+
+    public int getIndex() {
+        return index;
+    }
 
     /**
      *
