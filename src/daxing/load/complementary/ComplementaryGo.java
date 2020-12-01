@@ -36,7 +36,8 @@ public class ComplementaryGo {
     public static void go(String exonSNPAnnoDir, String exonVCFDir, String taxa_InfoDBFile, String triadFile,
                           String pgfFile, String outDir){
         System.out.println(DateTime.getDateTimeOfNow());
-        String[] subdir={"001_count","002_countMerge","003_hexaploidPseudohexaploid","004_triadsBlock"};
+        String[] subdir={"001_count","002_countMerge","003_hexaploidPseudohexaploid","004_triadsBlock",
+                "005_mergeTriadsBlock"};
         for (int i = 0; i < subdir.length; i++) {
             new File(outDir, subdir[i]).mkdir();
         }
@@ -48,8 +49,9 @@ public class ComplementaryGo {
 //        merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
 //        syntheticPseudohexaploidHexaploid(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
 //                new File(outDir, subdir[2]).getAbsolutePath(), 300);
-        calculateLoadInfo(triadFile, pgfFile, 10, new File(outDir, subdir[2]).getAbsoluteFile(), new File(outDir,
-                subdir[3]));
+//        calculateLoadInfo(triadFile, pgfFile, 10, new File(outDir, subdir[2]).getAbsoluteFile(), new File(outDir,
+//                subdir[3]));
+        mergeTriadsBlock(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
     }
 
     private static void go(File exonSNPAnnoFile, File exonVCFFile,
@@ -192,58 +194,7 @@ public class ComplementaryGo {
         } catch (IOException e) {
             e.printStackTrace();
         }
-//        List<File> pseudoHexaploidFiles=IOUtils.getVisibleFileListInDir(subdirFiles[0].getAbsolutePath());
-//        List<File> hexaploidFiles=IOUtils.getVisibleFileListInDir(subdirFiles[1].getAbsolutePath());
-//        merge(pseudoHexaploidFiles, new File(subdirFiles[2], "001_pseudoHexaploid.txt.gz"));
-//        merge(hexaploidFiles, new File(subdirFiles[2], "002_hexaploid.txt.gz"));
     }
-
-//    public static void merge(List<File> files, File outFile){
-//        String line, taxaName;
-//        List<String> temp, geneNameList=new ArrayList<>();
-//        BufferedReader br;
-//        StringBuilder header=new StringBuilder();
-//        StringBuilder sb=new StringBuilder();
-//        List<List<String>> columnList=new ArrayList<>();
-//        List<String> column;
-//        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
-//            header.append("GeneName\t");
-//            for (int i = 0; i < files.size(); i++) {
-//                taxaName=PStringUtils.fastSplit(files.get(i).getName(), ".").get(2);
-//                header.append(taxaName).append("\t");
-//                br=IOTool.getReader(files.get(i));
-//                br.readLine();
-//                column=new ArrayList<>();
-//                while ((line=br.readLine())!=null){
-//                    temp=PStringUtils.fastSplit(line);
-//                    if (i==0){
-//                        geneNameList.add(temp.get(0));
-//                    }
-//                    sb.setLength(0);
-//                    sb.append(String.join(",", temp.subList(1,temp.size())));
-//                    column.add(sb.toString());
-//                }
-//                columnList.add(column);
-//            }
-//            columnList.add(0, geneNameList);
-//            header.deleteCharAt(sb.length()-1);
-//            bw.write(header.toString());
-//            bw.newLine();
-//            for (int i = 0; i < columnList.get(0).size(); i++) {
-//                sb.setLength(0);
-//                for (int j = 0; j < columnList.size(); j++) {
-//                    sb.append(columnList.get(j).get(i)).append("\t");
-//                }
-//                sb.deleteCharAt(sb.length()-1);
-//                bw.write(sb.toString());
-//                bw.newLine();
-//            }
-//            bw.flush();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//
-//    }
 
     private static void syntheticPseudohexaploid(List<File> tetraploidFiles, List<File> diploidFiles,
                                                 String pseudohexaploidOutDir, String outNamePrefix,
@@ -365,5 +316,63 @@ public class ComplementaryGo {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void mergeTriadsBlock(File triadsBlockInputDir, File outDir){
+        List<File> files=IOUtils.getVisibleFileListInDir(triadsBlockInputDir.getAbsolutePath());
+        List<File> files1=files.stream().filter(file -> file.getName().startsWith("h") | file.getName().startsWith("p")).collect(Collectors.toList());
+        Map<String, List<File>> typeFileListMap= files1.stream().collect(Collectors.groupingBy(file -> PStringUtils.fastSplit(file.getName(),".").get(1)));
+        File triadsBlockFile= files.stream().filter(file -> file.getName().startsWith("triads")).collect(Collectors.toList()).get(0);
+        String key, taxon;
+        List<File> value;
+        File file;
+        File outFile=new File(outDir, "mergedTriadsBlock.txt.gz");
+        StringBuilder headerSB=new StringBuilder();
+        StringBuilder sb=new StringBuilder();
+        List<String>[][] additiveDominanceSlightlyStrongly;
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
+            List<String> triadIDList=RowTableTool.getColumnList(triadsBlockFile.getAbsolutePath(), 0);
+            triadIDList.add(0,"Group");
+            triadIDList.add(1,"AdditiveOrDominance");
+            triadIDList.add(2,"SlightlyOrStrongly");
+            headerSB.append("TaxonID").append("\t");
+            headerSB.append(String.join("\t", triadIDList));
+            bw.write(headerSB.toString());
+            bw.newLine();
+            String additiveOrDominance, slightlyOrStrongly;
+            int count=0;
+            System.out.println("start writing ...");
+            for (Map.Entry<String,List<File>> entry : typeFileListMap.entrySet()){
+                key=entry.getKey();
+                value=entry.getValue();
+                for (int i = 0; i < value.size(); i++) {
+                    file=value.get(i);
+                    additiveDominanceSlightlyStrongly=IndividualTriadsBlockLoad.getAdditiveDominanceSlightlyStronglyLoad(file);
+                    taxon=PStringUtils.fastSplit(file.getName(), ".").get(2);
+                    for (int j = 0; j < additiveDominanceSlightlyStrongly.length; j++) {
+                        for (int k = 0; k < additiveDominanceSlightlyStrongly[j].length; k++) {
+                            sb.setLength(0);
+                            sb.append(taxon).append("\t").append(key).append("\t");
+                            additiveOrDominance= j==0 ? "additive" : "dominance";
+                            slightlyOrStrongly= k==0 ? "slightly" : "strongly";
+                            sb.append(additiveOrDominance).append("\t").append(slightlyOrStrongly).append("\t");
+                            sb.append(String.join("\t", additiveDominanceSlightlyStrongly[j][k]));
+                            bw.write(sb.toString());
+                            bw.newLine();
+                        }
+                    }
+                    count++;
+                    if (count%200==0){
+                        System.out.println("writing "+count+" taxon");
+                    }
+                }
+                System.out.println(key+" finished");
+            }
+            bw.flush();
+            System.out.println("total "+count+" taxon has been write to "+outFile.getAbsolutePath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }

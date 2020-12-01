@@ -1,10 +1,12 @@
 package daxing.load.complementary;
 
-import daxing.common.LoadType;
-import daxing.common.NumberTool;
-import daxing.common.WheatLineage;
+import daxing.common.*;
 import gnu.trove.list.array.TIntArrayList;
+import pgl.infra.utils.PStringUtils;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -176,5 +178,73 @@ public class IndividualTriadsBlockLoad {
         }
         sb.deleteCharAt(sb.length()-1);
         return sb.toString();
+    }
+
+    /**
+     *
+     * @param individualTriadsBlockFile
+     * @return dim 1 2: additive or dominance, slightly or strongly
+     */
+    public static List<String>[][] getAdditiveDominanceSlightlyStronglyLoad(File individualTriadsBlockFile){
+        List<String>[][] res=new List[2][];
+        for (int i = 0; i < res.length; i++) {
+            res[i]=new List[2];
+            for (int j = 0; j < res[i].length; j++) {
+                res[i][j]=new ArrayList<>(19000);
+            }
+        }
+        try (BufferedReader br = IOTool.getReader(individualTriadsBlockFile)) {
+            br.readLine();
+            String line, slightlyLoadAdditive = null, slightlyLoadDominance=null, stronglyLoadAdditive=null,
+                    stronglyLoadDominance=null;
+            List<String> temp, tem, teSlightly, teStrongly;
+            double[] slightlyLoadArray;
+            double[] stronglyLoadArray;
+            while ((line=br.readLine())!=null){
+                temp= PStringUtils.fastSplit(line);
+                tem=PStringUtils.fastSplit(temp.get(3), "|");
+                teSlightly=PStringUtils.fastSplit(tem.get(0), ",");
+                teStrongly=PStringUtils.fastSplit(tem.get(1), ",");
+                slightlyLoadArray=new double[3];
+                stronglyLoadArray=new double[3];
+                Arrays.fill(slightlyLoadArray, -1);
+                Arrays.fill(stronglyLoadArray, -1);
+                for (int i = 0; i < teSlightly.size(); i++) {
+                    if (!StringTool.isNumeric(teSlightly.get(i))) continue;
+                    slightlyLoadArray[i]=Double.parseDouble(teSlightly.get(i));
+                }
+                for (int i = 0; i < teStrongly.size(); i++) {
+                    if (!StringTool.isNumeric(teStrongly.get(i))) continue;
+                    stronglyLoadArray[i]=Double.parseDouble(teStrongly.get(i));
+                }
+                for (int i = 0; i < slightlyLoadArray.length; i++) {
+                    if (slightlyLoadArray[i] < 0){
+                        slightlyLoadAdditive="NA";
+                        slightlyLoadDominance="NA";
+                        break;
+                    }else {
+                        slightlyLoadAdditive=String.valueOf(NumberTool.format(Arrays.stream(slightlyLoadArray).sum(),5));
+                        slightlyLoadDominance= String.valueOf(NumberTool.format(Arrays.stream(slightlyLoadArray).min().getAsDouble(),5));
+                    }
+                }
+                for (int i = 0; i < stronglyLoadArray.length; i++) {
+                    if (stronglyLoadArray[i] < 0){
+                        stronglyLoadAdditive="NA";
+                        stronglyLoadDominance="NA";
+                        break;
+                    }else {
+                        stronglyLoadAdditive=String.valueOf(NumberTool.format(Arrays.stream(stronglyLoadArray).sum(),5));
+                        stronglyLoadDominance= String.valueOf(NumberTool.format(Arrays.stream(stronglyLoadArray).min().getAsDouble(),5));
+                    }
+                }
+                res[0][0].add(slightlyLoadAdditive);
+                res[0][1].add(stronglyLoadAdditive);
+                res[1][0].add(slightlyLoadDominance);
+                res[1][1].add(stronglyLoadDominance);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return res;
     }
 }
