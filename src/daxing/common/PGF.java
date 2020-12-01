@@ -1074,22 +1074,21 @@ public class PGF {
 
     /**
      *
-     * @param chr
-     * @return all genesName on all target chromosome
+     * @param chrs
+     * @return all genesName on all target chromosome sorted by geneRange if chrs is sorted
      */
-    public List<String> getGeneNameOnChr(int[] chr){
+    public List<String> getGeneNameOnChr(int[] chrs){
         this.sortGeneByGeneRange();
         List<String> list=new ArrayList<>();
         Gene[] genes;
-        for (int i = 0; i < chr.length; i++) {
-            int chrIndexA=this.getStartIndexOfChromosome(chr[i]);
-            int chrIndexB=this.getEndIndexOfChromosome(chr[i]);
+        for (int i = 0; i < chrs.length; i++) {
+            int chrIndexA=this.getStartIndexOfChromosome(chrs[i]);
+            int chrIndexB=this.getEndIndexOfChromosome(chrs[i]);
             genes=ArrayUtils.subarray(this.genes, chrIndexA, chrIndexB);
             for (int j = 0; j < genes.length; j++) {
                 list.add(genes[j].getGeneName());
             }
         }
-        Collections.sort(list);
         return list;
     }
 
