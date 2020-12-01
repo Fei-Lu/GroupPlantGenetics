@@ -34,10 +34,6 @@ public class TriadsBlock {
         return blockGeneName;
     }
 
-    public void makeBlock(List<String>[] blockGeneName){
-        this.blockGeneName=blockGeneName;
-    }
-
     public boolean containsGene(String geneName){
         WheatLineage wheatLineage=WheatLineage.valueOf(geneName.substring(8,9));
         if (this.getBlockGeneName()[wheatLineage.getIndex()].contains(geneName)) return true;

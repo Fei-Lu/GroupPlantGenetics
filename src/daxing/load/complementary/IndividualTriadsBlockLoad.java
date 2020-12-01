@@ -1,9 +1,9 @@
 package daxing.load.complementary;
 
 import daxing.common.*;
+import daxing.load.ancestralSite.Standardization;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.PStringUtils;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -146,6 +146,18 @@ public class IndividualTriadsBlockLoad {
         return slightlyStrongly;
     }
 
+    public String getSlightlyLoadEightModel(){
+        double[] slightlyLoad=this.getSlightlyLoad();
+        if (Arrays.stream(slightlyLoad).min().getAsDouble() < 0) return "NA";
+        return Standardization.getNearestPointIndex(slightlyLoad).getRegion();
+    }
+
+    public String getStronglyLoadEightModel(){
+        double[] stronglyLoad=this.getStronglyLoad();
+        if (Arrays.stream(stronglyLoad).min().getAsDouble() < 0) return "NA";
+        return Standardization.getNearestPointIndex(stronglyLoad).getRegion();
+    }
+
     public String toString(){
         StringBuilder sb=new StringBuilder();
         List<String>[] blockGeneName=this.getTriadsBlocks().getBlockGeneName();
@@ -176,7 +188,8 @@ public class IndividualTriadsBlockLoad {
                 sb.append(NumberTool.format(stronglyLoad[i], 5)).append(",");
             }
         }
-        sb.deleteCharAt(sb.length()-1);
+        sb.deleteCharAt(sb.length()-1).append("\t");
+        sb.append(this.getSlightlyLoadEightModel()).append("\t").append(this.getStronglyLoadEightModel());
         return sb.toString();
     }
 

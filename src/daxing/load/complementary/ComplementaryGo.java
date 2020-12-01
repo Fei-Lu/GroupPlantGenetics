@@ -49,9 +49,9 @@ public class ComplementaryGo {
 //        merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
 //        syntheticPseudohexaploidHexaploid(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
 //                new File(outDir, subdir[2]).getAbsolutePath(), 300);
-//        calculateLoadInfo(triadFile, pgfFile, 10, new File(outDir, subdir[2]).getAbsoluteFile(), new File(outDir,
-//                subdir[3]));
-        mergeTriadsBlock(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
+        calculateLoadInfo(triadFile, pgfFile, 10, new File(outDir, subdir[2]).getAbsoluteFile(), new File(outDir,
+                subdir[3]));
+//        mergeTriadsBlock(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
     }
 
     private static void go(File exonSNPAnnoFile, File exonVCFFile,
@@ -291,7 +291,7 @@ public class ComplementaryGo {
             List<String>[] blockGeneName;
             TIntArrayList[] abdIndexArray;
             int index;
-            bw.write("TriadsBlock\tGenotypedGeneNum\t"+taxonName);
+            bw.write("TriadsBlock\tBlockGeneNum\tGenotypedGeneNum\t"+taxonName+"\tSlightlyModel\tStronglyModel");
             bw.newLine();
             IndividualTriadsBlockLoad individualTriadsBlockLoad;
             for (int i = 0; i < triadsBlockArray.length; i++) {

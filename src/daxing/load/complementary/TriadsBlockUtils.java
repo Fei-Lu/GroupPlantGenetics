@@ -51,6 +51,7 @@ public class TriadsBlockUtils {
                     refChr=geneName[j].substring(7,9);
                     chrIDArray= RefV1Utils.getChrIDsOfSubgenome(refChr);
                     chrGeneNameList=pgf.getGeneNameOnChr(chrIDArray);
+                    Collections.sort(chrGeneNameList);
                     geneIndex= Collections.binarySearch(chrGeneNameList, geneName[j]);
                     maxEndIndex=chrGeneNameList.size()-1;
                     startIndex= geneIndex < blockGeneNum ? 0 : geneIndex - blockGeneNum;
