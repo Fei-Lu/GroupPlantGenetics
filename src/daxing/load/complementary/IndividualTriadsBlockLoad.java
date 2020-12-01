@@ -260,4 +260,19 @@ public class IndividualTriadsBlockLoad {
         }
         return res;
     }
+
+    /**
+     *
+     * @param individualTriadsBlockFile
+     * @return dim 1 2: slightly or strongly
+     */
+    public static List<String>[] getSlightlyStronglyLoad(File individualTriadsBlockFile){
+        List<String>[] res=new List[2];
+        for (int i = 0; i < res.length; i++) {
+            res[i]=new ArrayList<>(19000);
+        }
+        res[0]=RowTableTool.getColumnList(individualTriadsBlockFile.getAbsolutePath(), 4);
+        res[1]=RowTableTool.getColumnList(individualTriadsBlockFile.getAbsolutePath(), 5);
+        return res;
+    }
 }

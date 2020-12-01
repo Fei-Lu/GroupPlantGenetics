@@ -52,6 +52,7 @@ public class ComplementaryGo {
         calculateLoadInfo(triadFile, pgfFile, 10, new File(outDir, subdir[2]).getAbsoluteFile(), new File(outDir,
                 subdir[3]));
 //        mergeTriadsBlock(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
+//        mergeTriadsBlockWithEightModel(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
     }
 
     private static void go(File exonSNPAnnoFile, File exonVCFFile,
@@ -360,6 +361,59 @@ public class ComplementaryGo {
                             bw.write(sb.toString());
                             bw.newLine();
                         }
+                    }
+                    count++;
+                    if (count%200==0){
+                        System.out.println("writing "+count+" taxon");
+                    }
+                }
+                System.out.println(key+" finished");
+            }
+            bw.flush();
+            System.out.println("total "+count+" taxon has been write to "+outFile.getAbsolutePath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public static void mergeTriadsBlockWithEightModel(File triadsBlockInputDir, File outDir){
+        List<File> files=IOUtils.getVisibleFileListInDir(triadsBlockInputDir.getAbsolutePath());
+        List<File> files1=files.stream().filter(file -> file.getName().startsWith("h") | file.getName().startsWith("p")).collect(Collectors.toList());
+        Map<String, List<File>> typeFileListMap= files1.stream().collect(Collectors.groupingBy(file -> PStringUtils.fastSplit(file.getName(),".").get(1)));
+        File triadsBlockFile= files.stream().filter(file -> file.getName().startsWith("triads")).collect(Collectors.toList()).get(0);
+        String key, taxon;
+        List<File> value;
+        File file;
+        File outFile=new File(outDir, "mergedTriadsBlockWithEightModel.txt.gz");
+        StringBuilder headerSB=new StringBuilder();
+        StringBuilder sb=new StringBuilder();
+        List<String>[] slightlyStronglyEightModel;
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
+            List<String> triadIDList=RowTableTool.getColumnList(triadsBlockFile.getAbsolutePath(), 0);
+            triadIDList.add(0,"Group");
+            triadIDList.add(1,"SlightlyOrStrongly");
+            headerSB.append("TaxonID").append("\t");
+            headerSB.append(String.join("\t", triadIDList));
+            bw.write(headerSB.toString());
+            bw.newLine();
+            String slightlyOrStrongly;
+            int count=0;
+            System.out.println("start writing ...");
+            for (Map.Entry<String,List<File>> entry : typeFileListMap.entrySet()){
+                key=entry.getKey();
+                value=entry.getValue();
+                for (int i = 0; i < value.size(); i++) {
+                    file=value.get(i);
+                    taxon=PStringUtils.fastSplit(file.getName(), ".").get(2);
+                    slightlyStronglyEightModel=IndividualTriadsBlockLoad.getSlightlyStronglyLoad(file);
+                    for (int j = 0; j < slightlyStronglyEightModel.length; j++) {
+                        slightlyOrStrongly= j==0 ? "slightly" : "strongly";
+                        sb.setLength(0);
+                        sb.append(taxon).append("\t").append(key).append("\t").append(slightlyOrStrongly).append("\t");
+                        sb.append(String.join("\t", slightlyStronglyEightModel[j]));
+                        bw.write(sb.toString());
+                        bw.newLine();
                     }
                     count++;
                     if (count%200==0){
