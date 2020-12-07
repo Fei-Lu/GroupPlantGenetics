@@ -49,10 +49,11 @@ public class ComplementaryGo {
 //        merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
 //        syntheticPseudohexaploidHexaploid(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
 //                new File(outDir, subdir[2]).getAbsolutePath(), 300);
-        calculateLoadInfo(triadFile, pgfFile, 10, new File(outDir, subdir[2]).getAbsoluteFile(), new File(outDir,
-                subdir[3]));
-//        mergeTriadsBlock(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
+//        calculateLoadInfo(triadFile, pgfFile, 10, new File(outDir, subdir[2]).getAbsoluteFile(), new File(outDir,
+//                subdir[3]));
+        mergeTriadsBlock(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
 //        mergeTriadsBlockWithEightModel(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
+//        mergeAllIndividualTriadsBlock(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
     }
 
     private static void go(File exonSNPAnnoFile, File exonVCFFile,
@@ -428,5 +429,76 @@ public class ComplementaryGo {
             e.printStackTrace();
         }
 
+    }
+
+    public static void mergeAllIndividualTriadsBlock(File triadsBlockInputDir, File outDir){
+        List<File> files=IOUtils.getVisibleFileListInDir(triadsBlockInputDir.getAbsolutePath());
+        List<File> files1=files.stream().filter(file -> file.getName().startsWith("h") | file.getName().startsWith("p")).collect(Collectors.toList());
+        File pseudohexaploid_hexaploidInfoFile=new File(outDir, "pseudohexaploid_hexaploidFile_Info.txt.gz");
+        File allIndividualTriadsBlockFile=new File(outDir, "allIndividualTriadsBlock.txt.gz");
+        List<String> triadsBlockIDList=RowTableTool.getColumnList(files1.get(0).getAbsolutePath(), 0, "\t");
+        List<String> blockGeneNumList=RowTableTool.getColumnList(files1.get(0).getAbsolutePath(), 1, "\t");
+        List<String> genotypedGeneNumList=RowTableTool.getColumnList(files1.get(0).getAbsolutePath(), 2, "\t");
+        List<List<String>> columnList=new ArrayList<>(1500);
+        TIntArrayList ifPseudohexaploidList=new TIntArrayList();
+        List<String> taxonList=new ArrayList<>();
+        List<String> taxonGroupList=new ArrayList<>();
+        List<String> columnLoad;
+        String taxon, taxonGroup;
+        int ifPseudohexaploid, count=0;
+        System.out.println(" start reading ...");
+        for (int i = 0; i < files1.size(); i++) {
+            columnLoad=RowTableTool.getColumnList(files1.get(i).getAbsolutePath(), 3,"\t");
+            ifPseudohexaploid=PStringUtils.fastSplit(files1.get(i).getName(), ".").get(0).equals("pseudohexaploid") ?
+                    1 : 0;
+            taxonGroup=PStringUtils.fastSplit(files1.get(i).getName(), ".").get(1);
+            taxon=PStringUtils.fastSplit(files1.get(i).getName(), ".").get(2);
+            ifPseudohexaploidList.add(ifPseudohexaploid);
+            columnList.add(columnLoad);
+            taxonGroupList.add(taxonGroup);
+            taxonList.add(taxon);
+            count++;
+            if (count%200==0){
+                System.out.println("reading "+count+ " files");
+            }
+        }
+        System.out.println("total "+ count+" files has been reading into memory");
+        int cnt=0;
+        try (BufferedWriter bw = IOTool.getWriter(allIndividualTriadsBlockFile);
+             BufferedWriter bwInfo=IOTool.getWriter(pseudohexaploid_hexaploidInfoFile)) {
+            StringBuilder header=new StringBuilder();
+            StringBuilder sb=new StringBuilder();
+            header.append("TriadsBlockID\tBlockGeneNum\tGenotypedGeneNum\t").append(String.join("\t", taxonList));
+            bw.write(header.toString());
+            bw.newLine();
+            for (int i = 0; i < columnList.get(0).size(); i++) {
+                sb.setLength(0);
+                sb.append(triadsBlockIDList.get(i)).append("\t").append(blockGeneNumList.get(i)).append("\t");
+                sb.append(genotypedGeneNumList.get(i)).append("\t");
+                for (int j = 0; j < columnList.size(); j++) {
+                    sb.append(columnList.get(j).get(i)).append("\t");
+                }
+                sb.deleteCharAt(sb.length()-1);
+                bw.write(sb.toString());
+                bw.newLine();
+                cnt++;
+            }
+           bw.flush();
+           header.setLength(0);
+           header.append("TaxonID\tIfPseudohexaploid\tGroup");
+           bwInfo.write(header.toString());
+           bwInfo.newLine();
+            for (int i = 0; i < ifPseudohexaploidList.size(); i++) {
+                sb.setLength(0);
+                sb.append(taxonList.get(i)).append("\t").append(ifPseudohexaploidList.get(i)).append("\t");
+                sb.append(taxonGroupList.get(i));
+                bwInfo.write(sb.toString());
+                bwInfo.newLine();
+            }
+            bwInfo.flush();
+        } catch (IOException e) {
+            System.out.println(cnt);
+            e.printStackTrace();
+        }
     }
 }
