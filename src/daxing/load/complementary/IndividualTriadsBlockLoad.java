@@ -1,12 +1,13 @@
 package daxing.load.complementary;
 
 import daxing.common.*;
-import daxing.load.ancestralSite.Standardization;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,11 +19,6 @@ public class IndividualTriadsBlockLoad {
     //    int[] blockCDSTotalLen;
     int[][] subLoadInfo_count; //dim 1 2: subgenome, loadInfo
     double[][] abdLoadType_load; //dim 1 2: subgenome, loadType
-    /**
-     * -1: syn derived count is 0
-     */
-    double[] stronglyLoad; // dim 1: subgenome
-    double[] slightlyLoad; // dim 1: subgenome
 
     public IndividualTriadsBlockLoad(TriadsBlock triadsBlock, List<String> geneNameList, List<int[]> loadInfoList, TIntArrayList[] abdIndexArray){
         this.triadsBlocks=triadsBlock;
@@ -36,10 +32,6 @@ public class IndividualTriadsBlockLoad {
             Arrays.fill(this.subLoadInfo_count[i], -1);
             Arrays.fill(this.abdLoadType_load[i], -1);
         }
-        this.stronglyLoad=new double[WheatLineage.values().length];
-        this.slightlyLoad=new double[WheatLineage.values().length];
-        Arrays.fill(this.stronglyLoad, -1);
-        Arrays.fill(this.slightlyLoad, -1);
         this.mergeLoadInfo(geneNameList, loadInfoList, abdIndexArray);
     }
 
@@ -64,15 +56,47 @@ public class IndividualTriadsBlockLoad {
         return subLoadInfo_count;
     }
 
-    public double[][] getAbdLoadType_load() {
-        return abdLoadType_load;
-    }
-
-    public double[] getSlightlyLoad() {
+    /**
+     * NA: missing
+     * NaN: 0/0
+     * @return
+     */
+    public String[] getSlightlyLoad() {
+        String[] slightlyLoad=new String[WheatLineage.values().length];
+        Arrays.fill(slightlyLoad, "NA");
+        NumberFormat numberFormat = NumberFormat.getInstance();
+        numberFormat.setMaximumFractionDigits(5);
+        for (int i = 0; i < abdLoadType_load.length; i++) {
+            if (abdLoadType_load[i][0] < 0) continue;
+            if (abdLoadType_load[i][1] < 0) continue;
+            if (abdLoadType_load[i][0] == 0){
+                slightlyLoad[i]=Double.toString(abdLoadType_load[i][1]/abdLoadType_load[i][0]);
+            }else {
+                slightlyLoad[i]=numberFormat.format(abdLoadType_load[i][1]/abdLoadType_load[i][0]);
+            }
+        }
         return slightlyLoad;
     }
 
-    public double[] getStronglyLoad() {
+    /**
+     * NA: missing
+     * NaN: 0/0
+     * @return
+     */
+    public String[] getStronglyLoad() {
+        String[] stronglyLoad=new String[WheatLineage.values().length];
+        Arrays.fill(stronglyLoad, "NA");
+        NumberFormat numberFormat=NumberFormat.getInstance();
+        numberFormat.setMaximumFractionDigits(5);
+        for (int i = 0; i < abdLoadType_load.length; i++) {
+            if (abdLoadType_load[i][0] < 0) continue;
+            if (abdLoadType_load[i][2] < 0) continue;
+            if (abdLoadType_load[i][0] == 0){
+                stronglyLoad[i]=Double.toString(abdLoadType_load[i][2]/abdLoadType_load[i][0]);
+            }else {
+                stronglyLoad[i]=numberFormat.format(abdLoadType_load[i][2]/abdLoadType_load[i][0]);
+            }
+        }
         return stronglyLoad;
     }
 
@@ -111,59 +135,14 @@ public class IndividualTriadsBlockLoad {
             }
             this.abdLoadType_load[i]=loadType_load;
         }
-        for (int i = 0; i < abdLoadType_load.length; i++) {
-            if (abdLoadType_load[i][0] <= 0) continue;
-            if (abdLoadType_load[i][1] < 0) continue;
-            if (abdLoadType_load[i][2] < 0) continue;
-            slightlyLoad[i]=abdLoadType_load[i][1]/abdLoadType_load[i][0];
-            stronglyLoad[i]=abdLoadType_load[i][2]/abdLoadType_load[i][0];
-        }
-    }
-
-    /**
-     *
-     * @return slightly and strongly
-     */
-    public double[] calculateAdditiveLoad(){
-        double[] slightlyLoad=this.getSlightlyLoad();
-        double[] stronglyLoad=this.getStronglyLoad();
-        double[] slightlyStrongly=new double[2];
-        slightlyStrongly[0]= Arrays.stream(slightlyLoad).sum();
-        slightlyStrongly[1]=Arrays.stream(stronglyLoad).sum();
-        return slightlyStrongly;
-    }
-
-    /**
-     *
-     * @return slightly and strongly
-     */
-    public double[] calculateDominanceLoad(){
-        double[] slightlyLoad=this.getSlightlyLoad();
-        double[] stronglyLoad=this.getStronglyLoad();
-        double[] slightlyStrongly=new double[2];
-        slightlyStrongly[0]=Arrays.stream(slightlyLoad).min().getAsDouble();
-        slightlyStrongly[1]=Arrays.stream(stronglyLoad).min().getAsDouble();
-        return slightlyStrongly;
-    }
-
-    public String getSlightlyLoadEightModel(){
-        double[] slightlyLoad=this.getSlightlyLoad();
-        if (Arrays.stream(slightlyLoad).min().getAsDouble() < 0) return "NA";
-        return Standardization.getNearestPointIndex(slightlyLoad).getRegion();
-    }
-
-    public String getStronglyLoadEightModel(){
-        double[] stronglyLoad=this.getStronglyLoad();
-        if (Arrays.stream(stronglyLoad).min().getAsDouble() < 0) return "NA";
-        return Standardization.getNearestPointIndex(stronglyLoad).getRegion();
     }
 
     public String toString(){
         StringBuilder sb=new StringBuilder();
         List<String>[] blockGeneName=this.getTriadsBlocks().getBlockGeneName();
         int[] abdGenotypedGeneNum=this.getGenotypedGeneList();
-        double[] slightlyLoad=this.getSlightlyLoad();
-        double[] stronglyLoad=this.getStronglyLoad();
+        String[] slightlyLoad=this.getSlightlyLoad();
+        String[] stronglyLoad=this.getStronglyLoad();
         sb.append(this.getTriadsBlocks().getTriadsID()).append("\t");
         for (int i = 0; i < blockGeneName.length; i++) {
             sb.append(blockGeneName[i].size()).append(",");
@@ -173,23 +152,8 @@ public class IndividualTriadsBlockLoad {
             sb.append(abdGenotypedGeneNum[i]).append(",");
         }
         sb.deleteCharAt(sb.length()-1).append("\t");
-        for (int i = 0; i < slightlyLoad.length; i++) {
-            if (slightlyLoad[i] < 0){
-                sb.append("NA").append(",");
-            }else {
-                sb.append(NumberTool.format(slightlyLoad[i], 5)).append(",");
-            }
-        }
-        sb.deleteCharAt(sb.length()-1).append("|");
-        for (int i = 0; i < stronglyLoad.length; i++) {
-            if (stronglyLoad[i] < 0){
-                sb.append("NA").append(",");
-            }else {
-                sb.append(NumberTool.format(stronglyLoad[i], 5)).append(",");
-            }
-        }
-        sb.deleteCharAt(sb.length()-1).append("\t");
-        sb.append(this.getSlightlyLoadEightModel()).append("\t").append(this.getStronglyLoadEightModel());
+        sb.append(String.join(",", slightlyLoad)).append("|");
+        sb.append(String.join(",", stronglyLoad));
         return sb.toString();
     }
 

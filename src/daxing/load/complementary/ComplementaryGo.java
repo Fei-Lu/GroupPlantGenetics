@@ -8,16 +8,17 @@ import daxing.load.ancestralSite.ChrSNPAnnoDB;
 import daxing.load.ancestralSite.GeneLoad;
 import daxing.load.ancestralSite.IndividualChrLoad;
 import gnu.trove.list.array.TIntArrayList;
+import pgl.infra.range.Range;
 import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -49,11 +50,10 @@ public class ComplementaryGo {
 //        merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
 //        syntheticPseudohexaploidHexaploid(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
 //                new File(outDir, subdir[2]).getAbsolutePath(), 300);
-//        calculateLoadInfo(triadFile, pgfFile, 10, new File(outDir, subdir[2]).getAbsoluteFile(), new File(outDir,
-//                subdir[3]));
-        mergeTriadsBlock(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
+//        calculateLoadInfo(triadFile, pgfFile, 10, new File(outDir, subdir[2]).getAbsoluteFile(), new File(outDir, subdir[3]));
+//        mergeTriadsBlock(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
 //        mergeTriadsBlockWithEightModel(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
-//        mergeAllIndividualTriadsBlock(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
+        mergeAllIndividualTriadsBlock(new File(outDir, subdir[3]), pgfFile, new File(outDir, subdir[4]));
     }
 
     private static void go(File exonSNPAnnoFile, File exonVCFFile,
@@ -431,10 +431,13 @@ public class ComplementaryGo {
 
     }
 
-    public static void mergeAllIndividualTriadsBlock(File triadsBlockInputDir, File outDir){
+    public static void mergeAllIndividualTriadsBlock(File triadsBlockInputDir, String pgfFile, File outDir){
         List<File> files=IOUtils.getVisibleFileListInDir(triadsBlockInputDir.getAbsolutePath());
-        List<File> files1=files.stream().filter(file -> file.getName().startsWith("h") | file.getName().startsWith("p")).collect(Collectors.toList());
-        File pseudohexaploid_hexaploidInfoFile=new File(outDir, "pseudohexaploid_hexaploidFile_Info.txt.gz");
+        Predicate<File> pseudoHexaploid=file -> file.getName().startsWith("h") | file.getName().startsWith("p");
+        List<File> files1=files.stream().filter(pseudoHexaploid).collect(Collectors.toList());
+        File triadsBlockFile=files.stream().filter(pseudoHexaploid.negate()).collect(Collectors.toList()).get(0);
+        Map<String, List<String>[]> triasBlockGeneNameListMap=getTriadsBlockGeneNameListMap(triadsBlockFile);
+        File pseudohexaploidFile=new File(outDir, "pseudohexaploidInfo.txt.gz");
         File allIndividualTriadsBlockFile=new File(outDir, "allIndividualTriadsBlock.txt.gz");
         List<String> triadsBlockIDList=RowTableTool.getColumnList(files1.get(0).getAbsolutePath(), 0, "\t");
         List<String> blockGeneNumList=RowTableTool.getColumnList(files1.get(0).getAbsolutePath(), 1, "\t");
@@ -464,17 +467,63 @@ public class ComplementaryGo {
         }
         System.out.println("total "+ count+" files has been reading into memory");
         int cnt=0;
+        PGF pgf=new PGF(pgfFile);
+        pgf.sortGeneByName();
         try (BufferedWriter bw = IOTool.getWriter(allIndividualTriadsBlockFile);
-             BufferedWriter bwInfo=IOTool.getWriter(pseudohexaploid_hexaploidInfoFile)) {
+             BufferedWriter bwInfo=IOTool.getWriter(pseudohexaploidFile)) {
             StringBuilder header=new StringBuilder();
             StringBuilder sb=new StringBuilder();
-            header.append("TriadsBlockID\tBlockGeneNum\tGenotypedGeneNum\t").append(String.join("\t", taxonList));
+            header.append("TriadsBlockID\tBlockGeneNum\tGenotypedGeneNum\tRange\tCDSLen\t").append(String.join("\t",
+                    taxonList));
             bw.write(header.toString());
             bw.newLine();
+            String triadsBlockID;
+            List<String>[] geneNameListArray;
+            int geneIndex0, geneIndex, cdsLen0;
+            Range[] rangeABD;
+            ChrRange[] chrRangeABD;
+            int[] cdsLenABD;
+            Range range0, range;
             for (int i = 0; i < columnList.get(0).size(); i++) {
                 sb.setLength(0);
-                sb.append(triadsBlockIDList.get(i)).append("\t").append(blockGeneNumList.get(i)).append("\t");
+                triadsBlockID=triadsBlockIDList.get(i);
+                geneNameListArray=triasBlockGeneNameListMap.get(triadsBlockID);
+                rangeABD=new Range[3];
+                cdsLenABD=new int[3];
+                for (int j = 0; j < geneNameListArray.length; j++) {
+                    geneIndex0=pgf.getGeneIndex(geneNameListArray[j].get(0));
+                    range0=pgf.getGene(geneIndex0).getGeneRange();
+                    cdsLen0=pgf.getGene(geneIndex0).getLongestTranscriptCDSLen();
+                    for (int k = 1; k < geneNameListArray[j].size(); k++) {
+                        geneIndex=pgf.getGeneIndex(geneNameListArray[j].get(k));
+                        range=pgf.getGene(geneIndex).getGeneRange();
+                        if (range.getRangeStart() < range0.getRangeStart()){
+                            range0.setRangeStart(range.getRangeStart());
+                        }
+                        if (range.getRangeEnd() > range0.getRangeEnd()){
+                            range0.setRangeEnd(range.getRangeEnd());
+                        }
+                        cdsLen0+=pgf.getGene(geneIndex).getLongestTranscriptCDSLen();
+                    }
+                    rangeABD[j]=range0;
+                    cdsLenABD[j]=cdsLen0;
+                }
+                chrRangeABD=new ChrRange[WheatLineage.values().length];
+                for (int j = 0; j < rangeABD.length; j++) {
+                    chrRangeABD[j]=ChrRange.changeToChrRange(rangeABD[j]);
+                }
+                sb.append(triadsBlockID).append("\t");
+                sb.append(blockGeneNumList.get(i)).append("\t");
                 sb.append(genotypedGeneNumList.get(i)).append("\t");
+                for (int j = 0; j < chrRangeABD.length; j++) {
+                    sb.append(chrRangeABD[j].getChr()).append(":").append(chrRangeABD[j].getStart()).append(",");
+                    sb.append(chrRangeABD[j].getEnd()).append(";");
+                }
+                sb.deleteCharAt(sb.length()-1).append("\t");
+                for (int j = 0; j < cdsLenABD.length; j++) {
+                    sb.append(cdsLenABD[j]).append(",");
+                }
+                sb.deleteCharAt(sb.length()-1).append("\t");
                 for (int j = 0; j < columnList.size(); j++) {
                     sb.append(columnList.get(j).get(i)).append("\t");
                 }
@@ -488,9 +537,13 @@ public class ComplementaryGo {
            header.append("TaxonID\tIfPseudohexaploid\tGroup");
            bwInfo.write(header.toString());
            bwInfo.newLine();
+           String ifPseudo;
             for (int i = 0; i < ifPseudohexaploidList.size(); i++) {
+                if (taxonGroupList.get(i).length() ==2) continue;
                 sb.setLength(0);
-                sb.append(taxonList.get(i)).append("\t").append(ifPseudohexaploidList.get(i)).append("\t");
+                sb.append(taxonList.get(i)).append("\t");
+                ifPseudo=ifPseudohexaploidList.get(i) == 1 ? "PseudoHexaploid" : "Hexaploid";
+                sb.append(ifPseudo).append("\t");
                 sb.append(taxonGroupList.get(i));
                 bwInfo.write(sb.toString());
                 bwInfo.newLine();
@@ -500,5 +553,26 @@ public class ComplementaryGo {
             System.out.println(cnt);
             e.printStackTrace();
         }
+    }
+
+    private static Map<String, List<String>[]> getTriadsBlockGeneNameListMap(File triadsBlockFile){
+        Map<String, List<String>[]> triadsBlockGeneListMap = new HashMap<>();
+        try (BufferedReader br = IOTool.getReader(triadsBlockFile)) {
+            br.readLine();
+            String line;
+            List<String>[] value;
+            List<String> temp;
+            while ((line=br.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                value=new List[WheatLineage.values().length];
+                for (int i = 0; i < value.length; i++) {
+                    value[i]=PStringUtils.fastSplit(temp.get(4+i), ",");
+                }
+                triadsBlockGeneListMap.put(temp.get(0), value);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return triadsBlockGeneListMap;
     }
 }
