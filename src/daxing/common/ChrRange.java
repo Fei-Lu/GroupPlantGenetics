@@ -1,5 +1,6 @@
 package daxing.common;
 
+import pgl.infra.range.Range;
 import pgl.infra.utils.wheat.RefV1Utils;
 
 import java.util.Objects;
@@ -100,5 +101,15 @@ public class ChrRange implements Comparable<ChrRange>{
     @Override
     public int hashCode() {
         return Objects.hash(chr, start, end);
+    }
+
+    public static ChrRange changeToChrRange(Range range){
+        int chrID=range.getRangeChromosome();
+        int startOnChrID=range.getRangeStart();
+        int endOnChrID=range.getRangeEnd();
+        String chr=RefV1Utils.getChromosome(chrID, startOnChrID);
+        int startOnRefChr=RefV1Utils.getPosOnChromosome(chrID, startOnChrID);
+        int endOnRefChr=RefV1Utils.getPosOnChromosome(chrID, endOnChrID);
+        return new ChrRange(chr, startOnRefChr, endOnRefChr);
     }
 }
