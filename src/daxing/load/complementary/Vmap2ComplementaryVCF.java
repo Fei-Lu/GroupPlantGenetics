@@ -5,21 +5,27 @@ import daxing.common.IOTool;
 import daxing.common.RowTableTool;
 import daxing.common.WheatLineage;
 import gnu.trove.list.array.TIntArrayList;
+import org.apache.commons.math3.random.EmpiricalDistribution;
 import org.apache.commons.math3.stat.inference.TestUtils;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.DoublePredicate;
+import java.util.function.IntPredicate;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Vmap2ComplementaryVCF {
 
-    List<TriadsBlockRecord> triadsBlockRecordList;
-    List<String> taxonList;
+    static List<TriadsBlockRecord> triadsBlockRecordList;
+    static List<String> taxonList;
 
     public Vmap2ComplementaryVCF(String vmap2ComplementaryVCF){
         this.taxonList=new ArrayList<>();
@@ -81,12 +87,36 @@ public class Vmap2ComplementaryVCF {
         }
     }
 
-    public List<String> getTaxonList() {
-        return taxonList;
+    public static int getTaxonNum(){
+        return Vmap2ComplementaryVCF.taxonList.size();
     }
 
-    public List<TriadsBlockRecord> getTriadsBlockRecordList() {
-        return triadsBlockRecordList;
+    public static List<String> getHexaploidTaxonList(String pseudoInfoFile){
+        List<String> pseudoTaxonNameList=RowTableTool.getColumnList(pseudoInfoFile,0);
+        List<String> taxonList=Vmap2ComplementaryVCF.taxonList;
+        Predicate<String> pseudoPredict=taxon ->pseudoTaxonNameList.contains(taxon);
+        return taxonList.stream().filter(pseudoPredict.negate()).collect(Collectors.toList());
+    }
+
+    public static List<String> getPseudoTaxonList(String pseudoInfoFile){
+        return RowTableTool.getColumnList(pseudoInfoFile,0);
+    }
+
+    public static TIntArrayList getTaxonIndex(List<String> taxonNameSubList){
+        List<String> taxonNameList=Vmap2ComplementaryVCF.taxonList;
+        TIntArrayList indexList = new TIntArrayList();
+        for (int i = 0; i < taxonNameList.size(); i++) {
+            if (!taxonNameSubList.contains(taxonNameList.get(i))) continue;
+            indexList.add(i);
+        }
+        return indexList;
+    }
+
+    public static DoublePredicate getNonNAInfNaNPredict(){
+        DoublePredicate isNA=value -> value < 0;
+        DoublePredicate isInf=Double::isInfinite;
+        DoublePredicate isNaN=Double::isNaN;
+        return isNA.negate().and(isInf.negate()).and(isNaN.negate());
     }
 
     public void calculateTwoSampleTTestStatics(String tTestStaticsOutFile, String taxaInfoDB,
@@ -96,7 +126,7 @@ public class Vmap2ComplementaryVCF {
         try (BufferedWriter bw = IOTool.getWriter(tTestStaticsOutFile)) {
             Map<String, String> taxonGroupBySubcontinentMap=RowTableTool.getMap(taxaInfoDB, 0, 24);
             Map<String, String> taxonGroupPseudoMap=RowTableTool.getMap(pseudohexaploidInfo, 0, 1);
-            List<String> taxonList=this.getTaxonList();
+            List<String> taxonList=Vmap2ComplementaryVCF.taxonList;
             TIntArrayList[] groupBySubcontinentIndexList=new TIntArrayList[groupBySubcontinent.length];
             TIntArrayList pseudhoIndexList=new TIntArrayList();
             for (int i = 0; i < groupBySubcontinentIndexList.length; i++) {
@@ -124,7 +154,7 @@ public class Vmap2ComplementaryVCF {
             bw.write("TriadsBlockID\tGroupBySubcontinent\tGenotypedHexaploidTaxaNum" +
                     "\tGenotypedPseudoTaxaNum\tSlightlyOrStrongly\tAdditiveOrDominance\tT_notEqualVariances\tp_notEqualVariances");
             bw.newLine();
-            List<TriadsBlockRecord> triadsBlockRecordList=this.getTriadsBlockRecordList();
+            List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
             double[][][] slightlyStronglyAdditiveDominanceTaxonLoad, slightlyStronglyAdditiveDominancePseudoLoad;
             double[] taxonLoadGreaterOrEqualThan0, pseudoLoadGreaterOrEqualThan0;
             double t, p;
@@ -132,8 +162,6 @@ public class Vmap2ComplementaryVCF {
             SlightlyOrStrongly slightlyOrStrongly;
             AdditiveOrDominance additiveOrDominance;
             DoublePredicate lessThan0=num -> num < 0;
-            DoublePredicate infinite=num -> Double.isInfinite(num);
-            DoublePredicate nan =num -> Double.isNaN(num);
             String[] na=new String[6];
             Arrays.fill(na, "NA");
             for (int i = 0; i < triadsBlockRecordList.size(); i++) {
@@ -162,9 +190,9 @@ public class Vmap2ComplementaryVCF {
                                 continue;
                             }
                             taxonLoadGreaterOrEqualThan0=
-                                    Arrays.stream(slightlyStronglyAdditiveDominanceTaxonLoad[l][m]).filter(lessThan0.negate()).filter(infinite.negate()).filter(nan.negate()).toArray();
+                                    Arrays.stream(slightlyStronglyAdditiveDominanceTaxonLoad[l][m]).filter(Vmap2ComplementaryVCF.getNonNAInfNaNPredict()).toArray();
                             pseudoLoadGreaterOrEqualThan0=
-                                    Arrays.stream(slightlyStronglyAdditiveDominancePseudoLoad[l][m]).filter(lessThan0.negate()).filter(infinite.negate()).filter(nan.negate()).toArray();
+                                    Arrays.stream(slightlyStronglyAdditiveDominancePseudoLoad[l][m]).filter(Vmap2ComplementaryVCF.getNonNAInfNaNPredict()).toArray();
                             if (taxonLoadGreaterOrEqualThan0.length < 2 || pseudoLoadGreaterOrEqualThan0.length < 2){
                                 sb.append(taxonLoadGreaterOrEqualThan0.length).append("\t");
                                 sb.append(pseudoLoadGreaterOrEqualThan0.length).append("\t");
@@ -191,6 +219,97 @@ public class Vmap2ComplementaryVCF {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void calculateOneSampleTTestStatics(String pseudohexaploidInfo,
+                                                String empiricalDistributionProbabilityOutFile){
+        List<String> pseudoTaxonNameList=RowTableTool.getColumnList(pseudohexaploidInfo,0);
+        List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
+        TIntArrayList pseudoIndexList=this.getTaxonIndex(pseudoTaxonNameList);
+        IntPredicate inPseudoIndexList=value -> pseudoIndexList.contains(value);
+        TIntArrayList hexaploidIndexList= new TIntArrayList(IntStream.range(0, this.getTaxonNum()).filter(inPseudoIndexList.negate()).toArray());
+        double[] pseudo, hexaploid, pseudoFilterMinus1NaNInf;
+        EmpiricalDistribution empiricalDistribution;
+        double[][][] slightlyStronglyAdditiveDominancePseudoLoad, slightlyStronglyAdditiveDominanceHexaploidLoad;
+        DoublePredicate lessThan0=value -> value < 0;
+        DoublePredicate equalNaN= Double::isNaN;
+        DoublePredicate infinite= Double::isInfinite;
+        double cumulativeProbability, t, pValue;
+        double[] cumulativeProbabilityArray;
+        NumberFormat numberFormat=NumberFormat.getInstance();
+        numberFormat.setMaximumFractionDigits(3);
+        try (BufferedWriter bw = IOTool.getWriter(empiricalDistributionProbabilityOutFile)) {
+            StringBuilder sb=new StringBuilder();
+            sb.setLength(0);
+            sb.append("TriadsBlockID\tChr\tPosStart\tPosEnd\tSlightlyOrStrongly\tAdditiveOrDominance\t").append(String.join("\t",
+                    this.getHexaploidTaxonList(pseudohexaploidInfo)));
+            bw.write(sb.toString());
+            bw.newLine();
+            ChrRange[] chrRangeArray;
+            for (int i = 0; i < triadsBlockRecordList.size(); i++) {
+                slightlyStronglyAdditiveDominancePseudoLoad= triadsBlockRecordList.get(i).getSlightStronglyAdditiveDominanceTaxonListLoad(pseudoIndexList);
+                slightlyStronglyAdditiveDominanceHexaploidLoad= triadsBlockRecordList.get(i).getSlightStronglyAdditiveDominanceTaxonListLoad(hexaploidIndexList);
+                for (int j = 0; j < SlightlyOrStrongly.values().length; j++) {
+                    for (int k = 0; k < AdditiveOrDominance.values().length; k++) {
+                        pseudo=slightlyStronglyAdditiveDominancePseudoLoad[j][k];
+                        hexaploid=slightlyStronglyAdditiveDominanceHexaploidLoad[j][k];
+                        pseudoFilterMinus1NaNInf= Arrays.stream(pseudo).filter(lessThan0.negate().and(equalNaN.negate()).and(infinite.negate())).toArray();
+                        empiricalDistribution=new EmpiricalDistribution();
+                        empiricalDistribution.load(pseudoFilterMinus1NaNInf);
+                        cumulativeProbabilityArray=new double[hexaploid.length];
+                        Arrays.fill(cumulativeProbabilityArray, -1);
+                        chrRangeArray=triadsBlockRecordList.get(i).getChrRange();
+//                        for (int l = 0; l < chrRangeArray.length; l++) {
+//                            sb.setLength(0);
+//                            sb.append(triadsBlockRecordList.get(i).getTriadsBlockID()).append("\t");
+//                            sb.append(chrRangeArray[l].getChr()).append("\t");
+//                            sb.append(chrRangeArray[l].getStart()).append("\t");
+//                            sb.append(chrRangeArray[l].getEnd()).append("\t");
+//                            sb.append(SlightlyOrStrongly.newInstanceFromIndex(j).getValue()).append("\t");
+//                            sb.append(AdditiveOrDominance.newInstanceFromIndex(k).getValue()).append("\t");
+//                            for (int m = 0; m < hexaploid.length; m++) {
+//                                if (hexaploid[m] < 0 ||pseudoFilterMinus1NaNInf.length < 2){
+//                                    sb.append("NA").append("\t");
+//                                    continue;
+//                                }
+//                                t=TestUtils.t(hexaploid[m], pseudoFilterMinus1NaNInf);
+////                                cumulativeProbability=empiricalDistribution.cumulativeProbability(hexaploid[m]);
+//                                sb.append(t).append("\t");
+////                                sb.append(numberFormat.format(cumulativeProbability)).append("\t");
+//                            }
+//                            sb.deleteCharAt(sb.length()-1);
+//                            bw.write(sb.toString());
+//                            bw.newLine();
+//                        }
+                        sb.setLength(0);
+                        sb.append(triadsBlockRecordList.get(i).getTriadsBlockID()).append("\t");
+                        sb.append(chrRangeArray[2].getChr()).append("\t");
+                        sb.append(chrRangeArray[2].getStart()).append("\t");
+                        sb.append(chrRangeArray[2].getEnd()).append("\t");
+                        sb.append(SlightlyOrStrongly.newInstanceFromIndex(j).getValue()).append("\t");
+                        sb.append(AdditiveOrDominance.newInstanceFromIndex(k).getValue()).append("\t");
+                        for (int m = 0; m < hexaploid.length; m++) {
+                            if (hexaploid[m] < 0 ||pseudoFilterMinus1NaNInf.length < 2){
+                                sb.append("NA").append("\t");
+                                continue;
+                            }
+                            t=TestUtils.t(hexaploid[m], pseudoFilterMinus1NaNInf);
+//                                cumulativeProbability=empiricalDistribution.cumulativeProbability(hexaploid[m]);
+                            sb.append(t).append("\t");
+//                                sb.append(numberFormat.format(cumulativeProbability)).append("\t");
+                        }
+                        sb.deleteCharAt(sb.length()-1);
+                        bw.write(sb.toString());
+                        bw.newLine();
+
+                    }
+                }
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     public enum SlightlyOrStrongly{
@@ -280,6 +399,10 @@ public class Vmap2ComplementaryVCF {
             return triadsBlockID;
         }
 
+        public ChrRange[] getChrRange() {
+            return chrRange;
+        }
+
         boolean addLoadINFO(String loadINFOStr){
             LoadINFO loadINFO=new LoadINFO(loadINFOStr);
             return this.loadINFO.add(loadINFO);
@@ -338,6 +461,41 @@ public class Vmap2ComplementaryVCF {
                 }
             }
             return slightlyStronglyAdditiveDominanceTaxonList_load;
+        }
+
+        /**
+         * -1: NA
+         * @param pseudoInfoFile
+         * @return
+         */
+        public double[][][] getSlightStronglyAdditiveDominanceTaxon_HexaploidEmpiricalDistributionT(String pseudoInfoFile){
+            List<String> pseudoTaxonList= Vmap2ComplementaryVCF.getPseudoTaxonList(pseudoInfoFile);
+            List<String> hexaploidTaxonList=Vmap2ComplementaryVCF.getHexaploidTaxonList(pseudoInfoFile);
+            TIntArrayList pseudoTaxonIndexList=Vmap2ComplementaryVCF.getTaxonIndex(pseudoTaxonList);
+            TIntArrayList hexaploidTaxonIndexList=Vmap2ComplementaryVCF.getTaxonIndex(hexaploidTaxonList);
+            double[][][] res=new double[SlightlyOrStrongly.values().length][][];
+            for (int i = 0; i < res.length; i++) {
+                res[i]=new double[AdditiveOrDominance.values().length][];
+                for (int j = 0; j < res[i].length; j++) {
+                    res[i][j]=new double[hexaploidTaxonList.size()];
+                    Arrays.fill(res[i][j], -1);
+                }
+            }
+            double[][][] slightlyStronglyAdditiveDominancePseudoLoad=this.getSlightStronglyAdditiveDominanceTaxonListLoad(pseudoTaxonIndexList);
+            double[][][] slightlyStronglyAdditiveDominanceHexaploidLoad= this.getSlightStronglyAdditiveDominanceTaxonListLoad(hexaploidTaxonIndexList);
+            double[] pseudoLoad, pseudoLoadRemovedNAInfNaN;
+            for (int i = 0; i < SlightlyOrStrongly.values().length; i++) {
+                for (int j = 0; j < AdditiveOrDominance.values().length; j++) {
+                    pseudoLoad=slightlyStronglyAdditiveDominancePseudoLoad[i][j];
+                    pseudoLoadRemovedNAInfNaN= Arrays.stream(pseudoLoad).filter(Vmap2ComplementaryVCF.getNonNAInfNaNPredict()).toArray();
+                    if (pseudoLoadRemovedNAInfNaN.length < 2) continue;
+                    for (int k = 0; k < hexaploidTaxonList.size(); k++) {
+                        if (slightlyStronglyAdditiveDominanceHexaploidLoad[i][j][k] < 0) continue;
+                        res[i][j][k]=TestUtils.t(slightlyStronglyAdditiveDominanceHexaploidLoad[i][j][k], pseudoLoadRemovedNAInfNaN);
+                    }
+                }
+            }
+            return res;
         }
     }
 

@@ -51,7 +51,7 @@ public class ComplementaryGo {
 //        syntheticPseudohexaploidHexaploid(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
 //                new File(outDir, subdir[2]).getAbsolutePath(), 300);
 //        calculateLoadInfo(triadFile, pgfFile, 10, new File(outDir, subdir[2]).getAbsoluteFile(), new File(outDir, subdir[3]));
-//        mergeTriadsBlock(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
+//        mergeTriadsBlockBySubspecies(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
 //        mergeTriadsBlockWithEightModel(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
         mergeAllIndividualTriadsBlock(new File(outDir, subdir[3]), pgfFile, new File(outDir, subdir[4]));
     }
@@ -320,7 +320,13 @@ public class ComplementaryGo {
         }
     }
 
-    public static void mergeTriadsBlock(File triadsBlockInputDir, File outDir){
+    /**
+     * group by subspecies (according to file name)
+     * @param triadsBlockInputDir
+     * @param outDir AllIndividualTriadsBlockBySubspecies.txt.gz
+     *               column: Triads, row: taxon
+     */
+    public static void mergeTriadsBlockBySubspecies(File triadsBlockInputDir, File outDir){
         List<File> files=IOUtils.getVisibleFileListInDir(triadsBlockInputDir.getAbsolutePath());
         List<File> files1=files.stream().filter(file -> file.getName().startsWith("h") | file.getName().startsWith("p")).collect(Collectors.toList());
         Map<String, List<File>> typeFileListMap= files1.stream().collect(Collectors.groupingBy(file -> PStringUtils.fastSplit(file.getName(),".").get(1)));
@@ -328,7 +334,7 @@ public class ComplementaryGo {
         String key, taxon;
         List<File> value;
         File file;
-        File outFile=new File(outDir, "mergedTriadsBlock.txt.gz");
+        File outFile=new File(outDir, "allIndividualTriadsBlockBySubspecies.txt.gz");
         StringBuilder headerSB=new StringBuilder();
         StringBuilder sb=new StringBuilder();
         List<String>[][] additiveDominanceSlightlyStrongly;
@@ -431,6 +437,13 @@ public class ComplementaryGo {
 
     }
 
+    /**
+     *
+     * @param triadsBlockInputDir
+     * @param pgfFile
+     * @param outDir allIndividualTriadsBlock.txt.gz
+     *               row: triads column: taxon
+     */
     public static void mergeAllIndividualTriadsBlock(File triadsBlockInputDir, String pgfFile, File outDir){
         List<File> files=IOUtils.getVisibleFileListInDir(triadsBlockInputDir.getAbsolutePath());
         Predicate<File> pseudoHexaploid=file -> file.getName().startsWith("h") | file.getName().startsWith("p");
