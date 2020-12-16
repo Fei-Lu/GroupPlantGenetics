@@ -23,7 +23,7 @@ public class Triad {
     List<String[]> triad;
     TIntArrayList ifSyntenic;  //0 is non-syntenic and 1 is syntenic
     TIntArrayList ifExpressed;  // 0 is false and 1 is true
-    List<int[]> cdsList;
+    List<int[]> cdsList; // -1: NA
 
     public Triad(String triadFile){
         triadID=new ArrayList<>(19000);
@@ -56,9 +56,9 @@ public class Triad {
                     ifExpressed.add(0);
                 }
                 cdsLenABD=new int[3];
-                cdsLenABD[0]=Integer.parseInt(temp.get(6));
-                cdsLenABD[1]=Integer.parseInt(temp.get(7));
-                cdsLenABD[2]=Integer.parseInt(temp.get(8));
+                cdsLenABD[0]=StringTool.isNumeric(temp.get(6)) ? Integer.parseInt(temp.get(6)) : -1;
+                cdsLenABD[1]=StringTool.isNumeric(temp.get(7)) ? Integer.parseInt(temp.get(7)) : -1;
+                cdsLenABD[2]=StringTool.isNumeric(temp.get(8)) ? Integer.parseInt(temp.get(8)) : -1;
                 cdsList.add(cdsLenABD);
             }
         } catch (IOException e) {
