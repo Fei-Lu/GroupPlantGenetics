@@ -120,7 +120,7 @@ public class Vmap2ComplementaryVCF {
     }
 
     public void calculateTwoSampleTTestStatics(String tTestStaticsOutFile, String taxaInfoDB,
-                                               String pseudohexaploidInfo){
+                                               String pseudohexaploidInfo, SubgenomeCombination subgenomeCombination){
         String[] groupBySubcontinent={"LR_America","LR_Africa","LR_EU","LR_WA","LR_CSA","LR_EA","Cultivar"};
         Arrays.sort(groupBySubcontinent);
         try (BufferedWriter bw = IOTool.getWriter(tTestStaticsOutFile)) {
@@ -167,9 +167,9 @@ public class Vmap2ComplementaryVCF {
             for (int i = 0; i < triadsBlockRecordList.size(); i++) {
                 for (int j = 0; j < groupBySubcontinentIndexList.length; j++) {
                     slightlyStronglyAdditiveDominanceTaxonLoad=
-                            triadsBlockRecordList.get(i).getSlightStronglyAdditiveDominanceTaxonListLoad(groupBySubcontinentIndexList[j]);
+                            triadsBlockRecordList.get(i).getSlightStronglyAdditiveDominanceTaxonListLoad(groupBySubcontinentIndexList[j], subgenomeCombination);
                     slightlyStronglyAdditiveDominancePseudoLoad=
-                            triadsBlockRecordList.get(i).getSlightStronglyAdditiveDominanceTaxonListLoad(pseudhoIndexList);
+                            triadsBlockRecordList.get(i).getSlightStronglyAdditiveDominanceTaxonListLoad(pseudhoIndexList, subgenomeCombination);
                     for (int l = 0; l < SlightlyOrStrongly.values().length; l++) {
                         slightlyOrStrongly=SlightlyOrStrongly.newInstanceFromIndex(l);
                         for (int m = 0; m < AdditiveOrDominance.values().length; m++) {
@@ -222,7 +222,7 @@ public class Vmap2ComplementaryVCF {
     }
 
     public void calculateOneSampleTTestStatics(String pseudohexaploidInfo,
-                                                String empiricalDistributionProbabilityOutFile){
+                                                String empiricalDistributionProbabilityOutFile, SubgenomeCombination subgenomeCombination){
         List<String> pseudoTaxonNameList=RowTableTool.getColumnList(pseudohexaploidInfo,0);
         List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
         TIntArrayList pseudoIndexList=this.getTaxonIndex(pseudoTaxonNameList);
@@ -247,8 +247,10 @@ public class Vmap2ComplementaryVCF {
             bw.newLine();
             ChrRange[] chrRangeArray;
             for (int i = 0; i < triadsBlockRecordList.size(); i++) {
-                slightlyStronglyAdditiveDominancePseudoLoad= triadsBlockRecordList.get(i).getSlightStronglyAdditiveDominanceTaxonListLoad(pseudoIndexList);
-                slightlyStronglyAdditiveDominanceHexaploidLoad= triadsBlockRecordList.get(i).getSlightStronglyAdditiveDominanceTaxonListLoad(hexaploidIndexList);
+                slightlyStronglyAdditiveDominancePseudoLoad=
+                        triadsBlockRecordList.get(i).getSlightStronglyAdditiveDominanceTaxonListLoad(pseudoIndexList, subgenomeCombination);
+                slightlyStronglyAdditiveDominanceHexaploidLoad=
+                        triadsBlockRecordList.get(i).getSlightStronglyAdditiveDominanceTaxonListLoad(hexaploidIndexList, subgenomeCombination);
                 for (int j = 0; j < SlightlyOrStrongly.values().length; j++) {
                     for (int k = 0; k < AdditiveOrDominance.values().length; k++) {
                         pseudo=slightlyStronglyAdditiveDominancePseudoLoad[j][k];
@@ -377,6 +379,29 @@ public class Vmap2ComplementaryVCF {
         }
     }
 
+    public enum SubgenomeCombination{
+        AB("01"), AD("02"), BD("12"), ABD("012");
+
+        String index;
+
+        SubgenomeCombination(String index) {
+            this.index=index;
+        }
+
+        public String getIndex() {
+            return index;
+        }
+
+        public TIntArrayList getIndexList(){
+            TIntArrayList res=new TIntArrayList();
+            String indexStr=this.getIndex();
+            for (int i = 0; i < indexStr.length(); i++) {
+                res.add(Integer.parseInt(indexStr.substring(i,i+1)));
+            }
+            return res;
+        }
+    }
+
     private class TriadsBlockRecord {
 
         String triadsBlockID;
@@ -425,11 +450,12 @@ public class Vmap2ComplementaryVCF {
          *
          * @return [SlightStrongly][AdditiveDominance] load of specified taxonList
          */
-        private List<double[][]> getSlightStronglyAdditiveDominanceLoad(TIntArrayList taxonIndexList){
+        private List<double[][]> getSlightStronglyAdditiveDominanceLoad(TIntArrayList taxonIndexList,
+                                                                        SubgenomeCombination subgenomeCombination){
             List<LoadINFO> loadINFOS=this.getLoadINFO(taxonIndexList);
             List<double[][]> res=new ArrayList<>();
             for (int i = 0; i < loadINFOS.size(); i++) {
-                res.add(loadINFOS.get(i).getSlightStronglyAdditiveDominanceLoad());
+                res.add(loadINFOS.get(i).getSlightlyStronglyAdditiveDominance_Load(subgenomeCombination));
             }
             return res;
         }
@@ -439,8 +465,10 @@ public class Vmap2ComplementaryVCF {
          * @param taxonIndexList
          * @return
          */
-        public double[][][] getSlightStronglyAdditiveDominanceTaxonListLoad(TIntArrayList taxonIndexList){
-            List<double[][]> slightStronglyAdditiveDominanceTaxonLoad=this.getSlightStronglyAdditiveDominanceLoad(taxonIndexList);
+        public double[][][] getSlightStronglyAdditiveDominanceTaxonListLoad(TIntArrayList taxonIndexList,
+                                                                            SubgenomeCombination subgenomeCombination){
+            List<double[][]> slightStronglyAdditiveDominanceTaxonLoad=
+                    this.getSlightStronglyAdditiveDominanceLoad(taxonIndexList, subgenomeCombination);
             double[][][] slightlyStronglyAdditiveDominanceTaxonList_load=
                     new double[SlightlyOrStrongly.values().length][][];
             for (int i = 0; i < slightlyStronglyAdditiveDominanceTaxonList_load.length; i++) {
@@ -468,7 +496,8 @@ public class Vmap2ComplementaryVCF {
          * @param pseudoInfoFile
          * @return
          */
-        public double[][][] getSlightStronglyAdditiveDominanceTaxon_HexaploidEmpiricalDistributionT(String pseudoInfoFile){
+        public double[][][] getSlightStronglyAdditiveDominanceTaxon_OneSampleT(String pseudoInfoFile,
+                                                                               SubgenomeCombination subgenomeCombination){
             List<String> pseudoTaxonList= Vmap2ComplementaryVCF.getPseudoTaxonList(pseudoInfoFile);
             List<String> hexaploidTaxonList=Vmap2ComplementaryVCF.getHexaploidTaxonList(pseudoInfoFile);
             TIntArrayList pseudoTaxonIndexList=Vmap2ComplementaryVCF.getTaxonIndex(pseudoTaxonList);
@@ -481,8 +510,10 @@ public class Vmap2ComplementaryVCF {
                     Arrays.fill(res[i][j], -1);
                 }
             }
-            double[][][] slightlyStronglyAdditiveDominancePseudoLoad=this.getSlightStronglyAdditiveDominanceTaxonListLoad(pseudoTaxonIndexList);
-            double[][][] slightlyStronglyAdditiveDominanceHexaploidLoad= this.getSlightStronglyAdditiveDominanceTaxonListLoad(hexaploidTaxonIndexList);
+            double[][][] slightlyStronglyAdditiveDominancePseudoLoad=
+                    this.getSlightStronglyAdditiveDominanceTaxonListLoad(pseudoTaxonIndexList,subgenomeCombination);
+            double[][][] slightlyStronglyAdditiveDominanceHexaploidLoad=
+                    this.getSlightStronglyAdditiveDominanceTaxonListLoad(hexaploidTaxonIndexList,subgenomeCombination);
             double[] pseudoLoad, pseudoLoadRemovedNAInfNaN;
             for (int i = 0; i < SlightlyOrStrongly.values().length; i++) {
                 for (int j = 0; j < AdditiveOrDominance.values().length; j++) {
@@ -535,35 +566,36 @@ public class Vmap2ComplementaryVCF {
             return slightlyStronglySubgenome_Load;
         }
 
-        /**
-         * -1: all ABD is NA
-         *
-         * @return
-         */
-        double[][] getSlightStronglyAdditiveDominanceLoad(){
+        public double[][] getSlightlyStronglyAdditiveDominance_Load(SubgenomeCombination subgenomeCombination){
             double[][] slightlyStronglySubgenome_Load=this.getSlightlyStronglySubgenome_Load();
-            double[][] slightStronglyAdditiveDominance_Load=new double[SlightlyOrStrongly.values().length][];
-            for (int i = 0; i < slightStronglyAdditiveDominance_Load.length; i++) {
-                slightStronglyAdditiveDominance_Load[i]=new double[AdditiveOrDominance.values().length];
-                Arrays.fill(slightStronglyAdditiveDominance_Load[i], -1);
+            double[][] slightStronglyAdditiveDominance_SubgenomeCombiantionLoad=new double[SlightlyOrStrongly.values().length][];
+            for (int i = 0; i < slightStronglyAdditiveDominance_SubgenomeCombiantionLoad.length; i++) {
+                slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i]=new double[AdditiveOrDominance.values().length];
+                Arrays.fill(slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i], -1);
             }
-            double[] subgenome_Load;
+            TIntArrayList indexList=subgenomeCombination.getIndexList();
+            double[] subgenome_Load, subgenomeCombiantion_Load;
             double mini, sum;
             DoublePredicate lessThan0 = value -> value < 0;
             for (int i = 0; i < slightlyStronglySubgenome_Load.length; i++) {
                 subgenome_Load=slightlyStronglySubgenome_Load[i];
-                if (Arrays.stream(subgenome_Load).allMatch(lessThan0)) continue;
-                mini=Arrays.stream(subgenome_Load).filter(lessThan0.negate()).min().getAsDouble();
-                if (Arrays.stream(subgenome_Load).min().getAsDouble() < 0){
-                    slightStronglyAdditiveDominance_Load[i][0]=-1;
-                    slightStronglyAdditiveDominance_Load[i][1]=mini;
+                subgenomeCombiantion_Load=new double[indexList.size()];
+                Arrays.fill(subgenomeCombiantion_Load, -1);
+                for (int j = 0; j < subgenomeCombiantion_Load.length; j++) {
+                    subgenomeCombiantion_Load[j]=subgenome_Load[indexList.get(j)];
+                }
+                if (Arrays.stream(subgenomeCombiantion_Load).allMatch(lessThan0)) continue;
+                mini=Arrays.stream(subgenomeCombiantion_Load).filter(lessThan0.negate()).min().getAsDouble();
+                if (Arrays.stream(subgenomeCombiantion_Load).min().getAsDouble() < 0){
+                    slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i][0]=-1;
+                    slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i][1]=mini;
                 }else {
-                    sum=Arrays.stream(subgenome_Load).filter(lessThan0.negate()).sum();
-                    slightStronglyAdditiveDominance_Load[i][0]=sum;
-                    slightStronglyAdditiveDominance_Load[i][1]=mini;
+                    sum=Arrays.stream(subgenomeCombiantion_Load).filter(lessThan0.negate()).sum();
+                    slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i][0]=sum;
+                    slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i][1]=mini;
                 }
             }
-            return slightStronglyAdditiveDominance_Load;
+            return slightStronglyAdditiveDominance_SubgenomeCombiantionLoad;
         }
     }
 }
