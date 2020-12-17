@@ -76,7 +76,7 @@ public class Vmap2ComplementaryVCF {
                 for (int i = 0; i < tem.size(); i++) {
                     cdsLen[i]=Integer.parseInt(tem.get(i));
                 }
-                triadsBlockRecord=new TriadsBlockRecord(triadsBlockID, blockGeneNum, genotypedGeneNum, chrRange, cdsLen);
+                triadsBlockRecord= new TriadsBlockRecord(triadsBlockID, blockGeneNum, genotypedGeneNum, chrRange, cdsLen);
                 for (int i = 5; i < temp.size(); i++) {
                     triadsBlockRecord.addLoadINFO(temp.get(i));
                 }
@@ -226,7 +226,7 @@ public class Vmap2ComplementaryVCF {
         List<String> pseudoTaxonNameList=RowTableTool.getColumnList(pseudohexaploidInfo,0);
         List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
         TIntArrayList pseudoIndexList=this.getTaxonIndex(pseudoTaxonNameList);
-        IntPredicate inPseudoIndexList=value -> pseudoIndexList.contains(value);
+        IntPredicate inPseudoIndexList= pseudoIndexList::contains;
         TIntArrayList hexaploidIndexList= new TIntArrayList(IntStream.range(0, this.getTaxonNum()).filter(inPseudoIndexList.negate()).toArray());
         double[] pseudo, hexaploid, pseudoFilterMinus1NaNInf;
         EmpiricalDistribution empiricalDistribution;
@@ -402,7 +402,7 @@ public class Vmap2ComplementaryVCF {
         }
     }
 
-    private class TriadsBlockRecord {
+    private static class TriadsBlockRecord {
 
         String triadsBlockID;
         byte[] blockGeneNum;
@@ -429,7 +429,7 @@ public class Vmap2ComplementaryVCF {
         }
 
         boolean addLoadINFO(String loadINFOStr){
-            LoadINFO loadINFO=new LoadINFO(loadINFOStr);
+            LoadINFO loadINFO= new LoadINFO(loadINFOStr);
             return this.loadINFO.add(loadINFO);
         }
 
@@ -494,6 +494,7 @@ public class Vmap2ComplementaryVCF {
         /**
          * -1: NA
          * @param pseudoInfoFile
+         * @param subgenomeCombination
          * @return
          */
         public double[][][] getSlightStronglyAdditiveDominanceTaxon_OneSampleT(String pseudoInfoFile,
@@ -530,7 +531,7 @@ public class Vmap2ComplementaryVCF {
         }
     }
 
-    private class LoadINFO{
+    private static class LoadINFO{
 
         /**
          * -1: NA
@@ -538,10 +539,6 @@ public class Vmap2ComplementaryVCF {
          * dim2: subgenome
          */
         double[][] slightlyStronglySubgenome_Load;
-
-        LoadINFO(double[][] slightlyStronglySubgenome_Load){
-            this.slightlyStronglySubgenome_Load = slightlyStronglySubgenome_Load;
-        }
 
         LoadINFO(String loadInfo){
             List<String> temp=PStringUtils.fastSplit(loadInfo, "|");
@@ -585,15 +582,15 @@ public class Vmap2ComplementaryVCF {
                     subgenomeCombiantion_Load[j]=subgenome_Load[indexList.get(j)];
                 }
                 if (Arrays.stream(subgenomeCombiantion_Load).allMatch(lessThan0)) continue;
+                if (!Arrays.stream(subgenomeCombiantion_Load).filter(lessThan0.negate()).min().isPresent()) continue;
                 mini=Arrays.stream(subgenomeCombiantion_Load).filter(lessThan0.negate()).min().getAsDouble();
                 if (Arrays.stream(subgenomeCombiantion_Load).min().getAsDouble() < 0){
                     slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i][0]=-1;
-                    slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i][1]=mini;
                 }else {
                     sum=Arrays.stream(subgenomeCombiantion_Load).filter(lessThan0.negate()).sum();
                     slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i][0]=sum;
-                    slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i][1]=mini;
                 }
+                slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i][1]=mini;
             }
             return slightStronglyAdditiveDominance_SubgenomeCombiantionLoad;
         }
