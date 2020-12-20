@@ -285,9 +285,9 @@ public class Vmap2ComplementaryVCF {
 //                        }
                         sb.setLength(0);
                         sb.append(triadsBlockRecordList.get(i).getTriadsBlockID()).append("\t");
-                        sb.append(chrRangeArray[2].getChr()).append("\t");
-                        sb.append(chrRangeArray[2].getStart()).append("\t");
-                        sb.append(chrRangeArray[2].getEnd()).append("\t");
+                        sb.append(chrRangeArray[0].getChr()).append("\t");
+                        sb.append(chrRangeArray[0].getStart()).append("\t");
+                        sb.append(chrRangeArray[0].getEnd()).append("\t");
                         sb.append(SlightlyOrStrongly.newInstanceFromIndex(j).getValue()).append("\t");
                         sb.append(AdditiveOrDominance.newInstanceFromIndex(k).getValue()).append("\t");
                         for (int m = 0; m < hexaploid.length; m++) {

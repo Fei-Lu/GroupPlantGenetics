@@ -1,8 +1,6 @@
 package daxing.load.complementary;
 
-import daxing.common.IOTool;
-import daxing.common.PGF;
-import daxing.common.StringTool;
+import daxing.common.*;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
 
@@ -107,6 +105,100 @@ public class TriadsBlockUtils {
                 blockGeneName[1].addAll(PStringUtils.fastSplit(temp.get(5), ","));
                 blockGeneName[2].addAll(PStringUtils.fastSplit(temp.get(6), ","));
                 triadsBlock=new TriadsBlock(triadsID, geneName, triadsCDSLen, blockGeneName);
+                triadsBlockList.add(triadsBlock);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        TriadsBlock[] triadsBlocks=new TriadsBlock[triadsBlockList.size()];
+        for (int i = 0; i < triadsBlocks.length; i++) {
+            triadsBlocks[i]=triadsBlockList.get(i);
+        }
+        return triadsBlocks;
+    }
+
+    /**
+     *
+     * @param triadsBlockInputFile no ChrRange
+     * @param pgfFile
+     * @param triadsBlockOutFile have ChrRange
+     */
+    public static void writeTriadsBlock(String triadsBlockInputFile, String pgfFile, String triadsBlockOutFile){
+        PGF pgf=new PGF(pgfFile);
+        pgf.sortGeneByName();
+        TriadsBlock[] triadsBlockArray= TriadsBlockUtils.readTriadBlock(triadsBlockInputFile);
+        try (BufferedWriter bw = IOTool.getWriter(triadsBlockOutFile)) {
+            StringBuilder sb=new StringBuilder();
+            sb.setLength(0);
+            sb.append("TriadID\tTriadsGeneName\tCDSLen\tBlockGeneNum\tBlockGeneListA\tBlockGeneListB\tBlockGeneListD");
+            sb.append("\t").append("ChrRange");
+            bw.write(sb.toString());
+            bw.newLine();
+            ChrRange[] chrRanges;
+            for (int i = 0; i < triadsBlockArray.length; i++) {
+                sb.setLength(0);
+                chrRanges=TriadsBlock.getChrRange(triadsBlockArray[i],pgf);
+                sb.append(triadsBlockArray[i].toString()).append("\t");
+                for (int j = 0; j < chrRanges.length; j++) {
+                    sb.append(chrRanges[j].toString()).append(";");
+                }
+                sb.deleteCharAt(sb.length()-1);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public static TriadsBlock[] readFromTriadsBlockChrRange(String triadsBlockChrRangeFile){
+        List<TriadsBlock> triadsBlockList=new ArrayList<>();
+        TriadsBlock triadsBlock;
+        ChrRange[] chrRanges;
+        ChrRange chrRange;
+        try (BufferedReader br = IOTool.getReader(triadsBlockChrRangeFile)) {
+            br.readLine();
+            String line, chr;
+            int start, end;
+            List<String> temp, tem, te, t;
+            String triadsID;
+            String[] geneName;
+            int[] triadsCDSLen;
+            List<String>[] blockGeneName;
+            while ((line=br.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                triadsID=temp.get(0);
+                geneName=new String[3];
+                triadsCDSLen=new int[3];
+                blockGeneName=new List[3];
+                for (int i = 0; i < blockGeneName.length; i++) {
+                    blockGeneName[i]=new ArrayList<>();
+                }
+                tem=PStringUtils.fastSplit(temp.get(1), ",");
+                for (int i = 0; i < tem.size(); i++) {
+                    geneName[i]=tem.get(i);
+                }
+                tem=PStringUtils.fastSplit(temp.get(2),",");
+                for (int i = 0; i < tem.size(); i++) {
+                    triadsCDSLen[i]=Integer.parseInt(tem.get(i));
+                }
+                blockGeneName[0].addAll(PStringUtils.fastSplit(temp.get(4), ","));
+                blockGeneName[1].addAll(PStringUtils.fastSplit(temp.get(5), ","));
+                blockGeneName[2].addAll(PStringUtils.fastSplit(temp.get(6), ","));
+                chrRanges=new ChrRange[WheatLineage.values().length];
+                tem=PStringUtils.fastSplit(temp.get(7), ";");
+                for (int i = 0; i <tem.size(); i++) {
+                    te=PStringUtils.fastSplit(tem.get(i), ":");
+                    chr=te.get(0);
+                    t=PStringUtils.fastSplit(te.get(1), ",");
+                    start=Integer.parseInt(t.get(0));
+                    end=Integer.parseInt(t.get(1));
+                    chrRange=new ChrRange(chr, start, end);
+                    chrRanges[i]=chrRange;
+                }
+                triadsBlock=new TriadsBlock(triadsID, geneName, triadsCDSLen, blockGeneName, chrRanges);
                 triadsBlockList.add(triadsBlock);
             }
         } catch (IOException e) {
