@@ -26,6 +26,7 @@ public class Vmap2ComplementaryVCF {
 
     static List<TriadsBlockRecord> triadsBlockRecordList;
     static List<String> taxonList;
+    static String[] groupBySubcontinent={"LR_America","LR_Africa","LR_EU","LR_WA","LR_CSA","LR_EA","Cultivar"};
 
     public Vmap2ComplementaryVCF(String vmap2ComplementaryVCF){
         this.taxonList=new ArrayList<>();
@@ -119,38 +120,62 @@ public class Vmap2ComplementaryVCF {
         return isNA.negate().and(isInf.negate()).and(isNaN.negate());
     }
 
+    /**
+     * 获取伪六倍体Index
+     * @param pseudohexaploidInfo
+     * @return
+     */
+    private static TIntArrayList getPseudoIndexList(String pseudohexaploidInfo){
+        TIntArrayList pseudhoIndexList=new TIntArrayList();
+        Map<String, String> taxonGroupPseudoMap=RowTableTool.getMap(pseudohexaploidInfo, 0, 1);
+        String value;
+        for (int i = 0; i < taxonList.size(); i++) {
+            if (!taxonGroupPseudoMap.containsKey(taxonList.get(i))) continue;
+            value=taxonGroupPseudoMap.get(taxonList.get(i));
+            if (!value.equals("PseudoHexaploid")) continue;
+            pseudhoIndexList.add(i);
+        }
+        return pseudhoIndexList;
+    }
+
+    /**
+     * 获取六倍体index
+     * @param taxaInfoDB
+     * @return
+     */
+    private static TIntArrayList[] getGroupBySubcontinentIndexList(String taxaInfoDB){
+        String[] groupBySubcontinent=Vmap2ComplementaryVCF.groupBySubcontinent;
+        Arrays.sort(groupBySubcontinent);
+        Map<String, String> taxonGroupBySubcontinentMap=RowTableTool.getMap(taxaInfoDB, 0, 24);
+        List<String> taxonList=Vmap2ComplementaryVCF.taxonList;
+        TIntArrayList[] groupBySubcontinentIndexList=new TIntArrayList[groupBySubcontinent.length];
+        for (int i = 0; i < groupBySubcontinentIndexList.length; i++) {
+            groupBySubcontinentIndexList[i]=new TIntArrayList();
+        }
+        int index;
+        String value, group;
+        for (int i = 0; i < groupBySubcontinentIndexList.length; i++) {
+            group=groupBySubcontinent[i];
+            for (int j = 0; j < taxonList.size(); j++) {
+                if (!taxonGroupBySubcontinentMap.containsKey(taxonList.get(j))) continue;
+                value=taxonGroupBySubcontinentMap.get(taxonList.get(j));
+                index=Arrays.binarySearch(groupBySubcontinent, value);
+                if (index < 0) continue;
+                if (!groupBySubcontinent[index].equals(group)) continue;
+                groupBySubcontinentIndexList[i].add(j);
+            }
+        }
+        return groupBySubcontinentIndexList;
+    }
+
     public void calculateTwoSampleTTestStatics(String tTestStaticsOutFile, String taxaInfoDB,
-                                               String pseudohexaploidInfo, SubgenomeCombination subgenomeCombination){
-        String[] groupBySubcontinent={"LR_America","LR_Africa","LR_EU","LR_WA","LR_CSA","LR_EA","Cultivar"};
+                                               String pseudoHexaploidInfo, SubgenomeCombination subgenomeCombination,
+                                               WheatLineage positionBySub){
+        String[] groupBySubcontinent=Vmap2ComplementaryVCF.groupBySubcontinent;
         Arrays.sort(groupBySubcontinent);
         try (BufferedWriter bw = IOTool.getWriter(tTestStaticsOutFile)) {
-            Map<String, String> taxonGroupBySubcontinentMap=RowTableTool.getMap(taxaInfoDB, 0, 24);
-            Map<String, String> taxonGroupPseudoMap=RowTableTool.getMap(pseudohexaploidInfo, 0, 1);
-            List<String> taxonList=Vmap2ComplementaryVCF.taxonList;
-            TIntArrayList[] groupBySubcontinentIndexList=new TIntArrayList[groupBySubcontinent.length];
-            TIntArrayList pseudhoIndexList=new TIntArrayList();
-            for (int i = 0; i < groupBySubcontinentIndexList.length; i++) {
-                groupBySubcontinentIndexList[i]=new TIntArrayList();
-            }
-            int index;
-            String value, group;
-            for (int i = 0; i < groupBySubcontinentIndexList.length; i++) {
-                group=groupBySubcontinent[i];
-                for (int j = 0; j < taxonList.size(); j++) {
-                    if (!taxonGroupBySubcontinentMap.containsKey(taxonList.get(j))) continue;
-                    value=taxonGroupBySubcontinentMap.get(taxonList.get(j));
-                    index=Arrays.binarySearch(groupBySubcontinent, value);
-                    if (index < 0) continue;
-                    if (!groupBySubcontinent[index].equals(group)) continue;
-                    groupBySubcontinentIndexList[i].add(j);
-                }
-            }
-            for (int i = 0; i < taxonList.size(); i++) {
-                if (!taxonGroupPseudoMap.containsKey(taxonList.get(i))) continue;
-                value=taxonGroupPseudoMap.get(taxonList.get(i));
-                if (!value.equals("PseudoHexaploid")) continue;
-                pseudhoIndexList.add(i);
-            }
+            TIntArrayList[] groupBySubcontinentIndexList= Vmap2ComplementaryVCF.getGroupBySubcontinentIndexList(taxaInfoDB);
+            TIntArrayList pseudhoIndexList=Vmap2ComplementaryVCF.getPseudoIndexList(pseudoHexaploidInfo);
             bw.write("TriadsBlockID\tGroupBySubcontinent\tGenotypedHexaploidTaxaNum" +
                     "\tGenotypedPseudoTaxaNum\tSlightlyOrStrongly\tAdditiveOrDominance\tT_notEqualVariances\tp_notEqualVariances");
             bw.newLine();
@@ -164,6 +189,7 @@ public class Vmap2ComplementaryVCF {
             DoublePredicate lessThan0=num -> num < 0;
             String[] na=new String[6];
             Arrays.fill(na, "NA");
+            ChrRange chrRange;
             for (int i = 0; i < triadsBlockRecordList.size(); i++) {
                 for (int j = 0; j < groupBySubcontinentIndexList.length; j++) {
                     slightlyStronglyAdditiveDominanceTaxonLoad=
@@ -174,8 +200,11 @@ public class Vmap2ComplementaryVCF {
                         slightlyOrStrongly=SlightlyOrStrongly.newInstanceFromIndex(l);
                         for (int m = 0; m < AdditiveOrDominance.values().length; m++) {
                             additiveOrDominance=AdditiveOrDominance.newInstanceFromIndex(m);
+                            chrRange=triadsBlockRecordList.get(i).getChrRange()[positionBySub.getIndex()];
                             sb.setLength(0);
                             sb.append(triadsBlockRecordList.get(i).getTriadsBlockID()).append("\t");
+                            sb.append(chrRange.getChr()).append("\t").append(chrRange.getStart()).append("\t");
+                            sb.append(chrRange.getEnd()).append("\t");
                             sb.append(groupBySubcontinent[j]).append("\t");
                             if (Arrays.stream(slightlyStronglyAdditiveDominanceTaxonLoad[l][m]).allMatch(lessThan0)){
                                 sb.append(String.join("\t", na));
@@ -221,8 +250,8 @@ public class Vmap2ComplementaryVCF {
         }
     }
 
-    public void calculateOneSampleTTestStatics(String pseudohexaploidInfo,
-                                                String empiricalDistributionProbabilityOutFile, SubgenomeCombination subgenomeCombination){
+    public void calculateOneSampleTTestStatics(String pseudohexaploidInfo, String empiricalDistributionProbabilityOutFile,
+                                               SubgenomeCombination subgenomeCombination, WheatLineage positionBySub){
         List<String> pseudoTaxonNameList=RowTableTool.getColumnList(pseudohexaploidInfo,0);
         List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
         TIntArrayList pseudoIndexList=this.getTaxonIndex(pseudoTaxonNameList);
@@ -241,11 +270,11 @@ public class Vmap2ComplementaryVCF {
         try (BufferedWriter bw = IOTool.getWriter(empiricalDistributionProbabilityOutFile)) {
             StringBuilder sb=new StringBuilder();
             sb.setLength(0);
-            sb.append("TriadsBlockID\tChr\tPosStart\tPosEnd\tSlightlyOrStrongly\tAdditiveOrDominance\t").append(String.join("\t",
-                    this.getHexaploidTaxonList(pseudohexaploidInfo)));
+            sb.append("TriadsBlockID\tChr\tPosStart\tPosEnd\tSlightlyOrStrongly\tAdditiveOrDominance\t");
+            sb.append(String.join("\t", this.getHexaploidTaxonList(pseudohexaploidInfo)));
             bw.write(sb.toString());
             bw.newLine();
-            ChrRange[] chrRangeArray;
+            ChrRange chrRange;
             for (int i = 0; i < triadsBlockRecordList.size(); i++) {
                 slightlyStronglyAdditiveDominancePseudoLoad=
                         triadsBlockRecordList.get(i).getSlightStronglyAdditiveDominanceTaxonListLoad(pseudoIndexList, subgenomeCombination);
@@ -260,34 +289,12 @@ public class Vmap2ComplementaryVCF {
                         empiricalDistribution.load(pseudoFilterMinus1NaNInf);
                         cumulativeProbabilityArray=new double[hexaploid.length];
                         Arrays.fill(cumulativeProbabilityArray, -1);
-                        chrRangeArray=triadsBlockRecordList.get(i).getChrRange();
-//                        for (int l = 0; l < chrRangeArray.length; l++) {
-//                            sb.setLength(0);
-//                            sb.append(triadsBlockRecordList.get(i).getTriadsBlockID()).append("\t");
-//                            sb.append(chrRangeArray[l].getChr()).append("\t");
-//                            sb.append(chrRangeArray[l].getStart()).append("\t");
-//                            sb.append(chrRangeArray[l].getEnd()).append("\t");
-//                            sb.append(SlightlyOrStrongly.newInstanceFromIndex(j).getValue()).append("\t");
-//                            sb.append(AdditiveOrDominance.newInstanceFromIndex(k).getValue()).append("\t");
-//                            for (int m = 0; m < hexaploid.length; m++) {
-//                                if (hexaploid[m] < 0 ||pseudoFilterMinus1NaNInf.length < 2){
-//                                    sb.append("NA").append("\t");
-//                                    continue;
-//                                }
-//                                t=TestUtils.t(hexaploid[m], pseudoFilterMinus1NaNInf);
-////                                cumulativeProbability=empiricalDistribution.cumulativeProbability(hexaploid[m]);
-//                                sb.append(t).append("\t");
-////                                sb.append(numberFormat.format(cumulativeProbability)).append("\t");
-//                            }
-//                            sb.deleteCharAt(sb.length()-1);
-//                            bw.write(sb.toString());
-//                            bw.newLine();
-//                        }
+                        chrRange=triadsBlockRecordList.get(i).getChrRange()[positionBySub.getIndex()];
                         sb.setLength(0);
                         sb.append(triadsBlockRecordList.get(i).getTriadsBlockID()).append("\t");
-                        sb.append(chrRangeArray[0].getChr()).append("\t");
-                        sb.append(chrRangeArray[0].getStart()).append("\t");
-                        sb.append(chrRangeArray[0].getEnd()).append("\t");
+                        sb.append(chrRange.getChr()).append("\t");
+                        sb.append(chrRange.getStart()).append("\t");
+                        sb.append(chrRange.getEnd()).append("\t");
                         sb.append(SlightlyOrStrongly.newInstanceFromIndex(j).getValue()).append("\t");
                         sb.append(AdditiveOrDominance.newInstanceFromIndex(k).getValue()).append("\t");
                         for (int m = 0; m < hexaploid.length; m++) {
@@ -407,6 +414,9 @@ public class Vmap2ComplementaryVCF {
         String triadsBlockID;
         byte[] blockGeneNum;
         byte[] genotypedGeneNum;
+        /**
+         * 21 genes range
+         */
         ChrRange[] chrRange;
         int[] cdsLen;
         List<LoadINFO> loadINFO;
