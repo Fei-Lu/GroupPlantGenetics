@@ -5,6 +5,8 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
 import com.google.common.collect.TreeMultimap;
 import daxing.common.*;
+import daxing.load.complementary.TriadsBlock;
+import daxing.load.complementary.TriadsBlockUtils;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.util.CombinatoricsUtils;
@@ -836,5 +838,106 @@ public class ScriptMethods {
             e.printStackTrace();
         }
         return lines;
+    }
+
+    /**
+     *
+     * @param triadsBlockChrRange important gene
+     * @param pgfFile
+     * @param geneListFile
+     * @param outFile add triads and gene name information
+     */
+    public static void geneList(String triadsBlockChrRange, String pgfFile, String geneListFile, String outFile){
+        TriadsBlock[] triadsBlocksSortByA= TriadsBlockUtils.readFromTriadsBlockChrRange(triadsBlockChrRange);
+        TriadsBlock[] triadsBlocksSortByB=TriadsBlockUtils.readFromTriadsBlockChrRange(triadsBlockChrRange);
+        TriadsBlock[] triadsBlocksSortByD=TriadsBlockUtils.readFromTriadsBlockChrRange(triadsBlockChrRange);
+        Comparator<TriadsBlock> comparatorA=Comparator.comparing(triadsBlock -> triadsBlock.getChrRanges()[0]);
+        Comparator<TriadsBlock> comparatorB=Comparator.comparing(triadsBlock -> triadsBlock.getChrRanges()[1]);
+        Comparator<TriadsBlock> comparatorD=Comparator.comparing(triadsBlock -> triadsBlock.getChrRanges()[2]);
+        Arrays.sort(triadsBlocksSortByA, comparatorA);
+        Arrays.sort(triadsBlocksSortByB, comparatorB);
+        Arrays.sort(triadsBlocksSortByD, comparatorD);
+        List<TriadsBlock[]> triadsBlocksList = new ArrayList<>();
+        List<Comparator<TriadsBlock>> comparatorList=new ArrayList<>();
+        triadsBlocksList.add(triadsBlocksSortByA);
+        triadsBlocksList.add(triadsBlocksSortByB);
+        triadsBlocksList.add(triadsBlocksSortByD);
+        comparatorList.add(comparatorA);
+        comparatorList.add(comparatorB);
+        comparatorList.add(comparatorD);
+        PGF pgf=new PGF(pgfFile);
+        pgf.sortGeneByGeneRange();
+        try (BufferedReader br = IOTool.getReader(geneListFile);
+             BufferedWriter bw =IOTool.getWriter(outFile)) {
+            String line, chr, len;
+            int start, end, subIndex, triadsBlockHit, triadsBlockIndexUp, triadsBlockIndexDown, geneIndex;
+            int posStartOnChrID, posEndOnChrID;
+            List<String> temp, tem;
+            line=br.readLine();
+            bw.write(line);
+            bw.newLine();
+            ChrRange chrRange;
+            String[] abd={"A","B","D"};
+            TriadsBlock triadsBlock;
+            TriadsBlock[] triadsBlockArray;
+            Set<String> triadsIDSet;
+            Set<String> geneNameSet;
+            List<String> triadsIDList;
+            List<String> geneNameList;
+            while ((line=br.readLine())!=null){
+                tem= PStringUtils.fastSplit(line);
+                temp=tem.stream().map(String::trim).collect(Collectors.toList());
+                chr=temp.get(2);
+                start=Integer.parseInt(temp.get(3).trim());
+                end=Integer.parseInt(temp.get(4).trim())+1;
+                len=temp.get(5).trim();
+                chrRange=new ChrRange(chr, start, end);
+                if (chr.equalsIgnoreCase("Un")){
+                    temp.set(3, String.valueOf(start));
+                    temp.set(4, String.valueOf(end));
+                    temp.set(5, len);
+                    bw.write(String.join("\t", temp));
+                    bw.newLine();
+                    continue;
+                }
+                subIndex=Arrays.binarySearch(abd, chr.substring(1,2));
+                triadsBlock=new TriadsBlock(chrRange);
+                triadsBlockArray=triadsBlocksList.get(subIndex);
+                triadsBlockHit=Arrays.binarySearch(triadsBlockArray, triadsBlock, comparatorList.get(subIndex));
+                triadsBlockIndexUp= triadsBlockHit < 0 ? -triadsBlockHit-2 : triadsBlockHit;
+                triadsBlockIndexDown= triadsBlockHit < 0 ? -triadsBlockHit-1 : triadsBlockHit+1;
+                triadsIDSet=new HashSet<>();
+                geneNameSet=new HashSet<>();
+                for (int i = triadsBlockIndexUp; i > -1; i--) {
+                    if (!triadsBlockArray[i].getChrRanges()[subIndex].isOverlapped(chrRange)) break;
+                    triadsIDSet.add(triadsBlockArray[i].getTriadsID());
+                }
+                for (int i = triadsBlockIndexDown; i < triadsBlockArray.length; i++) {
+                    if (!triadsBlockArray[i].getChrRanges()[subIndex].isOverlapped(chrRange)) break;
+                    triadsIDSet.add(triadsBlockArray[i].getTriadsID());
+                }
+                posStartOnChrID= RefV1Utils.getPosOnChrID(chr, start);
+                posEndOnChrID=RefV1Utils.getPosOnChrID(chr, end);
+                for (int i = posStartOnChrID; i <posEndOnChrID; i++) {
+                    geneIndex=pgf.getGeneIndex(chrRange.getChrID(), i);
+                    if (geneIndex < 0) continue;
+                    geneNameSet.add(pgf.getGene(geneIndex).getGeneName());
+                }
+                triadsIDList=new ArrayList<>(triadsIDSet);
+                geneNameList=new ArrayList<>(geneNameSet);
+                Collections.sort(triadsIDList);
+                Collections.sort(geneNameList);
+                temp.set(3, String.valueOf(start));
+                temp.set(4, String.valueOf(end));
+                temp.set(5, len);
+                temp.set(8, String.join(",", triadsIDList));
+                temp.set(9, String.join(",", geneNameList));
+                bw.write(String.join("\t", temp));
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
