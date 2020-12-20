@@ -77,12 +77,18 @@ public class ChrRange implements Comparable<ChrRange>{
 
     @Override
     public int compareTo(ChrRange o) {
+//        if (this.chr.compareToIgnoreCase(o.chr)==0){
+//            if (this.start==o.start){
+//                if (this.end==o.end) return 0;
+//                if (this.end > o.end) return 1;
+//                return -1;
+//            }else if (this.start > o.start) return 1;
+//            return -1;
+//        }else if (this.chr.compareToIgnoreCase(o.chr) > 0) return 1;
+//        return -1;
         if (this.chr.compareToIgnoreCase(o.chr)==0){
-            if (this.start==o.start){
-                if (this.end==o.end) return 0;
-                if (this.end > o.end) return 1;
-                return -1;
-            }else if (this.start > o.start) return 1;
+            if (this.start==o.start) return 0;
+            if (this.start > o.start) return 1;
             return -1;
         }else if (this.chr.compareToIgnoreCase(o.chr) > 0) return 1;
         return -1;
@@ -101,6 +107,26 @@ public class ChrRange implements Comparable<ChrRange>{
     @Override
     public int hashCode() {
         return Objects.hash(chr, start, end);
+    }
+
+    public String toString(){
+        StringBuilder sb=new StringBuilder();
+        sb.append(this.getChr()).append(":").append(this.getStart()).append(",").append(this.getEnd());
+        return sb.toString();
+    }
+
+    public boolean isOverlapped(ChrRange chrRange){
+        if (!this.chr.equals(chrRange.chr)) return false;
+        if (this.getStart() >= chrRange.getEnd()) return false;
+        if (this.getEnd() <= chrRange.getStart()) return false;
+        return true;
+    }
+
+    public ChrRange getIntersection(ChrRange chrRange){
+        if (!this.isOverlapped(chrRange)) return null;
+        int startMax, endMini;
+        if (this.getStart() > chrRange.getStart()) return new ChrRange(this.getChr(), this.getStart(), this.getEnd() < chrRange.getEnd() ? this.getEnd() : chrRange.getEnd());
+        return new ChrRange(this.getChr(), chrRange.getStart(), this.getEnd() < chrRange.getEnd()? this.getEnd() : chrRange.getEnd());
     }
 
     public static ChrRange changeToChrRange(Range range){
