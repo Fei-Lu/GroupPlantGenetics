@@ -301,9 +301,9 @@ public class Vmap2ComplementaryVCF {
 
     }
 
-    public void calculateAccumulatedOneSampleT(String pseudohexaploidInfo, String taxaInfoFile,
-                                               String empiricalDistributionProbabilityOutFile,
-                                               SubgenomeCombination subgenomeCombination){
+    public void calculateAccumulatedByIndividualOneSampleT(String pseudohexaploidInfo, String taxaInfoFile,
+                                                           String empiricalDistributionProbabilityOutFile,
+                                                           SubgenomeCombination subgenomeCombination){
         List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
         NumberFormat numberFormat=NumberFormat.getInstance();
         numberFormat.setMaximumFractionDigits(3);
