@@ -4,6 +4,7 @@ import daxing.common.ChrRange;
 import daxing.common.IOTool;
 import daxing.common.RowTableTool;
 import daxing.common.WheatLineage;
+import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.stat.inference.TestUtils;
 import pgl.infra.utils.PStringUtils;
@@ -311,7 +312,7 @@ public class Vmap2ComplementaryVCF {
         try (BufferedWriter bw = IOTool.getWriter(empiricalDistributionProbabilityOutFile)) {
             StringBuilder sb=new StringBuilder();
             sb.setLength(0);
-            sb.append("TriadsBlockID\tGroupBySubcontinent\tSlightlyOrStrongly\tAdditiveOrDominance\tOneSampleT_sum" +
+            sb.append("Taxon\tGroupBySubcontinent\tSlightlyOrStrongly\tAdditiveOrDominance\tOneSampleT_sum" +
                     "\tN");
             bw.write(sb.toString());
             bw.newLine();
@@ -363,8 +364,6 @@ public class Vmap2ComplementaryVCF {
                 }
             }
             Map<String, String> taxaGroupBySubcontinentMap=RowTableTool.getMap(taxaInfoFile, 0, 24);
-            taxaGroupBySubcontinentMap.remove("NA");
-            taxaGroupBySubcontinentMap.remove("OtherHexaploid");
             SlightlyOrStrongly slightlyOrStrongly;
             AdditiveOrDominance additiveOrDominance;
             String taxonName, groupBySubcontinent;
@@ -372,6 +371,7 @@ public class Vmap2ComplementaryVCF {
             for (int i = 0; i < slightlyStronglyAdditiveDominanceIndiv_cumOneSampleT[0][0].length; i++) {
                 taxonName=hexaploidNameList.get(i);
                 groupBySubcontinent=taxaGroupBySubcontinentMap.get(taxonName);
+                if (groupBySubcontinent.equals("OtherHexaploid") | groupBySubcontinent.equals("NA")) continue;
                 for (int j = 0; j < SlightlyOrStrongly.values().length; j++) {
                     slightlyOrStrongly=SlightlyOrStrongly.newInstanceFromIndex(j);
                     for (int k = 0; k < AdditiveOrDominance.values().length; k++) {
@@ -388,6 +388,67 @@ public class Vmap2ComplementaryVCF {
 //                        sb.append(slightlyStronglyAdditiveDominanceIndiv_countNegativeInf[j][k][i]);
                         bw.write(sb.toString());
                         bw.newLine();
+                    }
+                }
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void calculateAccumulatedByTriadsOneSampleT(String pseudohexaploidInfo, String taxaInfoFile,
+                                                              String oneSampleTOutFile,
+                                                              SubgenomeCombination subgenomeCombination){
+        List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
+        double[][][] slightlyStronglyAdditiveDominanceTaxonLoad;
+        DoublePredicate na=value -> value==Double.MIN_VALUE;
+        DoublePredicate nan=Double::isNaN;
+        DoublePredicate inf=Double::isInfinite;
+        DoublePredicate nonNANaNInf=na.negate().and(nan.negate()).and(inf.negate());
+        TIntArrayList[] groupBySubcontinentIndex=Vmap2ComplementaryVCF.getGroupBySubcontinentIndexList(taxaInfoFile);
+        TIntArrayList indexList;
+        SlightlyOrStrongly slightlyOrStrongly;
+        AdditiveOrDominance additiveOrDominance;
+        TDoubleArrayList t_list;
+        double[] tArray, tArrayNonNANaNInf;
+        double t_oneSampleSum;
+        StringBuilder sb=new StringBuilder();
+        sb.setLength(0);
+        String groupBySubcontinent;
+        String[] groupBySubcontinentArray=Vmap2ComplementaryVCF.groupBySubcontinent;
+        Arrays.sort(groupBySubcontinentArray);
+        try (BufferedWriter bw = IOTool.getWriter(oneSampleTOutFile)) {
+            sb.append("TriadsBlock\tGroupBySubcontinent\tSlightlyOrStrongly\tAdditiveOrDominance\tOneSampleT_sum" +
+                    "\tN");
+            bw.write(sb.toString());
+            bw.newLine();
+            for (TriadsBlockRecord triadsBlockRecord: triadsBlockRecordList){
+                slightlyStronglyAdditiveDominanceTaxonLoad= triadsBlockRecord.getSlightStronglyAdditiveDominanceTaxon_OneSampleT(pseudohexaploidInfo, subgenomeCombination);
+                for (int i = 0; i < SlightlyOrStrongly.values().length; i++) {
+                    slightlyOrStrongly=SlightlyOrStrongly.newInstanceFromIndex(i);
+                    for (int j = 0; j < AdditiveOrDominance.values().length; j++) {
+                        additiveOrDominance=AdditiveOrDominance.newInstanceFromIndex(j);
+                        for (int k = 0; k < groupBySubcontinentIndex.length; k++) {
+                            indexList=groupBySubcontinentIndex[k];
+                            groupBySubcontinent=groupBySubcontinentArray[k];
+                            t_list=new TDoubleArrayList();
+                            for (int l = 0; l < slightlyStronglyAdditiveDominanceTaxonLoad[i][j].length; l++) {
+                                if (!indexList.contains(l)) continue;
+                                t_list.add(slightlyStronglyAdditiveDominanceTaxonLoad[i][j][l]);
+                            }
+                            tArray=t_list.toArray();
+                            tArrayNonNANaNInf= Arrays.stream(tArray).filter(nonNANaNInf).toArray();
+                            if (tArrayNonNANaNInf.length < 2) continue;
+                            t_oneSampleSum= Arrays.stream(tArrayNonNANaNInf).sum();
+                            sb.append(triadsBlockRecord.getTriadsBlockID()).append("\t");
+                            sb.append(groupBySubcontinent).append("\t");
+                            sb.append(slightlyOrStrongly).append("\t").append(additiveOrDominance).append("\t");
+                            sb.append(t_oneSampleSum).append("\t").append(t_list.size());
+                            bw.write(sb.toString());
+                            bw.newLine();
+                        }
                     }
                 }
             }
