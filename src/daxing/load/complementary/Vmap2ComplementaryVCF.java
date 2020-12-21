@@ -301,6 +301,103 @@ public class Vmap2ComplementaryVCF {
 
     }
 
+    public void calculateAccumulatedOneSampleT(String pseudohexaploidInfo, String taxaInfoFile,
+                                               String empiricalDistributionProbabilityOutFile,
+                                               SubgenomeCombination subgenomeCombination){
+        List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
+        NumberFormat numberFormat=NumberFormat.getInstance();
+        numberFormat.setMaximumFractionDigits(3);
+        numberFormat.setGroupingUsed(false);
+        try (BufferedWriter bw = IOTool.getWriter(empiricalDistributionProbabilityOutFile)) {
+            StringBuilder sb=new StringBuilder();
+            sb.setLength(0);
+            sb.append("TriadsBlockID\tGroupBySubcontinent\tSlightlyOrStrongly\tAdditiveOrDominance\tOneSampleT_sum" +
+                    "\tN");
+            bw.write(sb.toString());
+            bw.newLine();
+            List<String> hexaploidNameList=Vmap2ComplementaryVCF.getHexaploidTaxonList(pseudohexaploidInfo);
+            double[][][] slightlyStronglyAdditiveDominance_OneSampleT;
+            double t;
+//            int[][][] slightlyStronglyAdditiveDominanceIndiv_countPositiveInf= new int[SlightlyOrStrongly.values().length][][];
+//            int[][][] slightlyStronglyAdditiveDominanceIndiv_countNegativeInf= new int[SlightlyOrStrongly.values().length][][];
+            int[][][] slightlyStronglyAdditiveDominanceIndiv_count= new int[SlightlyOrStrongly.values().length][][];
+            double[][][] slightlyStronglyAdditiveDominanceIndiv_cumOneSampleT=new double[SlightlyOrStrongly.values().length][][];
+            for (int i = 0; i < slightlyStronglyAdditiveDominanceIndiv_cumOneSampleT.length; i++) {
+                slightlyStronglyAdditiveDominanceIndiv_cumOneSampleT[i]=new double[AdditiveOrDominance.values().length][];
+                slightlyStronglyAdditiveDominanceIndiv_count[i]=new int[AdditiveOrDominance.values().length][];
+//                slightlyStronglyAdditiveDominanceIndiv_countPositiveInf[i]= new int[AdditiveOrDominance.values().length][];
+//                slightlyStronglyAdditiveDominanceIndiv_countNegativeInf[i]= new int[AdditiveOrDominance.values().length][];
+                for (int j = 0; j < slightlyStronglyAdditiveDominanceIndiv_cumOneSampleT[i].length; j++) {
+                    slightlyStronglyAdditiveDominanceIndiv_cumOneSampleT[i][j]=new double[hexaploidNameList.size()];
+                    slightlyStronglyAdditiveDominanceIndiv_count[i][j]=new int[hexaploidNameList.size()];
+//                    slightlyStronglyAdditiveDominanceIndiv_countPositiveInf[i][j]=new int[hexaploidNameList.size()];
+//                    slightlyStronglyAdditiveDominanceIndiv_countNegativeInf[i][j]=new int[hexaploidNameList.size()];
+                }
+            }
+            double[] hexaploidMini=new double[hexaploidNameList.size()];
+            double[] hexaploidMax=new double[hexaploidNameList.size()];
+            double max=0, mini=0;
+            for (int i = 0; i < triadsBlockRecordList.size(); i++) {
+                slightlyStronglyAdditiveDominance_OneSampleT= triadsBlockRecordList.get(i).getSlightStronglyAdditiveDominanceTaxon_OneSampleT(pseudohexaploidInfo, subgenomeCombination);
+                for (int j = 0; j < SlightlyOrStrongly.values().length; j++) {
+                    for (int k = 0; k < AdditiveOrDominance.values().length; k++) {
+                        for (int l = 0; l < slightlyStronglyAdditiveDominance_OneSampleT[j][k].length; l++) {
+                            t=slightlyStronglyAdditiveDominance_OneSampleT[j][k][l];
+                            if (Double.isNaN(t) || t==Double.MIN_VALUE) continue;
+                            if (t==Double.POSITIVE_INFINITY){
+//                                slightlyStronglyAdditiveDominanceIndiv_countPositiveInf[j][k][l]++;
+                                continue;
+                            }
+                            if (t==Double.NEGATIVE_INFINITY){
+//                                slightlyStronglyAdditiveDominanceIndiv_countNegativeInf[j][k][l]++;
+                                continue;
+                            }
+                            max=t > max ? t : max;
+                            mini= t < mini ? t : mini;
+                            hexaploidMax[l]=max;
+                            hexaploidMini[l]=mini;
+                            slightlyStronglyAdditiveDominanceIndiv_cumOneSampleT[j][k][l]+=t;
+                            slightlyStronglyAdditiveDominanceIndiv_count[j][k][l]++;
+                        }
+                    }
+                }
+            }
+            Map<String, String> taxaGroupBySubcontinentMap=RowTableTool.getMap(taxaInfoFile, 0, 24);
+            taxaGroupBySubcontinentMap.remove("NA");
+            taxaGroupBySubcontinentMap.remove("OtherHexaploid");
+            SlightlyOrStrongly slightlyOrStrongly;
+            AdditiveOrDominance additiveOrDominance;
+            String taxonName, groupBySubcontinent;
+            int count;
+            for (int i = 0; i < slightlyStronglyAdditiveDominanceIndiv_cumOneSampleT[0][0].length; i++) {
+                taxonName=hexaploidNameList.get(i);
+                groupBySubcontinent=taxaGroupBySubcontinentMap.get(taxonName);
+                for (int j = 0; j < SlightlyOrStrongly.values().length; j++) {
+                    slightlyOrStrongly=SlightlyOrStrongly.newInstanceFromIndex(j);
+                    for (int k = 0; k < AdditiveOrDominance.values().length; k++) {
+                        additiveOrDominance=AdditiveOrDominance.newInstanceFromIndex(k);
+                        count=slightlyStronglyAdditiveDominanceIndiv_count[j][k][i];
+                        t=slightlyStronglyAdditiveDominanceIndiv_cumOneSampleT[j][k][i];
+                        sb.setLength(0);
+                        sb.append(taxonName).append("\t").append(groupBySubcontinent).append("\t");
+                        sb.append(slightlyOrStrongly.getValue()).append("\t");
+                        sb.append(additiveOrDominance.getValue()).append("\t");
+                        sb.append(numberFormat.format(t)).append("\t");
+                        sb.append(count);
+//                        sb.append(slightlyStronglyAdditiveDominanceIndiv_countPositiveInf[j][k][i]).append("\t");
+//                        sb.append(slightlyStronglyAdditiveDominanceIndiv_countNegativeInf[j][k][i]);
+                        bw.write(sb.toString());
+                        bw.newLine();
+                    }
+                }
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
 
     public enum SlightlyOrStrongly{
         SLIGHTLY(0, "Slightly"), STRONGLY(1, "Strongly");
