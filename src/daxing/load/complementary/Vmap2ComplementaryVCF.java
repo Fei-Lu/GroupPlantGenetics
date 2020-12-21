@@ -302,14 +302,14 @@ public class Vmap2ComplementaryVCF {
 
     }
 
-    public void calculateAccumulatedByIndividualOneSampleT(String pseudohexaploidInfo, String taxaInfoFile,
-                                                           String empiricalDistributionProbabilityOutFile,
-                                                           SubgenomeCombination subgenomeCombination){
+    public void calculateOneSampleTByTaxon(String pseudohexaploidInfo, String taxaInfoFile,
+                                           String oneSampleTByTaxonOutFile,
+                                           SubgenomeCombination subgenomeCombination){
         List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
         NumberFormat numberFormat=NumberFormat.getInstance();
         numberFormat.setMaximumFractionDigits(3);
         numberFormat.setGroupingUsed(false);
-        try (BufferedWriter bw = IOTool.getWriter(empiricalDistributionProbabilityOutFile)) {
+        try (BufferedWriter bw = IOTool.getWriter(oneSampleTByTaxonOutFile)) {
             StringBuilder sb=new StringBuilder();
             sb.setLength(0);
             sb.append("Taxon\tGroupBySubcontinent\tSlightlyOrStrongly\tAdditiveOrDominance\tOneSampleT_sum" +
@@ -371,7 +371,7 @@ public class Vmap2ComplementaryVCF {
             for (int i = 0; i < slightlyStronglyAdditiveDominanceIndiv_cumOneSampleT[0][0].length; i++) {
                 taxonName=hexaploidNameList.get(i);
                 groupBySubcontinent=taxaGroupBySubcontinentMap.get(taxonName);
-                if (groupBySubcontinent.equals("OtherHexaploid") | groupBySubcontinent.equals("NA")) continue;
+                if (groupBySubcontinent.equals("OtherHexaploid") | groupBySubcontinent.equals("NA") | groupBySubcontinent.equals("IndianDwarfWheat")) continue;
                 for (int j = 0; j < SlightlyOrStrongly.values().length; j++) {
                     slightlyOrStrongly=SlightlyOrStrongly.newInstanceFromIndex(j);
                     for (int k = 0; k < AdditiveOrDominance.values().length; k++) {
@@ -398,7 +398,7 @@ public class Vmap2ComplementaryVCF {
 
     }
 
-    public void calculateAccumulatedByTriadsOneSampleT(String pseudohexaploidInfo, String taxaInfoFile,
+    public void calculateOneSampleTByTriads(String pseudohexaploidInfo, String taxaInfoFile,
                                                               String oneSampleTOutFile,
                                                               SubgenomeCombination subgenomeCombination){
         List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
@@ -442,9 +442,11 @@ public class Vmap2ComplementaryVCF {
                             tArrayNonNANaNInf= Arrays.stream(tArray).filter(nonNANaNInf).toArray();
                             if (tArrayNonNANaNInf.length < 2) continue;
                             t_oneSampleSum= Arrays.stream(tArrayNonNANaNInf).sum();
+                            sb.setLength(0);
                             sb.append(triadsBlockRecord.getTriadsBlockID()).append("\t");
                             sb.append(groupBySubcontinent).append("\t");
-                            sb.append(slightlyOrStrongly).append("\t").append(additiveOrDominance).append("\t");
+                            sb.append(slightlyOrStrongly.getValue()).append("\t");
+                            sb.append(additiveOrDominance.getValue()).append("\t");
                             sb.append(t_oneSampleSum).append("\t").append(t_list.size());
                             bw.write(sb.toString());
                             bw.newLine();
