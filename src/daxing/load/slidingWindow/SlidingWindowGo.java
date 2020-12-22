@@ -5,7 +5,7 @@ import com.google.common.collect.Table;
 import daxing.common.IOTool;
 import daxing.common.NumberTool;
 import daxing.common.RowTableTool;
-import daxing.common.Triad;
+import daxing.common.Triads;
 import daxing.load.ancestralSite.ChrSNPAnnoDB;
 import daxing.load.ancestralSite.Standardization;
 import daxing.load.neutralSiteLoad.DynamicSNPGenotypeDB;
@@ -156,7 +156,7 @@ public class SlidingWindowGo {
     }
 
     private static void merge(File inputDir, String triadFile, String outDir){
-        Triad triad=new Triad(triadFile);
+        Triads triads =new Triads(triadFile);
         List<File> files= IOUtils.getVisibleFileListInDir(inputDir.getAbsolutePath());
         RowTableTool<String> tableTool=new RowTableTool<>(files.get(0).getAbsolutePath());
         String outName= PStringUtils.fastSplit(files.get(0).getName(), ".").get(1);
@@ -167,7 +167,7 @@ public class SlidingWindowGo {
         String geneName, triadID;
         for (int j = 0; j < tableTool.getRowNumber(); j++) {
             geneName=tableTool.getCell(j, 0);
-            triadID=triad.getTraidID(geneName);
+            triadID= triads.getTraidID(geneName);
             triadIDList.add(triadID);
         }
         tableTool.insertColumn("TriadID", 0, triadIDList);

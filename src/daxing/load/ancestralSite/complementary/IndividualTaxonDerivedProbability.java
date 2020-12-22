@@ -158,7 +158,7 @@ public class IndividualTaxonDerivedProbability {
                                                                        int window_triadIDNum,
                                                                        int step_triadIDNum,
                                                                        double[] p_ABD_ancestral, String outFile){
-        Triad triad=new Triad(triadGeneFile);
+        Triads triads =new Triads(triadGeneFile);
         RowTableTool<String> triadPosFileTable=new RowTableTool<>(triadPosFile);
         try (BufferedReader br = IOTool.getReader(triadPosFile);
              BufferedWriter bw =IOTool.getWriter(outFile)) {
@@ -177,7 +177,7 @@ public class IndividualTaxonDerivedProbability {
             while ((line=br.readLine())!=null){
                 triadID=PStringUtils.fastSplit(line).get(0);
                 chr=PStringUtils.fastSplit(line).get(2).substring(7,9);
-                triadPosChr= IndividualLoadComplementary.getTriadPosChr(triad.getTraidGenes(triadID), triadPosSub.name(),chr);
+                triadPosChr= IndividualLoadComplementary.getTriadPosChr(triads.getTraidGenes(triadID), triadPosSub.name(),chr);
                 subgenomeID=Integer.parseInt(triadPosChr.substring(0,1));
                 subIDIndex=Arrays.binarySearch(subgenomeAIDArray, subgenomeID);
                 temp[subIDIndex].add(line);
@@ -297,7 +297,7 @@ public class IndividualTaxonDerivedProbability {
      */
     private static void addTriadChrPos(File inputFile, PGF pgf, String triadGeneFile, File outFile){
         pgf.sortGeneByName();
-        Triad triad=new Triad(triadGeneFile);
+        Triads triads =new Triads(triadGeneFile);
         try (BufferedReader br = IOTool.getReader(inputFile);
              BufferedWriter bw =IOTool.getWriter(outFile)) {
             String line;
@@ -346,7 +346,7 @@ public class IndividualTaxonDerivedProbability {
                     posOnChr[i]= RefV1Utils.getPosOnChromosome(chrID[i], posOnChrID[i]);
                     pos[i]=posOnChr[i];
                     chrs[i]=RefV1Utils.getChromosome(chrID[i], posOnChrID[i]);
-                    triadPosChr[i]=IndividualLoadComplementary.getTriadPosChr(triad.getTraidGenes(triadID[i]), abd[i], chrs[i]);
+                    triadPosChr[i]=IndividualLoadComplementary.getTriadPosChr(triads.getTraidGenes(triadID[i]), abd[i], chrs[i]);
                 }
                 sbA.setLength(0);
                 sbB.setLength(0);

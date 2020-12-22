@@ -137,7 +137,7 @@ public class IndividualLoadComplementary {
     }
 
     public static void forSlidingWindow(File inputFile, String triadPosSubgenome, String triadGeneFile, File outFile){
-        Triad triad=new Triad(triadGeneFile);
+        Triads triads =new Triads(triadGeneFile);
         try (BufferedReader br = IOTool.getReader(inputFile);
              BufferedWriter bw =IOTool.getWriter(outFile)) {
             String line;
@@ -158,7 +158,7 @@ public class IndividualLoadComplementary {
                 temp= PStringUtils.fastSplit(line);
                 triadID=temp.get(0);
                 chr=temp.get(2).substring(7,9);
-                triadsPosChr=getTriadPosChr(triad.getTraidGenes(triadID),triadPosSubgenome, chr);
+                triadsPosChr=getTriadPosChr(triads.getTraidGenes(triadID),triadPosSubgenome, chr);
                 pos=temp.get(4+indexSub);
                 cdsLen=Integer.parseInt(temp.get(1));
                 ancestralNum=Integer.parseInt(temp.get(7))+Integer.parseInt(temp.get(10));

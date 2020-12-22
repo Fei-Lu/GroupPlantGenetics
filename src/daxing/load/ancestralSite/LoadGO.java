@@ -354,7 +354,7 @@ public class LoadGO {
     }
 
     private static void retainTriad(String triadFile, String taxa_InfoDBFile, File inputFile, String outDir){
-        Triad triad=new Triad(triadFile);
+        Triads triads =new Triads(triadFile);
         Map<String,String> taxaSubCharMap=RowTableTool.getMap(taxa_InfoDBFile, 0, 3);
         String taxonName=PStringUtils.fastSplit(inputFile.getName(),".").get(0);
         Ploidy ploidy=Ploidy.newInstanceFromSubChar(taxaSubCharMap.get(taxonName));
@@ -375,8 +375,8 @@ public class LoadGO {
             bw.newLine();
             String subgenome, geneName;
             boolean lessThanZero=false;
-            for (int i = 0; i < triad.getRowNum(); i++) {
-                threeName=triad.getTriad(i);
+            for (int i = 0; i < triads.getTriadRecordNum(); i++) {
+                threeName= triads.getTriadRecord(i).getTriadGeneNameArray();
                 if (ploidy.getSubgenomewNum()>1){
                     for (int j = 0; j < index.length; j++) {
                         index[j]= Collections.binarySearch(geneNames, threeName[j]);
@@ -393,8 +393,8 @@ public class LoadGO {
                     }
                 }
                 if (lessThanZero) continue;
-                triadID=triad.getTraidID(i);
-                cdsLen=triad.getCDSLen(i);
+                triadID= triads.getTraidID(i);
+                cdsLen= triads.getCDSLen(i);
                 for (int j = 0; j < index.length; j++) {
                     temp=String.join("\t", table.getRow(index[j]));
                     sb=new StringBuilder();
@@ -527,7 +527,7 @@ public class LoadGO {
     }
 
     private static void retainTriadPseudohexaploid(String triadFile, List<String> triadIDList, File inputFile, String outDir){
-        Triad triad=new Triad(triadFile);
+        Triads triads =new Triads(triadFile);
         RowTableTool<String> table=new RowTableTool<>(inputFile.getAbsolutePath());
         List<String> geneNames=table.getColumn(0);
         Collections.sort(geneNames);
@@ -544,17 +544,17 @@ public class LoadGO {
                     "\tnumHGDeleterious\tnumDerivedInHGDeleterious\tsubgenome");
             bw.newLine();
             String subgenome, geneName;
-            for (int i = 0; i < triad.getRowNum(); i++) {
-                if (!triadIDList.contains(triad.getTraidID(i))) continue;
-                threeName=triad.getTriad(i);
+            for (int i = 0; i < triads.getTriadRecordNum(); i++) {
+                if (!triadIDList.contains(triads.getTraidID(i))) continue;
+                threeName= triads.getTriadRecord(i).getTriadGeneNameArray();
                 for (int j = 0; j < indexABD.length-1; j++) {
                     indexABD[j]= Collections.binarySearch(geneNames, threeName[j]);
                 }
                 if (indexABD[0] < 0) continue;
                 if (indexABD[1] < 0) continue;
 //                if (indexABD[2] < 0) continue;
-                triadID=triad.getTraidID(i);
-                cdsLen=triad.getCDSLen(i);
+                triadID= triads.getTraidID(i);
+                cdsLen= triads.getCDSLen(i);
                 for (int j = 0; j < indexABD.length-1; j++) {
                     temp=String.join("\t", table.getRow(indexABD[j]));
                     sb=new StringBuilder();

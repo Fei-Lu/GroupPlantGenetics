@@ -6,6 +6,7 @@ import daxing.common.RowTableTool;
 import daxing.common.WheatLineage;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
+import org.apache.commons.math3.random.EmpiricalDistribution;
 import org.apache.commons.math3.stat.inference.TestUtils;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
@@ -701,6 +702,7 @@ public class Vmap2ComplementaryVCF {
             double[][][] slightlyStronglyAdditiveDominanceHexaploidLoad=
                     this.getSlightStronglyAdditiveDominanceTaxonListLoad(hexaploidTaxonIndexList,subgenomeCombination);
             double[] pseudoLoad, pseudoLoadRemovedNAInfNaN;
+            EmpiricalDistribution empiricalDistribution;
             for (int i = 0; i < SlightlyOrStrongly.values().length; i++) {
                 for (int j = 0; j < AdditiveOrDominance.values().length; j++) {
                     pseudoLoad=slightlyStronglyAdditiveDominancePseudoLoad[i][j];
@@ -709,6 +711,8 @@ public class Vmap2ComplementaryVCF {
                     for (int k = 0; k < hexaploidTaxonList.size(); k++) {
                         if (slightlyStronglyAdditiveDominanceHexaploidLoad[i][j][k] < 0) continue;
                         res[i][j][k]=TestUtils.t(slightlyStronglyAdditiveDominanceHexaploidLoad[i][j][k], pseudoLoadRemovedNAInfNaN);
+                        empiricalDistribution=new EmpiricalDistribution();
+                        empiricalDistribution.load(pseudoLoadRemovedNAInfNaN);
                     }
                 }
             }
