@@ -6,165 +6,198 @@ import com.google.common.collect.Table;
 import daxing.load.ancestralSite.Standardization;
 import daxing.load.ancestralSite.TriadGenotype;
 import gnu.trove.list.array.TDoubleArrayList;
-import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public class Triad {
+public class Triads {
 
-    List<String> triadID;
-    List<String[]> triad;
-    TIntArrayList ifSyntenic;  //0 is non-syntenic and 1 is syntenic
-    TIntArrayList ifExpressed;  // 0 is false and 1 is true
-    List<int[]> cdsList; // -1: NA
+    List<TriadsRecord> triadsRecordList;
+    /**
+     * 0: sort by triadsID
+     * 1: sort by sub gene name
+     */
+    int sortType=0;
+    WheatLineage sortTypeBySubGeneName =WheatLineage.A;
 
-    public Triad(String triadFile){
-        triadID=new ArrayList<>(19000);
-        triad=new ArrayList<>(19000);
-        ifSyntenic=new TIntArrayList();
-        ifExpressed=new TIntArrayList();
-        cdsList=new ArrayList<>();
+    public Triads(String triadFile){
+        this.triadsRecordList=new ArrayList<>(19000);
+        TriadsRecord triadsRecord;
         try (BufferedReader br = IOTool.getReader(triadFile)) {
-            String line;
+            String line, triadID;
             List<String> temp;
             br.readLine();
-            String[] abdGenes;
+            String[] triadGeneNameArray;
             int[] cdsLenABD;
+            int ifSyntenic,ifExpressed;
             while ((line=br.readLine())!=null){
                 temp= PStringUtils.fastSplit(line);
-                triadID.add(temp.get(0));
-                abdGenes=new String[3];
-                abdGenes[0]=temp.get(1);
-                abdGenes[1]=temp.get(2);
-                abdGenes[2]=temp.get(3);
-                triad.add(abdGenes);
-                if (temp.get(4).equals("syntenic")){
-                    ifSyntenic.add(1);
-                }else {
-                    ifSyntenic.add(0);
-                }
-                if (temp.get(5).equals("TRUE")){
-                    ifExpressed.add(1);
-                }else {
-                    ifExpressed.add(0);
-                }
+                triadID=(temp.get(0));
+                triadGeneNameArray=new String[3];
+                triadGeneNameArray[0]=temp.get(1);
+                triadGeneNameArray[1]=temp.get(2);
+                triadGeneNameArray[2]=temp.get(3);
+                ifSyntenic=temp.get(4).equals("syntenic") ? 1 : 0;
+                ifExpressed=temp.get(5).equals("TRUE") ? 1 : 0;
                 cdsLenABD=new int[3];
                 cdsLenABD[0]=StringTool.isNumeric(temp.get(6)) ? Integer.parseInt(temp.get(6)) : -1;
                 cdsLenABD[1]=StringTool.isNumeric(temp.get(7)) ? Integer.parseInt(temp.get(7)) : -1;
                 cdsLenABD[2]=StringTool.isNumeric(temp.get(8)) ? Integer.parseInt(temp.get(8)) : -1;
-                cdsList.add(cdsLenABD);
+                triadsRecord=new TriadsRecord(triadID, triadGeneNameArray, ifSyntenic, ifExpressed, cdsLenABD);
+                this.triadsRecordList.add(triadsRecord);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public List<String[]> getTriad() {
-        return triad;
+    private void setSortTypeBySubGeneName(WheatLineage sortTypeBySubGeneName) {
+        this.sortTypeBySubGeneName = sortTypeBySubGeneName;
+        this.sortType=1;
     }
 
-    public TIntArrayList getIfExpressed() {
-        return ifExpressed;
+    private void setSortTypeByTriadsID(){
+        this.sortType=0;
     }
 
-    public TIntArrayList getIfSyntenic() {
-        return ifSyntenic;
+    public void sortByTriadsID(){
+        this.setSortTypeByTriadsID();
+        Collections.sort(this.triadsRecordList);
     }
 
-    public List<int[]> getCdsList() {
-        return cdsList;
+    public void sortBySubGeneName(WheatLineage subgenome){
+        this.setSortTypeBySubGeneName(subgenome);
+        Collections.sort(this.triadsRecordList);
     }
 
-    public List<String> getTriadID() {
-        return triadID;
+    public List<TriadsRecord> getTriadsRecordList() {
+        return triadsRecordList;
     }
 
-    public WheatLineage getSubgenome(String geneName){
-        List<String> temp=PStringUtils.fastSplit(geneName, "G");
-        String subgenome=temp.get(0).substring(8,9);
-        return WheatLineage.valueOf(subgenome);
-    }
+    public class TriadsRecord implements Comparable<TriadsRecord>{
 
-    public List<String> getSubgenomeGenes(WheatLineage subgenome){
-        String[] subgenomes={"A","B","D"};
-        int index= Arrays.binarySearch(subgenomes, subgenome.name());
-        if (index < 0) {
-            System.out.println("subgenome must be A or B or D");
-            System.exit(1);
+        String triadID;
+        String[] triadGeneNameArray;
+        int ifSyntenic; //0 is non-syntenic and 1 is syntenic
+        int ifExpressed; // 0 is false and 1 is true
+        int[] cdsLen; //-1: NA
+
+        TriadsRecord(String triadID, String[] triadGeneNameArray, int ifSyntenic, int ifExpressed, int[] cdsLen){
+            this.triadID=triadID;
+            this.triadGeneNameArray=triadGeneNameArray;
+            this.ifSyntenic=ifSyntenic;
+            this.ifExpressed=ifExpressed;
+            this.cdsLen=cdsLen;
         }
-        List<String[]> genes=this.getTriad();
-        List<String> subgenomeGenes=new ArrayList<>();
-        for (int i = 0; i < genes.size(); i++) {
-            subgenomeGenes.add(genes.get(i)[index]);
+
+        public String getTriadID() {
+            return triadID;
         }
-        return subgenomeGenes;
-    }
 
-    public List<String> getSubgenomeGens(String geneName){
-        WheatLineage subgenome=this.getSubgenome(geneName);
-        return this.getSubgenomeGenes(subgenome);
-    }
+        public String[] getTriadGeneNameArray() {
+            return triadGeneNameArray;
+        }
 
-    public List<String> getAllGenes(){
-        List<String> genes=new ArrayList<>(57000);
-        List<String[]> data=this.getTriad();
-        for (int i = 0; i < data.size(); i++) {
-            for (int j = 0; j < data.get(i).length; j++) {
-                genes.add(data.get(i)[j]);
+        public int getIfExpressed() {
+            return ifExpressed;
+        }
+
+        public int getIfSyntenic() {
+            return ifSyntenic;
+        }
+
+        public int[] getCdsLen() {
+            return cdsLen;
+        }
+
+        @Override
+        /**
+         * sort by gene name rather than triadsID
+         */
+        public int compareTo(TriadsRecord o) {
+            if (sortType==0){
+                return this.triadID.compareTo(o.triadID);
+            }else {
+                return this.triadGeneNameArray[sortTypeBySubGeneName.getIndex()].compareTo(o.triadGeneNameArray[sortTypeBySubGeneName.getIndex()]);
             }
         }
-        return genes;
     }
 
-    public String[] getTriad(int geneIndex){
-        return this.getTriad().get(geneIndex);
+    /**
+     *
+     * @param triadsRecord
+     * @return Negative number means not exist
+     */
+    private int getTriadsRecordIndex(TriadsRecord triadsRecord){
+        return Collections.binarySearch(triadsRecordList, triadsRecord);
     }
 
-    public int[] getCDSLen(int geneIndex){
-        return this.cdsList.get(geneIndex);
+    /**
+     *
+     * @param geneName
+     * @return Negative number means not exist
+     */
+    public int getTriadsRecordIndexByGeneName(String geneName){
+
+        String[] geneNameArray=new String[WheatLineage.values().length];
+        int[] cdsLen={-1,-1,-1};
+        for (int i = 0; i < geneNameArray.length; i++) {
+            if(Triads.getSubgenome(geneName).getIndex()!=i) continue;
+            geneNameArray[i]=geneName;
+        }
+        this.setSortTypeBySubGeneName(Triads.getSubgenome(geneName));
+        return getTriadsRecordIndex(new TriadsRecord("", geneNameArray, Integer.MIN_VALUE, Integer.MIN_VALUE, cdsLen));
     }
 
-    public String[] getTriad(String geneName){
-        int geneIndex=this.getGeneIndex(geneName);
-        return getTriad(geneIndex);
+    public int getTriadsRecordIndexByTriadsID(String triadsID){
+        this.setSortTypeByTriadsID();
+        return getTriadsRecordIndex(new TriadsRecord(triadsID, null, Integer.MIN_VALUE, Integer.MIN_VALUE,null));
     }
 
-    public String[] getTraidGenes(String triadID){
-        List<String> triadNames=this.triadID;
-        int index=triadNames.indexOf(triadID);
-        return this.getTriad().get(index);
+    public static WheatLineage getSubgenome(String geneName){
+        List<String> temp=PStringUtils.fastSplit(geneName, "G");
+        return WheatLineage.valueOf(temp.get(0).substring(8,9));
+    }
+
+    public TriadsRecord getTriadRecord(int triadRecordIndex){
+        return this.getTriadsRecordList().get(triadRecordIndex);
     }
 
     public String getTraidID(String geneName){
-        int geneIndex=this.getGeneIndex(geneName);
-        return this.getTriadID().get(geneIndex);
+        return this.getTriadRecord(this.getTriadsRecordIndexByGeneName(geneName)).getTriadID();
     }
 
-    public String getTraidID(int index){
-        return this.getTriadID().get(index);
+    public String getTraidID(int triadRecordIndex){
+        return this.getTriadRecord(triadRecordIndex).triadID;
     }
 
-    public int getGeneIndex(String geneName){
-        String subgenome=this.getSubgenome(geneName).name();
-        List<String> subgenomeGenes=this.getSubgenomeGenes(WheatLineage.valueOf(subgenome));
-        return subgenomeGenes.indexOf(geneName);
+    public int[] getCDSLen(int triadRecordIndex){
+        return this.getTriadRecord(triadRecordIndex).cdsLen;
     }
 
-    public boolean contain(String geneName){
-        String subgenome=this.getSubgenome(geneName).name();
-        List<String> subgenomeGenes=this.getSubgenomeGenes(WheatLineage.valueOf(subgenome));
-        return subgenomeGenes.contains(geneName);
+    public List<String> getAllGenes(){
+        List<String> allGenes=new ArrayList<>();
+        String[] geneName;
+        for (int i = 0; i < this.getTriadRecordNum(); i++) {
+            geneName=this.getTriadRecord(i).getTriadGeneNameArray();
+            for (int j = 0; j < geneName.length; j++) {
+                allGenes.add(geneName[j]);
+            }
+        }
+        return allGenes;
     }
 
-    public int getRowNum(){
-        return this.getTriadID().size();
+    public int getTriadRecordNum(){
+        return this.getTriadsRecordList().size();
+    }
+
+    public String[] getTraidGenes(String triadsID){
+        return this.getTriadRecord(this.getTriadsRecordIndexByTriadsID(triadsID)).getTriadGeneNameArray();
     }
 
     /**
@@ -177,7 +210,7 @@ public class Triad {
     public static void triadPosRecombinationRate(String pgfFile, String triadFile, String recombinationFile, String outFile){
         PGF pgf=new PGF(pgfFile);
         pgf.sortGeneByName();
-        Triad triad=new Triad(triadFile);
+        Triads triads =new Triads(triadFile);
         RowTableTool<String> recombinationRateTable=new RowTableTool<>(recombinationFile);
         Table<String,String,String> recombiantionRate=recombinationRateTable.getTable(0,1,4);
         List<String> posABD=new ArrayList<>();
@@ -195,8 +228,8 @@ public class Triad {
             bw.newLine();
             String recombination;
             int apos=-1;
-            for (int i = 0; i < triad.getRowNum(); i++) {
-                abd=triad.getTriad(i);
+            for (int i = 0; i < triads.getTriadRecordNum(); i++) {
+                abd= triads.getTriadRecord(i).triadGeneNameArray;
                 for (int j = 0; j < 3; j++) {
                     geneIndex=pgf.getGeneIndex(abd[j]);
                     chr=pgf.getGene(geneIndex).geneRange.chr;
@@ -227,7 +260,7 @@ public class Triad {
                         nearestIndex=recombinationIndex;
                     }
                     sb.setLength(0);
-                    sb.append(triad.getTraidID(i)).append("\t");
+                    sb.append(triads.getTraidID(i)).append("\t");
                     sb.append(RefV1Utils.getChromosome(chr, 1)).append("\t").append(middle).append("\t");
                     recombination=posRecombinationMap.get(posList.get(nearestIndex));
                     sb.append(recombination);

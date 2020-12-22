@@ -2,7 +2,7 @@ package daxing.applets;
 
 import daxing.common.IOTool;
 import daxing.common.RowTableTool;
-import daxing.common.Triad;
+import daxing.common.Triads;
 import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOFileFormat;
 import java.io.BufferedWriter;
@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
 public class GeneSummaryUtils {
 
     public static void retainTriad(String triadFile, String geneAnnotationFile){
-        Triad triad=new Triad(triadFile);
+        Triads triads =new Triads(triadFile);
         RowTableTool<String> geneAnnotationTable=new RowTableTool<>(geneAnnotationFile);
-        List<String> triadGenes=triad.getAllGenes();
+        List<String> triadGenes= triads.getAllGenes();
         Predicate<List<String>> inTriad=l->triadGenes.contains(l.get(0).substring(0,18));
         geneAnnotationTable.removeIf(inTriad.negate());
         List<String> geneNames=geneAnnotationTable.getColumn(0);
@@ -25,8 +25,8 @@ public class GeneSummaryUtils {
         List<String> subgenomeList=new ArrayList<>(19000);
         String id, subgenome;
         for (int i = 0; i < genes.size(); i++) {
-            id=triad.getTraidID(genes.get(i));
-            subgenome=triad.getSubgenome(genes.get(i)).name();
+            id= triads.getTraidID(genes.get(i));
+            subgenome= triads.getSubgenome(genes.get(i)).name();
             triadID.add(id);
             subgenomeList.add(subgenome);
         }
@@ -39,10 +39,10 @@ public class GeneSummaryUtils {
     }
 
     public static void remove169(String geneSummaryTriad, String notTriad, String triadFile){
-        Triad triad=new Triad(triadFile);
+        Triads triads =new Triads(triadFile);
         RowTable<String> notTriaTable=new RowTable<>(notTriad);
         List<String> notTriadGenes=notTriaTable.getColumn(0);
-        Set<String> notTriadGeneIDset= notTriadGenes.stream().map(s->triad.getTraidID(s)).collect(Collectors.toSet());
+        Set<String> notTriadGeneIDset= notTriadGenes.stream().map(s-> triads.getTraidID(s)).collect(Collectors.toSet());
         List<String> notTriadGeneIDList=new ArrayList<>(notTriadGeneIDset);
         RowTableTool<String> geneSummaryTable=new RowTableTool<>(geneSummaryTriad);
         Predicate<List<String>> p=l->notTriadGeneIDList.contains(l.get(0));

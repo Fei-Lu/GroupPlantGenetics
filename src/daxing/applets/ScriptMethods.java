@@ -940,4 +940,42 @@ public class ScriptMethods {
             e.printStackTrace();
         }
     }
+
+    public static void geneTriadsList(String triadsFile, String pgfFile, String geneListFile, String outFile){
+        Triads triads =new Triads(triadsFile);
+        PGF pgf=new PGF(pgfFile);
+        pgf.sortGeneByGeneRange();
+        try (BufferedReader br = IOTool.getReader(geneListFile);
+             BufferedWriter bw =IOTool.getWriter(outFile)) {
+            String line, chr;
+            int start, end;
+            line=br.readLine();
+            bw.write(line);
+            bw.newLine();
+            List<String> temp;
+            ChrRange chrRange;
+            int geneIndex;
+            Set<String> geneNameSet;
+            List<String> geneNameList;
+            StringBuilder sb=new StringBuilder();
+            while ((line=br.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                chr=temp.get(2);
+                start=Integer.parseInt(temp.get(3).trim());
+                end=Integer.parseInt(temp.get(4).trim())+1;
+                chrRange=new ChrRange(chr, start, end);
+                geneNameSet=new HashSet<>();
+                for (int i = chrRange.getVCFStart(); i < chrRange.getVCFEnd(); i++) {
+                    geneIndex=pgf.getGeneIndex(chrRange.getChrID(), i);
+                    if (geneIndex < 0) continue;
+                    geneNameSet.add(pgf.getGene(geneIndex).getGeneName());
+                }
+                geneNameList=new ArrayList<>(geneNameSet);
+                Collections.sort(geneNameList);
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
