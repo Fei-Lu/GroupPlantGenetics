@@ -69,7 +69,7 @@ public class Vmap2ComplementaryVCF {
                     chr=te.get(0);
                     t=PStringUtils.fastSplit(te.get(1), ",");
                     start=Integer.parseInt(t.get(0));
-                    end=Integer.parseInt(t.get(1)+1);
+                    end=Integer.parseInt(t.get(1))+1;
                     chrRange[i]=new ChrRange(chr, start, end);
                 }
                 tem=PStringUtils.fastSplit(temp.get(4), ",");
@@ -436,6 +436,9 @@ public class Vmap2ComplementaryVCF {
         String[] groupBySubcontinentArray=Vmap2ComplementaryVCF.groupBySubcontinent;
         Arrays.sort(groupBySubcontinentArray);
         ChrRange chrRange;
+        NumberFormat numberFormat=NumberFormat.getInstance();
+        numberFormat.setMaximumFractionDigits(3);
+        numberFormat.setGroupingUsed(false);
         try (BufferedWriter bw = IOTool.getWriter(oneSampleTOrZscoreOutFile)) {
             sb.append("TriadsBlock\tChr\tPosStart\tPosEnd\tGroupBySubcontinent\tSlightlyOrStrongly" +
                     "\tAdditiveOrDominance\tOneSampleT_sum" +
@@ -471,7 +474,7 @@ public class Vmap2ComplementaryVCF {
                             sb.append(groupBySubcontinent).append("\t");
                             sb.append(slightlyOrStrongly.getValue()).append("\t");
                             sb.append(additiveOrDominance.getValue()).append("\t");
-                            sb.append(tOrZScore).append("\t").append(tOrZScore_list.size());
+                            sb.append(numberFormat.format(tOrZScore)).append("\t").append(tOrZScore_list.size());
                             bw.write(sb.toString());
                             bw.newLine();
                         }

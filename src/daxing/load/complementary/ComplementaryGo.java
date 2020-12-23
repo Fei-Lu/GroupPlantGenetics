@@ -38,7 +38,7 @@ public class ComplementaryGo {
                           String pgfFile, String outDir){
         System.out.println(DateTime.getDateTimeOfNow());
         String[] subdir={"001_count","002_countMerge","003_hexaploidPseudohexaploid","004_triadsBlock",
-                "005_mergeTriadsBlock"};
+                "005_mergeTriadsBlock","006_T","007_ZScore"};
         for (int i = 0; i < subdir.length; i++) {
             new File(outDir, subdir[i]).mkdir();
         }
@@ -451,7 +451,7 @@ public class ComplementaryGo {
         File triadsBlockFile=files.stream().filter(pseudoHexaploid.negate()).collect(Collectors.toList()).get(0);
         Map<String, List<String>[]> triasBlockGeneNameListMap=getTriadsBlockGeneNameListMap(triadsBlockFile);
         File pseudohexaploidFile=new File(outDir, "pseudohexaploidInfo.txt.gz");
-        File allIndividualTriadsBlockFile=new File(outDir, "allIndividualTriadsBlock.txt.gz");
+        File allIndividualTriadsBlockFile=new File(outDir, "allIndividualTriadsBlockBySubcontinent.txt.gz");
         List<String> triadsBlockIDList=RowTableTool.getColumnList(files1.get(0).getAbsolutePath(), 0, "\t");
         List<String> blockGeneNumList=RowTableTool.getColumnList(files1.get(0).getAbsolutePath(), 1, "\t");
         List<String> genotypedGeneNumList=RowTableTool.getColumnList(files1.get(0).getAbsolutePath(), 2, "\t");
