@@ -318,8 +318,12 @@ public class Vmap2ComplementaryVCF {
         try (BufferedWriter bw = IOTool.getWriter(oneSampleTByTaxonOutFile)) {
             StringBuilder sb=new StringBuilder();
             sb.setLength(0);
-            sb.append("Taxon\tGroupBySubcontinent\tSlightlyOrStrongly\tAdditiveOrDominance\tOneSampleT_sum" +
-                    "\tN");
+            sb.append("Taxon\tGroupBySubcontinent\tSlightlyOrStrongly\tAdditiveOrDominance\t");
+            if (ifZScore){
+                sb.append("ZScore").append("\t").append("N");
+            }else {
+                sb.append("OneSampleT_sum").append("\t").append("N");
+            }
             bw.write(sb.toString());
             bw.newLine();
             List<String> hexaploidNameList=Vmap2ComplementaryVCF.getHexaploidTaxonList(pseudohexaploidInfo);
@@ -435,8 +439,12 @@ public class Vmap2ComplementaryVCF {
         numberFormat.setGroupingUsed(false);
         try (BufferedWriter bw = IOTool.getWriter(oneSampleTOrZscoreOutFile)) {
             sb.append("TriadsBlock\tChr\tPosStart\tPosEnd\tGroupBySubcontinent\tSlightlyOrStrongly" +
-                    "\tAdditiveOrDominance\tOneSampleT_sum" +
-                    "\tN");
+                    "\tAdditiveOrDominance\t");
+            if (ifZScore){
+                sb.append("ZScore\tN");
+            }else {
+                sb.append("OneSampleT_sum\tN");
+            }
             bw.write(sb.toString());
             bw.newLine();
             for (TriadsBlockRecord triadsBlockRecord: triadsBlockRecordList){
