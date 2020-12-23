@@ -251,13 +251,14 @@ public class Vmap2ComplementaryVCF {
     }
 
     public void calculateOneSampleTOrZScoreMatrix(String pseudohexaploidInfo,
-                                              String empiricalDistributionProbabilityOutFile,
+                                              String tOrZScoreOutFile,
                                                SubgenomeCombination subgenomeCombination, WheatLineage positionBySub,
                                                boolean ifZScore){
         List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
         NumberFormat numberFormat=NumberFormat.getInstance();
         numberFormat.setMaximumFractionDigits(3);
-        try (BufferedWriter bw = IOTool.getWriter(empiricalDistributionProbabilityOutFile)) {
+        numberFormat.setGroupingUsed(false);
+        try (BufferedWriter bw = IOTool.getWriter(tOrZScoreOutFile)) {
             StringBuilder sb=new StringBuilder();
             sb.setLength(0);
             sb.append("TriadsBlockID\tChr\tPosStart\tPosEnd\tSlightlyOrStrongly\tAdditiveOrDominance\t");
@@ -351,16 +352,9 @@ public class Vmap2ComplementaryVCF {
                 for (int j = 0; j < SlightlyOrStrongly.values().length; j++) {
                     for (int k = 0; k < AdditiveOrDominance.values().length; k++) {
                         for (int l = 0; l < slightlyStronglyAdditiveDominance_OneSampleTOrZScore[j][k].length; l++) {
+
                             tOrZScore=slightlyStronglyAdditiveDominance_OneSampleTOrZScore[j][k][l];
-                            if (Double.isNaN(tOrZScore) || tOrZScore==Double.MIN_VALUE) continue;
-                            if (tOrZScore==Double.POSITIVE_INFINITY){
-//                                slightlyStronglyAdditiveDominanceIndiv_countPositiveInf[j][k][l]++;
-                                continue;
-                            }
-                            if (tOrZScore==Double.NEGATIVE_INFINITY){
-//                                slightlyStronglyAdditiveDominanceIndiv_countNegativeInf[j][k][l]++;
-                                continue;
-                            }
+                            if (Double.isNaN(tOrZScore) || tOrZScore==Double.MIN_VALUE || Double.isInfinite(tOrZScore)) continue;
 //                            max=tOrZScore > max ? tOrZScore : max;
 //                            mini= tOrZScore < mini ? tOrZScore : mini;
 //                            hexaploidMax[l]=max;
