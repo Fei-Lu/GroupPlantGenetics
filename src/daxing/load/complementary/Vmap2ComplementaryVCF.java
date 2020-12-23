@@ -468,7 +468,7 @@ public class Vmap2ComplementaryVCF {
                             sb.append(groupBySubcontinent).append("\t");
                             sb.append(slightlyOrStrongly.getValue()).append("\t");
                             sb.append(additiveOrDominance.getValue()).append("\t");
-                            sb.append(numberFormat.format(tOrZScore)).append("\t").append(tOrZScore_list.size());
+                            sb.append(numberFormat.format(tOrZScore)).append("\t").append(tOrZScoreArrayNonNANaNInf.length);
                             bw.write(sb.toString());
                             bw.newLine();
                         }
