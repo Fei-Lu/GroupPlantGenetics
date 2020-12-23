@@ -530,7 +530,7 @@ public class ComplementaryGo {
                 sb.append(genotypedGeneNumList.get(i)).append("\t");
                 for (int j = 0; j < chrRangeABD.length; j++) {
                     sb.append(chrRangeABD[j].getChr()).append(":").append(chrRangeABD[j].getStart()).append(",");
-                    sb.append(chrRangeABD[j].getEnd()).append(";");
+                    sb.append(chrRangeABD[j].getEnd()-1).append(";");
                 }
                 sb.deleteCharAt(sb.length()-1).append("\t");
                 for (int j = 0; j < cdsLenABD.length; j++) {
