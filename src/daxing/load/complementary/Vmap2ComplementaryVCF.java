@@ -1,9 +1,6 @@
 package daxing.load.complementary;
 
-import daxing.common.ChrRange;
-import daxing.common.IOTool;
-import daxing.common.RowTableTool;
-import daxing.common.WheatLineage;
+import daxing.common.*;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.stat.StatUtils;
@@ -171,6 +168,8 @@ public class Vmap2ComplementaryVCF {
     public void calculateTwoSampleTTestStatics(String tTestStaticsOutFile, String taxaInfoDB,
                                                String pseudoHexaploidInfo, SubgenomeCombination subgenomeCombination,
                                                WheatLineage positionBySub){
+        System.out.println(DateTime.getDateTimeOfNow());
+        System.out.println("Start written to "+tTestStaticsOutFile);
         String[] groupBySubcontinent=Vmap2ComplementaryVCF.groupBySubcontinent;
         Arrays.sort(groupBySubcontinent);
         try (BufferedWriter bw = IOTool.getWriter(tTestStaticsOutFile)) {
@@ -248,12 +247,16 @@ public class Vmap2ComplementaryVCF {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("Two sample t-value had been written to "+tTestStaticsOutFile);
+        System.out.println(DateTime.getDateTimeOfNow());
     }
 
     public void calculateOneSampleTOrZScoreMatrix(String pseudohexaploidInfo,
                                               String tOrZScoreOutFile,
                                                SubgenomeCombination subgenomeCombination, WheatLineage positionBySub,
                                                boolean ifZScore){
+        System.out.println(DateTime.getDateTimeOfNow());
+        System.out.println("Start writing to "+tOrZScoreOutFile);
         List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
         NumberFormat numberFormat=NumberFormat.getInstance();
         numberFormat.setMaximumFractionDigits(3);
@@ -305,12 +308,16 @@ public class Vmap2ComplementaryVCF {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        String t_z=ifZScore ? "t-value" : "z-score";
+        System.out.println(t_z+" matrix had been written to "+tOrZScoreOutFile);
+        System.out.println(DateTime.getDateTimeOfNow());
     }
 
     public void calculateOneSampleTorZScoreByTaxon(String pseudohexaploidInfo, String taxaInfoFile,
                                         String oneSampleTByTaxonOutFile,
                                  SubgenomeCombination subgenomeCombination, boolean ifZScore){
+        System.out.println(DateTime.getDateTimeOfNow());
+        System.out.println("Start written to "+oneSampleTByTaxonOutFile);
         List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
         NumberFormat numberFormat=NumberFormat.getInstance();
         numberFormat.setMaximumFractionDigits(3);
@@ -401,7 +408,9 @@ public class Vmap2ComplementaryVCF {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        String t_z=ifZScore ? "t-value" : "z-score";
+        System.out.println(t_z+" by taxon had been written to "+oneSampleTByTaxonOutFile);
+        System.out.println(DateTime.getDateTimeOfNow());
     }
 
     /**
@@ -415,6 +424,8 @@ public class Vmap2ComplementaryVCF {
     public void calculateOneSampleTorZScoreByTriads(String pseudohexaploidInfo, String taxaInfoFile,
                                    String oneSampleTOrZscoreOutFile, SubgenomeCombination subgenomeCombination,
                                                     WheatLineage positionBySub, boolean ifZScore){
+        System.out.println(DateTime.getDateTimeOfNow());
+        System.out.println("Start written to "+oneSampleTOrZscoreOutFile);
         List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
         double[][][] slightlyStronglyAdditiveDominanceTaxon_TorZScore;
         DoublePredicate na=value -> value==Double.MIN_VALUE;
@@ -487,7 +498,9 @@ public class Vmap2ComplementaryVCF {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        String t_z=ifZScore ? "t-value" : "z-score";
+        System.out.println(t_z+" by triads had been written to "+oneSampleTOrZscoreOutFile);
+        System.out.println(DateTime.getDateTimeOfNow());
     }
 
 
