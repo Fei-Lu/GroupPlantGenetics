@@ -232,6 +232,7 @@ public class Triads {
                 abd= triads.getTriadRecord(i).triadGeneNameArray;
                 for (int j = 0; j < 3; j++) {
                     geneIndex=pgf.getGeneIndex(abd[j]);
+                    if (geneIndex < 0) break;
                     chr=pgf.getGene(geneIndex).geneRange.chr;
                     start=pgf.getGene(geneIndex).geneRange.start;
                     end=pgf.getGene(geneIndex).geneRange.end;
