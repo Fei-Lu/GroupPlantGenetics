@@ -44,15 +44,15 @@ public class ComplementaryGo {
         }
         List<File> exonAnnoFiles= IOUtils.getVisibleFileListInDir(exonSNPAnnoDir);
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
-        Map<String, File> taxonOutDirMap=getTaxonOutDirMap(taxa_InfoDBFile, new File(outDir, subdir[0]).getAbsolutePath());
+//        Map<String, File> taxonOutDirMap=getTaxonOutDirMap(taxa_InfoDBFile, new File(outDir, subdir[0]).getAbsolutePath());
 //        IntStream.range(0, exonVCFFiles.size()).forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
 //                taxonOutDirMap, e+1));
 //        merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
 //        syntheticPseudohexaploidHexaploid(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
-//                new File(outDir, subdir[2]).getAbsolutePath(), 300);
+//                new File(outDir, subdir[2]).getAbsolutePath());
 //        calculateLoadInfo(triadFile, pgfFile, 10, new File(outDir, subdir[2]).getAbsoluteFile(), new File(outDir, subdir[3]));
-//        mergeTriadsBlockBySubspecies(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
-//        mergeTriadsBlockWithEightModel(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
+        mergeTriadsBlockBySubspecies(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
+        mergeTriadsBlockWithEightModel(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
         mergeAllIndividualTriadsBlock(new File(outDir, subdir[3]), pgfFile, new File(outDir, subdir[4]));
     }
 
@@ -150,8 +150,7 @@ public class ComplementaryGo {
         }
     }
 
-    public static void syntheticPseudohexaploidHexaploid(String inputDir, String vmapIIGroupFile, String outDir,
-                                                         int numPseudohexaploid){
+    public static void syntheticPseudohexaploidHexaploid(String inputDir, String vmapIIGroupFile, String outDir){
         List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
         Map<String, String> taxonGroupMap=RowTableTool.getMap(vmapIIGroupFile,0,15);
         Map<String, List<File>> groupFileMap= files.stream().collect(Collectors.groupingBy(f->taxonGroupMap.get(PStringUtils.fastSplit(f.getName(), ".").get(0))));
@@ -191,7 +190,7 @@ public class ComplementaryGo {
                 p3=P3.newInstanceFrom(i);
                 System.out.println("synthetic pseudohexaploid using "+p3.getAbbreviation()+" AT");
                 syntheticPseudohexaploid(p3Files[i], p3Files[3], subdirFiles[0].getAbsolutePath(),
-                        "pseudohexaploid."+p3.getAbbreviation()+"_AT",numPseudohexaploid);
+                        "pseudohexaploid."+p3.getAbbreviation()+"_AT");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -199,8 +198,7 @@ public class ComplementaryGo {
     }
 
     private static void syntheticPseudohexaploid(List<File> tetraploidFiles, List<File> diploidFiles,
-                                                String pseudohexaploidOutDir, String outNamePrefix,
-                                                int numPseudohexaploid){
+                                                String pseudohexaploidOutDir, String outNamePrefix){
         List<int[]> combinations=new ArrayList<>();
         int[] combination;
         for (int i = 0; i < diploidFiles.size(); i++) {
@@ -211,17 +209,19 @@ public class ComplementaryGo {
                 combinations.add(combination);
             }
         }
-        int[] randomIndex= ArrayTool.getRandomNonrepetitionArray(numPseudohexaploid, 0, combinations.size());
-        IntStream.range(0, randomIndex.length).parallel().forEach(e->syntheticPseudohexaploid(diploidFiles.get(combinations.get(randomIndex[e])[1]),
-                tetraploidFiles.get(combinations.get(randomIndex[e])[0]), pseudohexaploidOutDir, outNamePrefix));
+//        int[] randomIndex= ArrayTool.getRandomNonrepetitionArray(numPseudohexaploid, 0, combinations.size());
+        combinations.stream().parallel().forEach(e->syntheticPseudohexaploid(diploidFiles.get(e[1]),
+                tetraploidFiles.get(e[0]), pseudohexaploidOutDir, outNamePrefix));
+//        IntStream.range(0, randomIndex.length).parallel().forEach(e->syntheticPseudohexaploid(diploidFiles.get(combinations.get(randomIndex[e])[1]),
+//                tetraploidFiles.get(combinations.get(randomIndex[e])[0]), pseudohexaploidOutDir, outNamePrefix));
     }
 
-    private static void syntheticPseudohexaploid(List<File> tetraploidFiles, List<File> diploidFiles,
-                                                String pseudohexaploidOutDir, String outNamePrefix){
-        int numPseudohexaploid=tetraploidFiles.size()*diploidFiles.size();
-        syntheticPseudohexaploid(tetraploidFiles, diploidFiles, pseudohexaploidOutDir, outNamePrefix, numPseudohexaploid);
-        System.out.println("numPseudohexaploid: "+numPseudohexaploid+" ("+tetraploidFiles.size()+" "+diploidFiles.size()+")");
-    }
+//    private static void syntheticPseudohexaploid(List<File> tetraploidFiles, List<File> diploidFiles,
+//                                                String pseudohexaploidOutDir, String outNamePrefix){
+//        int numPseudohexaploid=tetraploidFiles.size()*diploidFiles.size();
+//        syntheticPseudohexaploid(tetraploidFiles, diploidFiles, pseudohexaploidOutDir, outNamePrefix, numPseudohexaploid);
+//        System.out.println("numPseudohexaploid: "+numPseudohexaploid+" ("+tetraploidFiles.size()+" "+diploidFiles.size()+")");
+//    }
 
     private static void syntheticPseudohexaploid(File diploidFile, File tetraploidFile, String outDir, String outNamePrefix){
         String diploidName=PStringUtils.fastSplit(diploidFile.getName(),".").get(0);
