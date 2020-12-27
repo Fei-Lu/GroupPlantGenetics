@@ -739,12 +739,12 @@ public class Vmap2ComplementaryVCF {
         }
 
         /**
-         * Double.MIN_VALUE: NA
+         *
          * @param pseudoTaxonIndexList
          * @param hexaploidTaxonIndexList
          * @param subgenomeCombination
          * @param ifZScore
-         * @return
+         * @return Double.MIN_VALUE: NA
          */
         public double[][][] getSlightStronglyAdditiveDominanceTaxon_OneSampleTOrZScore(TIntArrayList pseudoTaxonIndexList
                 , TIntArrayList hexaploidTaxonIndexList, SubgenomeCombination subgenomeCombination, boolean ifZScore){
