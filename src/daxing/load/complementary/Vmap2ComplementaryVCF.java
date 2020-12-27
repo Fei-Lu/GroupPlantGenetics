@@ -45,6 +45,7 @@ public class Vmap2ComplementaryVCF {
             for (int i = 5; i < temp.size(); i++) {
                 this.taxonList.add(temp.get(i));
             }
+            int count=0;
             while ((line=br.readLine())!=null){
                 temp=PStringUtils.fastSplit(line);
                 blockGeneNum=new byte[WheatLineage.values().length];
@@ -78,7 +79,12 @@ public class Vmap2ComplementaryVCF {
                     triadsBlockRecord.addLoadINFO(temp.get(i));
                 }
                 this.triadsBlockRecordList.add(triadsBlockRecord);
+                count++;
+                if (count%5000==0){
+                    System.out.println("Reading in "+count+" triads into memory");
+                }
             }
+            System.out.println("Total "+count+" triads had been reading into memory");
         } catch (IOException e) {
             e.printStackTrace();
         }
