@@ -308,7 +308,7 @@ public class Vmap2ComplementaryVCF {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        String t_z=ifZScore ? "t-value" : "z-score";
+        String t_z=ifZScore ? "z-score" : "t-value";
         System.out.println(t_z+" matrix had been written to "+tOrZScoreOutFile);
         System.out.println(DateTime.getDateTimeOfNow());
     }
@@ -408,7 +408,7 @@ public class Vmap2ComplementaryVCF {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        String t_z=ifZScore ? "t-value" : "z-score";
+        String t_z=ifZScore ? "z-score" : "t-value";
         System.out.println(t_z+" by taxon had been written to "+oneSampleTByTaxonOutFile);
         System.out.println(DateTime.getDateTimeOfNow());
     }
@@ -498,7 +498,7 @@ public class Vmap2ComplementaryVCF {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        String t_z=ifZScore ? "t-value" : "z-score";
+        String t_z=ifZScore ? "z-score" : "t-value";
         System.out.println(t_z+" by triads had been written to "+oneSampleTOrZscoreOutFile);
         System.out.println(DateTime.getDateTimeOfNow());
     }
