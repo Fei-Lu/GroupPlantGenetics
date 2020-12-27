@@ -6,7 +6,6 @@ import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.stat.StatUtils;
 import org.apache.commons.math3.stat.inference.TestUtils;
 import pgl.infra.utils.PStringUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -661,6 +660,8 @@ public class Vmap2ComplementaryVCF {
 
         /**
          *
+         * @param taxonIndexList
+         * @param subgenomeCombination
          * @return [SlightStrongly][AdditiveDominance] load of specified taxonList
          */
         private List<double[][]> getSlightStronglyAdditiveDominanceLoad(TIntArrayList taxonIndexList,
@@ -674,10 +675,12 @@ public class Vmap2ComplementaryVCF {
         }
 
         /**
-         * -1: NA
+         *
          * @param taxonIndexList
-         * @return
+         * @param subgenomeCombination
+         * @return -1: NA
          */
+
         public double[][][] getSlightStronglyAdditiveDominanceTaxonListLoad(TIntArrayList taxonIndexList,
                                                                             SubgenomeCombination subgenomeCombination){
             List<double[][]> slightStronglyAdditiveDominanceTaxonLoad=
@@ -823,23 +826,23 @@ public class Vmap2ComplementaryVCF {
                 Arrays.fill(slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i], -1);
             }
             TIntArrayList indexList=subgenomeCombination.getIndexList();
-            double[] subgenome_Load, subgenomeCombiantion_Load;
+            double[] subgenome_Load;
+            TDoubleArrayList subgenomeCombiantion_LoadList;
             double mini, sum;
-            DoublePredicate lessThan0 = value -> value < 0;
             for (int i = 0; i < slightlyStronglySubgenome_Load.length; i++) {
                 subgenome_Load=slightlyStronglySubgenome_Load[i];
-                subgenomeCombiantion_Load=new double[indexList.size()];
-                Arrays.fill(subgenomeCombiantion_Load, -1);
-                for (int j = 0; j < subgenomeCombiantion_Load.length; j++) {
-                    subgenomeCombiantion_Load[j]=subgenome_Load[indexList.get(j)];
+                subgenomeCombiantion_LoadList=new TDoubleArrayList();
+                for (int j = 0; j < indexList.size(); j++) {
+                    if (subgenome_Load[indexList.get(j)] < 0) continue;
+                    if (Double.isNaN(subgenome_Load[indexList.get(j)])) continue;
+                    subgenomeCombiantion_LoadList.add(subgenome_Load[indexList.get(j)]);
                 }
-                if (Arrays.stream(subgenomeCombiantion_Load).allMatch(lessThan0)) continue;
-                if (!Arrays.stream(subgenomeCombiantion_Load).filter(lessThan0.negate()).min().isPresent()) continue;
-                mini=Arrays.stream(subgenomeCombiantion_Load).filter(lessThan0.negate()).min().getAsDouble();
-                if (Arrays.stream(subgenomeCombiantion_Load).min().getAsDouble() < 0){
+                if (subgenomeCombiantion_LoadList.size() < 1) continue;
+                mini=subgenomeCombiantion_LoadList.min();
+                if (subgenomeCombiantion_LoadList.size() < indexList.size()){
                     slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i][0]=-1;
                 }else {
-                    sum=Arrays.stream(subgenomeCombiantion_Load).filter(lessThan0.negate()).sum();
+                    sum=subgenomeCombiantion_LoadList.sum();
                     slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i][0]=sum;
                 }
                 slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i][1]=mini;
