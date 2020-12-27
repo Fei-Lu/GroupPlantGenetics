@@ -381,7 +381,6 @@ public class Vmap2ComplementaryVCF {
                 for (int j = 0; j < SlightlyOrStrongly.values().length; j++) {
                     for (int k = 0; k < AdditiveOrDominance.values().length; k++) {
                         for (int l = 0; l < slightlyStronglyAdditiveDominance_OneSampleTOrZScore[j][k].length; l++) {
-
                             tOrZScore=slightlyStronglyAdditiveDominance_OneSampleTOrZScore[j][k][l];
                             if (Double.isNaN(tOrZScore) || tOrZScore==Double.MIN_VALUE || Double.isInfinite(tOrZScore)) continue;
 //                            max=tOrZScore > max ? tOrZScore : max;
@@ -438,16 +437,13 @@ public class Vmap2ComplementaryVCF {
         System.out.println("Start written to "+oneSampleTOrZscoreOutFile);
         List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
         double[][][] slightlyStronglyAdditiveDominanceTaxon_TorZScore;
-        DoublePredicate na=value -> value==Double.MIN_VALUE;
-        DoublePredicate nan=Double::isNaN;
-        DoublePredicate inf=Double::isInfinite;
-        DoublePredicate nonNANaNInf=na.negate().and(nan.negate()).and(inf.negate());
         TIntArrayList[] groupBySubcontinentIndex=Vmap2ComplementaryVCF.getGroupBySubcontinentIndexList(taxaInfoFile);
         TIntArrayList indexList;
         SlightlyOrStrongly slightlyOrStrongly;
         AdditiveOrDominance additiveOrDominance;
         TDoubleArrayList tOrZScore_list;
-        double[] tOrZScoreArray, tOrZScoreArrayNonNANaNInf;
+        double[] tOrZScoreArray;
+        TDoubleArrayList tOrZScoreArrayNonNANaNInfList;
         double tOrZScore;
         StringBuilder sb=new StringBuilder();
         sb.setLength(0);
@@ -490,9 +486,15 @@ public class Vmap2ComplementaryVCF {
                                 tOrZScore_list.add(slightlyStronglyAdditiveDominanceTaxon_TorZScore[i][j][l]);
                             }
                             tOrZScoreArray=tOrZScore_list.toArray();
-                            tOrZScoreArrayNonNANaNInf= Arrays.stream(tOrZScoreArray).filter(nonNANaNInf).toArray();
-                            if (tOrZScoreArrayNonNANaNInf.length < 2) continue;
-                            tOrZScore= Arrays.stream(tOrZScoreArrayNonNANaNInf).sum();
+                            tOrZScoreArrayNonNANaNInfList=new TDoubleArrayList();
+                            for (int l = 0; l < tOrZScoreArray.length; l++) {
+                                if (tOrZScoreArray[l]==Double.MIN_VALUE) continue;
+                                if (Double.isNaN(tOrZScoreArray[l])) continue;
+                                if (Double.isInfinite(tOrZScoreArray[l])) continue;
+                                tOrZScoreArrayNonNANaNInfList.add(tOrZScoreArray[l]);
+                            }
+                            if (tOrZScoreArrayNonNANaNInfList.size() < 2) continue;
+                            tOrZScore= tOrZScoreArrayNonNANaNInfList.sum();
                             chrRange=triadsBlockRecord.getChrRange()[positionBySub.getIndex()];
                             sb.setLength(0);
                             sb.append(triadsBlockRecord.getTriadsBlockID()).append("\t");
@@ -501,7 +503,7 @@ public class Vmap2ComplementaryVCF {
                             sb.append(groupBySubcontinent).append("\t");
                             sb.append(slightlyOrStrongly.getValue()).append("\t");
                             sb.append(additiveOrDominance.getValue()).append("\t");
-                            sb.append(numberFormat.format(tOrZScore)).append("\t").append(tOrZScoreArrayNonNANaNInf.length);
+                            sb.append(numberFormat.format(tOrZScore)).append("\t").append(tOrZScoreArrayNonNANaNInfList.size());
                             bw.write(sb.toString());
                             bw.newLine();
                         }
