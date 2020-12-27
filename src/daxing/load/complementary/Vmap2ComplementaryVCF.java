@@ -189,6 +189,7 @@ public class Vmap2ComplementaryVCF {
             String[] na=new String[6];
             Arrays.fill(na, "NA");
             ChrRange chrRange;
+            int count=0;
             for (int i = 0; i < triadsBlockRecordList.size(); i++) {
                 for (int j = 0; j < groupBySubcontinentIndexList.length; j++) {
                     slightlyStronglyAdditiveDominanceTaxonLoad=
@@ -242,8 +243,13 @@ public class Vmap2ComplementaryVCF {
                         }
                     }
                 }
+                count++;
+                if (count%5000==0){
+                    System.out.println(count+" triads had been written to "+tTestStaticsOutFile);
+                }
             }
             bw.flush();
+            System.out.println("Total "+count+" triads had been written to "+tTestStaticsOutFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -458,6 +464,7 @@ public class Vmap2ComplementaryVCF {
             }
             bw.write(sb.toString());
             bw.newLine();
+            int count=0;
             for (TriadsBlockRecord triadsBlockRecord: triadsBlockRecordList){
                 slightlyStronglyAdditiveDominanceTaxon_TorZScore=ifZScore ?
                         triadsBlockRecord.getSlightStronglyAdditiveDominanceTaxon_OneSampleTOrZScore(pseudohexaploidInfo,
@@ -493,8 +500,13 @@ public class Vmap2ComplementaryVCF {
                         }
                     }
                 }
+                count++;
+                if (count%5000==0){
+                    System.out.println(count+" triads had been written to "+oneSampleTOrZscoreOutFile);
+                }
             }
             bw.flush();
+            System.out.println("Total "+count+" triads had been written to "+ oneSampleTOrZscoreOutFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
