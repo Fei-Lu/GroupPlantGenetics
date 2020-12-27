@@ -176,7 +176,7 @@ public class MD5 {
             System.out.println("These two files are equal");
         }
         else {
-            System.out.println("These two files are not equal");
+            System.out.println("!!! These two files are not equal");
         }
         return res;
     }
