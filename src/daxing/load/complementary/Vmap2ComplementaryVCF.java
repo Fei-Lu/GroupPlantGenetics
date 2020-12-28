@@ -301,6 +301,186 @@ public class Vmap2ComplementaryVCF {
         return null;
     }
 
+    public void calculateStaticsValueMatrixByTaxonByTriads(String pseudohexaploidInfo, String taxaInfoFile,
+                                                           String matrixOutFile, String byTaxonOutFile,
+                                                           String byTriadsOutFile, SubgenomeCombination subgenomeCombination,
+                                                           WheatLineage positionBySub,
+                                                           Statics statics){
+        System.out.println(DateTime.getDateTimeOfNow());
+        System.out.println("Start writing "+ statics.value+" matrix to "+matrixOutFile);
+        List<TriadsBlockRecord> triadsBlockRecordList=this.triadsBlockRecordList;
+        NumberFormat numberFormat=NumberFormat.getInstance();
+        numberFormat.setMaximumFractionDigits(3);
+        numberFormat.setGroupingUsed(false);
+        try (BufferedWriter bwMatrix = IOTool.getWriter(matrixOutFile);
+             BufferedWriter bwByTaxon = IOTool.getWriter(byTaxonOutFile);
+             BufferedWriter bwByTriads = IOTool.getWriter(byTriadsOutFile)) {
+            StringBuilder sb=new StringBuilder();
+            sb.setLength(0);
+            sb.append("TriadsBlockID\tChr\tPosStart\tPosEnd\tSlightlyOrStrongly\tAdditiveOrDominance\t");
+            sb.append(String.join("\t", this.getHexaploidTaxonList(pseudohexaploidInfo)));
+            bwMatrix.write(sb.toString());
+            bwMatrix.newLine();
+            ChrRange chrRange;
+            double[][][] slightlyStronglyAdditiveDominance_StaticsValue;
+            double staticsValue;
+            TIntArrayList hexaploidTaxonIndexList=this.getHexaploidIndexList(pseudohexaploidInfo);
+            TIntArrayList pseudoTaxonIndexList=this.getPseudoIndexList(pseudohexaploidInfo);
+            List<double[][][]> res=this.calculateAllTriadsStaticsValueParallel(pseudoTaxonIndexList, hexaploidTaxonIndexList, subgenomeCombination, statics);
+            for (int i = 0; i < res.size(); i++) {
+                slightlyStronglyAdditiveDominance_StaticsValue=res.get(i);
+                for (int j = 0; j < SlightlyOrStrongly.values().length; j++) {
+                    for (int k = 0; k < AdditiveOrDominance.values().length; k++) {
+                        chrRange=triadsBlockRecordList.get(i).getChrRange()[positionBySub.getIndex()];
+                        sb.setLength(0);
+                        sb.append(triadsBlockRecordList.get(i).getTriadsBlockID()).append("\t");
+                        sb.append(chrRange.getChr()).append("\t");
+                        sb.append(chrRange.getStart()).append("\t");
+                        sb.append(chrRange.getEnd()-1).append("\t");
+                        sb.append(SlightlyOrStrongly.newInstanceFromIndex(j).getValue()).append("\t");
+                        sb.append(AdditiveOrDominance.newInstanceFromIndex(k).getValue()).append("\t");
+                        for (int l = 0; l < slightlyStronglyAdditiveDominance_StaticsValue[j][k].length; l++) {
+                            staticsValue=slightlyStronglyAdditiveDominance_StaticsValue[j][k][l];
+                            if (Double.MIN_VALUE==staticsValue){
+                                sb.append("NA").append("\t");
+                                continue;
+                            }
+                            if (Double.isInfinite(staticsValue)|| Double.isNaN(staticsValue)){
+                                sb.append(staticsValue).append("\t");
+                                continue;
+                            }
+                            sb.append(numberFormat.format(staticsValue)).append("\t");
+                        }
+                        sb.deleteCharAt(sb.length()-1);
+                        bwMatrix.write(sb.toString());
+                        bwMatrix.newLine();
+                    }
+                }
+            }
+            bwMatrix.flush();
+            System.out.println(statics.value+" matrix had been written to "+matrixOutFile);
+            System.out.println(DateTime.getDateTimeOfNow());
+            System.out.println("Start written "+statics.value+" by taxon to "+byTaxonOutFile);
+            sb.setLength(0);
+            sb.append("Taxon\tGroupBySubcontinent\tSlightlyOrStrongly\tAdditiveOrDominance\t");
+            sb.append(statics.value).append("\t").append("N");
+            bwByTaxon.write(sb.toString());
+            bwByTaxon.newLine();
+            List<String> hexaploidNameList=this.getHexaploidTaxonList(pseudohexaploidInfo);
+            int[][][] slightlyStronglyAdditiveDominanceIndiv_count= new int[SlightlyOrStrongly.values().length][][];
+            double[][][] slightlyStronglyAdditiveDominanceIndiv_staticsValue=new double[SlightlyOrStrongly.values().length][][];
+            for (int i = 0; i < slightlyStronglyAdditiveDominanceIndiv_staticsValue.length; i++) {
+                slightlyStronglyAdditiveDominanceIndiv_staticsValue[i]=new double[AdditiveOrDominance.values().length][];
+                slightlyStronglyAdditiveDominanceIndiv_count[i]=new int[AdditiveOrDominance.values().length][];
+                for (int j = 0; j < slightlyStronglyAdditiveDominanceIndiv_staticsValue[i].length; j++) {
+                    slightlyStronglyAdditiveDominanceIndiv_staticsValue[i][j]=new double[hexaploidNameList.size()];
+                    slightlyStronglyAdditiveDominanceIndiv_count[i][j]=new int[hexaploidNameList.size()];
+                }
+            }
+            for (int i = 0; i < res.size(); i++) {
+                slightlyStronglyAdditiveDominance_StaticsValue=res.get(i);
+                for (int j = 0; j < SlightlyOrStrongly.values().length; j++) {
+                    for (int k = 0; k < AdditiveOrDominance.values().length; k++) {
+                        for (int l = 0; l < slightlyStronglyAdditiveDominance_StaticsValue[j][k].length; l++) {
+                            staticsValue=slightlyStronglyAdditiveDominance_StaticsValue[j][k][l];
+                            if (Double.isNaN(staticsValue) || staticsValue==Double.MIN_VALUE || Double.isInfinite(staticsValue)) continue;
+                            slightlyStronglyAdditiveDominanceIndiv_staticsValue[j][k][l]+=staticsValue;
+                            slightlyStronglyAdditiveDominanceIndiv_count[j][k][l]++;
+                        }
+                    }
+                }
+            }
+            Map<String, String> taxaGroupBySubcontinentMap=RowTableTool.getMap(taxaInfoFile, 0, 24);
+            SlightlyOrStrongly slightlyOrStrongly;
+            AdditiveOrDominance additiveOrDominance;
+            String taxonName, groupBySubcontinent;
+            int count;
+            for (int i = 0; i < slightlyStronglyAdditiveDominanceIndiv_staticsValue[0][0].length; i++) {
+                taxonName=hexaploidNameList.get(i);
+                groupBySubcontinent=taxaGroupBySubcontinentMap.get(taxonName);
+                if (groupBySubcontinent.equals("OtherHexaploid") | groupBySubcontinent.equals("NA") | groupBySubcontinent.equals("IndianDwarfWheat")) continue;
+                for (int j = 0; j < SlightlyOrStrongly.values().length; j++) {
+                    slightlyOrStrongly=SlightlyOrStrongly.newInstanceFromIndex(j);
+                    for (int k = 0; k < AdditiveOrDominance.values().length; k++) {
+                        additiveOrDominance=AdditiveOrDominance.newInstanceFromIndex(k);
+                        count=slightlyStronglyAdditiveDominanceIndiv_count[j][k][i];
+                        staticsValue=slightlyStronglyAdditiveDominanceIndiv_staticsValue[j][k][i];
+                        sb.setLength(0);
+                        sb.append(taxonName).append("\t").append(groupBySubcontinent).append("\t");
+                        sb.append(slightlyOrStrongly.getValue()).append("\t");
+                        sb.append(additiveOrDominance.getValue()).append("\t");
+                        sb.append(numberFormat.format(staticsValue)).append("\t");
+                        sb.append(count);
+                        bwByTaxon.write(sb.toString());
+                        bwByTaxon.newLine();
+                    }
+                }
+            }
+            bwByTaxon.flush();
+            System.out.println(statics.value+" by taxon had been written to "+byTaxonOutFile);
+            System.out.println(DateTime.getDateTimeOfNow());
+            System.out.println("Start written "+statics.value+" by triads to "+byTriadsOutFile);
+            double[][][] slightlyStronglyAdditiveDominanceTaxon_StaticsValue;
+            TIntArrayList[] groupBySubcontinentIndex=this.getGroupBySubcontinentIndexList(taxaInfoFile);
+            TIntArrayList indexList;
+            TDoubleArrayList staticsValue_list;
+            double[] staticsValueArray;
+            TDoubleArrayList staticsValueArrayNonNANaNInfList;
+            String[] groupBySubcontinentArray=Vmap2ComplementaryVCF.groupBySubcontinent;
+            Arrays.sort(groupBySubcontinentArray);
+            sb.setLength(0);
+            sb.append("TriadsBlock\tChr\tPosStart\tPosEnd\tGroupBySubcontinent\tSlightlyOrStrongly" +
+                    "\tAdditiveOrDominance\t");
+            sb.append(statics.value).append("\t").append("N");
+            bwByTriads.write(sb.toString());
+            bwByTriads.newLine();
+            TriadsBlockRecord triadsBlockRecord;
+            for (int m = 0; m < res.size(); m++) {
+                triadsBlockRecord=triadsBlockRecordList.get(m);
+                slightlyStronglyAdditiveDominanceTaxon_StaticsValue=res.get(m);
+                for (int i = 0; i < SlightlyOrStrongly.values().length; i++) {
+                    slightlyOrStrongly=SlightlyOrStrongly.newInstanceFromIndex(i);
+                    for (int j = 0; j < AdditiveOrDominance.values().length; j++) {
+                        additiveOrDominance=AdditiveOrDominance.newInstanceFromIndex(j);
+                        for (int k = 0; k < groupBySubcontinentIndex.length; k++) {
+                            indexList=groupBySubcontinentIndex[k];
+                            groupBySubcontinent=groupBySubcontinentArray[k];
+                            staticsValue_list=new TDoubleArrayList();
+                            for (int l = 0; l < slightlyStronglyAdditiveDominanceTaxon_StaticsValue[i][j].length; l++) {
+                                if (!indexList.contains(l)) continue;
+                                staticsValue_list.add(slightlyStronglyAdditiveDominanceTaxon_StaticsValue[i][j][l]);
+                            }
+                            staticsValueArray=staticsValue_list.toArray();
+                            staticsValueArrayNonNANaNInfList=new TDoubleArrayList();
+                            for (int l = 0; l < staticsValueArray.length; l++) {
+                                if (staticsValueArray[l]==Double.MIN_VALUE) continue;
+                                if (Double.isNaN(staticsValueArray[l])) continue;
+                                if (Double.isInfinite(staticsValueArray[l])) continue;
+                                staticsValueArrayNonNANaNInfList.add(staticsValueArray[l]);
+                            }
+                            if (staticsValueArrayNonNANaNInfList.size() < 2) continue;
+                            staticsValue= staticsValueArrayNonNANaNInfList.sum();
+                            chrRange=triadsBlockRecord.getChrRange()[positionBySub.getIndex()];
+                            sb.setLength(0);
+                            sb.append(triadsBlockRecord.getTriadsBlockID()).append("\t");
+                            sb.append(chrRange.getChr()).append("\t").append(chrRange.getStart()).append("\t");
+                            sb.append(chrRange.getEnd()-1).append("\t");
+                            sb.append(groupBySubcontinent).append("\t");
+                            sb.append(slightlyOrStrongly.getValue()).append("\t");
+                            sb.append(additiveOrDominance.getValue()).append("\t");
+                            sb.append(numberFormat.format(staticsValue)).append("\t").append(staticsValueArrayNonNANaNInfList.size());
+                            bwByTriads.write(sb.toString());
+                            bwByTriads.newLine();
+                        }
+                    }
+                }
+            }
+            bwByTriads.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void calculateStaticsValueMatrix(String pseudohexaploidInfo,
                                             String staticsValueOutFile,
                                             SubgenomeCombination subgenomeCombination, WheatLineage positionBySub,
