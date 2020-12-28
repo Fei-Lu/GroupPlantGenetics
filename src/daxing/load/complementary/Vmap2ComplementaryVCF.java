@@ -16,12 +16,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.DoublePredicate;
+import java.util.stream.Collectors;
 
 public class Vmap2ComplementaryVCF {
 
-    public static List<TriadsBlockRecord> triadsBlockRecordList;
-    public static List<String> taxonList;
+    public List<TriadsBlockRecord> triadsBlockRecordList;
+    public List<String> taxonList;
+    public static ForkJoinPool forkJoinPool=new ForkJoinPool(32);
     public static String[] groupBySubcontinent={"LR_America","LR_Africa","LR_EU","LR_WA","LR_CSA","LR_EA","Cultivar"};
 
     public Vmap2ComplementaryVCF(String vmap2ComplementaryVCF){
@@ -92,13 +96,17 @@ public class Vmap2ComplementaryVCF {
         }
     }
 
-    public static int getTaxonNum(){
-        return Vmap2ComplementaryVCF.taxonList.size();
+    public void setForkJoinPoolParallelism(int numThreads){
+        Vmap2ComplementaryVCF.forkJoinPool=new ForkJoinPool(numThreads);
     }
 
-    public static List<String> getHexaploidTaxonList(String pseudoInfoFile){
+    public void shutdownForkJoinPool(){
+        Vmap2ComplementaryVCF.forkJoinPool.shutdown();
+    }
+
+    public List<String> getHexaploidTaxonList(String pseudoInfoFile){
         List<String> pseudoTaxonNameList=RowTableTool.getColumnList(pseudoInfoFile,0);
-        List<String> taxonList=Vmap2ComplementaryVCF.taxonList;
+        List<String> taxonList=this.taxonList;
         List<String> res=new ArrayList<>();
         for (int i = 0; i < taxonList.size(); i++) {
             if (pseudoTaxonNameList.contains(taxonList.get(i))) continue;
@@ -107,11 +115,11 @@ public class Vmap2ComplementaryVCF {
         return res;
     }
 
-    public static List<String> getPseudoTaxonList(String pseudoInfoFile){
+    public List<String> getPseudoTaxonList(String pseudoInfoFile){
         return RowTableTool.getColumnList(pseudoInfoFile,0);
     }
 
-    public static TIntArrayList getTaxonIndex(List<String> taxonNameList){
+    public TIntArrayList getTaxonIndex(List<String> taxonNameList){
         TIntArrayList indexList = new TIntArrayList();
         for (int i = 0; i < taxonList.size(); i++) {
             if (!taxonNameList.contains(taxonList.get(i))) continue;
@@ -132,9 +140,9 @@ public class Vmap2ComplementaryVCF {
      * @param pseudoHexaploidInfo
      * @return
      */
-    public static TIntArrayList getPseudoIndexList(String pseudoHexaploidInfo){
-        List<String> pseudoNameList=Vmap2ComplementaryVCF.getPseudoTaxonList(pseudoHexaploidInfo);
-        return Vmap2ComplementaryVCF.getTaxonIndex(pseudoNameList);
+    public TIntArrayList getPseudoIndexList(String pseudoHexaploidInfo){
+        List<String> pseudoNameList=this.getPseudoTaxonList(pseudoHexaploidInfo);
+        return this.getTaxonIndex(pseudoNameList);
     }
 
     /**
@@ -142,9 +150,9 @@ public class Vmap2ComplementaryVCF {
      * @param pseudoHexaploidInfo
      * @return
      */
-    public static TIntArrayList getHexaploidIndexList(String pseudoHexaploidInfo){
-        List<String> hexaploidNameList=Vmap2ComplementaryVCF.getHexaploidTaxonList(pseudoHexaploidInfo);
-        return Vmap2ComplementaryVCF.getTaxonIndex(hexaploidNameList);
+    public TIntArrayList getHexaploidIndexList(String pseudoHexaploidInfo){
+        List<String> hexaploidNameList=this.getHexaploidTaxonList(pseudoHexaploidInfo);
+        return this.getTaxonIndex(hexaploidNameList);
     }
 
     /**
@@ -152,11 +160,11 @@ public class Vmap2ComplementaryVCF {
      * @param taxaInfoDB
      * @return
      */
-    private static TIntArrayList[] getGroupBySubcontinentIndexList(String taxaInfoDB){
+    private TIntArrayList[] getGroupBySubcontinentIndexList(String taxaInfoDB){
         String[] groupBySubcontinent=Vmap2ComplementaryVCF.groupBySubcontinent;
         Arrays.sort(groupBySubcontinent);
         Map<String, String> taxonGroupBySubcontinentMap=RowTableTool.getMap(taxaInfoDB, 0, 24);
-        List<String> taxonList=Vmap2ComplementaryVCF.taxonList;
+        List<String> taxonList=this.taxonList;
         TIntArrayList[] groupBySubcontinentIndexList=new TIntArrayList[groupBySubcontinent.length];
         for (int i = 0; i < groupBySubcontinentIndexList.length; i++) {
             groupBySubcontinentIndexList[i]=new TIntArrayList();
@@ -185,12 +193,12 @@ public class Vmap2ComplementaryVCF {
         String[] groupBySubcontinent=Vmap2ComplementaryVCF.groupBySubcontinent;
         Arrays.sort(groupBySubcontinent);
         try (BufferedWriter bw = IOTool.getWriter(tTestStaticsOutFile)) {
-            TIntArrayList[] groupBySubcontinentIndexList= Vmap2ComplementaryVCF.getGroupBySubcontinentIndexList(taxaInfoDB);
-            TIntArrayList pseudhoIndexList=Vmap2ComplementaryVCF.getPseudoIndexList(pseudoHexaploidInfo);
+            TIntArrayList[] groupBySubcontinentIndexList= this.getGroupBySubcontinentIndexList(taxaInfoDB);
+            TIntArrayList pseudhoIndexList=this.getPseudoIndexList(pseudoHexaploidInfo);
             bw.write("TriadsBlockID\tGroupBySubcontinent\tGenotypedHexaploidTaxaNum" +
                     "\tGenotypedPseudoTaxaNum\tSlightlyOrStrongly\tAdditiveOrDominance\tT_notEqualVariances\tp_notEqualVariances");
             bw.newLine();
-            List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
+            List<TriadsBlockRecord> triadsBlockRecordList=this.triadsBlockRecordList;
             double[][][] slightlyStronglyAdditiveDominanceTaxonLoad, slightlyStronglyAdditiveDominancePseudoLoad;
             double[] taxonLoadGreaterOrEqualThan0, pseudoLoadGreaterOrEqualThan0;
             double t, p;
@@ -269,13 +277,37 @@ public class Vmap2ComplementaryVCF {
         System.out.println(DateTime.getDateTimeOfNow());
     }
 
+    /**
+     * 对每个triads block计算所有六倍体个体的SlightStronglyAdditiveDominanceTaxon_StaticsValue
+     * @param pseudoTaxonIndexList
+     * @param hexaploidTaxonIndexList
+     * @param subgenomeCombination
+     * @param statics
+     * @return 所有triads block对应的SlightStronglyAdditiveDominanceTaxon_StaticsValue
+     */
+    public List<double[][][]> calculateAllTriadsStaticsValueParallel(TIntArrayList pseudoTaxonIndexList,
+                                                                     TIntArrayList hexaploidTaxonIndexList,
+                                                                     SubgenomeCombination subgenomeCombination,
+                                                                     Statics statics){
+        try {
+            return forkJoinPool.submit(()->triadsBlockRecordList.stream().parallel().map(triadsBlockRecord ->
+                    triadsBlockRecord.getSlightStronglyAdditiveDominanceTaxon_StaticsValue(pseudoTaxonIndexList,
+                            hexaploidTaxonIndexList, subgenomeCombination, statics)).collect(Collectors.toList())).get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public void calculateStaticsValueMatrix(String pseudohexaploidInfo,
                                             String staticsValueOutFile,
                                             SubgenomeCombination subgenomeCombination, WheatLineage positionBySub,
                                             Statics statics){
         System.out.println(DateTime.getDateTimeOfNow());
         System.out.println("Start writing "+ statics.value+" matrix to "+staticsValueOutFile);
-        List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
+        List<TriadsBlockRecord> triadsBlockRecordList=this.triadsBlockRecordList;
         NumberFormat numberFormat=NumberFormat.getInstance();
         numberFormat.setMaximumFractionDigits(3);
         numberFormat.setGroupingUsed(false);
@@ -289,12 +321,11 @@ public class Vmap2ComplementaryVCF {
             ChrRange chrRange;
             double[][][] slightlyStronglyAdditiveDominance_StaticsValue;
             double staticsValue;
-            TIntArrayList hexaploidTaxonIndexList=Vmap2ComplementaryVCF.getHexaploidIndexList(pseudohexaploidInfo);
-            TIntArrayList pseudoTaxonIndexList=Vmap2ComplementaryVCF.getPseudoIndexList(pseudohexaploidInfo);
-            int count=0;
-            for (int i = 0; i < triadsBlockRecordList.size(); i++) {
-                slightlyStronglyAdditiveDominance_StaticsValue=
-                                triadsBlockRecordList.get(i).getSlightStronglyAdditiveDominanceTaxon_StaticsValue(pseudoTaxonIndexList, hexaploidTaxonIndexList, subgenomeCombination, statics);
+            TIntArrayList hexaploidTaxonIndexList=this.getHexaploidIndexList(pseudohexaploidInfo);
+            TIntArrayList pseudoTaxonIndexList=this.getPseudoIndexList(pseudohexaploidInfo);
+            List<double[][][]> res=this.calculateAllTriadsStaticsValueParallel(pseudoTaxonIndexList, hexaploidTaxonIndexList, subgenomeCombination, statics);
+            for (int i = 0; i < res.size(); i++) {
+                slightlyStronglyAdditiveDominance_StaticsValue=res.get(i);
                 for (int j = 0; j < SlightlyOrStrongly.values().length; j++) {
                     for (int k = 0; k < AdditiveOrDominance.values().length; k++) {
                         chrRange=triadsBlockRecordList.get(i).getChrRange()[positionBySub.getIndex()];
@@ -322,13 +353,8 @@ public class Vmap2ComplementaryVCF {
                         bw.newLine();
                     }
                 }
-                count++;
-                if (count%2000==0){
-                    System.out.println(count+" triads had been written to "+staticsValueOutFile);
-                }
             }
             bw.flush();
-            System.out.println("Total "+count+" triads had been written to "+staticsValueOutFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -341,7 +367,7 @@ public class Vmap2ComplementaryVCF {
                                              SubgenomeCombination subgenomeCombination, Statics statics){
         System.out.println(DateTime.getDateTimeOfNow());
         System.out.println("Start written "+statics.value+" by taxon to "+staticsValueByTaxonOutFile);
-        List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
+        List<TriadsBlockRecord> triadsBlockRecordList=this.triadsBlockRecordList;
         NumberFormat numberFormat=NumberFormat.getInstance();
         numberFormat.setMaximumFractionDigits(3);
         numberFormat.setGroupingUsed(false);
@@ -352,7 +378,7 @@ public class Vmap2ComplementaryVCF {
             sb.append(statics.value).append("\t").append("N");
             bw.write(sb.toString());
             bw.newLine();
-            List<String> hexaploidNameList=Vmap2ComplementaryVCF.getHexaploidTaxonList(pseudohexaploidInfo);
+            List<String> hexaploidNameList=this.getHexaploidTaxonList(pseudohexaploidInfo);
             double[][][] slightlyStronglyAdditiveDominance_StaticsValue;
             double staticsValue;
 //            int[][][] slightlyStronglyAdditiveDominanceIndiv_countPositiveInf= new int[SlightlyOrStrongly.values().length][][];
@@ -374,11 +400,11 @@ public class Vmap2ComplementaryVCF {
 //            double[] hexaploidMini=new double[hexaploidNameList.size()];
 //            double[] hexaploidMax=new double[hexaploidNameList.size()];
 //            double max=0, mini=0;
-            TIntArrayList hexaploidTaxonIndexList=Vmap2ComplementaryVCF.getHexaploidIndexList(pseudohexaploidInfo);
-            TIntArrayList pseudoTaxonIndexList=Vmap2ComplementaryVCF.getPseudoIndexList(pseudohexaploidInfo);
-            for (int i = 0; i < triadsBlockRecordList.size(); i++) {
-                slightlyStronglyAdditiveDominance_StaticsValue=
-                                triadsBlockRecordList.get(i).getSlightStronglyAdditiveDominanceTaxon_StaticsValue(pseudoTaxonIndexList, hexaploidTaxonIndexList, subgenomeCombination, statics);
+            TIntArrayList hexaploidTaxonIndexList=this.getHexaploidIndexList(pseudohexaploidInfo);
+            TIntArrayList pseudoTaxonIndexList=this.getPseudoIndexList(pseudohexaploidInfo);
+            List<double[][][]> res=this.calculateAllTriadsStaticsValueParallel(pseudoTaxonIndexList, hexaploidTaxonIndexList, subgenomeCombination, statics);
+            for (int i = 0; i < res.size(); i++) {
+                slightlyStronglyAdditiveDominance_StaticsValue=res.get(i);
                 for (int j = 0; j < SlightlyOrStrongly.values().length; j++) {
                     for (int k = 0; k < AdditiveOrDominance.values().length; k++) {
                         for (int l = 0; l < slightlyStronglyAdditiveDominance_StaticsValue[j][k].length; l++) {
@@ -435,9 +461,9 @@ public class Vmap2ComplementaryVCF {
                                               WheatLineage positionBySub, Statics statics){
         System.out.println(DateTime.getDateTimeOfNow());
         System.out.println("Start written "+statics.value+" by triads to "+staticsValueByTriadsOutFile);
-        List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
+        List<TriadsBlockRecord> triadsBlockRecordList=this.triadsBlockRecordList;
         double[][][] slightlyStronglyAdditiveDominanceTaxon_StaticsValue;
-        TIntArrayList[] groupBySubcontinentIndex=Vmap2ComplementaryVCF.getGroupBySubcontinentIndexList(taxaInfoFile);
+        TIntArrayList[] groupBySubcontinentIndex=this.getGroupBySubcontinentIndexList(taxaInfoFile);
         TIntArrayList indexList;
         SlightlyOrStrongly slightlyOrStrongly;
         AdditiveOrDominance additiveOrDominance;
@@ -460,13 +486,13 @@ public class Vmap2ComplementaryVCF {
             sb.append(statics.value).append("\t").append("N");
             bw.write(sb.toString());
             bw.newLine();
-            int count=0;
-            TIntArrayList hexaploidTaxonIndexList=Vmap2ComplementaryVCF.getHexaploidIndexList(pseudohexaploidInfo);
-            TIntArrayList pseudoTaxonIndexList=Vmap2ComplementaryVCF.getPseudoIndexList(pseudohexaploidInfo);
-            for (TriadsBlockRecord triadsBlockRecord: triadsBlockRecordList){
-                slightlyStronglyAdditiveDominanceTaxon_StaticsValue=
-                        triadsBlockRecord.getSlightStronglyAdditiveDominanceTaxon_StaticsValue(pseudoTaxonIndexList,hexaploidTaxonIndexList,
-                                subgenomeCombination, statics);
+            TIntArrayList hexaploidTaxonIndexList=this.getHexaploidIndexList(pseudohexaploidInfo);
+            TIntArrayList pseudoTaxonIndexList=this.getPseudoIndexList(pseudohexaploidInfo);
+            List<double[][][]> res=this.calculateAllTriadsStaticsValueParallel(pseudoTaxonIndexList, hexaploidTaxonIndexList, subgenomeCombination, statics);
+            TriadsBlockRecord triadsBlockRecord;
+            for (int m = 0; m < res.size(); m++) {
+                triadsBlockRecord=triadsBlockRecordList.get(m);
+                slightlyStronglyAdditiveDominanceTaxon_StaticsValue=res.get(m);
                 for (int i = 0; i < SlightlyOrStrongly.values().length; i++) {
                     slightlyOrStrongly=SlightlyOrStrongly.newInstanceFromIndex(i);
                     for (int j = 0; j < AdditiveOrDominance.values().length; j++) {
@@ -503,13 +529,8 @@ public class Vmap2ComplementaryVCF {
                         }
                     }
                 }
-                count++;
-                if (count%2000==0){
-                    System.out.println(count+" triads had been written to "+staticsValueByTriadsOutFile);
-                }
             }
             bw.flush();
-            System.out.println("Total "+count+" triads had been written to "+ staticsValueByTriadsOutFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -611,8 +632,6 @@ public class Vmap2ComplementaryVCF {
 
         String value;
 
-        EmpiricalDistribution empiricalDistribution=new EmpiricalDistribution();
-
         Statics(String value) {
             this.value=value;
         }
@@ -625,6 +644,7 @@ public class Vmap2ComplementaryVCF {
                 double sd=StatUtils.populationVariance(pseudoHexaploid, mean);
                 return (hexaplidValue-mean)/sd;
             }else {
+                EmpiricalDistribution empiricalDistribution=new EmpiricalDistribution();
                 empiricalDistribution.load(pseudoHexaploid);
                 return empiricalDistribution.cumulativeProbability(hexaplidValue);
             }
@@ -729,14 +749,13 @@ public class Vmap2ComplementaryVCF {
 
         /**
          *
-         * @param pseudoInfoFile
+         * @param pseudoTaxonIndexList
          * @param taxonIndexList 指定的六倍体
          * @param subgenomeCombination
          * @return
          */
-        public double[][] getSlightStronglyAdditiveDominanceTaxon_TwoSampleT(String pseudoInfoFile, TIntArrayList taxonIndexList,
+        public double[][] getSlightStronglyAdditiveDominanceTaxon_TwoSampleT(TIntArrayList pseudoTaxonIndexList, TIntArrayList taxonIndexList,
                                                                              SubgenomeCombination subgenomeCombination){
-            TIntArrayList pseudoTaxonIndexList=Vmap2ComplementaryVCF.getPseudoIndexList(pseudoInfoFile);
             double[][] res=new double[SlightlyOrStrongly.values().length][];
             for (int i = 0; i < res.length; i++) {
                 res[i]=new double[AdditiveOrDominance.values().length];
