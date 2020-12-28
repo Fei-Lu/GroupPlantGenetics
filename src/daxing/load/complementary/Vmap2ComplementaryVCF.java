@@ -19,9 +19,9 @@ import java.util.function.DoublePredicate;
 
 public class Vmap2ComplementaryVCF {
 
-    static List<TriadsBlockRecord> triadsBlockRecordList;
-    static List<String> taxonList;
-    static String[] groupBySubcontinent={"LR_America","LR_Africa","LR_EU","LR_WA","LR_CSA","LR_EA","Cultivar"};
+    public static List<TriadsBlockRecord> triadsBlockRecordList;
+    public static List<String> taxonList;
+    public static String[] groupBySubcontinent={"LR_America","LR_Africa","LR_EU","LR_WA","LR_CSA","LR_EA","Cultivar"};
 
     public Vmap2ComplementaryVCF(String vmap2ComplementaryVCF){
         this.taxonList=new ArrayList<>();
@@ -129,7 +129,7 @@ public class Vmap2ComplementaryVCF {
      * @param pseudoHexaploidInfo
      * @return
      */
-    private static TIntArrayList getPseudoIndexList(String pseudoHexaploidInfo){
+    public static TIntArrayList getPseudoIndexList(String pseudoHexaploidInfo){
         List<String> pseudoNameList=Vmap2ComplementaryVCF.getPseudoTaxonList(pseudoHexaploidInfo);
         return Vmap2ComplementaryVCF.getTaxonIndex(pseudoNameList);
     }
@@ -139,7 +139,7 @@ public class Vmap2ComplementaryVCF {
      * @param pseudoHexaploidInfo
      * @return
      */
-    private static TIntArrayList getHexaploidIndexList(String pseudoHexaploidInfo){
+    public static TIntArrayList getHexaploidIndexList(String pseudoHexaploidInfo){
         List<String> hexaploidNameList=Vmap2ComplementaryVCF.getHexaploidTaxonList(pseudoHexaploidInfo);
         return Vmap2ComplementaryVCF.getTaxonIndex(hexaploidNameList);
     }
@@ -621,7 +621,7 @@ public class Vmap2ComplementaryVCF {
         }
     }
 
-    private static class TriadsBlockRecord {
+    public static class TriadsBlockRecord {
 
         String triadsBlockID;
         byte[] blockGeneNum;
@@ -756,6 +756,7 @@ public class Vmap2ComplementaryVCF {
          * @param pseudoTaxonIndexList
          * @param hexaploidTaxonIndexList
          * @param subgenomeCombination
+         * @param statics
          * @return Double.MIN_VALUE: NA
          */
         public double[][][] getSlightStronglyAdditiveDominanceTaxon_StaticsValue(TIntArrayList pseudoTaxonIndexList
@@ -772,15 +773,22 @@ public class Vmap2ComplementaryVCF {
                     this.getSlightStronglyAdditiveDominanceTaxonListLoad(pseudoTaxonIndexList,subgenomeCombination);
             double[][][] slightlyStronglyAdditiveDominanceHexaploidLoad=
                     this.getSlightStronglyAdditiveDominanceTaxonListLoad(hexaploidTaxonIndexList,subgenomeCombination);
-            double[] pseudoLoad, pseudoLoadRemovedNAInfNaN;
+            double[] pseudoLoad;
+            TDoubleArrayList pseudoLoadRemovedNAInfNaNList;
             for (int i = 0; i < SlightlyOrStrongly.values().length; i++) {
                 for (int j = 0; j < AdditiveOrDominance.values().length; j++) {
                     pseudoLoad=slightlyStronglyAdditiveDominancePseudoLoad[i][j];
-                    pseudoLoadRemovedNAInfNaN= Arrays.stream(pseudoLoad).filter(Vmap2ComplementaryVCF.getNonNAInfNaNPredict()).toArray();
-                    if (pseudoLoadRemovedNAInfNaN.length < 2) continue;
+                    pseudoLoadRemovedNAInfNaNList=new TDoubleArrayList();
+                    for (int k = 0; k < pseudoLoad.length; k++) {
+                        if (pseudoLoad[k] < 0) continue;
+                        if (Double.isNaN(pseudoLoad[k])) continue;
+                        if (Double.isInfinite(pseudoLoad[k])) continue;
+                        pseudoLoadRemovedNAInfNaNList.add(pseudoLoad[k]);
+                    }
+                    if (pseudoLoadRemovedNAInfNaNList.size() < 2) continue;
                     for (int k = 0; k < hexaploidTaxonIndexList.size(); k++) {
                         if (slightlyStronglyAdditiveDominanceHexaploidLoad[i][j][k] < 0) continue;
-                        res[i][j][k]= statics.getHexaploidStaticsValue(slightlyStronglyAdditiveDominanceHexaploidLoad[i][j][k], pseudoLoadRemovedNAInfNaN);
+                        res[i][j][k]= statics.getHexaploidStaticsValue(slightlyStronglyAdditiveDominanceHexaploidLoad[i][j][k], pseudoLoadRemovedNAInfNaNList.toArray());
                     }
                 }
             }
