@@ -611,6 +611,8 @@ public class Vmap2ComplementaryVCF {
 
         String value;
 
+        EmpiricalDistribution empiricalDistribution=new EmpiricalDistribution();
+
         Statics(String value) {
             this.value=value;
         }
@@ -623,7 +625,6 @@ public class Vmap2ComplementaryVCF {
                 double sd=StatUtils.populationVariance(pseudoHexaploid, mean);
                 return (hexaplidValue-mean)/sd;
             }else {
-                EmpiricalDistribution empiricalDistribution=new EmpiricalDistribution();
                 empiricalDistribution.load(pseudoHexaploid);
                 return empiricalDistribution.cumulativeProbability(hexaplidValue);
             }
