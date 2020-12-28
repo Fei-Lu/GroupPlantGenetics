@@ -6,6 +6,7 @@ import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.random.EmpiricalDistribution;
 import org.apache.commons.math3.stat.StatUtils;
 import org.apache.commons.math3.stat.inference.TestUtils;
+import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -24,8 +25,10 @@ public class Vmap2ComplementaryVCF {
     public static String[] groupBySubcontinent={"LR_America","LR_Africa","LR_EU","LR_WA","LR_CSA","LR_EA","Cultivar"};
 
     public Vmap2ComplementaryVCF(String vmap2ComplementaryVCF){
+        long start=System.nanoTime();
         this.taxonList=new ArrayList<>();
         this.initialize(vmap2ComplementaryVCF);
+        System.out.println("Reading spend "+ Benchmark.getTimeSpanSeconds(start)+ " s");
     }
 
     private void initialize(String vmap2ComplementaryVCF){
