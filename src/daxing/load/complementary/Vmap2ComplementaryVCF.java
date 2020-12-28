@@ -256,7 +256,7 @@ public class Vmap2ComplementaryVCF {
                     }
                 }
                 count++;
-                if (count%5000==0){
+                if (count%2000==0){
                     System.out.println(count+" triads had been written to "+tTestStaticsOutFile);
                 }
             }
@@ -323,7 +323,7 @@ public class Vmap2ComplementaryVCF {
                     }
                 }
                 count++;
-                if (count%5000==0){
+                if (count%2000==0){
                     System.out.println(count+" triads had been written to "+staticsValueOutFile);
                 }
             }
