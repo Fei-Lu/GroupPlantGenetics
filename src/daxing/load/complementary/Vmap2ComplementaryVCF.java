@@ -181,7 +181,7 @@ public class Vmap2ComplementaryVCF {
                                                String pseudoHexaploidInfo, SubgenomeCombination subgenomeCombination,
                                                WheatLineage positionBySub){
         System.out.println(DateTime.getDateTimeOfNow());
-        System.out.println("Start written to "+tTestStaticsOutFile);
+        System.out.println("Start written two sample t-test to "+tTestStaticsOutFile);
         String[] groupBySubcontinent=Vmap2ComplementaryVCF.groupBySubcontinent;
         Arrays.sort(groupBySubcontinent);
         try (BufferedWriter bw = IOTool.getWriter(tTestStaticsOutFile)) {
@@ -270,16 +270,16 @@ public class Vmap2ComplementaryVCF {
     }
 
     public void calculateStaticsValueMatrix(String pseudohexaploidInfo,
-                                            String tOrZScoreOutFile,
+                                            String staticsValueOutFile,
                                             SubgenomeCombination subgenomeCombination, WheatLineage positionBySub,
                                             Statics statics){
         System.out.println(DateTime.getDateTimeOfNow());
-        System.out.println("Start writing to "+tOrZScoreOutFile);
+        System.out.println("Start writing "+ statics.value+" matrix to "+staticsValueOutFile);
         List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
         NumberFormat numberFormat=NumberFormat.getInstance();
         numberFormat.setMaximumFractionDigits(3);
         numberFormat.setGroupingUsed(false);
-        try (BufferedWriter bw = IOTool.getWriter(tOrZScoreOutFile)) {
+        try (BufferedWriter bw = IOTool.getWriter(staticsValueOutFile)) {
             StringBuilder sb=new StringBuilder();
             sb.setLength(0);
             sb.append("TriadsBlockID\tChr\tPosStart\tPosEnd\tSlightlyOrStrongly\tAdditiveOrDominance\t");
@@ -291,6 +291,7 @@ public class Vmap2ComplementaryVCF {
             double staticsValue;
             TIntArrayList hexaploidTaxonIndexList=Vmap2ComplementaryVCF.getHexaploidIndexList(pseudohexaploidInfo);
             TIntArrayList pseudoTaxonIndexList=Vmap2ComplementaryVCF.getPseudoIndexList(pseudohexaploidInfo);
+            int count=0;
             for (int i = 0; i < triadsBlockRecordList.size(); i++) {
                 slightlyStronglyAdditiveDominance_StaticsValue=
                                 triadsBlockRecordList.get(i).getSlightStronglyAdditiveDominanceTaxon_StaticsValue(pseudoTaxonIndexList, hexaploidTaxonIndexList, subgenomeCombination, statics);
@@ -321,25 +322,30 @@ public class Vmap2ComplementaryVCF {
                         bw.newLine();
                     }
                 }
+                count++;
+                if (count%5000==0){
+                    System.out.println(count+" triads had been written to "+staticsValueOutFile);
+                }
             }
             bw.flush();
+            System.out.println("Total "+count+" triads had been written to "+staticsValueOutFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(statics.value+" matrix had been written to "+tOrZScoreOutFile);
+        System.out.println(statics.value+" matrix had been written to "+staticsValueOutFile);
         System.out.println(DateTime.getDateTimeOfNow());
     }
 
     public void calculateStaticsValueByTaxon(String pseudohexaploidInfo, String taxaInfoFile,
-                                             String oneSampleTByTaxonOutFile,
+                                             String staticsValueByTaxonOutFile,
                                              SubgenomeCombination subgenomeCombination, Statics statics){
         System.out.println(DateTime.getDateTimeOfNow());
-        System.out.println("Start written to "+oneSampleTByTaxonOutFile);
+        System.out.println("Start written "+statics.value+" by taxon to "+staticsValueByTaxonOutFile);
         List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
         NumberFormat numberFormat=NumberFormat.getInstance();
         numberFormat.setMaximumFractionDigits(3);
         numberFormat.setGroupingUsed(false);
-        try (BufferedWriter bw = IOTool.getWriter(oneSampleTByTaxonOutFile)) {
+        try (BufferedWriter bw = IOTool.getWriter(staticsValueByTaxonOutFile)) {
             StringBuilder sb=new StringBuilder();
             sb.setLength(0);
             sb.append("Taxon\tGroupBySubcontinent\tSlightlyOrStrongly\tAdditiveOrDominance\t");
@@ -420,7 +426,7 @@ public class Vmap2ComplementaryVCF {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(statics.value+" by taxon had been written to "+oneSampleTByTaxonOutFile);
+        System.out.println(statics.value+" by taxon had been written to "+staticsValueByTaxonOutFile);
         System.out.println(DateTime.getDateTimeOfNow());
     }
 
@@ -428,7 +434,7 @@ public class Vmap2ComplementaryVCF {
                                               String staticsValueByTriadsOutFile, SubgenomeCombination subgenomeCombination,
                                               WheatLineage positionBySub, Statics statics){
         System.out.println(DateTime.getDateTimeOfNow());
-        System.out.println("Start written to "+staticsValueByTriadsOutFile);
+        System.out.println("Start written "+statics.value+" by triads to "+staticsValueByTriadsOutFile);
         List<TriadsBlockRecord> triadsBlockRecordList=Vmap2ComplementaryVCF.triadsBlockRecordList;
         double[][][] slightlyStronglyAdditiveDominanceTaxon_StaticsValue;
         TIntArrayList[] groupBySubcontinentIndex=Vmap2ComplementaryVCF.getGroupBySubcontinentIndexList(taxaInfoFile);
