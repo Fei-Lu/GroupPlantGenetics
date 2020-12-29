@@ -476,6 +476,8 @@ public class Vmap2ComplementaryVCF {
                 }
             }
             bwByTriads.flush();
+            System.out.println(statics.value+" by triads had been written to "+byTriadsOutFile);
+            System.out.println(DateTime.getDateTimeOfNow());
         } catch (IOException e) {
             e.printStackTrace();
         }
