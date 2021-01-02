@@ -17,16 +17,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.*;
 import java.util.function.DoublePredicate;
-import java.util.stream.Collectors;
 
 public class Vmap2ComplementaryVCF {
 
     public List<TriadsBlockRecord> triadsBlockRecordList;
     public List<String> taxonList;
-    public static ForkJoinPool forkJoinPool=new ForkJoinPool(PGLConstraints.parallelLevel);
     public static String[] groupBySubcontinent={"LR_America","LR_Africa","LR_EU","LR_WA","LR_CSA","LR_EA","Cultivar"};
 
     public Vmap2ComplementaryVCF(String vmap2ComplementaryVCF){
@@ -95,14 +92,6 @@ public class Vmap2ComplementaryVCF {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public void setForkJoinPoolParallelism(int numThreads){
-        Vmap2ComplementaryVCF.forkJoinPool=new ForkJoinPool(numThreads);
-    }
-
-    public void shutdownForkJoinPool(){
-        Vmap2ComplementaryVCF.forkJoinPool.shutdown();
     }
 
     public List<String> getHexaploidTaxonList(String pseudoInfoFile){
@@ -291,12 +280,21 @@ public class Vmap2ComplementaryVCF {
                                                                      SubgenomeCombination subgenomeCombination,
                                                                      Statics statics){
         try {
-            return forkJoinPool.submit(()->triadsBlockRecordList.stream().parallel().map(triadsBlockRecord ->
-                    triadsBlockRecord.getSlightStronglyAdditiveDominanceTaxon_StaticsValue(pseudoTaxonIndexList,
-                            hexaploidTaxonIndexList, subgenomeCombination, statics)).collect(Collectors.toList())).get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
+            List<Callable<double[][][]>> callableList=new ArrayList<>();
+            for (TriadsBlockRecord triadsBlockRecord: triadsBlockRecordList){
+                callableList.add(()->triadsBlockRecord.getSlightStronglyAdditiveDominanceTaxon_StaticsValue(pseudoTaxonIndexList,
+                        hexaploidTaxonIndexList,subgenomeCombination, statics));
+            }
+            ExecutorService executorService=Executors.newFixedThreadPool(PGLConstraints.parallelLevel);
+            List<Future<double[][][]>> futureList=executorService.invokeAll(callableList);
+            executorService.shutdown();
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
+            List<double[][][]> res=new ArrayList<>();
+            for (int i = 0; i < futureList.size(); i++) {
+                res.add(futureList.get(i).get());
+            }
+            return res;
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
         return null;
@@ -308,7 +306,8 @@ public class Vmap2ComplementaryVCF {
                                                            WheatLineage positionBySub,
                                                            Statics statics){
         System.out.println(DateTime.getDateTimeOfNow());
-        System.out.println("Start writing "+ statics.value+" matrix to "+matrixOutFile);
+        long start=System.nanoTime();
+        System.out.println("Start calculating "+ statics.value+" matrix ...");
         List<TriadsBlockRecord> triadsBlockRecordList=this.triadsBlockRecordList;
         NumberFormat numberFormat=NumberFormat.getInstance();
         numberFormat.setMaximumFractionDigits(3);
@@ -328,6 +327,9 @@ public class Vmap2ComplementaryVCF {
             TIntArrayList hexaploidTaxonIndexList=this.getHexaploidIndexList(pseudohexaploidInfo);
             TIntArrayList pseudoTaxonIndexList=this.getPseudoIndexList(pseudohexaploidInfo);
             List<double[][][]> res=this.calculateAllTriadsStaticsValueParallel(pseudoTaxonIndexList, hexaploidTaxonIndexList, subgenomeCombination, statics);
+            System.out.println(statics.value+" matrix completed in  "+Benchmark.getTimeSpanSeconds(start)+" s");
+            System.out.println("Start writing "+ statics.value+" matrix ...");
+            long start0=System.nanoTime();
             for (int i = 0; i < res.size(); i++) {
                 slightlyStronglyAdditiveDominance_StaticsValue=res.get(i);
                 for (int j = 0; j < SlightlyOrStrongly.values().length; j++) {
@@ -359,9 +361,9 @@ public class Vmap2ComplementaryVCF {
                 }
             }
             bwMatrix.flush();
-            System.out.println(statics.value+" matrix had been written to "+matrixOutFile);
-            System.out.println(DateTime.getDateTimeOfNow());
-            System.out.println("Start written "+statics.value+" by taxon to "+byTaxonOutFile);
+            System.out.println(statics.value+" matrix completed in  "+Benchmark.getTimeSpanSeconds(start0)+" s");
+            System.out.println("Start writing "+statics.value+" by taxon ...");
+            long start1=System.nanoTime();
             sb.setLength(0);
             sb.append("Taxon\tGroupBySubcontinent\tSlightlyOrStrongly\tAdditiveOrDominance\t");
             sb.append(statics.value).append("\t").append("N");
@@ -418,9 +420,9 @@ public class Vmap2ComplementaryVCF {
                 }
             }
             bwByTaxon.flush();
-            System.out.println(statics.value+" by taxon had been written to "+byTaxonOutFile);
-            System.out.println(DateTime.getDateTimeOfNow());
-            System.out.println("Start written "+statics.value+" by triads to "+byTriadsOutFile);
+            System.out.println(statics.value+" by taxon completed in "+Benchmark.getTimeSpanSeconds(start1)+" s");
+            System.out.println("Start writing "+statics.value+" by triads ...");
+            long start2=System.nanoTime();
             double[][][] slightlyStronglyAdditiveDominanceTaxon_StaticsValue;
             TIntArrayList[] groupBySubcontinentIndex=this.getGroupBySubcontinentIndexList(taxaInfoFile);
             TIntArrayList indexList;
@@ -477,8 +479,7 @@ public class Vmap2ComplementaryVCF {
                 }
             }
             bwByTriads.flush();
-            System.out.println(statics.value+" by triads had been written to "+byTriadsOutFile);
-            System.out.println(DateTime.getDateTimeOfNow());
+            System.out.println(statics.value+" by triads completed in "+Benchmark.getTimeSpanSeconds(start2)+ " s");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -820,17 +821,19 @@ public class Vmap2ComplementaryVCF {
         }
 
         public double getHexaploidStaticsValue(double hexaplidValue, double[] pseudoHexaploid) {
-            if (this.value.equals("T-value")){
-                return TestUtils.t(hexaplidValue, pseudoHexaploid);
-            }else if (this.value.equals("Z-score")){
-                double mean=StatUtils.mean(pseudoHexaploid);
-                double sd=StatUtils.populationVariance(pseudoHexaploid, mean);
-                return (hexaplidValue-mean)/sd;
-            }else {
-                EmpiricalDistribution empiricalDistribution=new EmpiricalDistribution();
-                empiricalDistribution.load(pseudoHexaploid);
-                return empiricalDistribution.cumulativeProbability(hexaplidValue);
+            switch (this){
+                case T:
+                    return TestUtils.t(hexaplidValue, pseudoHexaploid);
+                case Z:
+                    double mean=StatUtils.mean(pseudoHexaploid);
+                    double sd=StatUtils.populationVariance(pseudoHexaploid, mean);
+                    return (hexaplidValue-mean)/sd;
+                case Q:
+                    EmpiricalDistribution empiricalDistribution=new EmpiricalDistribution();
+                    empiricalDistribution.load(pseudoHexaploid);
+                    return empiricalDistribution.cumulativeProbability(hexaplidValue);
             }
+            return Double.NaN;
         }
     }
 
