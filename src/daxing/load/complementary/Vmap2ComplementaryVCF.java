@@ -6,6 +6,7 @@ import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.random.EmpiricalDistribution;
 import org.apache.commons.math3.stat.StatUtils;
 import org.apache.commons.math3.stat.inference.TestUtils;
+import pgl.PGLConstraints;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
@@ -25,7 +26,7 @@ public class Vmap2ComplementaryVCF {
 
     public List<TriadsBlockRecord> triadsBlockRecordList;
     public List<String> taxonList;
-    public static ForkJoinPool forkJoinPool=new ForkJoinPool(32);
+    public static ForkJoinPool forkJoinPool=new ForkJoinPool(PGLConstraints.parallelLevel);
     public static String[] groupBySubcontinent={"LR_America","LR_Africa","LR_EU","LR_WA","LR_CSA","LR_EA","Cultivar"};
 
     public Vmap2ComplementaryVCF(String vmap2ComplementaryVCF){
@@ -1049,7 +1050,6 @@ public class Vmap2ComplementaryVCF {
             TIntArrayList indexList=subgenomeCombination.getIndexList();
             double[] subgenome_Load;
             TDoubleArrayList subgenomeCombiantion_LoadList;
-            double mini, sum;
             for (int i = 0; i < slightlyStronglySubgenome_Load.length; i++) {
                 subgenome_Load=slightlyStronglySubgenome_Load[i];
                 subgenomeCombiantion_LoadList=new TDoubleArrayList();
@@ -1058,15 +1058,9 @@ public class Vmap2ComplementaryVCF {
                     if (Double.isNaN(subgenome_Load[indexList.get(j)])) continue;
                     subgenomeCombiantion_LoadList.add(subgenome_Load[indexList.get(j)]);
                 }
-                if (subgenomeCombiantion_LoadList.size() < 1) continue;
-                mini=subgenomeCombiantion_LoadList.min();
-                if (subgenomeCombiantion_LoadList.size() < indexList.size()){
-                    slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i][0]=-1;
-                }else {
-                    sum=subgenomeCombiantion_LoadList.sum();
-                    slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i][0]=sum;
-                }
-                slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i][1]=mini;
+                if (subgenomeCombiantion_LoadList.size() != indexList.size()) continue;
+                slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i][0]=subgenomeCombiantion_LoadList.sum();
+                slightStronglyAdditiveDominance_SubgenomeCombiantionLoad[i][1]=subgenomeCombiantion_LoadList.min();
             }
             return slightStronglyAdditiveDominance_SubgenomeCombiantionLoad;
         }
