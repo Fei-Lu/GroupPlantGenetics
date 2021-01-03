@@ -98,9 +98,9 @@ public class Vmap2ComplementaryVCF {
         List<String> pseudoTaxonNameList=RowTableTool.getColumnList(pseudoInfoFile,0);
         List<String> taxonList=this.taxonList;
         List<String> res=new ArrayList<>();
-        for (int i = 0; i < taxonList.size(); i++) {
-            if (pseudoTaxonNameList.contains(taxonList.get(i))) continue;
-            res.add(taxonList.get(i));
+        for (String s : taxonList) {
+            if (pseudoTaxonNameList.contains(s)) continue;
+            res.add(s);
         }
         return res;
     }
@@ -691,11 +691,11 @@ public class Vmap2ComplementaryVCF {
                             }
                             staticsValueArray=staticsValue_list.toArray();
                             staticsValueArrayNonNANaNInfList=new TDoubleArrayList();
-                            for (int l = 0; l < staticsValueArray.length; l++) {
-                                if (staticsValueArray[l]==Double.MIN_VALUE) continue;
-                                if (Double.isNaN(staticsValueArray[l])) continue;
-                                if (Double.isInfinite(staticsValueArray[l])) continue;
-                                staticsValueArrayNonNANaNInfList.add(staticsValueArray[l]);
+                            for (double v : staticsValueArray) {
+                                if (v == Double.MIN_VALUE) continue;
+                                if (Double.isNaN(v)) continue;
+                                if (Double.isInfinite(v)) continue;
+                                staticsValueArrayNonNANaNInfList.add(v);
                             }
                             if (staticsValueArrayNonNANaNInfList.size() < 2) continue;
                             staticsValue= staticsValueArrayNonNANaNInfList.sum();
@@ -866,9 +866,9 @@ public class Vmap2ComplementaryVCF {
             return chrRange;
         }
 
-        boolean addLoadINFO(String loadINFOStr){
+        void addLoadINFO(String loadINFOStr){
             LoadINFO loadINFO= new LoadINFO(loadINFOStr);
-            return this.loadINFO.add(loadINFO);
+            this.loadINFO.add(loadINFO);
         }
 
         public List<LoadINFO> getLoadINFO() {
@@ -894,8 +894,8 @@ public class Vmap2ComplementaryVCF {
                                                                         SubgenomeCombination subgenomeCombination){
             List<LoadINFO> loadINFOS=this.getLoadINFO(taxonIndexList);
             List<double[][]> res=new ArrayList<>();
-            for (int i = 0; i < loadINFOS.size(); i++) {
-                res.add(loadINFOS.get(i).getSlightlyStronglyAdditiveDominance_Load(subgenomeCombination));
+            for (LoadINFO info : loadINFOS) {
+                res.add(info.getSlightlyStronglyAdditiveDominance_Load(subgenomeCombination));
             }
             return res;
         }
@@ -994,11 +994,11 @@ public class Vmap2ComplementaryVCF {
                 for (int j = 0; j < AdditiveOrDominance.values().length; j++) {
                     pseudoLoad=slightlyStronglyAdditiveDominancePseudoLoad[i][j];
                     pseudoLoadRemovedNAInfNaNList=new TDoubleArrayList();
-                    for (int k = 0; k < pseudoLoad.length; k++) {
-                        if (pseudoLoad[k] < 0) continue;
-                        if (Double.isNaN(pseudoLoad[k])) continue;
-                        if (Double.isInfinite(pseudoLoad[k])) continue;
-                        pseudoLoadRemovedNAInfNaNList.add(pseudoLoad[k]);
+                    for (double v : pseudoLoad) {
+                        if (v < 0) continue;
+                        if (Double.isNaN(v)) continue;
+                        if (Double.isInfinite(v)) continue;
+                        pseudoLoadRemovedNAInfNaNList.add(v);
                     }
                     if (pseudoLoadRemovedNAInfNaNList.size() < 2) continue;
                     for (int k = 0; k < hexaploidTaxonIndexList.size(); k++) {
