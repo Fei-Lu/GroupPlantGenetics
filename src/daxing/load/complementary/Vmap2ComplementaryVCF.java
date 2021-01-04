@@ -185,7 +185,7 @@ public class Vmap2ComplementaryVCF {
         try (BufferedWriter bw = IOTool.getWriter(tTestStaticsOutFile)) {
             TIntArrayList[] groupBySubcontinentIndexList= this.getGroupBySubcontinentIndexList(taxaInfoDB);
             TIntArrayList pseudhoIndexList=this.getPseudoIndexList(pseudoHexaploidInfo);
-            bw.write("TriadsBlockID\tGroupBySubcontinent\tGenotypedHexaploidTaxaNum" +
+            bw.write("TriadsBlockID\tChr\tStart\tEnd\tGroupBySubcontinent\tGenotypedHexaploidTaxaNum" +
                     "\tGenotypedPseudoTaxaNum\tSlightlyOrStrongly\tAdditiveOrDominance\tT_notEqualVariances\tp_notEqualVariances");
             bw.newLine();
             List<TriadsBlockRecord> triadsBlockRecordList=this.triadsBlockRecordList;
@@ -290,8 +290,8 @@ public class Vmap2ComplementaryVCF {
             executorService.shutdown();
             executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
             List<double[][][]> res=new ArrayList<>();
-            for (int i = 0; i < futureList.size(); i++) {
-                res.add(futureList.get(i).get());
+            for (Future<double[][][]> future : futureList) {
+                res.add(future.get());
             }
             return res;
         } catch (InterruptedException | ExecutionException e) {
