@@ -38,7 +38,7 @@ public class ComplementaryGo {
                           String pgfFile, String outDir){
         System.out.println(DateTime.getDateTimeOfNow());
         String[] subdir={"001_count","002_countMerge","003_hexaploidPseudohexaploid","004_triadsBlock",
-                "005_mergeTriadsBlock","006_T","007_ZScore"};
+                "005_mergeTriadsBlock","006_staticsValue"};
         for (int i = 0; i < subdir.length; i++) {
             new File(outDir, subdir[i]).mkdir();
         }
