@@ -53,7 +53,7 @@ public class ComplementaryGo {
         calculateLoadInfo(triadFile, pgfFile, 20, new File(outDir, subdir[2]).getAbsoluteFile(), new File(outDir,
                 subdir[3]));
         mergeTriadsBlockBySubspecies(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
-        mergeTriadsBlockWithEightModel(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
+//        mergeTriadsBlockWithEightModel(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
         mergeAllIndividualTriadsBlock(new File(outDir, subdir[3]), pgfFile, new File(outDir, subdir[4]));
     }
 
