@@ -14,6 +14,13 @@ import java.util.List;
 
 public class TriadsBlockUtils {
 
+    /**
+     *
+     * @param triadGeneFile
+     * @param pgfFile
+     * @param blockGeneNum 上(下)游基因数目, total: blockGeneNum * 2 +1
+     * @param outFile
+     */
     public static void writeTriadsBlock(String triadGeneFile, String pgfFile, int blockGeneNum, String outFile){
         PGF pgf=new PGF(pgfFile);
         try (BufferedReader br = IOTool.getReader(triadGeneFile);
