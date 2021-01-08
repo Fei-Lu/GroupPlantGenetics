@@ -82,8 +82,8 @@ public class MinorAlleleFrequency {
             while ((temp = br.readLine()) != null) {
                 if (temp.startsWith("CHROM")) continue;
                 temps = temp.split("\t");
-                String site = temps[0] + "_" + temps[1];
-//                String site = temps[1];
+//                String site = temps[0] + "_" + temps[1];
+                String site = temps[1];
                 double frq1 = Double.parseDouble(temps[4].split(":")[1]);
                 double frq2 = Double.parseDouble(temps[5].split(":")[1]);
                 if (frq1 < frq2) {
@@ -98,13 +98,33 @@ public class MinorAlleleFrequency {
         return frqMap;
     }
 
+    public static HashMap<String, String> getMinorFrequency1(String infile) {
+        BufferedReader br = IOUtils.getTextGzipReader(infile);
+        HashMap<String, String> frqMap = new HashMap<>();
+        String temp = null;
+        String[] temps = null;
+        try {
+            while ((temp = br.readLine()) != null) {
+                if (temp.startsWith("CHROM")) continue;
+                temps = temp.split("\t");
+//                String site = temps[0] + "_" + temps[1];
+                String site = temps[2];
+                String frq = temps[3];
+                frqMap.put(site, frq);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return frqMap;
+    }
+
     public static String[] getMinorGenotype(Integer s) {
         String[] genotype1 = {"0/1", "0/0"};
         String[] genotype2 = {"0/1", "1/1"};
         String[] genotype = new String[2];
         if (s == 0) {
             genotype = genotype1;
-        } else if ( s == 1) {
+        } else if (s == 1) {
             genotype = genotype2;
         }
         return genotype;

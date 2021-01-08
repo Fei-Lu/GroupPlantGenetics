@@ -10,29 +10,20 @@ package xujun.analysis.rnaseq;
  * @author Jun Xu
  */
 import pgl.infra.table.RowTable;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import static java.lang.Math.abs;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import pgl.infra.utils.IOUtils;
-import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;
+
+import java.io.*;
+import java.util.*;
+
+import static java.lang.Math.abs;
 public class DemoSample{
     public DemoSample()  {
 
 //          this.testL33();
 //           this.mappedread();
 //            this.phred();
-//            this.getgenename();
+            this.getgenename();
             this.geneposition();
 //            this.sort();="
 //           this.genenumber();

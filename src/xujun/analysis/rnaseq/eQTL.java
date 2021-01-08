@@ -7,43 +7,23 @@ package xujun.analysis.rnaseq;
 
 import com.koloboke.collect.map.hash.HashDoubleIntMap;
 import com.koloboke.collect.map.hash.HashDoubleIntMaps;
-import com.koloboke.collect.map.hash.HashFloatIntMap;
-import com.koloboke.collect.map.hash.HashFloatIntMaps;
 import com.koloboke.collect.map.hash.HashIntIntMap;
 import com.koloboke.collect.map.hash.HashIntIntMaps;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMFileWriterFactory;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SamReaderFactory;
-import htsjdk.samtools.ValidationStringency;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import pgl.infra.range.Range;
 import pgl.infra.table.ColumnTable;
 import pgl.infra.table.RowTable;
-import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import rcaller.RCaller;
 import rcaller.RCode;
 import xuebo.analysis.annotation.FStringUtils;
-import static xujun.analysis.rnaseq.DistinguishSample.getKeyList;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.util.*;
 
 /**
  *
@@ -66,47 +46,47 @@ public class eQTL {
     int geneNumber=92;
 
     public eQTL(){//String parameterFileS
-//        this.filterSample();
+        this.filterSample();
 //        this.filterSampleDS();
-//        this.change();
-//        this.subSetVCF();//根据文件当中的SNP数据，按照数目或者是比例进行抽取
+        this.change();
+        this.subSetVCF();//根据文件当中的SNP数据，按照数目或者是比例进行抽取
 //        this.countToBed();
-//          this.geneRegion();
-//        this.sort();
-//        this.changeVCF();
-//        this.fastQTL();
-//        this.nominalsMode();//sun fastQTL nominals mode
-//        this.parseBed();
-//        this.subSetPermutations();
-//        this.parseNorminals();
-//        this.parseHomo();
-//        this.parseHomoNorminals();
-//        this.distri();
+          this.geneRegion();
+        this.sort();
+        this.changeVCF();
+        this.fastQTL();
+        this.nominalsMode();//sun fastQTL nominals mode
+        this.parseBed();
+        this.subSetPermutations();
+        this.parseNorminals();
+        this.parseHomo();
+        this.parseHomoNorminals();
+        this.distri();
         this.intergenicPattern();
-//        this.homoExpre();
-//        this.perseHomoCis();
-//        this.subFastqRatio();
-//        this.subFastqNum();
+        this.homoExpre();
+        this.perseHomoCis();
+        this.subFastqRatio();
+        this.subFastqNum();
 //        this.dataCommxand();//从文件中定量抽取一定数目的reads
-//        this.nominalVCF();
-//        this.getRawSingle();
-//        this.changVCF();
-//        this.getThreeSet();
-//        this.expreCis();
-//        this.getPairFile();//从表达的数据当中按照亚基因组的表达情况分开（标准化或不标准化）
-//        this.getExpreCis();
-//        this.getExpreCisOne();
-//        this.getExpreCisCat();
-//        this.cateExprePatten();
-//        this.getGeneChro();//为getGeneUpVCF服务，为了提高速度而讲这些基因分到不同的文件之下
-//        this.getGeneUpVCF();//得到只含有基因上游1M的snp的VCF
-//        this.getTajimaD();//实现多个线程同时计算tajima'D的至
-//        this.getTajimaDMerge();
-//        this.categoryCis();
-//        this.getGeneUpTajima();//通过对单位点进行tajima'D的计算，整合基因上游一定区域内的值
-//        this.getCisEffectSize();//使用GTEx的方法来就算effect size
+        this.nominalVCF();
+        this.getRawSingle();
+        this.changVCF();
+        this.getThreeSet();
+        this.expreCis();
+        this.getPairFile();//从表达的数据当中按照亚基因组的表达情况分开（标准化或不标准化）
+        this.getExpreCis();
+        this.getExpreCisOne();
+        this.getExpreCisCat();
+        this.cateExprePatten();
+        this.getGeneChro();//为getGeneUpVCF服务，为了提高速度而讲这些基因分到不同的文件之下
+        this.getGeneUpVCF();//得到只含有基因上游1M的snp的VCF
+        this.getTajimaD();//实现多个线程同时计算tajima'D的至
+        this.getTajimaDMerge();
+        this.categoryCis();
+        this.getGeneUpTajima();//通过对单位点进行tajima'D的计算，整合基因上游一定区域内的值
+        this.getCisEffectSize();//使用GTEx的方法来就算effect size
 //        this.removeBandT();
-//        this.batch();
+        this.batch();
     }
     public void batch (){
         String outputDirS="/data1/home/junxu/eQTL/7check/";
@@ -359,7 +339,6 @@ public class eQTL {
             catch(Exception ex){
                 ex.getStackTrace();
             }
-
         });
         try{
             BufferedWriter bw= IOUtils.getTextWriter("/data1/home/junxu/tajima/nega/tajima/merge.Tajima.D");
@@ -3758,4 +3737,3 @@ public class eQTL {
         }
     }
 }
-

@@ -1,5 +1,8 @@
 package xiaohan.utils;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import htsjdk.samtools.util.CollectionUtil;
 import xiaohan.rareallele.IOUtils;
 
 import java.io.BufferedReader;
@@ -16,56 +19,54 @@ public class geneUpstreamSnp {
         this.getSites((String) arg);
     }
 
-    public static HashMap<String, ArrayList<String>> getSnpGeneMap(String infile) {
+    public static Multimap<String, String> getSnpGeneMap(String infile) {
         HashMap<String, ArrayList<String>> siteGeneMap = new HashMap<>();
+        Multimap<String, String> newmap = ArrayListMultimap.create();
         HashSet<String> siteSet = new HashSet<>();
         ArrayList<String> newlist = new ArrayList<>();
         String temp = null;
         String[] temps = null;
-        BufferedReader br = IOUtils.getTextReader(infile);
-        BufferedReader br1 = IOUtils.getTextReader(infile);
+        BufferedReader br = IOUtils.getTextGzipReader(infile);
+        BufferedReader br1 = IOUtils.getTextGzipReader(infile);
+//        BufferedReader br = null;
+//        BufferedReader br1 = null;
+//        if (infile.endsWith("gz")) {
+//            br = IOUtils.getTextGzipReader(infile);
+//            br1 = IOUtils.getTextGzipReader(infile);
+//        }
+//        br = IOUtils.getTextReader(infile);
+//        br1 = IOUtils.getTextReader(infile);
         try {
-            String site = null;
-            while ((temp = br1.readLine()) != null) {
-                temps = temp.split("\t");
-                site = temps[0];
-                if(!siteSet.contains(site)) {
-                    siteSet.add(site);
-                }
-            }
-            String[] sitestr = siteSet.toArray(new String[siteSet.size()]);
-            Arrays.sort(sitestr);
-            for (int i = 0; i < sitestr.length; i++) {
-                siteGeneMap.put(sitestr[i], newlist);
-            }
             while ((temp = br.readLine()) != null) {
                 temps = temp.split("\t");
-                site = temps[0];
-                ArrayList<String> list1 = siteGeneMap.get(site);
+                String site = temps[0];
                 String gene = temps[1].split(";")[0].split("=")[1];
-                if(!list1.contains(gene)) {
-                    list1.add(gene);
-                }
-                siteGeneMap.put(site,list1);
+                newmap.put(site, gene);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return siteGeneMap;
+        return newmap;
     }
 
     public static String[] getGenes(String infile) {
         String temp = null;
         String[] temps = null;
-        BufferedReader br = IOUtils.getTextReader(infile);
+        BufferedReader br = IOUtils.getTextGzipReader(infile);
+//        BufferedReader br = null;
+//        if (infile.endsWith("gz")) {
+//            br = IOUtils.getTextGzipReader(infile);
+//        }
+//        br = IOUtils.getTextReader(infile);
         HashSet<String> geneSet = new HashSet<>();
         String[] genes = null;
         try {
-            String gene = null;
             while ((temp = br.readLine()) != null) {
                 temps = temp.split("\t");
-                gene = temps[1].split(";")[0].split("=")[1];
-                geneSet.add(gene);
+                String gene = temps[1].split(";")[0].split("=")[1];
+                if(!geneSet.contains(gene)){
+                    geneSet.add(gene);
+                }
             }
             genes = geneSet.toArray(new String[geneSet.size()]);
             Arrays.sort(genes);
@@ -81,26 +82,32 @@ public class geneUpstreamSnp {
         ArrayList<String> newlist = new ArrayList<>();
         String temp = null;
         String[] temps = null;
-        BufferedReader br = IOUtils.getTextReader(infile);
-        BufferedReader br1 = IOUtils.getTextReader(infile);
+//        BufferedReader br = null;
+//        BufferedReader br1 = null;
+//        if (infile.endsWith("gz")) {
+        BufferedReader br = IOUtils.getTextGzipReader(infile);
+        BufferedReader br1 = IOUtils.getTextGzipReader(infile);
+//        }
+//        br = IOUtils.getTextReader(infile);
+//        br1 = IOUtils.getTextReader(infile);
         try {
             String site = null;
             String site1 = null;
             int countline = 0;
             while ((temp = br1.readLine()) != null) {
                 temps = temp.split("\t");
-                if(countline == 0) {
+                if (countline == 0) {
                     site = temps[0];
                     site1 = temps[0];
                     siteSet.add(site);
                     continue;
                 }
                 site = temps[0];
-                if(!site.equals(site1)){
+                if (!site.equals(site1)) {
                     siteSet.add(site);
                 }
                 site1 = site;
-                countline ++;
+                countline++;
             }
         } catch (Exception e) {
             e.printStackTrace();

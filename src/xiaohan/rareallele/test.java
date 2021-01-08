@@ -2,6 +2,7 @@ package xiaohan.rareallele;
 
 import com.koloboke.collect.map.hash.HashIntIntMap;
 import com.koloboke.collect.map.hash.HashIntIntMaps;
+import htsjdk.samtools.util.CollectionUtil;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import xujun.analysis.rnaseq.KMeans;
@@ -14,6 +15,11 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
+
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -59,8 +65,8 @@ public class test {
 
     public void testutils(){
         String infile = "/Users/yxh/Documents/RareAllele/004test/chr36map.txt";
-        HashMap<String, ArrayList<String>> siteGeneMap = xiaohan.utils.geneUpstreamSnp.getSnpGeneMap(infile);
-        ArrayList<String> list = siteGeneMap.get("21559");
+        Multimap<String, String> newmap = xiaohan.utils.geneUpstreamSnp.getSnpGeneMap(infile);
+        Collection<String> list = newmap.get("21559");
         String[] lists = list.toArray(new String[list.size()]);
         for (int i = 0; i < lists.length; i++) {
             System.out.println(lists[i]);

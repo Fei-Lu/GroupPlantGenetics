@@ -25,6 +25,7 @@
          * @author Fei Lu
          */
         public class GeneFeature {
+
             Gene[] genes;
             //0 sort by position, 1 by sort by name
             int sortType = 0;

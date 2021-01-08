@@ -14,14 +14,9 @@ public class Conservation {
         this.getGerpValueMap((String) arg);
     }
 
-    private HashMap<String, Double> getGerpValueMap(String infile) {
-        HashMap<String, Double> SiteGerpMap = new HashMap<>();
-        BufferedReader br = null;
-        if (infile.endsWith("gz")) {
-            br = IOUtils.getTextGzipReader(infile);
-        } else {
-            br = IOUtils.getTextReader(infile);
-        }
+    public static HashMap<String, String> getGerpValueMap(String infile) {
+        HashMap<String, String> SiteGerpMap = new HashMap<>();
+        BufferedReader br = IOUtils.getTextGzipReader(infile);
         String temp = null;
         String[] temps = null;
         List<String> tList = new ArrayList();
@@ -29,8 +24,9 @@ public class Conservation {
             while((temp = br.readLine())!=null){
                 tList = PStringUtils.fastSplit(temp);
                 temps = tList.toArray(new String[tList.size()]);
-                String site = temps[0] + "_" + temps[2];
-                double Gerp = Double.parseDouble(temps[4]);
+//                String site = temps[0] + "_" + temps[2];
+                String site = temps[2];
+                String Gerp = temps[4];
                 SiteGerpMap.put(site,Gerp);
             }
         }catch (Exception e){
