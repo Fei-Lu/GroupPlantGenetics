@@ -61,8 +61,8 @@ public class TriadsBlockUtils {
                     }
                     geneIndex=geneNameIndexMap.get(geneName[j]);
                     maxEndIndex=chrGeneNameList.size()-1;
-                    startIndex= geneIndex < blockGeneNum ? 0 : geneIndex - blockGeneNum;
-                    endIndex= (maxEndIndex - geneIndex) < blockGeneNum ? maxEndIndex : geneIndex + blockGeneNum;
+                    startIndex= geneIndex < blockGeneNum/2 ? 0 : geneIndex - blockGeneNum/2;
+                    endIndex= (maxEndIndex - geneIndex) < blockGeneNum/2 ? maxEndIndex : geneIndex + blockGeneNum/2;
                     for (int k = startIndex; k < endIndex+1; k++) {
                         blockGeneName[j].add(chrGeneNameList.get(k));
                     }
