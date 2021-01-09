@@ -8,9 +8,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class TriadsBlockUtils {
 
@@ -35,6 +33,7 @@ public class TriadsBlockUtils {
             TriadsBlock triadsBlock=null;
             List<String>[] blockGeneName;
             int geneIndex, startIndex, endIndex, maxEndIndex, triadsBlockNum=0;
+            Map<String,Integer> geneNameIndexMap;
             System.out.println("start writing triadsBlock...");
             while ((line=br.readLine())!=null){
                 temp= PStringUtils.fastSplit(line);
@@ -52,12 +51,15 @@ public class TriadsBlockUtils {
                 for (int j = 0; j < blockGeneName.length; j++) {
                     blockGeneName[j]=new ArrayList<>();
                 }
+                geneNameIndexMap=new HashMap<>();
                 for (int j = 0; j < geneName.length; j++) {
                     refChr=geneName[j].substring(7,9);
                     chrIDArray= RefV1Utils.getChrIDsOfSubgenome(refChr);
                     chrGeneNameList=pgf.getGeneNameOnChr(chrIDArray);
-                    Collections.sort(chrGeneNameList);
-                    geneIndex= Collections.binarySearch(chrGeneNameList, geneName[j]);
+                    for (int i = 0; i < chrGeneNameList.size(); i++) {
+                        geneNameIndexMap.put(chrGeneNameList.get(i), i);
+                    }
+                    geneIndex=geneNameIndexMap.get(geneName[j]);
                     maxEndIndex=chrGeneNameList.size()-1;
                     startIndex= geneIndex < blockGeneNum ? 0 : geneIndex - blockGeneNum;
                     endIndex= (maxEndIndex - geneIndex) < blockGeneNum ? maxEndIndex : geneIndex + blockGeneNum;

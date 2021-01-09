@@ -13,6 +13,7 @@ import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -20,7 +21,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class ComplementaryGo {
 
@@ -30,7 +30,7 @@ public class ComplementaryGo {
         String taxa_InfoDB="/Users/xudaxing/Documents/deleteriousMutation/002_vmapII_taxaGroup/taxa_InfoDB.txt";
         String triadFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/triadGenes1.1.txt";
         String pgfFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/wheat_v1.1_Lulab.pgf";
-        String outDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/004_derivedSiftLoadComplementary_41Gene";
+        String outDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftLoadComplementary_21Gene";
         go(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, triadFile, pgfFile, outDir);
     }
 
@@ -45,16 +45,16 @@ public class ComplementaryGo {
         List<File> exonAnnoFiles= IOUtils.getVisibleFileListInDir(exonSNPAnnoDir);
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
         Map<String, File> taxonOutDirMap=getTaxonOutDirMap(taxa_InfoDBFile, new File(outDir, subdir[0]).getAbsolutePath());
-        IntStream.range(0, exonVCFFiles.size()).forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
-                taxonOutDirMap, e+1));
-        merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
-        syntheticPseudohexaploidHexaploid(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
-                new File(outDir, subdir[2]).getAbsolutePath());
+//        IntStream.range(0, exonVCFFiles.size()).forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
+//                taxonOutDirMap, e+1));
+//        merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
+//        syntheticPseudohexaploidHexaploid(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
+//                new File(outDir, subdir[2]).getAbsolutePath());
         calculateLoadInfo(triadFile, pgfFile, 20, new File(outDir, subdir[2]).getAbsoluteFile(), new File(outDir,
                 subdir[3]));
-        mergeTriadsBlockBySubspecies(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
-//        mergeTriadsBlockWithEightModel(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
-        mergeAllIndividualTriadsBlock(new File(outDir, subdir[3]), pgfFile, new File(outDir, subdir[4]));
+//        mergeTriadsBlockBySubspecies(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
+////        mergeTriadsBlockWithEightModel(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
+//        mergeAllIndividualTriadsBlock(new File(outDir, subdir[3]), pgfFile, new File(outDir, subdir[4]));
     }
 
     private static void go(File exonSNPAnnoFile, File exonVCFFile,
@@ -259,17 +259,17 @@ public class ComplementaryGo {
                                          File outDir){
         TriadsBlockUtils.writeTriadsBlock(triadsGeneFile, pgfFile, blockGeneNum,
                 new File(outDir, "triadsBlock.txt.gz").getAbsolutePath());
-        TriadsBlock[] triadsBlockArray=
-                TriadsBlockUtils.readTriadBlock(new File(outDir, "triadsBlock.txt.gz").getAbsolutePath());
-        List<File> dirs=IOUtils.getDirListInDir(individualLoadInfoFilesDir.getAbsolutePath());
-        for (int i = 0; i < dirs.size(); i++) {
-            List<File> individualLoadInfoFiles=IOUtils.getVisibleFileListInDir(dirs.get(i).getAbsolutePath());
-            String[] outFileNames= individualLoadInfoFiles.stream().map(File::getName)
-                    .map(str->str.replaceAll(".txt.gz",".triadsBlock.txt.gz")).toArray(String[]::new);
-            IntStream.range(0, individualLoadInfoFiles.size()).parallel().forEach(e->calculateLoadInfo(triadsBlockArray,
-                    individualLoadInfoFiles.get(e), new File(outDir,
-                    outFileNames[e])));
-        }
+//        TriadsBlock[] triadsBlockArray=
+//                TriadsBlockUtils.readTriadBlock(new File(outDir, "triadsBlock.txt.gz").getAbsolutePath());
+//        List<File> dirs=IOUtils.getDirListInDir(individualLoadInfoFilesDir.getAbsolutePath());
+//        for (int i = 0; i < dirs.size(); i++) {
+//            List<File> individualLoadInfoFiles=IOUtils.getVisibleFileListInDir(dirs.get(i).getAbsolutePath());
+//            String[] outFileNames= individualLoadInfoFiles.stream().map(File::getName)
+//                    .map(str->str.replaceAll(".txt.gz",".triadsBlock.txt.gz")).toArray(String[]::new);
+//            IntStream.range(0, individualLoadInfoFiles.size()).parallel().forEach(e->calculateLoadInfo(triadsBlockArray,
+//                    individualLoadInfoFiles.get(e), new File(outDir,
+//                    outFileNames[e])));
+//        }
     }
 
     public static void calculateLoadInfo(TriadsBlock[] triadsBlockArray, File individualLoadInfoFile, File outFile){
