@@ -9,6 +9,8 @@ import org.apache.commons.math3.stat.inference.TestUtils;
 import pgl.PGLConstraints;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
+import smile.stat.distribution.TDistribution;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -812,7 +814,7 @@ public class Vmap2ComplementaryVCF {
     }
 
     public enum Statics{
-        T("T-value"), Z("Z-score"), Q("Quantile");
+        T("T-value"), Z("Z-score"), QE("Quantile-empirical"),QT("Quantile-t");
 
         String value;
 
@@ -828,10 +830,14 @@ public class Vmap2ComplementaryVCF {
                     double mean=StatUtils.mean(pseudoHexaploid);
                     double sd=StatUtils.populationVariance(pseudoHexaploid, mean);
                     return (hexaplidValue-mean)/sd;
-                case Q:
+                case QE:
                     EmpiricalDistribution empiricalDistribution=new EmpiricalDistribution();
                     empiricalDistribution.load(pseudoHexaploid);
                     return empiricalDistribution.cumulativeProbability(hexaplidValue);
+                case QT:
+                    TDistribution tDistribution=new TDistribution(pseudoHexaploid.length-1);
+                    double t=TestUtils.t(hexaplidValue, pseudoHexaploid);
+                    return tDistribution.cdf(-t);
             }
             return Double.NaN;
         }
