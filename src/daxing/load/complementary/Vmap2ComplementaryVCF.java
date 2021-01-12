@@ -3,14 +3,13 @@ package daxing.load.complementary;
 import daxing.common.*;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
+import org.apache.commons.math3.distribution.TDistribution;
 import org.apache.commons.math3.random.EmpiricalDistribution;
 import org.apache.commons.math3.stat.StatUtils;
 import org.apache.commons.math3.stat.inference.TestUtils;
 import pgl.PGLConstraints;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
-import smile.stat.distribution.TDistribution;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -837,7 +836,7 @@ public class Vmap2ComplementaryVCF {
                 case QT:
                     TDistribution tDistribution=new TDistribution(pseudoHexaploid.length-1);
                     double t=TestUtils.t(hexaplidValue, pseudoHexaploid);
-                    return tDistribution.cdf(-t);
+                    return tDistribution.cumulativeProbability(-t);
             }
             return Double.NaN;
         }

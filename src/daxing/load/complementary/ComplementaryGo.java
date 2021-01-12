@@ -30,7 +30,7 @@ public class ComplementaryGo {
         String taxa_InfoDB="/Users/xudaxing/Documents/deleteriousMutation/002_vmapII_taxaGroup/taxa_InfoDB.txt";
         String triadFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/triadGenes1.1.txt";
         String pgfFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/wheat_v1.1_Lulab.pgf";
-        String outDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftLoadComplementary_21Gene";
+        String outDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftLoadComplementary";
         int blockGeneNum=40;
         go(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, triadFile, blockGeneNum, pgfFile, outDir);
     }
@@ -495,37 +495,41 @@ public class ComplementaryGo {
             String triadsBlockID;
             List<String>[] geneNameListArray;
             int geneIndex0, geneIndex, cdsLen0;
-            Range[] rangeABD;
             ChrRange[] chrRangeABD;
             int[] cdsLenABD;
             Range range0, range;
+            ChrRange chrRange0, chrRange;
             for (int i = 0; i < columnList.get(0).size(); i++) {
                 sb.setLength(0);
                 triadsBlockID=triadsBlockIDList.get(i);
                 geneNameListArray=triasBlockGeneNameListMap.get(triadsBlockID);
-                rangeABD=new Range[3];
                 cdsLenABD=new int[3];
+                chrRangeABD=new ChrRange[3];
                 for (int j = 0; j < geneNameListArray.length; j++) {
                     geneIndex0=pgf.getGeneIndex(geneNameListArray[j].get(0));
                     range0=pgf.getGene(geneIndex0).getGeneRange();
+                    chrRange0=ChrRange.changeToChrRange(range0);
                     cdsLen0=pgf.getGene(geneIndex0).getLongestTranscriptCDSLen();
                     for (int k = 1; k < geneNameListArray[j].size(); k++) {
                         geneIndex=pgf.getGeneIndex(geneNameListArray[j].get(k));
                         range=pgf.getGene(geneIndex).getGeneRange();
-                        if (range.getRangeStart() < range0.getRangeStart()){
-                            range0.setRangeStart(range.getRangeStart());
+                        chrRange=ChrRange.changeToChrRange(range);
+//                        if (range.getRangeStart() < range0.getRangeStart()){
+//                            range0.setRangeStart(range.getRangeStart());
+//                        }
+//                        if (range.getRangeEnd() > range0.getRangeEnd()){
+//                            range0.setRangeEnd(range.getRangeEnd());
+//                        }
+                        if (chrRange.getStart() < chrRange0.getStart()){
+                            chrRange0.setStart(chrRange.getStart());
                         }
-                        if (range.getRangeEnd() > range0.getRangeEnd()){
-                            range0.setRangeEnd(range.getRangeEnd());
+                        if (chrRange.getEnd() > chrRange0.getEnd()){
+                            chrRange0.setEnd(chrRange.getEnd());
                         }
                         cdsLen0+=pgf.getGene(geneIndex).getLongestTranscriptCDSLen();
                     }
-                    rangeABD[j]=range0;
+                    chrRangeABD[j]=chrRange0;
                     cdsLenABD[j]=cdsLen0;
-                }
-                chrRangeABD=new ChrRange[WheatLineage.values().length];
-                for (int j = 0; j < rangeABD.length; j++) {
-                    chrRangeABD[j]=ChrRange.changeToChrRange(rangeABD[j]);
                 }
                 sb.append(triadsBlockID).append("\t");
                 sb.append(blockGeneNumList.get(i)).append("\t");
