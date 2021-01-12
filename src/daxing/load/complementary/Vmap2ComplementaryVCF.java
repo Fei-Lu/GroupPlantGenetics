@@ -813,7 +813,7 @@ public class Vmap2ComplementaryVCF {
     }
 
     public enum Statics{
-        T("T-value"), Z("Z-score"), QE("Quantile-empirical"),QT("Quantile-t");
+        T("T-value"),Z("Z-score"),QE("Quantile-empirical"),QT("Quantile-t"),P("P-value");
 
         String value;
 
@@ -837,6 +837,8 @@ public class Vmap2ComplementaryVCF {
                     TDistribution tDistribution=new TDistribution(pseudoHexaploid.length-1);
                     double t=TestUtils.t(hexaplidValue, pseudoHexaploid);
                     return tDistribution.cumulativeProbability(-t);
+                case P:
+                    return TestUtils.tTest(hexaplidValue, pseudoHexaploid);
             }
             return Double.NaN;
         }
