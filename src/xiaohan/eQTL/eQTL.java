@@ -28,6 +28,7 @@ public class eQTL {
 //        this.getCisVCF();
 //        this.getCisEffectSize();
 //        this.getNominalSig();
+//        this.getcisSig();
 //        this.writecommand();
 //        this.geteGene();
 //        this.getTraidsPattern();
@@ -47,12 +48,13 @@ public class eQTL {
         Effect size
          */
         //distance
-        this.getDistanceEffectSize();
+//        this.getDistanceEffectSize();
 //        this.getDistanceEffectSizeShuf();
         //maf
 //        this.getMafWithEffectSize();
         //region
-//        this.getRegionEffectSize();
+        this.getRegionEffectSize();
+        this.getRegionEffectSize1();
         //gene expression
 //        this.getExpressionWithEffectSize();
         /*
@@ -91,6 +93,115 @@ public class eQTL {
 
     public void getExpressionWithEffectSize() {
 
+    }
+
+    public void getRegionEffectSize1(){
+        String annotationfile = "/data1/home/xiaohan/reference/wheat_v1.1_Lulab.gff3";
+        GeneFeature gf = new GeneFeature(annotationfile);
+//        HashSet<String> nameSet = new HashSet();
+//        for (int m = 0; m < 42; m++) {
+//            int chr = m + 1;
+//            nameSet.add(String.valueOf(chr));
+//        }
+//        nameSet.parallelStream().forEach(f -> {
+        String f = "all";
+        String infile = "/data1/home/xiaohan/tensorQTL/1M_log2/homoeffect/" + f + ".cis.sig.DE.log2.txt";
+        String outfile = "/data1/home/xiaohan/tensorQTL/1M_log2/homoeffect/region/" + f + ".region.txt";
+        BufferedReader br = IOUtils.getTextReader(infile);
+        BufferedWriter bw = IOUtils.getTextWriter(outfile);
+        String temp = null;
+        String[] temps = null;
+        try {
+            while ((temp = br.readLine()) != null) {
+                temps = temp.split("\t");
+                if (temps[0].equals("Index")) {
+                    bw.write(temps[0] + "\t" + temps[1] + "\t" + temps[2] + "\t" + "Eff" + "\t" + "Maf" + "\t" + "Group");
+                    bw.newLine();
+                    continue;
+                }
+
+                int pos = Integer.parseInt(temps[2].split("_")[1]);
+                int chr = Integer.parseInt(temps[2].split("_")[0]);
+                String geneName = temps[1];
+                int index = gf.getGeneIndex(geneName);
+                int startsite = gf.getGeneStart(index);
+                int endsite = gf.getGeneEnd(index);
+                int strand = gf.getGeneStrand(index);
+                double ef = 0;
+                if (temps[11].equals("nan")) {
+                    ef = 0;
+                } else {
+                    ef = Double.parseDouble(temps[11]);
+                }
+                String group = null;
+                String position = "not";
+                int j = gf.getLongestTranscriptIndex(index);
+                if (pos < startsite || pos > endsite) {
+                    if (strand == 1) {
+                        if (pos <= startsite) {
+                            group = "Upstream";
+                        } else {
+                            group = "Downstream";
+                        }
+                    } else {
+                        if (pos >= endsite) {
+                            group = "Upstream";
+                        } else {
+                            group = "Downstream";
+                        }
+                    }
+                } else if (pos >= startsite && pos <= endsite) {
+                    group = "Intron";
+                    if (gf.get5UTRList(index, j).size() != 0) {
+                        List<Range> fU = gf.get5UTRList(index, j);
+                        for (int a = 0; a < fU.size(); a++) {
+                            int start = fU.get(a).getRangeStart();
+                            int end = fU.get(a).getRangeEnd();
+                            if (pos >= start && pos <= end) {
+                                group = "FiveUTR";
+                                continue;
+                            }
+                        }
+                    }
+                    if (gf.getCDSList(index, j).size() != 0) {
+                        List<Range> CDS = gf.getCDSList(index, j);
+                        for (int a = 0; a < CDS.size(); a++) {
+                            int start = CDS.get(a).getRangeStart();
+                            int end = CDS.get(a).getRangeEnd();
+                            if (pos >= start && pos <= end) {
+                                group = "CDS";
+                                continue;
+                            }
+                        }
+                    }
+                    if (gf.get3UTRList(index, j).size() != 0) {
+                        System.out.println("3'");
+                        List<Range> tU = gf.get3UTRList(index, j);
+                        for (int a = 0; a < tU.size(); a++) {
+                            int start = tU.get(a).getRangeStart();
+                            int end = tU.get(a).getRangeEnd();
+                            if (pos >= start && pos <= end) {
+                                group = "ThreeUTR";
+                                continue;
+                            }
+                        }
+                    }
+                }
+                if (group == null) {
+                    System.out.println(chr + "\t" + strand + "\t" + startsite + "\t" + endsite + "\t" + pos + "\t" + position);
+                }
+                StringBuilder sb = new StringBuilder();
+                sb.append(temps[0] + "\t" + temps[1] + "\t" + temps[2] + "\t" + ef + "\t" + temps[4] + "\t" + group);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            br.close();
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+//        });
     }
 
     public void getRegionEffectSize() {
@@ -200,94 +311,6 @@ public class eQTL {
             e.printStackTrace();
         }
 //        });
-    }
-
-    public void getRegionEffectSize1() {
-        String annotationfile = "";
-        GeneFeature gf = new GeneFeature(annotationfile);
-        String infile = "";
-        String outfile = "";
-        BufferedReader br = IOUtils.getTextGzipReader(infile);
-        BufferedWriter bw = IOUtils.getTextWriter(outfile);
-        String temp = null;
-        String[] temps = null;
-        try {
-            int interC = 0;
-            int threeC = 0;
-            int fiveC = 0;
-            int CDSC = 0;
-            int introC = 0;
-            int count = 0;
-            double interef = 0;
-            double threeef = 0;
-            double fiveef = 0;
-            double CDSef = 0;
-            double introef = 0;
-            double countef = 0;
-            while ((temp = br.readLine()) != null) {
-                temps = temp.split("\t");
-                int pos = Integer.parseInt(temps[2].split("_")[1]);
-                int chr = Integer.parseInt(temps[2].split("_")[0]);
-                String geneName = temps[1];
-                double ef = Double.parseDouble(temps[11]);
-                int index = gf.getGeneIndex(geneName);
-                String group = null;
-                if (!gf.isWithinThisGene(index, Integer.valueOf(temp.split(" ")[1].split("_")[1]), Integer.valueOf(temp.split(" ")[1].split("_")[2]))) {
-                    interC++;
-                    interef += ef;
-                    continue;
-                }
-                int j = gf.getLongestTranscriptIndex(index);
-                if (gf.get5UTRList(index, j).size() != 0) {
-                    List<Range> fU = gf.get5UTRList(index, j);
-                    for (int a = 0; a < fU.size(); a++) {
-                        int start = fU.get(a).getRangeStart();
-                        int end = fU.get(a).getRangeEnd();
-                        if (pos >= start && pos <= end) {
-                            fiveC++;
-                            fiveef += ef;
-                            continue;
-                        }
-                    }
-                }
-                if (gf.getCDSList(index, j).size() != 0) {
-                    List<Range> CDS = gf.getCDSList(index, j);
-                    for (int a = 0; a < CDS.size(); a++) {
-                        int start = CDS.get(a).getRangeStart();
-                        int end = CDS.get(a).getRangeEnd();
-                        if (pos >= start && pos <= end) {
-                            CDSC++;
-                            CDSef += ef;
-                            continue;
-                        }
-                    }
-                }
-                if (gf.get3UTRList(index, j).size() != 0) {
-                    List<Range> tU = gf.get3UTRList(index, j);
-                    for (int a = 0; a < tU.size(); a++) {
-                        int start = tU.get(a).getRangeStart();
-                        int end = tU.get(a).getRangeEnd();
-                        if (pos >= start && pos <= end) {
-                            threeC++;
-                            threeef += ef;
-                            continue;
-                        }
-                    }
-                }
-                introC++;
-                introef += ef;
-                StringBuilder sb = new StringBuilder();
-                sb.append(temps[0] + "\t" + temps[1] + "\t" + temps[2] + "\t" + ef + "\t" + temps[4] + "\t" + group);
-                bw.write(sb.toString());
-                bw.newLine();
-            }
-
-            br.close();
-            bw.flush();
-            bw.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public void getMafWithEffectSize() {
@@ -514,7 +537,7 @@ public class eQTL {
 //        }
         String f = "all";
 //        nameSet.parallelStream().forEach(f -> {
-        String Dir = "/data1/home/xiaohan/tensorQTL/1M_log2/homoeffect/";
+        String Dir = "/data1/home/xiaohan/tensorQTL/1M_log2/homoeffect_boot100/";
         String homogenefile = "/data1/home/xiaohan/reference/TheABD.txt";
         String inputFileS = Dir + f + ".cis.sig.DE.log2.txt";
         String outputFileUp = Dir + "distribution/" + f + ".up.distribution.txt";
@@ -550,38 +573,43 @@ public class eQTL {
             BufferedWriter bwInterEf = IOUtils.getTextWriter(outputFileInterEf);
             while ((temp = br.readLine()) != null) {
                 if (temp.startsWith("Index")) continue;
-                geneName = temp.split("\t")[1];
+                String[] temps = temp.split("\t");
+                geneName = temps[1];
+                String snp = temps[2];
 //                if (String.valueOf(geneName.charAt(8)).equals("D")) {
 //                if(getHomoGene.ishomoGene(homogenefile,geneName).equals("A")){
-                if (temp.split("\t")[11].equals("nan")) {
+                if (temps[11].equals("nan")) {
                     ef = 0;
                 } else {
-                    ef = Math.abs(Double.valueOf(temp.split("\t")[11]));
+                    ef = Math.abs(Double.valueOf(temps[11]));
                 }
+                if (ef > 2 / Math.log10(2)) continue;
+                if (temps[12].equals("nan") || temps[13].equals("nan")) continue;
+                if (Double.valueOf(temps[12]) * Double.parseDouble(temps[13]) < 0) continue;
                 int i = gf.getGeneIndex(geneName);
-                if (gf.isWithinThisGene(i, Integer.valueOf(temp.split("\t")[2].split("_")[0]), Integer.valueOf(temp.split("\t")[2].split("_")[1]))) {
-                    pos = Integer.valueOf(temp.split("\t")[2].split("_")[1]);
+                if (gf.isWithinThisGene(i, Integer.valueOf(snp.split("_")[0]), Integer.valueOf(snp.split("_")[1]))) {
+                    pos = Integer.valueOf(snp.split("_")[1]);
                     if (gf.getGeneStrand(i) == 1) {
                         start = gf.getGeneStart(i);
                         end = gf.getGeneEnd(i);
                         length = end - start;
-                        int chunk = (pos - start) / 1000;
+                        int chunk = (pos - start - 1) * 100 / length;
 //                            int number = 1000 / (length / 100);
-                        countInter[chunk] ++;
+                        countInter[chunk]++;
                         Inter++;
                         efCInter[chunk] += ef;
                     } else {
                         start = gf.getGeneEnd(i);
                         end = gf.getGeneStart(i);
                         length = start - end;
-                        int chunk = (pos - end) / 1000 ;
+                        int chunk = (start - pos - 1) * 100 / length;
 //                            int number = 1000 / (length / 100);
-                        countInter[chunk] ++;
+                        countInter[chunk]++;
                         Inter++;
                         efCInter[chunk] += ef;
                     }
-                } else if (!gf.isWithinThisGene(i, Integer.valueOf(temp.split("\t")[2].split("_")[0]), Integer.valueOf(temp.split("\t")[2].split("_")[1]))) {
-                    pos = Integer.valueOf(temp.split("\t")[2].split("_")[1]);
+                } else if (!gf.isWithinThisGene(i, Integer.valueOf(snp.split("_")[0]), Integer.valueOf(snp.split("_")[1]))) {
+                    pos = Integer.valueOf(snp.split("_")[1]);
                     if (gf.getGeneStrand(i) == 1) {//1表示的是正链
                         start = gf.getGeneStart(i);
                         if (start >= pos) {
@@ -614,6 +642,9 @@ public class eQTL {
                 }
 //                }
             }
+//            for (int i = 0; i < efCInter.length; i++) {
+//                efCInter[i] = 0;
+//            }
             br.close();
             DecimalFormat decFor = new DecimalFormat("0.000000");
             for (int i = 0; i < countInter.length; i++) {
@@ -1458,6 +1489,44 @@ public class eQTL {
         String number = "0.0004487591488947158";
         Double temp = Double.parseDouble(number);
         System.out.println(number);
+    }
+
+    public void getcisSig() {
+        for (int m = 0; m < 42; m++) {
+            int chr = m + 1;
+            String infile = "/data1/home/xiaohan/tensorQTL/1M_log2/" + chr + ".cis_qtl.txt.gz";
+            String outfile = "/data1/home/xiaohan/tensorQTL/1M_log2/" + chr + ".top.cis_qtl.txt";
+            BufferedReader br = IOUtils.getTextGzipReader(infile);
+            BufferedWriter bw = IOUtils.getTextWriter(outfile);
+            String temp = null;
+            String[] temps = null;
+            try {
+                while ((temp = br.readLine()) != null) {
+                    temps = temp.split("\t");
+                    if (temp.startsWith("phenotype_id")) {
+                        temps[0] = "pid";
+                        temps[6] = "sid";
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(temps[0] +"\t" + temps[6] + "\t" + temps[7] + "\t" + temps[10] + "\t" + temps[13] + "\t" + temps[14]);
+                        bw.write(sb.toString());
+                        bw.newLine();
+                        continue;
+                    }
+                    double qvalue = Double.parseDouble(temps[temps.length - 2]);
+                    if (qvalue < 0.05) {
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(temps[0] +"\t" + temps[6] + "\t" + temps[7] + "\t" + temps[10] + "\t" + temps[13] + "\t" + temps[14]);
+                        bw.write(sb.toString());
+                        bw.newLine();
+                    }
+                }
+                br.close();
+                bw.flush();
+                bw.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void getNominalSig() throws IOException {
