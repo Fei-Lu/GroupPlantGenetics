@@ -49,12 +49,14 @@ public class eQTL {
          */
         //distance
 //        this.getDistanceEffectSize();
+//        this.getDistanceEffectSizehuman();
+        this.getDistanceEffectSizehumannominal();
 //        this.getDistanceEffectSizeShuf();
         //maf
 //        this.getMafWithEffectSize();
         //region
-        this.getRegionEffectSize();
-        this.getRegionEffectSize1();
+//        this.getRegionEffectSize();
+//        this.getRegionEffectSize1();
         //gene expression
 //        this.getExpressionWithEffectSize();
         /*
@@ -214,8 +216,8 @@ public class eQTL {
 //        }
 //        nameSet.parallelStream().forEach(f -> {
         String f = "all";
-        String infile = "/data1/home/xiaohan/tensorQTL/1M_log2/homoeffect/" + f + ".cis.sig.DE.log2.txt";
-        String outfile = "/data1/home/xiaohan/tensorQTL/1M_log2/homoeffect/region/" + f + ".region.txt";
+        String infile = "/data1/home/xiaohan/tensorQTL/1M_log2/homotop/" + f + ".cis.sig.DE.log2.txt";
+        String outfile = "/data1/home/xiaohan/tensorQTL/1M_log2/homotop/region/" + f + ".region.txt";
         BufferedReader br = IOUtils.getTextReader(infile);
         BufferedWriter bw = IOUtils.getTextWriter(outfile);
         String temp = null;
@@ -223,25 +225,28 @@ public class eQTL {
         try {
             while ((temp = br.readLine()) != null) {
                 temps = temp.split("\t");
-                if (temps[0].equals("Index")) {
-                    bw.write(temps[0] + "\t" + temps[1] + "\t" + temps[2] + "\t" + "Eff" + "\t" + "Maf" + "\t" + "Group");
+                if (temps[0].equals("pid")) {
+//                    + "\t" + temps[2]
+                    bw.write(temps[0] + "\t" + temps[1] + "\t" + "Eff" + "\t" + "Maf" + "\t" + "Group");
                     bw.newLine();
                     continue;
                 }
 
-                int pos = Integer.parseInt(temps[2].split("_")[1]);
-                int chr = Integer.parseInt(temps[2].split("_")[0]);
-                String geneName = temps[1];
+                int pos = Integer.parseInt(temps[1].split("_")[1]);
+                int chr = Integer.parseInt(temps[1].split("_")[0]);
+                String geneName = temps[0];
                 int index = gf.getGeneIndex(geneName);
                 int startsite = gf.getGeneStart(index);
                 int endsite = gf.getGeneEnd(index);
                 int strand = gf.getGeneStrand(index);
                 double ef = 0;
-                if (temps[11].equals("nan")) {
+                if (temps[6].equals("nan")) {
                     ef = 0;
                 } else {
-                    ef = Double.parseDouble(temps[11]);
+                    ef = Math.abs(Double.parseDouble(temps[6]));
                 }
+                if (temps[7].equals("nan") || temps[8].equals("nan")) continue;
+                if (Double.valueOf(temps[7]) * Double.parseDouble(temps[8]) < 0) continue;
                 String group = null;
                 String position = "not";
                 int j = gf.getLongestTranscriptIndex(index);
@@ -300,7 +305,8 @@ public class eQTL {
                     System.out.println(chr + "\t" + strand + "\t" + startsite + "\t" + endsite + "\t" + pos + "\t" + position);
                 }
                 StringBuilder sb = new StringBuilder();
-                sb.append(temps[0] + "\t" + temps[1] + "\t" + temps[2] + "\t" + ef + "\t" + temps[4] + "\t" + group);
+//                + "\t" + temps[2]
+                sb.append(temps[0] + "\t" + temps[1] + "\t" + ef + "\t" + temps[4] + "\t" + group);
                 bw.write(sb.toString());
                 bw.newLine();
             }
@@ -527,26 +533,28 @@ public class eQTL {
         }
     }
 
-    public void getDistanceEffectSize() {
-        String mode = null;
+    public void getDistanceEffectSizehumannominal() {
+//        String mode = null;
 //        mode = "all";
-        HashSet<String> nameSet = new HashSet<>();
+//        HashSet<String> nameSet = new HashSet<>();
 //        for (int m = 0; m < ; m++) {
 //            int chr = m + 1;
 //            nameSet.add(String.valueOf(chr));
 //        }
-        String f = "all";
+        String info = "/Users/yxh/Documents/eQTL/GTEx/Whole_Blood.v8.egenes.txt";
+        String infile = "/Users/yxh/Documents/eQTL/GTEx/GTEx_Analysis_v8_eQTL/Whole_Blood.v8.signif_variant_gene_pairs.txt";
+//        String f = "all";
 //        nameSet.parallelStream().forEach(f -> {
-        String Dir = "/data1/home/xiaohan/tensorQTL/1M_log2/homoeffect_boot100/";
-        String homogenefile = "/data1/home/xiaohan/reference/TheABD.txt";
-        String inputFileS = Dir + f + ".cis.sig.DE.log2.txt";
-        String outputFileUp = Dir + "distribution/" + f + ".up.distribution.txt";
-        String outputFileDown = Dir + "distribution/" + f + ".down.distribution.txt";
-        String outputFileInter = Dir + "distribution/" + f + ".inter.distribution.txt";
-        String outputFileUpEf = Dir + "distribution/" + f + ".up.ef.txt";
-        String outputFileDownEf = Dir + "distribution/" + f + ".down.ef.txt";
-        String outputFileInterEf = Dir + "distribution/" + f + ".inter.ef.txt";
-        GeneFeature gf = new GeneFeature("/data1/home/xiaohan/reference/wheat_v1.1_Lulab.gff3");
+//        String Dir = "/Users/yxh/Documents/eQTL/GTEx/GTEx_distance/";
+//        String homogenefile = "/data1/home/xiaohan/reference/TheABD.txt";
+//        String inputFileS = Dir + f + ".cis.sig.DE.log2.txt";
+        String outputFileUp = "/Users/yxh/Documents/eQTL/GTEx/GTEx_distance_nominal/distribution_up.txt";
+        String outputFileDown = "/Users/yxh/Documents/eQTL/GTEx/GTEx_distance_nominal/distribution_down.txt";
+        String outputFileInter = "/Users/yxh/Documents/eQTL/GTEx/GTEx_distance_nominal/distribution_inter.txt";
+        String outputFileUpEf = "/Users/yxh/Documents/eQTL/GTEx/GTEx_distance_nominal/ef_up.txt";
+        String outputFileDownEf = "/Users/yxh/Documents/eQTL/GTEx/GTEx_distance_nominal/ef_down.txt";
+        String outputFileInterEf = "/Users/yxh/Documents/eQTL/GTEx/GTEx_distance_nominal/ef_inter.txt";
+//        GeneFeature gf = new GeneFeature("/data1/home/xiaohan/reference/wheat_v1.1_Lulab.gff3");
         int[] countUp = new int[1000];
         double[] efCUp = new double[1000];
         int up = 0;
@@ -564,6 +572,394 @@ public class eQTL {
         String geneName = null;
         double ef = 0;
         try {
+            BufferedReader brinfo = IOUtils.getTextReader(info);
+            String tempinfo = null;
+            String[] tempinfos = null;
+            HashMap<String,Integer> geneStrandMap = new HashMap<>();
+            HashMap<String,String> geneEndMap = new HashMap<>();
+            HashMap<String,String> geneStartMap = new HashMap<>();
+            while((tempinfo = brinfo.readLine())!=null){
+                tempinfos = tempinfo.split("\t");
+                geneStartMap.put(tempinfos[0],tempinfos[3]);
+                geneEndMap.put(tempinfos[0],tempinfos[4]);
+                if(tempinfos[5].equals("+")) {
+                    geneStrandMap.put(tempinfos[0], 1);
+                }else if (tempinfos[5].equals("-")){
+                    geneStrandMap.put(tempinfos[0], 0);
+                }
+            }
+            brinfo.close();
+            BufferedReader br = IOUtils.getTextReader(infile);
+            BufferedWriter bwUp = IOUtils.getTextWriter(outputFileUp);
+            BufferedWriter bwDown = IOUtils.getTextWriter(outputFileDown);
+            BufferedWriter bwInter = IOUtils.getTextWriter(outputFileInter);
+            BufferedWriter bwUpEf = IOUtils.getTextWriter(outputFileUpEf);
+            BufferedWriter bwDownEf = IOUtils.getTextWriter(outputFileDownEf);
+            BufferedWriter bwInterEf = IOUtils.getTextWriter(outputFileInterEf);
+            while ((temp = br.readLine()) != null) {
+                if (temp.startsWith("variant")) continue;
+                String[] temps = temp.split("\t");
+                geneName = temps[1];
+                int snp = Integer.parseInt(temps[0].split("_")[1]);
+//                if (String.valueOf(geneName.charAt(8)).equals("D")) {
+//                if(getHomoGene.ishomoGene(homogenefile,geneName).equals("A")){
+                if (temps[7].equals("nan")) {
+                    ef = 0;
+                } else {
+                    ef = Math.abs(Double.valueOf(temps[7]));
+//                    ef = Double.valueOf(temps[30]);
+                }
+                if (ef > 2 / Math.log10(2)) continue;
+//                if (temps[31].equals("nan") || temps[32].equals("nan")) continue;
+//                if (Double.valueOf(temps[31]) * Double.parseDouble(temps[32]) < 0) continue;
+//                int i = gf.getGeneIndex(geneName);
+                int strand = geneStrandMap.get(geneName);
+                if (Integer.parseInt(geneStartMap.get(geneName)) < snp && snp < Integer.parseInt(geneEndMap.get(geneName))) {
+                    pos = snp;
+                    if (strand == 1) {
+                        start = Integer.parseInt(geneStartMap.get(geneName));
+                        end = Integer.parseInt(geneEndMap.get(geneName));
+                        length = end - start;
+                        int chunk = (pos - start - 1) * 100 / length;
+//                            int number = 1000 / (length / 100);
+                        countInter[chunk]++;
+                        Inter++;
+                        efCInter[chunk] += ef;
+                    } else {
+                        start = Integer.parseInt(geneEndMap.get(geneName));
+                        end = Integer.parseInt(geneStartMap.get(geneName));
+                        length = start - end;
+                        int chunk = (start - pos - 1) * 100 / length;
+//                            int number = 1000 / (length / 100);
+                        countInter[chunk]++;
+                        Inter++;
+                        efCInter[chunk] += ef;
+                    }
+                } else if (Integer.parseInt(temps[3]) > snp || snp > Integer.parseInt(temps[4])) {
+                    pos = snp;
+                    if (strand == 1) {//1表示的是正链
+                        start = Integer.parseInt(geneStartMap.get(geneName));
+                        if (start >= pos) {
+                            int chunk = (start - pos - 1) / 1000;
+                            if(chunk>99)continue;
+                            countUp[chunk]++;
+                            up++;
+                            efCUp[chunk] += ef;
+                        } else {
+                            end = Integer.parseInt(geneEndMap.get(geneName));
+                            int chunk = (pos - end - 1) / 1000;
+                            if(chunk>99)continue;
+                            countDown[chunk]++;
+                            down++;
+                            efCDown[chunk] += ef;
+                        }
+                    } else {
+                        start = Integer.parseInt(geneStartMap.get(geneName));
+                        if (start <= pos) {
+                            int chunk = (pos - start - 1) / 1000;
+                            if(chunk>99)continue;
+                            countUp[chunk]++;
+                            up++;
+                            efCUp[chunk] += ef;
+                        } else {
+                            end = Integer.parseInt(geneEndMap.get(geneName));
+                            int chunk = (end - pos - 1) / 1000;
+                            if(chunk>99)continue;
+                            countDown[chunk]++;
+                            down++;
+                            efCDown[chunk] += ef;
+                        }
+                    }
+                }
+//                }
+            }
+//            for (int i = 0; i < efCInter.length; i++) {
+//                efCInter[i] = 0;
+//            }
+            br.close();
+            DecimalFormat decFor = new DecimalFormat("0.000000");
+            for (int i = 0; i < countInter.length; i++) {
+                int chunk = i * 10 + 1001;
+                bwInter.write("Inter" + "\t" + chunk + "\t" + countInter[i] + "\n");
+                if (efCUp[i] == 0) {
+                    bwInterEf.write("Inter" + "\t" + chunk + "\t" + 0 + "\n");
+                } else {
+                    bwInterEf.write("Inter" + "\t" + chunk + "\t" + decFor.format((efCInter[i] / countInter[i]) * 1000000 / 1000000) + "\n");
+                }
+            }
+            bwInter.flush();
+            bwInter.close();
+            bwInterEf.flush();
+            bwInterEf.close();
+            System.out.println(Inter);
+
+            for (int i = 0; i < countUp.length; i++) {
+                int chunk = 1000 - i;
+                bwUp.write("Up" + "\t" + chunk + "\t" + countUp[i] + "\n");
+                if (efCUp[i] == 0) {
+                    bwUpEf.write("Up" + "\t" + chunk + "\t" + 0 + "\n");
+                } else {
+                    bwUpEf.write("Up" + "\t" + chunk + "\t" + decFor.format((efCUp[i] / countUp[i]) * 1000000 / 1000000) + "\n");
+                }
+            }
+            bwUp.flush();
+            bwUp.close();
+            bwUpEf.flush();
+            bwUpEf.close();
+            System.out.println(up);
+
+            for (int i = 0; i < countDown.length; i++) {
+                int chunk = i + 2001;
+                bwDown.write("Down" + "\t" + chunk + "\t" + countDown[i] + "\n");
+                if (efCDown[i] == 0) {
+                    bwDownEf.write("Down" + "\t" + chunk + "\t" + 0 + "\n");
+                } else {
+                    bwDownEf.write("Down" + "\t" + chunk + "\t" + decFor.format((efCDown[i] / countDown[i]) * 1000000 / 1000000) + "\n");
+                }
+            }
+            bwDown.flush();
+            bwDown.close();
+            bwDownEf.flush();
+            bwDownEf.close();
+            System.out.println(down);
+        } catch (Exception ex) {
+            System.out.println(geneName);
+            System.out.println(pos);
+            System.out.println(start);
+            ex.printStackTrace();
+            ex.printStackTrace();
+        }
+//        });
+    }
+
+    public void getDistanceEffectSizehuman() {
+//        String mode = null;
+//        mode = "all";
+//        HashSet<String> nameSet = new HashSet<>();
+//        for (int m = 0; m < ; m++) {
+//            int chr = m + 1;
+//            nameSet.add(String.valueOf(chr));
+//        }
+        String infile = "/Users/yxh/Documents/eQTL/GTEx/Whole_Blood.v8.egenes.txt";
+//        String f = "all";
+//        nameSet.parallelStream().forEach(f -> {
+        String Dir = "/Users/yxh/Documents/eQTL/GTEx/GTEx_distance/";
+//        String homogenefile = "/data1/home/xiaohan/reference/TheABD.txt";
+//        String inputFileS = Dir + f + ".cis.sig.DE.log2.txt";
+        String outputFileUp = "/Users/yxh/Documents/eQTL/GTEx/GTEx_distance/distribution_up.txt";
+        String outputFileDown = "/Users/yxh/Documents/eQTL/GTEx/GTEx_distance/distribution_down.txt";
+        String outputFileInter = "/Users/yxh/Documents/eQTL/GTEx/GTEx_distance/distribution_inter.txt";
+        String outputFileUpEf = "/Users/yxh/Documents/eQTL/GTEx/GTEx_distance/ef_up.txt";
+        String outputFileDownEf = "/Users/yxh/Documents/eQTL/GTEx/GTEx_distance/ef_down.txt";
+        String outputFileInterEf = "/Users/yxh/Documents/eQTL/GTEx/GTEx_distance/ef_inter.txt";
+//        GeneFeature gf = new GeneFeature("/data1/home/xiaohan/reference/wheat_v1.1_Lulab.gff3");
+        int[] countUp = new int[1000];
+        double[] efCUp = new double[1000];
+        int up = 0;
+        int[] countDown = new int[1000];
+        double[] efCDown = new double[1000];
+        int down = 0;
+        int[] countInter = new int[100];
+        double[] efCInter = new double[100];
+        int Inter = 0;
+        String temp = null;
+        int pos = 0;
+        int start = 0;
+        int end = 0;
+        int length = 0;
+        String geneName = null;
+        double ef = 0;
+        try {
+            BufferedReader br = IOUtils.getTextReader(infile);
+            BufferedWriter bwUp = IOUtils.getTextWriter(outputFileUp);
+            BufferedWriter bwDown = IOUtils.getTextWriter(outputFileDown);
+            BufferedWriter bwInter = IOUtils.getTextWriter(outputFileInter);
+            BufferedWriter bwUpEf = IOUtils.getTextWriter(outputFileUpEf);
+            BufferedWriter bwDownEf = IOUtils.getTextWriter(outputFileDownEf);
+            BufferedWriter bwInterEf = IOUtils.getTextWriter(outputFileInterEf);
+            while ((temp = br.readLine()) != null) {
+                if (temp.startsWith("gene")) continue;
+                String[] temps = temp.split("\t");
+                geneName = temps[0];
+                int snp = Integer.parseInt(temps[14]);
+//                if (String.valueOf(geneName.charAt(8)).equals("D")) {
+//                if(getHomoGene.ishomoGene(homogenefile,geneName).equals("A")){
+                if (temps[30].equals("nan")) {
+                    ef = 0;
+                } else {
+                    ef = Math.abs(Double.valueOf(temps[30]));
+//                    ef = Double.valueOf(temps[30]);
+                }
+                if (ef > 2 / Math.log10(2)) continue;
+                if (temps[31].equals("nan") || temps[32].equals("nan")) continue;
+                if (Double.valueOf(temps[31]) * Double.parseDouble(temps[32]) < 0) continue;
+//                int i = gf.getGeneIndex(geneName);
+                int strand = 0;
+                if(temps[5].equals("+")){
+                    strand = 1;
+                }
+
+                if (Integer.parseInt(temps[3]) < snp && snp < Integer.parseInt(temps[4])) {
+                    pos = snp;
+                    if (strand == 1) {
+                        start = Integer.parseInt(temps[3]);
+                        end = Integer.parseInt(temps[4]);
+                        length = end - start;
+                        int chunk = (pos - start - 1) * 100 / length;
+//                            int number = 1000 / (length / 100);
+                        countInter[chunk]++;
+                        Inter++;
+                        efCInter[chunk] += ef;
+                    } else {
+                        start = Integer.parseInt(temps[4]);
+                        end = Integer.parseInt(temps[3]);
+                        length = start - end;
+                        int chunk = (start - pos - 1) * 100 / length;
+//                            int number = 1000 / (length / 100);
+                        countInter[chunk]++;
+                        Inter++;
+                        efCInter[chunk] += ef;
+                    }
+                } else if (Integer.parseInt(temps[3]) > snp || snp > Integer.parseInt(temps[4])) {
+                    pos = snp;
+                    if (strand == 1) {//1表示的是正链
+                        start = Integer.parseInt(temps[3]);
+                        if (start >= pos) {
+                            int chunk = (start - pos - 1) / 1000;
+                            countUp[chunk]++;
+                            up++;
+                            efCUp[chunk] += ef;
+                        } else {
+                            end = Integer.parseInt(temps[4]);
+                            int chunk = (pos - end - 1) / 1000;
+                            countDown[chunk]++;
+                            down++;
+                            efCDown[chunk] += ef;
+                        }
+                    } else {
+                        start = Integer.parseInt(temps[4]);
+                        if (start <= pos) {
+                            int chunk = (pos - start - 1) / 1000;
+                            countUp[chunk]++;
+                            up++;
+                            efCUp[chunk] += ef;
+                        } else {
+                            end = Integer.parseInt(temps[3]);
+                            int chunk = (end - pos - 1) / 1000;
+                            countDown[chunk]++;
+                            down++;
+                            efCDown[chunk] += ef;
+                        }
+                    }
+                }
+//                }
+            }
+//            for (int i = 0; i < efCInter.length; i++) {
+//                efCInter[i] = 0;
+//            }
+            br.close();
+            DecimalFormat decFor = new DecimalFormat("0.000000");
+            for (int i = 0; i < countInter.length; i++) {
+                int chunk = i * 10 + 1001;
+                bwInter.write("Inter" + "\t" + chunk + "\t" + countInter[i] + "\n");
+                if (efCUp[i] == 0) {
+                    bwInterEf.write("Inter" + "\t" + chunk + "\t" + 0 + "\n");
+                } else {
+                    bwInterEf.write("Inter" + "\t" + chunk + "\t" + decFor.format((efCInter[i] / countInter[i]) * 1000000 / 1000000) + "\n");
+                }
+            }
+            bwInter.flush();
+            bwInter.close();
+            bwInterEf.flush();
+            bwInterEf.close();
+            System.out.println(Inter);
+
+            for (int i = 0; i < countUp.length; i++) {
+                int chunk = 1000 - i;
+                bwUp.write("Up" + "\t" + chunk + "\t" + countUp[i] + "\n");
+                if (efCUp[i] == 0) {
+                    bwUpEf.write("Up" + "\t" + chunk + "\t" + 0 + "\n");
+                } else {
+                    bwUpEf.write("Up" + "\t" + chunk + "\t" + decFor.format((efCUp[i] / countUp[i]) * 1000000 / 1000000) + "\n");
+                }
+            }
+            bwUp.flush();
+            bwUp.close();
+            bwUpEf.flush();
+            bwUpEf.close();
+            System.out.println(up);
+
+            for (int i = 0; i < countDown.length; i++) {
+                int chunk = i + 2001;
+                bwDown.write("Down" + "\t" + chunk + "\t" + countDown[i] + "\n");
+                if (efCDown[i] == 0) {
+                    bwDownEf.write("Down" + "\t" + chunk + "\t" + 0 + "\n");
+                } else {
+                    bwDownEf.write("Down" + "\t" + chunk + "\t" + decFor.format((efCDown[i] / countDown[i]) * 1000000 / 1000000) + "\n");
+                }
+            }
+            bwDown.flush();
+            bwDown.close();
+            bwDownEf.flush();
+            bwDownEf.close();
+            System.out.println(down);
+        } catch (Exception ex) {
+            System.out.println(geneName);
+            System.out.println(pos);
+            System.out.println(start);
+            ex.printStackTrace();
+            ex.printStackTrace();
+        }
+//        });
+    }
+
+    public void getDistanceEffectSize() {
+        String mode = null;
+//        mode = "all";
+        HashSet<String> nameSet = new HashSet<>();
+//        for (int m = 0; m < ; m++) {
+//            int chr = m + 1;
+//            nameSet.add(String.valueOf(chr));
+//        }
+        String f = "all";
+//        nameSet.parallelStream().forEach(f -> {
+        String Dir = "/data1/home/xiaohan/tensorQTL/1M_log2/homotop/";
+        String homogenefile = "/data1/home/xiaohan/reference/TheABD.txt";
+        String inputFileS = Dir + f + ".cis.sig.DE.log2.txt";
+        String outputFileUp = Dir + "distribution/" + f + ".up.distribution.txt";
+        String outputFileDown = Dir + "distribution/" + f + ".down.distribution.txt";
+        String outputFileInter = Dir + "distribution/" + f + ".inter.distribution.txt";
+        String outputFileUpEf = Dir + "distribution/" + f + ".up.ef.txt";
+        String outputFileDownEf = Dir + "distribution/" + f + ".down.ef.txt";
+        String outputFileInterEf = Dir + "distribution/" + f + ".inter.ef.txt";
+        GeneFeature gf = new GeneFeature("/data1/home/xiaohan/reference/wheat_v1.1_Lulab.gff3");
+        int[] countUp = new int[1000];
+        double[] efCUp = new double[1000];
+        int up = 0;
+        int[] countDown = new int[1000];
+        double[] efCDown = new double[1000];
+        int down = 0;
+        int[] countInter = new int[100];
+        double[] efCInter = new double[100];
+        for (int i = 0; i < 1000; i++) {
+            countDown[i] = 0;
+            countUp[i] = 0;
+            efCDown[i] = 0;
+            efCUp[i] = 0;
+        }
+        for (int i = 0; i < 100; i++) {
+            countInter[i] = 0;
+            efCInter[i] = 0;
+        }
+        int Inter = 0;
+        String temp = null;
+        int pos = 0;
+        int start = 0;
+        int end = 0;
+        int length = 0;
+        String geneName = null;
+        double ef = 0;
+        try {
             BufferedReader br = IOUtils.getTextReader(inputFileS);
             BufferedWriter bwUp = IOUtils.getTextWriter(outputFileUp);
             BufferedWriter bwDown = IOUtils.getTextWriter(outputFileDown);
@@ -572,20 +968,20 @@ public class eQTL {
             BufferedWriter bwDownEf = IOUtils.getTextWriter(outputFileDownEf);
             BufferedWriter bwInterEf = IOUtils.getTextWriter(outputFileInterEf);
             while ((temp = br.readLine()) != null) {
-                if (temp.startsWith("Index")) continue;
+                if (temp.startsWith("pid")) continue;
                 String[] temps = temp.split("\t");
-                geneName = temps[1];
-                String snp = temps[2];
+                geneName = temps[0];
+                String snp = temps[1];
 //                if (String.valueOf(geneName.charAt(8)).equals("D")) {
 //                if(getHomoGene.ishomoGene(homogenefile,geneName).equals("A")){
-                if (temps[11].equals("nan")) {
+                if (temps[6].equals("nan")) {
                     ef = 0;
                 } else {
-                    ef = Math.abs(Double.valueOf(temps[11]));
+                    ef = Math.abs(Double.valueOf(temps[6]));
                 }
                 if (ef > 2 / Math.log10(2)) continue;
-                if (temps[12].equals("nan") || temps[13].equals("nan")) continue;
-                if (Double.valueOf(temps[12]) * Double.parseDouble(temps[13]) < 0) continue;
+                if (temps[7].equals("nan") || temps[8].equals("nan")) continue;
+                if (Double.valueOf(temps[7]) * Double.parseDouble(temps[8]) < 0) continue;
                 int i = gf.getGeneIndex(geneName);
                 if (gf.isWithinThisGene(i, Integer.valueOf(snp.split("_")[0]), Integer.valueOf(snp.split("_")[1]))) {
                     pos = Integer.valueOf(snp.split("_")[1]);
@@ -650,7 +1046,7 @@ public class eQTL {
             for (int i = 0; i < countInter.length; i++) {
                 int chunk = i * 10 + 1001;
                 bwInter.write("Inter" + "\t" + chunk + "\t" + countInter[i] + "\n");
-                if (efCUp[i] == 0) {
+                if (efCInter[i] == 0) {
                     bwInterEf.write("Inter" + "\t" + chunk + "\t" + 0 + "\n");
                 } else {
                     bwInterEf.write("Inter" + "\t" + chunk + "\t" + decFor.format((efCInter[i] / countInter[i]) * 1000000 / 1000000) + "\n");
