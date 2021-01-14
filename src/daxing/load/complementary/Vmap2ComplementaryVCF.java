@@ -4,12 +4,12 @@ import daxing.common.*;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.distribution.TDistribution;
-import org.apache.commons.math3.random.EmpiricalDistribution;
 import org.apache.commons.math3.stat.StatUtils;
 import org.apache.commons.math3.stat.inference.TestUtils;
 import pgl.PGLConstraints;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -354,6 +354,7 @@ public class Vmap2ComplementaryVCF {
                                 continue;
                             }
                             sb.append(numberFormat.format(staticsValue)).append("\t");
+//                            sb.append(staticsValue).append("\t");
                         }
                         sb.deleteCharAt(sb.length()-1);
                         bwMatrix.write(sb.toString());
@@ -414,6 +415,7 @@ public class Vmap2ComplementaryVCF {
                         sb.append(slightlyOrStrongly.getValue()).append("\t");
                         sb.append(additiveOrDominance.getValue()).append("\t");
                         sb.append(numberFormat.format(staticsValue)).append("\t");
+//                        sb.append(staticsValue).append("\t");
                         sb.append(count);
                         bwByTaxon.write(sb.toString());
                         bwByTaxon.newLine();
@@ -473,6 +475,7 @@ public class Vmap2ComplementaryVCF {
                             sb.append(slightlyOrStrongly.getValue()).append("\t");
                             sb.append(additiveOrDominance.getValue()).append("\t");
                             sb.append(numberFormat.format(staticsValue)).append("\t").append(staticsValueArrayNonNANaNInfList.size());
+//                            sb.append(staticsValue).append("\t").append(staticsValueArrayNonNANaNInfList.size());
                             bwByTriads.write(sb.toString());
                             bwByTriads.newLine();
                         }
@@ -813,7 +816,7 @@ public class Vmap2ComplementaryVCF {
     }
 
     public enum Statics{
-        T("T-value"),Z("Z-score"),QE("Quantile-empirical"),QT("Quantile-t"),P("P-value");
+        T("T-value"),Z("Z-score"),QE("CDF-empirical"),QT("CDF-minusT"),P("MinusLog(P-value)");
 
         String value;
 
@@ -830,15 +833,28 @@ public class Vmap2ComplementaryVCF {
                     double sd=StatUtils.populationVariance(pseudoHexaploid, mean);
                     return (hexaplidValue-mean)/sd;
                 case QE:
-                    EmpiricalDistribution empiricalDistribution=new EmpiricalDistribution();
-                    empiricalDistribution.load(pseudoHexaploid);
-                    return empiricalDistribution.cumulativeProbability(hexaplidValue);
+                    Arrays.sort(pseudoHexaploid);
+                    int index=Arrays.binarySearch(pseudoHexaploid, hexaplidValue);
+                    if (index < 0){
+                        return (-index-1.0)/pseudoHexaploid.length;
+                    }else if (index==0){
+                        return (index+1.0)/pseudoHexaploid.length;
+                    } else {
+                        for (int i = index; i > 0; i--) {
+                            if (pseudoHexaploid[i-1]!=hexaplidValue) break;
+                            index--;
+                        }
+                        return (index+1.0)/pseudoHexaploid.length;
+                    }
+//                    EmpiricalDistribution empiricalDistribution=new EmpiricalDistribution();
+//                    empiricalDistribution.load(pseudoHexaploid);
+//                    return empiricalDistribution.cumulativeProbability(hexaplidValue);
                 case QT:
                     TDistribution tDistribution=new TDistribution(pseudoHexaploid.length-1);
                     double t=TestUtils.t(hexaplidValue, pseudoHexaploid);
                     return tDistribution.cumulativeProbability(-t);
                 case P:
-                    return TestUtils.tTest(hexaplidValue, pseudoHexaploid);
+                    return -Math.log10(TestUtils.tTest(hexaplidValue, pseudoHexaploid));
             }
             return Double.NaN;
         }
