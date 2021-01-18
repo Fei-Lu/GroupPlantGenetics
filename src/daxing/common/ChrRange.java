@@ -39,6 +39,14 @@ public class ChrRange implements Comparable<ChrRange>{
         return end-start;
     }
 
+    public void setStart(int startOnRefChr){
+        this.start=startOnRefChr;
+    }
+
+    public void setEnd(int endOnRefChr){
+        this.end=endOnRefChr;
+    }
+
     public int getChrID(){
         return RefV1Utils.getChrID(chr, start);
     }
@@ -62,14 +70,13 @@ public class ChrRange implements Comparable<ChrRange>{
     public boolean contain(String chr, int pos){
         if (!this.getChr().equals(chr)) return false;
         if (pos < start) return false;
-        if (pos >= end) return false;
-        return true;
+        return pos < end;
     }
 
     /**
      * Daxing's utils on ChrPos
-     * @param chrPos
-     * @return
+     * @param chrPos chrPos
+     * @return true if contain chrPos
      */
     public boolean contain(ChrPos chrPos){
         return contain(chrPos.chr, chrPos.pos);
@@ -87,9 +94,7 @@ public class ChrRange implements Comparable<ChrRange>{
 //        }else if (this.chr.compareToIgnoreCase(o.chr) > 0) return 1;
 //        return -1;
         if (this.chr.compareToIgnoreCase(o.chr)==0){
-            if (this.start==o.start) return 0;
-            if (this.start > o.start) return 1;
-            return -1;
+            return Integer.compare(this.start, o.start);
         }else if (this.chr.compareToIgnoreCase(o.chr) > 0) return 1;
         return -1;
     }
@@ -110,23 +115,19 @@ public class ChrRange implements Comparable<ChrRange>{
     }
 
     public String toString(){
-        StringBuilder sb=new StringBuilder();
-        sb.append(this.getChr()).append(":").append(this.getStart()).append(",").append(this.getEnd());
-        return sb.toString();
+        return this.getChr() + ":" + this.getStart() + "," + this.getEnd();
     }
 
     public boolean isOverlapped(ChrRange chrRange){
         if (!this.chr.equals(chrRange.chr)) return false;
         if (this.getStart() >= chrRange.getEnd()) return false;
-        if (this.getEnd() <= chrRange.getStart()) return false;
-        return true;
+        return this.getEnd() > chrRange.getStart();
     }
 
     public ChrRange getIntersection(ChrRange chrRange){
-        if (!this.isOverlapped(chrRange)) return null;
-        int startMax, endMini;
-        if (this.getStart() > chrRange.getStart()) return new ChrRange(this.getChr(), this.getStart(), this.getEnd() < chrRange.getEnd() ? this.getEnd() : chrRange.getEnd());
-        return new ChrRange(this.getChr(), chrRange.getStart(), this.getEnd() < chrRange.getEnd()? this.getEnd() : chrRange.getEnd());
+        if (this.isOverlapped(chrRange)) return null;
+        if (this.getStart() > chrRange.getStart()) return new ChrRange(this.getChr(), this.getStart(), Math.min(this.getEnd(), chrRange.getEnd()));
+        return new ChrRange(this.getChr(), chrRange.getStart(), Math.min(this.getEnd(), chrRange.getEnd()));
     }
 
     public static ChrRange changeToChrRange(Range range){
