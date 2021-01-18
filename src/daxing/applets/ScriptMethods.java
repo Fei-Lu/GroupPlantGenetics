@@ -20,6 +20,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -70,13 +71,13 @@ public class ScriptMethods {
     /**
      *
      * @param inputFile 有header
-     * @param rate
+     * @param rate such as 0.01
      * @param subsetFile 有header
      */
     public static void getSubsetFromFile(String inputFile, double rate, String subsetFile){
         long start=System.nanoTime();
-        BufferedReader br=null;
-        BufferedWriter bw = null;
+        BufferedReader br;
+        BufferedWriter bw;
         try {
             if (inputFile.endsWith("gz")){
                 br=IOUtils.getTextGzipReader(inputFile);
@@ -89,9 +90,11 @@ public class ScriptMethods {
             bw.write(header);
             bw.newLine();
             String line;
-            double r=-1d;
+            double r;
             int count=0;
             int total=0;
+            NumberFormat numberFormat=NumberFormat.getInstance();
+            numberFormat.setGroupingUsed(true);
             while ((line=br.readLine())!=null){
                 total++;
                 r=Math.random();
@@ -103,7 +106,7 @@ public class ScriptMethods {
             br.close();
             bw.flush();
             bw.close();
-            System.out.println("samping "+NumberTool.parse(count)+"("+NumberTool.parse(total)+") row from "
+            System.out.println("samping "+numberFormat.format(count)+"("+numberFormat.format(total)+") row from "
                     +new File(inputFile).getName()+" into "+new File(subsetFile).getName()+" in "
                     +Benchmark.getTimeSpanMinutes(start)+" minutes");
         } catch (Exception e) {
@@ -132,9 +135,7 @@ public class ScriptMethods {
         Predicate<File> h= File::isHidden;
         File[] f=Arrays.stream(files).filter(h.negate()).toArray(File[]::new);
         String[] outNames=Arrays.stream(f).map(File::getName).toArray(String[]::new);
-        IntStream.range(0, f.length).parallel().forEach(e->{
-            calculateLD(f[e], binWidth_kb, threshForDistance_Mb, new File(outDir, outNames[e]));
-        });
+        IntStream.range(0, f.length).parallel().forEach(e-> calculateLD(f[e], binWidth_kb, threshForDistance_Mb, new File(outDir, outNames[e])));
     }
 
     public static void calculateLD(File ingputFile, int binWidth_kb, int threshForDistance_Mb, File outFile){
@@ -142,8 +143,8 @@ public class ScriptMethods {
              BufferedWriter bw=IOUtils.getTextWriter(outFile.getAbsolutePath())) {
             String line;
             List<String> temp;
-            int distance=Integer.MIN_VALUE;
-            double r2=Double.MIN_VALUE;
+            int distance;
+            double r2;
             int thresh=binWidth_kb*1000;
             int limit=threshForDistance_Mb*1000000;
             int kb=binWidth_kb;
@@ -198,8 +199,8 @@ public class ScriptMethods {
             StringBuilder sb;
             while ((line=bufferedReader.readLine())!=null){
                 temp= PStringUtils.fastSplit(line);
-                chrID= RefV1Utils.getChrID(temp.get(0).substring(3,4)+subgenome, Integer.parseInt(temp.get(2)));
-                pos=RefV1Utils.getPosOnChrID(temp.get(0).substring(3,4)+subgenome, Integer.parseInt(temp.get(2)));
+                chrID= RefV1Utils.getChrID(temp.get(0).charAt(3)+subgenome, Integer.parseInt(temp.get(2)));
+                pos=RefV1Utils.getPosOnChrID(temp.get(0).charAt(3)+subgenome, Integer.parseInt(temp.get(2)));
                 secer=PStringUtils.fastSplit(temp.get(4),",");
                 hv=PStringUtils.fastSplit(temp.get(5), ",");
                 indexOfSecer=secer.indexOf("1");
@@ -229,19 +230,19 @@ public class ScriptMethods {
             String line, outFileName, header;
             List<String> temp;
             int chrID, vcfPos, geneIndex;
-            for (int i = 0; i < genoFiles.size(); i++) {
-                outFileName=genoFiles.get(i).getName().replaceAll("geno","exon.geon");
-                bufferedReader=IOTool.getReader(genoFiles.get(i));
-                bufferedWriter=IOTool.getWriter(new File(outDir, outFileName));
-                header=bufferedReader.readLine();
+            for (File genoFile : genoFiles) {
+                outFileName = genoFile.getName().replaceAll("geno", "exon.geon");
+                bufferedReader = IOTool.getReader(genoFile);
+                bufferedWriter = IOTool.getWriter(new File(outDir, outFileName));
+                header = bufferedReader.readLine();
                 bufferedWriter.write(header);
                 bufferedWriter.newLine();
-                while ((line=bufferedReader.readLine())!=null){
-                    temp=PStringUtils.fastSplit(line);
-                    chrID= RefV1Utils.getChrID(temp.get(0), Integer.parseInt(temp.get(1)));
-                    vcfPos=RefV1Utils.getPosOnChrID(temp.get(0), Integer.parseInt(temp.get(1)));
-                    geneIndex=pgf.getGeneIndex(chrID, vcfPos);
-                    if (geneIndex<0) continue;
+                while ((line = bufferedReader.readLine()) != null) {
+                    temp = PStringUtils.fastSplit(line);
+                    chrID = RefV1Utils.getChrID(temp.get(0), Integer.parseInt(temp.get(1)));
+                    vcfPos = RefV1Utils.getPosOnChrID(temp.get(0), Integer.parseInt(temp.get(1)));
+                    geneIndex = pgf.getGeneIndex(chrID, vcfPos);
+                    if (geneIndex < 0) continue;
                     if (!pgf.isWithinThisGeneExon(geneIndex, chrID, vcfPos)) continue;
                     bufferedWriter.write(line);
                     bufferedWriter.newLine();
@@ -257,17 +258,17 @@ public class ScriptMethods {
 
     /**
      *
-     * @param vcfDir
-     * @param vcfComplementBedDir
+     * @param vcfDir vcf dir
+     * @param vcfComplementBedDir vcfComplementBedDir
      * @param subgenome "AB" or "D"
-     * @param groupFile
+     * @param groupFile groupFile
      * DomesticatedEmmer	CItr14822
      * DomesticatedEmmer	CItr14824
      * DomesticatedEmmer	CItr14916
      * FreeThreshTetraploid	CItr14892
      * FreeThreshTetraploid	CItr7798
-     * @param group
-     * @param shOutFile
+     * @param group group
+     * @param shOutFile shOutFile
      */
     public static void smc(String vcfDir, String vcfComplementBedDir, String outDir, String subgenome, String groupFile,
                            String distTaxonFile, String[] group, String shOutFile, String genomeFile, String logDir){
@@ -315,23 +316,24 @@ public class ScriptMethods {
             StringBuilder sb;
             List<String> individuals;
             String distTaxon;
-            File outFile = null;
+            File outFile;
             for (int i = 0; i < subgenomeVcfFiles.size(); i++) {
-                for (int j = 0; j < group.length; j++) {
-                    individuals=new ArrayList<>(map.get(group[j]));
-                    distTaxon=popDistTaxon.get(group[j]);
-                    sb=new StringBuilder();
+                for (String s : group) {
+                    individuals = new ArrayList<>(map.get(s));
+                    distTaxon = popDistTaxon.get(s);
+                    sb = new StringBuilder();
                     sb.append("nohup smc++ vcf2smc --cores 1 -m ").append(subgenomeVcfComplementBedFiles.get(i)).append(" ");
                     sb.append(subgenomeVcfFiles.get(i)).append(" -l ").append(chrSizeMap.get(subgenomeChrs.get(i))).append(" -d ");
                     sb.append(distTaxon).append(" ").append(distTaxon).append(" ");
-                    outFile=new File(outDir, subgenomeVcfFiles.get(i).getName().substring(0,6)+"."+group[j]+".smc.gz");
+                    outFile = new File(outDir, subgenomeVcfFiles.get(i).getName().substring(0, 6) + "." + s + ".smc" +
+                            ".gz");
                     sb.append(outFile.getAbsolutePath()).append(" ").append(subgenomeChrs.get(i)).append(" ");
-                    sb.append(group[j]).append(":");
-                    for (int k = 0; k < individuals.size(); k++) {
-                        sb.append(individuals.get(k)).append(",");
+                    sb.append(s).append(":");
+                    for (String individual : individuals) {
+                        sb.append(individual).append(",");
                     }
-                    sb.deleteCharAt(sb.length()-1);
-                    sb.append(" >"+logDir+"/"+subgenomeVcfFiles.get(i).getName().substring(0,6)+"_"+group[j]+".log");
+                    sb.deleteCharAt(sb.length() - 1);
+                    sb.append(" >").append(logDir).append("/").append(subgenomeVcfFiles.get(i).getName(), 0, 6).append("_").append(s).append(".log");
                     sb.append(" ").append("2>&1");
                     bufferedWriter.write(sb.toString());
                     bufferedWriter.newLine();
@@ -345,17 +347,22 @@ public class ScriptMethods {
 
     /**
      *
-     * @param vcfDir
-     * @param vcfComplementBedDir
+     * @param vcfDir vcfDir
+     * @param vcfComplementBedDir vcfComplementBedDir
+     * @param outDir outDir
      * @param subgenome "AB" or "D"
-     * @param groupFile
+     * @param groupFile groupFile
      * DomesticatedEmmer	CItr14822
      * DomesticatedEmmer	CItr14824
      * DomesticatedEmmer	CItr14916
      * FreeThreshTetraploid	CItr14892
      * FreeThreshTetraploid	CItr7798
-     * @param
-     * @param shOutDir
+     * @param distTaxonFile distTaxonFile
+     * @param groupA groupA
+     * @param groupB groupB
+     * @param shOutDir shOutDir
+     * @param genomeFile genomeFile
+     * @param logDir logDir
      */
     public static void smc_split(String vcfDir, String vcfComplementBedDir, String outDir, String subgenome,
                             String groupFile, String distTaxonFile, String groupA, String groupB,
@@ -406,7 +413,7 @@ public class ScriptMethods {
             StringBuilder sb;
             List<String> individualsA, individualsB;
             String distTaxonA, distTaxonB, distTaxon;
-            File outFile = null;
+            File outFile;
             for (int i = 0; i < subgenomeVcfFiles.size(); i++) {
                 individualsA=new ArrayList<>(map.get(groupA));
                 individualsB=new ArrayList<>(map.get(groupB));
@@ -422,16 +429,16 @@ public class ScriptMethods {
                 outFile=new File(outDir, subgenomeVcfFiles.get(i).getName().substring(0,6)+"."+groupA+"."+groupB+".smc" + ".txt");
                 sb.append(outFile.getAbsolutePath()).append(" ").append(subgenomeChrs.get(i)).append(" ");
                 sb.append(groupA).append(":");
-                for (int k = 0; k < individualsA.size(); k++) {
-                    sb.append(individualsA.get(k)).append(",");
+                for (String s : individualsA) {
+                    sb.append(s).append(",");
                 }
                 sb.deleteCharAt(sb.length()-1);
                 sb.append(" ").append(groupB).append(":");
-                for (int j = 0; j < individualsB.size(); j++) {
-                    sb.append(individualsB.get(j)).append(",");
+                for (String s : individualsB) {
+                    sb.append(s).append(",");
                 }
                 sb.deleteCharAt(sb.length()-1);
-                sb.append(" >"+logDir+"/"+subgenomeVcfFiles.get(i).getName().substring(0,6)+"_"+groupA+"."+groupB+".log");
+                sb.append(" >").append(logDir).append("/").append(subgenomeVcfFiles.get(i).getName(), 0, 6).append("_").append(groupA).append(".").append(groupB).append(".log");
                 sb.append(" ").append("2>&1");
                 bufferedWriter.write(sb.toString());
                 bufferedWriter.newLine();
@@ -497,10 +504,10 @@ public class ScriptMethods {
 
     /**
      * 拆分sh命令
-     * @param inputSH
-     * @param outDir
-     * @param numThreads
-     * @param numCommands
+     * @param inputSH inputSH
+     * @param outDir outDir
+     * @param numThreads numThreads
+     * @param numCommands numCommands
      */
     public static void splitSh(String inputSH, String outDir, int numThreads, int numCommands){
         String[] subDir={"scriptAll", "scriptOne"};
@@ -534,10 +541,10 @@ public class ScriptMethods {
             bws[index].flush();
             List<File> files1=IOUtils.getFileListInDirEndsWith(files[0].getAbsolutePath(), "sh");
             StringBuilder sb;
-            for (int i = 0; i < files1.size(); i++) {
-                sb=new StringBuilder();
-                sb.append("nohup sh ").append(outDir).append("/").append("scriptAll/").append(files1.get(i).getName());
-                sb.append(" >"+outDir+"/scriptOne/"+files1.get(i).getName()+".log 2>&1").append(" &");
+            for (File file : files1) {
+                sb = new StringBuilder();
+                sb.append("nohup sh ").append(outDir).append("/").append("scriptAll/").append(file.getName());
+                sb.append(" >").append(outDir).append("/scriptOne/").append(file.getName()).append(".log 2>&1").append(" &");
                 bw.write(sb.toString());
                 bw.newLine();
             }
@@ -613,7 +620,7 @@ public class ScriptMethods {
             bw.write(header);
             bw.newLine();
             String line;
-            List<String> temp1 = null, temp2=null;
+            List<String> temp1, temp2;
             while ((line=br1.readLine())!=null && num1 < numLine1-1){
                 num1++;
                 bw.write(line);
@@ -624,7 +631,7 @@ public class ScriptMethods {
             br2.readLine();
             line=br2.readLine();
             temp2=PStringUtils.fastSplit(line, " ");
-            int count=0;
+            int count;
             if (temp1.subList(1,temp1.size()).equals(temp2.subList(1,temp2.size()))){
                 count=Integer.parseInt(temp1.get(0))+Integer.parseInt(temp2.get(0));
                 bw.write(count+" "+String.join(" ", temp1.subList(1,4)));
@@ -755,15 +762,15 @@ public class ScriptMethods {
             StringBuilder sb;
             bw.write("Chr\tPos\tAncestral-est_Ancestral-pasimony");
             bw.newLine();
-            for (int i = 0; i < files.size(); i++) {
-                br=IOTool.getReader(files.get(i));
+            for (File file : files) {
+                br = IOTool.getReader(file);
                 br.readLine();
-                while ((line=br.readLine())!=null){
-                    temp=PStringUtils.fastSplit(line);
-                    chr=temp.get(0);
-                    pos=Integer.parseInt(temp.get(2));
+                while ((line = br.readLine()) != null) {
+                    temp = PStringUtils.fastSplit(line);
+                    chr = temp.get(0);
+                    pos = Integer.parseInt(temp.get(2));
                     if (!table.contains(chr, pos)) continue;
-                    sb=new StringBuilder();
+                    sb = new StringBuilder();
                     sb.append(chr).append("\t").append(pos).append("\t").append(table.get(chr, pos));
                     bw.write(sb.toString());
                     bw.newLine();
@@ -781,20 +788,20 @@ public class ScriptMethods {
 
     /**
      *
-     * @param softPath
-     * @param genoFileDir
-     * @param outDir
-     * @param popsFilePath
-     * @param p2File
-     * @param p3File
-     * @param outSHFile
-     * @param ifDsubgenome
+     * @param softPath softPath
+     * @param genoFileDir genoFileDir
+     * @param outDir outDir
+     * @param popsFilePath popsFilePath
+     * @param p2File p2File
+     * @param p3File p3File
+     * @param outSHFile outSHFile
+     * @param ifDsubgenome ifDsubgenome
      */
     public static void fdSH(String softPath, String genoFileDir, String outDir, String popsFilePath, String p2File,
                             String p3File, String outSHFile, boolean ifDsubgenome){
         List<File> genoFiles=IOUtils.getVisibleFileListInDir(genoFileDir);
-        Predicate<File> d=file -> file.getName().substring(4,5).equals("D");
-        Predicate<File> ab=file -> file.getName().substring(4,5).equals("A") || file.getName().substring(4,5).equals("B");
+        Predicate<File> d=file -> file.getName().charAt(4) == 'D';
+        Predicate<File> ab=file -> file.getName().charAt(4) == 'A' || file.getName().charAt(4) == 'B';
         List<File> dGenoFiles=genoFiles.stream().filter(d).collect(Collectors.toList());
         List<File> abGenoFiles=genoFiles.stream().filter(ab).collect(Collectors.toList());
         List<File> filteredGeno=ifDsubgenome ? dGenoFiles : abGenoFiles;
@@ -803,16 +810,16 @@ public class ScriptMethods {
         StringBuilder sb=new StringBuilder();
         try (BufferedWriter bw = IOTool.getWriter(outSHFile)) {
             String genoFile;
-            for (int i = 0; i < filteredGeno.size(); i++) {
-                for (int j = 0; j < p2List.size(); j++) {
-                    for (int k = 0; k < p3List.size(); k++) {
-                        genoFile=filteredGeno.get(i).getName().replaceAll(".geno.gz$","");
+            for (File file : filteredGeno) {
+                for (String s : p2List) {
+                    for (String value : p3List) {
+                        genoFile = file.getName().replaceAll(".geno.gz$", "");
                         sb.setLength(0);
-                        sb.append("python ").append(softPath).append(" --windType sites -g ").append(filteredGeno.get(i).getAbsolutePath());
+                        sb.append("python ").append(softPath).append(" --windType sites -g ").append(file.getAbsolutePath());
                         sb.append("  -f phased -o ").append(outDir).append("/").append(genoFile).append("_");
-                        sb.append(p2List.get(j)).append("_").append(p3List.get(k));
-                        sb.append(".csv -w 100 -m 3 --overlap 50 -P1 IndianDwarfWheat -P2 ").append(p2List.get(j));
-                        sb.append(" -P3").append(p3List.get(k)).append(" -O ancestral -T 1 --popsFile ").append(popsFilePath);
+                        sb.append(s).append("_").append(value);
+                        sb.append(".csv -w 100 -m 3 --overlap 50 -P1 IndianDwarfWheat -P2 ").append(s);
+                        sb.append(" -P3").append(value).append(" -O ancestral -T 1 --popsFile ").append(popsFilePath);
                         sb.append(" --writeFailedWindows");
                         bw.write(sb.toString());
                         bw.newLine();
@@ -843,8 +850,8 @@ public class ScriptMethods {
     /**
      *
      * @param triadsBlockChrRange important gene
-     * @param pgfFile
-     * @param geneListFile
+     * @param pgfFile pgfFile
+     * @param geneListFile geneListFile
      * @param outFile add triads and gene name information
      */
     public static void geneList(String triadsBlockChrRange, String pgfFile, String geneListFile, String outFile){
@@ -909,11 +916,11 @@ public class ScriptMethods {
                 triadsIDSet=new HashSet<>();
                 geneNameSet=new HashSet<>();
                 for (int i = triadsBlockIndexUp; i > -1; i--) {
-                    if (!triadsBlockArray[i].getChrRanges()[subIndex].isOverlapped(chrRange)) break;
+                    if (triadsBlockArray[i].getChrRanges()[subIndex].isOverlapped(chrRange)) break;
                     triadsIDSet.add(triadsBlockArray[i].getTriadsID());
                 }
                 for (int i = triadsBlockIndexDown; i < triadsBlockArray.length; i++) {
-                    if (!triadsBlockArray[i].getChrRanges()[subIndex].isOverlapped(chrRange)) break;
+                    if (triadsBlockArray[i].getChrRanges()[subIndex].isOverlapped(chrRange)) break;
                     triadsIDSet.add(triadsBlockArray[i].getTriadsID());
                 }
                 posStartOnChrID= RefV1Utils.getPosOnChrID(chr, start);
