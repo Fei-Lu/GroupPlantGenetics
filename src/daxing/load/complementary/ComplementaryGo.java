@@ -31,7 +31,7 @@ public class ComplementaryGo {
         String triadFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/triadGenes1.1.txt";
         String pgfFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/wheat_v1.1_Lulab.pgf";
         String outDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftLoadComplementary";
-        int blockGeneNum=40;
+        int blockGeneNum=20;
         go(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, triadFile, blockGeneNum, pgfFile, outDir);
     }
 
@@ -211,7 +211,7 @@ public class ComplementaryGo {
                 combinations.add(combination);
             }
         }
-//        int[] randomIndex= ArrayTool.getRandomNonrepetitionArray(numPseudohexaploid, 0, combinations.size());
+//        int[] randomIndex= ArrayTool.getRandomNonrepetitionArray(300, 0, combinations.size());
         combinations.stream().parallel().forEach(e->syntheticPseudohexaploid(diploidFiles.get(e[1]),
                 tetraploidFiles.get(e[0]), pseudohexaploidOutDir, outNamePrefix));
 //        IntStream.range(0, randomIndex.length).parallel().forEach(e->syntheticPseudohexaploid(diploidFiles.get(combinations.get(randomIndex[e])[1]),

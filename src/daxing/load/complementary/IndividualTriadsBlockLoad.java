@@ -177,6 +177,8 @@ public class IndividualTriadsBlockLoad {
             List<String> temp, tem, teSlightly, teStrongly;
             double[] slightlyLoadArray;
             double[] stronglyLoadArray;
+            NumberFormat numberFormat=NumberFormat.getInstance();
+            numberFormat.setMaximumFractionDigits(5);
             while ((line=br.readLine())!=null){
                 temp= PStringUtils.fastSplit(line);
                 tem=PStringUtils.fastSplit(temp.get(3), "|");
@@ -200,8 +202,8 @@ public class IndividualTriadsBlockLoad {
                         slightlyLoadDominance="NA";
                         break;
                     }else {
-                        slightlyLoadAdditive=String.valueOf(NumberTool.format(Arrays.stream(slightlyLoadArray).sum(),5));
-                        slightlyLoadDominance= String.valueOf(NumberTool.format(Arrays.stream(slightlyLoadArray).min().getAsDouble(),5));
+                        slightlyLoadAdditive=String.valueOf(numberFormat.format(Arrays.stream(slightlyLoadArray).sum()));
+                        slightlyLoadDominance= String.valueOf(numberFormat.format(Arrays.stream(slightlyLoadArray).min().getAsDouble()));
                     }
                 }
                 for (int i = 0; i < stronglyLoadArray.length; i++) {
@@ -210,8 +212,8 @@ public class IndividualTriadsBlockLoad {
                         stronglyLoadDominance="NA";
                         break;
                     }else {
-                        stronglyLoadAdditive=String.valueOf(NumberTool.format(Arrays.stream(stronglyLoadArray).sum(),5));
-                        stronglyLoadDominance= String.valueOf(NumberTool.format(Arrays.stream(stronglyLoadArray).min().getAsDouble(),5));
+                        stronglyLoadAdditive=String.valueOf(numberFormat.format(Arrays.stream(stronglyLoadArray).sum()));
+                        stronglyLoadDominance= String.valueOf(numberFormat.format(Arrays.stream(stronglyLoadArray).min().getAsDouble()));
                     }
                 }
                 res[0][0].add(slightlyLoadAdditive);
