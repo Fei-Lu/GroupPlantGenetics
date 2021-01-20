@@ -131,7 +131,8 @@ public class IndividualTriadsBlockLoad {
             Arrays.fill(loadType_load, -1);
             for (int j = 0; j < LoadType.values().length; j++) {
                 if (loadInfo[j*3]==0) continue;
-                loadType_load[j]=(loadInfo[j*3+1]+0.5*loadInfo[j*3+2])/loadInfo[j*3];
+//                loadType_load[j]=(loadInfo[j*3+1]+0.5*loadInfo[j*3+2])/loadInfo[j*3];
+                loadType_load[j]=loadInfo[j*3+1]+0.5*loadInfo[j*3+2];
             }
             this.abdLoadType_load[i]=loadType_load;
         }

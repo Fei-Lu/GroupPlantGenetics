@@ -94,7 +94,7 @@ public class ComplementaryGo {
                     genotypeList=PStringUtils.fastSplit(temp.get(i+9), ":");
                     genotype=genotypeList.get(0);
                     if (genotype.equals("./.")) continue;
-//                    if (genotype.equals("0/1")) continue;
+                    if (genotype.equals("0/1")) continue;
                     depthList=PStringUtils.fastSplit(genotypeList.get(1),",");
                     depth=Integer.parseInt(depthList.get(0))+Integer.parseInt(depthList.get(1));
                     if (depth < 2) continue;
@@ -212,10 +212,10 @@ public class ComplementaryGo {
             }
         }
 //        int[] randomIndex= ArrayTool.getRandomNonrepetitionArray(300, 0, combinations.size());
-        combinations.stream().parallel().forEach(e->syntheticPseudohexaploid(diploidFiles.get(e[1]),
-                tetraploidFiles.get(e[0]), pseudohexaploidOutDir, outNamePrefix));
 //        IntStream.range(0, randomIndex.length).parallel().forEach(e->syntheticPseudohexaploid(diploidFiles.get(combinations.get(randomIndex[e])[1]),
 //                tetraploidFiles.get(combinations.get(randomIndex[e])[0]), pseudohexaploidOutDir, outNamePrefix));
+        combinations.stream().parallel().forEach(e->syntheticPseudohexaploid(diploidFiles.get(e[1]),
+                tetraploidFiles.get(e[0]), pseudohexaploidOutDir, outNamePrefix));
     }
 
 //    private static void syntheticPseudohexaploid(List<File> tetraploidFiles, List<File> diploidFiles,

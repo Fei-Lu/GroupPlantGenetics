@@ -489,6 +489,80 @@ public class Vmap2ComplementaryVCF {
         }
     }
 
+    /**
+     * calculate mean and sd of triads block of pseudo and hexaploid
+     * @param pseudohexaploidInfo
+     * @param outFile
+     * @param subgenomeCombination
+     */
+    public void calculateMeanSD(String pseudohexaploidInfo,
+                                String outFile,
+                                SubgenomeCombination subgenomeCombination){
+        System.out.println(DateTime.getDateTimeOfNow());
+        List<TriadsBlockRecord> triadsBlockRecordList=this.triadsBlockRecordList;
+        NumberFormat numberFormat=NumberFormat.getInstance();
+        numberFormat.setMaximumFractionDigits(3);
+        numberFormat.setGroupingUsed(false);
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
+            StringBuilder sb=new StringBuilder();
+            StringBuilder stringBuilder=new StringBuilder();
+            sb.setLength(0);
+            sb.append("TriadsBlockID\tSlightlyOrStrongly\tAdditiveOrDominance\tMeanOrSD\tIfPseudo\tValue");
+            bw.write(sb.toString());
+            bw.newLine();
+            TIntArrayList hexaploidTaxonIndexList=this.getHexaploidIndexList(pseudohexaploidInfo);
+            TIntArrayList pseudoTaxonIndexList=this.getPseudoIndexList(pseudohexaploidInfo);
+            double[][][] hexaploidSlightStronglyAdditiveDominanceLoad;
+            double[][][] pseudoSlightStronglyAdditiveDominanceLoad;
+            double[] pseudoTaxonLoad, hexaploidTaxonLoad;
+            double pseudoMean, hexaploidMean, pseudoSD, hexaploidSD;
+            for (int i = 0; i < triadsBlockRecordList.size(); i++) {
+                hexaploidSlightStronglyAdditiveDominanceLoad=
+                        triadsBlockRecordList.get(i).getSlightStronglyAdditiveDominanceTaxonListLoad(hexaploidTaxonIndexList, subgenomeCombination);
+                pseudoSlightStronglyAdditiveDominanceLoad=
+                        triadsBlockRecordList.get(i).getSlightStronglyAdditiveDominanceTaxonListLoad(pseudoTaxonIndexList, subgenomeCombination);
+                for (int j = 0; j < SlightlyOrStrongly.values().length; j++) {
+                    for (int k = 0; k < AdditiveOrDominance.values().length; k++) {
+                        sb.setLength(0);
+                        sb.append(triadsBlockRecordList.get(i).getTriadsBlockID()).append("\t");
+                        sb.append(SlightlyOrStrongly.newInstanceFromIndex(j).getValue()).append("\t");
+                        sb.append(AdditiveOrDominance.newInstanceFromIndex(k).getValue()).append("\t");
+                        pseudoTaxonLoad=pseudoSlightStronglyAdditiveDominanceLoad[j][k];
+                        hexaploidTaxonLoad=hexaploidSlightStronglyAdditiveDominanceLoad[j][k];
+                        pseudoMean=StatUtils.mean(pseudoTaxonLoad);
+                        pseudoSD=StatUtils.populationVariance(pseudoTaxonLoad);
+                        hexaploidMean=StatUtils.mean(hexaploidTaxonLoad);
+                        hexaploidSD=StatUtils.populationVariance(hexaploidTaxonLoad);
+                        stringBuilder.setLength(0);
+                        stringBuilder.append(sb.toString());
+                        stringBuilder.append("Mean").append("\t").append("Pseudo").append("\t").append(pseudoMean);
+                        bw.write(stringBuilder.toString());
+                        bw.newLine();
+                        stringBuilder.setLength(0);
+                        stringBuilder.append(sb.toString());
+                        stringBuilder.append("Mean").append("\t").append("Hexaploid").append("\t").append(hexaploidMean);
+                        bw.write(stringBuilder.toString());
+                        bw.newLine();
+                        stringBuilder.setLength(0);
+                        stringBuilder.append(sb.toString());
+                        stringBuilder.append("SD").append("\t").append("Pseudo").append("\t").append(pseudoSD);
+                        bw.write(stringBuilder.toString());
+                        bw.newLine();
+                        stringBuilder.setLength(0);
+                        stringBuilder.append(sb.toString());
+                        stringBuilder.append("SD").append("\t").append("Hexaploid").append("\t").append(hexaploidSD);
+                        bw.write(stringBuilder.toString());
+                        bw.newLine();
+                    }
+                }
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println(DateTime.getDateTimeOfNow());
+    }
+
     public void calculateStaticsValueMatrix(String pseudohexaploidInfo,
                                             String staticsValueOutFile,
                                             SubgenomeCombination subgenomeCombination, WheatLineage positionBySub,
