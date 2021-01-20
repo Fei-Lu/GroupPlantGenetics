@@ -890,7 +890,8 @@ public class Vmap2ComplementaryVCF {
     }
 
     public enum Statics{
-        T("T-value"),Z("Z-score"),QE("CDF-empirical"),QT("CDF-minusT"),P("MinusLog(P-value)");
+        T("T-value"),Z("Z-score"),QE("CDF-empirical"),
+        QT("CDF-minusT"),P("MinusLog(P-value)"),WSR("WilcoxonSignedRank");
 
         String value;
 
@@ -929,6 +930,13 @@ public class Vmap2ComplementaryVCF {
                     return tDistribution.cumulativeProbability(-t);
                 case P:
                     return -Math.log10(TestUtils.tTest(hexaplidValue, pseudoHexaploid));
+                case WSR:
+                    WilcoxonSignedRankUtils wilcoxonSignedRankUtils=new WilcoxonSignedRankUtils();
+                    double[] hexaploidArray=new double[pseudoHexaploid.length];
+                    for (int i = 0; i < hexaploidArray.length; i++) {
+                        hexaploidArray[i]=hexaplidValue;
+                    }
+                    return wilcoxonSignedRankUtils.getNormalizedWilcoxonSignedRank(pseudoHexaploid, hexaploidArray);
             }
             return Double.NaN;
         }
