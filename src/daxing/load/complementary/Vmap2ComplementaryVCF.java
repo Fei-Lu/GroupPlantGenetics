@@ -931,12 +931,12 @@ public class Vmap2ComplementaryVCF {
                 case P:
                     return -Math.log10(TestUtils.tTest(hexaplidValue, pseudoHexaploid));
                 case WSR:
-                    WilcoxonSignedRankUtils wilcoxonSignedRankUtils=new WilcoxonSignedRankUtils();
+                    WilcoxonRank wilcoxonRank =new WilcoxonRank();
                     double[] hexaploidArray=new double[pseudoHexaploid.length];
                     for (int i = 0; i < hexaploidArray.length; i++) {
                         hexaploidArray[i]=hexaplidValue;
                     }
-                    return wilcoxonSignedRankUtils.getNormalizedWilcoxonSignedRank(pseudoHexaploid, hexaploidArray);
+                    return wilcoxonRank.getNormalizedWilcoxonSignedRank(pseudoHexaploid, hexaploidArray);
             }
             return Double.NaN;
         }
