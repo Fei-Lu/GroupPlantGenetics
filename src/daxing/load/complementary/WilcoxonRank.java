@@ -125,7 +125,8 @@ public class WilcoxonRank {
         double variance=(mean*(2*n+1))/6;
         double varianceOfTir=WilcoxonRank.getSignedRankVarianceOfTies(ranks);
         res[0]=wPlus;
-        res[1]=(wPlus-mean)/Math.sqrt(variance-varianceOfTir);
+        // - 0.5 is a continuity correction
+        res[1]=(wPlus-mean-0.5)/Math.sqrt(variance-varianceOfTir);
         return res;
     }
 
@@ -177,7 +178,8 @@ public class WilcoxonRank {
         double varianceOfTie=WilcoxonRank.getRankSumVarianceOfTies(mergedRank);
         double sd=Math.sqrt((mean/6)*((n1+n2+1)-varianceOfTie));
         res[0]=u2;
-        res[1]=(u2-mean)/sd;
+        // - 0.5 is a continuity correction
+        res[1]=(u2-mean-0.5)/sd;
         return res;
     }
 
