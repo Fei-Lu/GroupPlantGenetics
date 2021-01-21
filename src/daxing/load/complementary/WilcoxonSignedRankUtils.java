@@ -123,17 +123,22 @@ public class WilcoxonSignedRankUtils {
      * @return
      */
     private double getVarianceOfTies(double[] ranks){
+        TIntArrayList tiesList=this.getTies(ranks);
+        double varianceSum=0;
+        for (int i = 0; i < tiesList.size(); i++) {
+            varianceSum+=(Math.pow(tiesList.get(i), 3)-tiesList.get(i))/48;
+        }
+        return  varianceSum;
+    }
+
+    public TIntArrayList getTies(double[] ranks){
         Map<Double,Long> res= Arrays.stream(ranks).boxed().parallel().collect(Collectors.groupingBy(i -> i,Collectors.counting()));
         TIntArrayList tiesList=new TIntArrayList();
         for (Map.Entry<Double,Long> entry: res.entrySet()){
             if (entry.getValue() < 2) continue;
             tiesList.add(entry.getValue().intValue());
         }
-        double varianceSum=0;
-        for (int i = 0; i < tiesList.size(); i++) {
-            varianceSum+=(Math.pow(tiesList.get(i), 3)-tiesList.get(i))/48;
-        }
-        return  varianceSum;
+        return tiesList;
     }
 
     /**
@@ -163,7 +168,9 @@ public class WilcoxonSignedRankUtils {
         }
 
         double n=zList.size();
-        if (n*(n+1)/2 < 21) return res;
+        // if n less than 20, exact distribution needs to be used
+        // return NaN
+        if (n < 20) return res;
 
         final double[] ranks = naturalRanking.rank(zAbsList.toArray());
 
