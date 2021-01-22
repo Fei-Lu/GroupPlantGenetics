@@ -16,6 +16,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -1089,6 +1090,82 @@ public class VCF {
                 entry.getValue().close();
             }
         }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public static void midFormatToVCF(String inputDir, String outDir){
+        List<File> fileList= IOUtils.getVisibleFileListInDir(inputDir);
+        String[] outFiles= fileList.stream().map(File::getName).map(f->f.replaceAll(".mid.gz", ".vcf.gz")).toArray(String[]::new);
+        IntStream.range(0, fileList.size()).parallel().forEach(e->midFormatToVCF(fileList.get(e), new File(outDir,
+                outFiles[e])));
+    }
+
+    private static void midFormatToVCF(File inputFile, File outFile){
+        try (BufferedReader br = IOTool.getReader(inputFile);
+             BufferedWriter bw =IOTool.getWriter(outFile)) {
+            String line;
+            List<String> temp, genotypeTemp;
+            line=br.readLine();
+            temp=PStringUtils.fastSplit(line);
+            List<String> taxonNames=temp.subList(8, temp.size());
+            StringBuilder sb=new StringBuilder();
+            sb.setLength(0);
+            sb.append("##fileformat=VCFv4.2\n##fileDate=20210122\n");
+            sb.append("##FILTER=<ID=PASS,Description=\"All filters passed\">\n");
+            sb.append("##INFO=<ID=GN,Number=1,Type=Integer,Description=\"Number of taxa with called genotypes\">\n");
+            sb.append("##INFO=<ID=AC,Number=A,Type=Integer,Description=\"Allele count in genotypes\">\n");
+            sb.append("##INFO=<ID=MAF,Number=1,Type=Float,Description=\"Minor allele frequency\">\n");
+            sb.append("##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n");
+            sb.append("##Species=Rice\n");
+            sb.append("##ReferenceGenome=IRGSP 4.0\n");
+            sb.append("##Reference=\"A map of rice genome variation reveals the origin of cultivated rice\"");
+            bw.write(sb.toString());
+            bw.newLine();
+            sb.setLength(0);
+            sb.append("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t");
+            sb.append(String.join("\t", taxonNames));
+            bw.write(sb.toString());
+            bw.newLine();
+            String chr, position, refBase, altBase;
+            int genotypedNum, alleleCount;
+            double maf;
+            NumberFormat numberFormt = NumberFormat.getInstance();
+            numberFormt.setMaximumFractionDigits(5);
+            numberFormt.setGroupingUsed(false);
+            while ((line=br.readLine())!=null){
+                temp= PStringUtils.fastSplit(line);
+                chr=temp.get(0);
+                position=temp.get(1);
+                refBase=temp.get(2);
+                altBase=temp.get(3);
+                genotypedNum=Integer.parseInt(temp.get(4));
+                maf=Double.parseDouble(temp.get(5));
+                alleleCount=Integer.parseInt(temp.get(7));
+                sb.setLength(0);
+                sb.append(chr).append("\t").append(position).append("\t").append(chr).append("-").append(position).append("\t");
+                sb.append(refBase).append("\t").append(altBase).append("\t");
+                sb.append(".").append("\t").append(".").append("\t");
+                sb.append("GN=").append(genotypedNum).append(";");
+                sb.append("AC=").append(alleleCount).append(";");
+                sb.append("MAF=").append(numberFormt.format(maf)).append("\t");
+                sb.append("GT").append("\t");
+                genotypeTemp=temp.subList(8, temp.size());
+                for (String genotype: genotypeTemp){
+                    if (genotype.equals(refBase)){
+                        sb.append("0/0").append("\t");
+                    }else if (genotype.equals(altBase)){
+                        sb.append("1/1").append("\t");
+                    }else {
+                        sb.append("./.").append("\t");
+                    }
+                }
+                sb.deleteCharAt(sb.length()-1);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
