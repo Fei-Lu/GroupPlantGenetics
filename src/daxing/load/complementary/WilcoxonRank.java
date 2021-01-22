@@ -43,7 +43,7 @@ public class WilcoxonRank {
     }
 
     /**
-     * calculate variance of wilcoxon signed-rank
+     * calculate ties variance of wilcoxon signed-rank
      * @param ranks rank result
      * @return variance of ties
      */
@@ -57,7 +57,7 @@ public class WilcoxonRank {
     }
 
     /**
-     * calculate variance of wilcoxon rank-sum
+     * calculate ties variance of wilcoxon rank-sum
      * @param ranks rank result
      * @return variance of ties
      */
