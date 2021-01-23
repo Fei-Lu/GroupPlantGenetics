@@ -176,6 +176,101 @@ public class Vmap2ComplementaryVCF {
         return groupBySubcontinentIndexList;
     }
 
+    public void calculateTwoSampleWilcoxonRankSumStatics(String wilcoxonRankSumStaticsOutFile, String taxaInfoDB,
+                                               String pseudoHexaploidInfo, SubgenomeCombination subgenomeCombination,
+                                               WheatLineage positionBySub){
+        System.out.println(DateTime.getDateTimeOfNow());
+        System.out.println("Start written two sample t-test to "+wilcoxonRankSumStaticsOutFile);
+        String[] groupBySubcontinent=Vmap2ComplementaryVCF.groupBySubcontinent;
+        Arrays.sort(groupBySubcontinent);
+        try (BufferedWriter bw = IOTool.getWriter(wilcoxonRankSumStaticsOutFile)) {
+            TIntArrayList[] groupBySubcontinentIndexList= this.getGroupBySubcontinentIndexList(taxaInfoDB);
+            TIntArrayList pseudhoIndexList=this.getPseudoIndexList(pseudoHexaploidInfo);
+            bw.write("TriadsBlockID\tChr\tStart\tEnd\tGroupBySubcontinent\tGenotypedHexaploidTaxaNum" +
+                    "\tGenotypedPseudoTaxaNum\tSlightlyOrStrongly\tAdditiveOrDominance\tWilcoxonRankSum" +
+                    "\tNormalizedWilcoxonRankSum");
+            bw.newLine();
+            List<TriadsBlockRecord> triadsBlockRecordList=this.triadsBlockRecordList;
+            double[][][] slightlyStronglyAdditiveDominanceTaxonLoad, slightlyStronglyAdditiveDominancePseudoLoad;
+            double[] taxonLoadGreaterOrEqualThan0, pseudoLoadGreaterOrEqualThan0;
+            double wilcoxonRankSum, normalizedWilcoxonRankSum;
+            StringBuilder sb=new StringBuilder();
+            SlightlyOrStrongly slightlyOrStrongly;
+            AdditiveOrDominance additiveOrDominance;
+            DoublePredicate lessThan0=num -> num < 0;
+            String[] na=new String[6];
+            Arrays.fill(na, "NA");
+            ChrRange chrRange;
+            int count=0;
+            for (int i = 0; i < triadsBlockRecordList.size(); i++) {
+                for (int j = 0; j < groupBySubcontinentIndexList.length; j++) {
+                    slightlyStronglyAdditiveDominanceTaxonLoad=
+                            triadsBlockRecordList.get(i).getSlightStronglyAdditiveDominanceTaxonListLoad(groupBySubcontinentIndexList[j], subgenomeCombination);
+                    slightlyStronglyAdditiveDominancePseudoLoad=
+                            triadsBlockRecordList.get(i).getSlightStronglyAdditiveDominanceTaxonListLoad(pseudhoIndexList, subgenomeCombination);
+                    for (int l = 0; l < SlightlyOrStrongly.values().length; l++) {
+                        slightlyOrStrongly=SlightlyOrStrongly.newInstanceFromIndex(l);
+                        for (int m = 0; m < AdditiveOrDominance.values().length; m++) {
+                            additiveOrDominance=AdditiveOrDominance.newInstanceFromIndex(m);
+                            chrRange=triadsBlockRecordList.get(i).getChrRange()[positionBySub.getIndex()];
+                            sb.setLength(0);
+                            sb.append(triadsBlockRecordList.get(i).getTriadsBlockID()).append("\t");
+                            sb.append(chrRange.getChr()).append("\t").append(chrRange.getStart()).append("\t");
+                            sb.append(chrRange.getEnd()-1).append("\t");
+                            sb.append(groupBySubcontinent[j]).append("\t");
+                            if (Arrays.stream(slightlyStronglyAdditiveDominanceTaxonLoad[l][m]).allMatch(lessThan0)){
+                                sb.append(String.join("\t", na));
+                                bw.write(sb.toString());
+                                bw.newLine();
+                                continue;
+                            }
+                            if (Arrays.stream(slightlyStronglyAdditiveDominancePseudoLoad[l][m]).allMatch(lessThan0)){
+                                sb.append(String.join("\t", na));
+                                bw.write(sb.toString());
+                                bw.newLine();
+                                continue;
+                            }
+                            taxonLoadGreaterOrEqualThan0=
+                                    Arrays.stream(slightlyStronglyAdditiveDominanceTaxonLoad[l][m]).filter(Vmap2ComplementaryVCF.getNonNAInfNaNPredict()).toArray();
+                            pseudoLoadGreaterOrEqualThan0=
+                                    Arrays.stream(slightlyStronglyAdditiveDominancePseudoLoad[l][m]).filter(Vmap2ComplementaryVCF.getNonNAInfNaNPredict()).toArray();
+                            if (taxonLoadGreaterOrEqualThan0.length < 2 || pseudoLoadGreaterOrEqualThan0.length < 2){
+                                sb.append(taxonLoadGreaterOrEqualThan0.length).append("\t");
+                                sb.append(pseudoLoadGreaterOrEqualThan0.length).append("\t");
+                                sb.append("NA").append("\t").append("NA").append("\t");
+                                sb.append("NA").append("\t").append("NA");
+                                bw.write(sb.toString());
+                                bw.newLine();
+                                continue;
+                            }
+                            sb.append(taxonLoadGreaterOrEqualThan0.length).append("\t");
+                            sb.append(pseudoLoadGreaterOrEqualThan0.length).append("\t");
+                            sb.append(slightlyOrStrongly.getValue()).append("\t");
+                            sb.append(additiveOrDominance.getValue()).append("\t");
+                            wilcoxonRankSum=WilcoxonRank.getWilcoxonRankSum(pseudoLoadGreaterOrEqualThan0,
+                                    taxonLoadGreaterOrEqualThan0);
+                            normalizedWilcoxonRankSum= WilcoxonRank.getNormalizedWilcoxonRankSum(pseudoLoadGreaterOrEqualThan0,
+                                    taxonLoadGreaterOrEqualThan0);
+                            sb.append(wilcoxonRankSum).append("\t").append(normalizedWilcoxonRankSum);
+                            bw.write(sb.toString());
+                            bw.newLine();
+                        }
+                    }
+                }
+                count++;
+                if (count%2000==0){
+                    System.out.println(count+" triads had been written to "+wilcoxonRankSumStaticsOutFile);
+                }
+            }
+            bw.flush();
+            System.out.println("Total "+count+" triads had been written to "+wilcoxonRankSumStaticsOutFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Two sample t-value had been written to "+wilcoxonRankSumStaticsOutFile);
+        System.out.println(DateTime.getDateTimeOfNow());
+    }
+
     public void calculateTwoSampleTTestStatics(String tTestStaticsOutFile, String taxaInfoDB,
                                                String pseudoHexaploidInfo, SubgenomeCombination subgenomeCombination,
                                                WheatLineage positionBySub){
@@ -942,6 +1037,26 @@ public class Vmap2ComplementaryVCF {
         }
     }
 
+    public enum TwoSampleStatics{
+        T("TTest"), WRS("WilcoxonRankSum");
+
+        String value;
+
+        TwoSampleStatics(String value) {
+            this.value=value;
+        }
+
+        public double getHexaploidPseudoStaticsValue(double[] hexaplidValue, double[] pseudoHexaploid){
+            switch (this){
+                case T:
+                    return TestUtils.tTest(hexaplidValue, pseudoHexaploid);
+                case WRS:
+                    return WilcoxonRank.getWilcoxonRankSum(pseudoHexaploid, hexaplidValue);
+            }
+            return Double.NaN;
+        }
+    }
+
     public static class TriadsBlockRecord {
 
         String triadsBlockID;
@@ -1045,8 +1160,8 @@ public class Vmap2ComplementaryVCF {
          * @param subgenomeCombination
          * @return
          */
-        public double[][] getSlightStronglyAdditiveDominanceTaxon_TwoSampleT(TIntArrayList pseudoTaxonIndexList, TIntArrayList taxonIndexList,
-                                                                             SubgenomeCombination subgenomeCombination){
+        public double[][] getSlightStronglyAdditiveDominanceTaxon_TwoSample(TIntArrayList pseudoTaxonIndexList, TIntArrayList taxonIndexList,
+                                                                            SubgenomeCombination subgenomeCombination, TwoSampleStatics twoSampleStatics){
             double[][] res=new double[SlightlyOrStrongly.values().length][];
             for (int i = 0; i < res.length; i++) {
                 res[i]=new double[AdditiveOrDominance.values().length];
@@ -1061,11 +1176,13 @@ public class Vmap2ComplementaryVCF {
             for (int i = 0; i < SlightlyOrStrongly.values().length; i++) {
                 for (int j = 0; j < AdditiveOrDominance.values().length; j++) {
                     pseudoLoad=slightlyStronglyAdditiveDominancePseudoLoad[i][j];
-                    pseudoLoadRemovedNAInfNaN= Arrays.stream(pseudoLoad).filter(Vmap2ComplementaryVCF.getNonNAInfNaNPredict()).toArray();
+                    pseudoLoadRemovedNAInfNaN= Arrays.stream(pseudoLoad).parallel().filter(Vmap2ComplementaryVCF.getNonNAInfNaNPredict()).toArray();
                     hexaploid=slightlyStronglyAdditiveDominanceHexaploidLoad[i][j];
-                    hexaploidRemovedNAInfNaN= Arrays.stream(hexaploid).filter(Vmap2ComplementaryVCF.getNonNAInfNaNPredict()).toArray();
+                    hexaploidRemovedNAInfNaN= Arrays.stream(hexaploid).parallel().filter(Vmap2ComplementaryVCF.getNonNAInfNaNPredict()).toArray();
                     if (pseudoLoadRemovedNAInfNaN.length < 2 || hexaploidRemovedNAInfNaN.length < 2) continue;
-                    res[i][j]=TestUtils.t(hexaploidRemovedNAInfNaN, pseudoLoadRemovedNAInfNaN);
+//                    res[i][j]=TestUtils.t(hexaploidRemovedNAInfNaN, pseudoLoadRemovedNAInfNaN);
+                    res[i][j]= twoSampleStatics.getHexaploidPseudoStaticsValue(hexaploidRemovedNAInfNaN,
+                            pseudoLoadRemovedNAInfNaN);
                 }
             }
             return res;
