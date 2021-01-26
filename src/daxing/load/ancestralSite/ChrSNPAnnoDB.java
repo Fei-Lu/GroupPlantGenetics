@@ -64,10 +64,14 @@ public class ChrSNPAnnoDB {
         return this.snpAnnotationList.size();
     }
 
+    public List<SNPAnnotation> getSnpAnnotationList() {
+        return snpAnnotationList;
+    }
+
     /**
      *
-     * @param chr
-     * @param pos
+     * @param chr chr
+     * @param pos pos
      * @return negative value, not in DB
      */
     public int binarySearch(int chr, int pos){
@@ -91,8 +95,8 @@ public class ChrSNPAnnoDB {
         List<SNPAnnotation> snpAnnotations=this.snpAnnotationList;
         Set<String> geneNames=new HashSet<>();
         String geneName;
-        for (int i = 0; i < snpAnnotations.size(); i++) {
-            geneName=snpAnnotations.get(i).getSNPInfo();
+        for (SNPAnnotation snpAnnotation : snpAnnotations) {
+            geneName = snpAnnotation.getSNPInfo();
             geneNames.add(geneName);
         }
         return geneNames.stream().sorted().toArray(String[]::new);
@@ -105,15 +109,14 @@ public class ChrSNPAnnoDB {
 
     public boolean contain(int chr, int pos){
         int index=this.binarySearch(chr, pos);
-        if (index < 0) return false;
-        return true;
+        return index >= 0;
     }
 
     /**
      *
-     * @param chr
-     * @param pos
-     * @return
+     * @param chr chr
+     * @param pos pos
+     * @return variantType
      */
     public String getVariantType(int chr, int pos){
         int index=this.binarySearch(chr, pos);
@@ -144,16 +147,15 @@ public class ChrSNPAnnoDB {
     public int getDelNum(){
         List<SNPAnnotation> snpAnnotations=this.snpAnnotationList;
         Predicate<SNPAnnotation> p = SNPAnnotation::isDeleterious;
-        return snpAnnotations.stream().filter(p).collect(Collectors.toList()).size();
+        return (int) snpAnnotations.stream().filter(p).count();
     }
 
     public int getNum(Predicate<SNPAnnotation> p){
-        return this.snpAnnotationList.stream().filter(p).collect(Collectors.toList()).size();
+        return (int) this.snpAnnotationList.stream().filter(p).count();
     }
 
     public ChrSNPAnnoDB filter(Predicate<SNPAnnotation> p){
-        List<SNPAnnotation> snpAnnotations=this.snpAnnotationList.stream().filter(p).collect(Collectors.toList());
-        this.snpAnnotationList=snpAnnotations;
+        this.snpAnnotationList= this.snpAnnotationList.stream().filter(p).collect(Collectors.toList());
         return this;
     }
 
@@ -163,8 +165,8 @@ public class ChrSNPAnnoDB {
         try (BufferedWriter bw = IOTool.getWriter(outFile)) {
             bw.write("Chr\tPos");
             bw.newLine();
-            for (int i = 0; i < snpAnnotationList.size(); i++) {
-                snpAnnotation=snpAnnotationList.get(i);
+            for (SNPAnnotation annotation : snpAnnotationList) {
+                snpAnnotation = annotation;
                 sb.setLength(0);
                 sb.append(snpAnnotation.getChromosome()).append("\t").append(snpAnnotation.getPos());
                 bw.write(sb.toString());

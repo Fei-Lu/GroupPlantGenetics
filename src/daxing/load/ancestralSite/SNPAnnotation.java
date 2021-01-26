@@ -74,6 +74,10 @@ public class SNPAnnotation extends BiSNP{
         return variant_type;
     }
 
+    public double getDaf() {
+        return daf.equals("NA") ? -1 : Double.parseDouble(daf);
+    }
+
     public boolean isDeleterious(){
         if(!isNonSyn()) return false;
         if (!hasAncestral()) return false;
@@ -82,23 +86,19 @@ public class SNPAnnotation extends BiSNP{
         if (sift > 0.05) return false;
         if(this.getGerp().equals("NA")) return false;
         double gerp=Double.parseDouble(this.getGerp());
-        if (gerp < 1) return false;
-        return true;
+        return !(gerp < 1);
     }
 
     public boolean isNonSyn(){
-        if (!this.getVariant_type().equals("NONSYNONYMOUS")) return false;
-        return true;
+        return this.getVariant_type().equals("NONSYNONYMOUS");
     }
 
     public boolean isSyn(){
-        if (!this.getVariant_type().equals("SYNONYMOUS")) return false;
-        return true;
+        return this.getVariant_type().equals("SYNONYMOUS");
     }
 
     public boolean hasAncestral(){
-        if(this.isReferenceAlleleTypeOf(AlleleType.Ancestral) || this.isAlternativeAlleleTypeOf(AlleleType.Ancestral)) return true;
-        return false;
+        return this.isReferenceAlleleTypeOf(AlleleType.Ancestral) || this.isAlternativeAlleleTypeOf(AlleleType.Ancestral);
     }
 
     public char getAncestral(){
@@ -114,13 +114,11 @@ public class SNPAnnotation extends BiSNP{
             System.out.println("error, program quit");
             System.exit(1);
         }
-        if (this.isReferenceAlleleTypeOf(AlleleType.Ancestral)) return true;
-        return false;
+        return this.isReferenceAlleleTypeOf(AlleleType.Ancestral);
     }
 
     public boolean check(short chr, int pos){
-        if (this.getChromosome()==chr && this.getPosition()==pos) return true;
-        return false;
+        return this.getChromosome() == chr && this.getPosition() == pos;
     }
 
     public int getPos(){

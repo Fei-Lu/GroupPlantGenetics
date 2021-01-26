@@ -1,9 +1,7 @@
 package daxing.load.ancestralSite;
 
 import daxing.common.IOTool;
-import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.PStringUtils;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -22,8 +20,8 @@ public class IndividualChrLoad{
         this.taxonName=taxonName;
         this.chr=chr;
         List<GeneLoad> geneLoads=new ArrayList<>(2000);
-        for (int i = 0; i < geneNames.length; i++) {
-            geneLoads.add(new GeneLoad(geneNames[i]));
+        for (String geneName : geneNames) {
+            geneLoads.add(new GeneLoad(geneName));
         }
         Collections.sort(geneLoads);
         this.geneLoads=new GeneLoad[geneLoads.size()];
@@ -41,20 +39,17 @@ public class IndividualChrLoad{
         geneLoads[geneIndex].addGenotype(siteGenotype);
     }
 
+    public void addGenotype(String geneName, byte[] siteGenotype, double corrRatio){
+        int geneIndex=getGeneIndex(geneName);
+        geneLoads[geneIndex].addGenotype(siteGenotype, corrRatio);
+    }
+
     public String[] getGeneNames() {
         String[] geneName=new String[this.geneLoads.length];
         for (int i = 0; i < this.geneLoads.length; i++) {
             geneName[i]=this.geneLoads[i].getGeneName();
         }
         return geneName;
-    }
-
-    public TIntArrayList getNumHGDeleterious() {
-        TIntArrayList res=new TIntArrayList();
-        for (int i = 0; i < geneLoads.length; i++) {
-            res.add(geneLoads[i].getHGDeleteriousNum());
-        }
-        return res;
     }
 
     public int getChr() {
@@ -65,70 +60,6 @@ public class IndividualChrLoad{
         return taxonName;
     }
 
-    public TIntArrayList getNumDerivedInHGDeleterious() {
-        TIntArrayList res=new TIntArrayList();
-        for (int i = 0; i < geneLoads.length; i++) {
-            res.add(geneLoads[i].getHGDeleteriousDerivedNum());
-        }
-        return res;
-    }
-
-    public TIntArrayList getNumDerivedInNonsyn() {
-        TIntArrayList res=new TIntArrayList();
-        for (int i = 0; i < geneLoads.length; i++) {
-            res.add(geneLoads[i].getNonsynDerivedNum());
-        }
-        return res;
-    }
-
-    public TIntArrayList getNumDerivedInSyn() {
-        TIntArrayList res=new TIntArrayList();
-        for (int i = 0; i < geneLoads.length; i++) {
-            res.add(geneLoads[i].getSynDerivedNum());
-        }
-        return res;
-    }
-
-    public TIntArrayList getNumNonsyn() {
-        TIntArrayList res=new TIntArrayList();
-        for (int i = 0; i < geneLoads.length; i++) {
-            res.add(geneLoads[i].getNonsynNum());
-        }
-        return res;
-    }
-
-    public TIntArrayList getNumSyn() {
-        TIntArrayList res=new TIntArrayList();
-        for (int i = 0; i < geneLoads.length; i++) {
-            res.add(geneLoads[i].getSynNum());
-        }
-        return res;
-    }
-
-    public TIntArrayList getSynHeterSitesNum(){
-        TIntArrayList res=new TIntArrayList();
-        for (int i = 0; i < geneLoads.length; i++) {
-            res.add(geneLoads[i].getSynHeterSitesNum());
-        }
-        return res;
-    }
-
-    public TIntArrayList getNonsynHeterSitesNum(){
-        TIntArrayList res=new TIntArrayList();
-        for (int i = 0; i < geneLoads.length; i++) {
-            res.add(geneLoads[i].getNonsynHeterSitesNum());
-        }
-        return res;
-    }
-
-    public TIntArrayList getHGDeleteriousHeterSitesNum(){
-        TIntArrayList res=new TIntArrayList();
-        for (int i = 0; i < geneLoads.length; i++) {
-            res.add(geneLoads[i].getHGDeleteriousHeterSitesNum());
-        }
-        return res;
-    }
-
     public void write(String outDir){
         int chr=this.getChr();
         String taxonName=this.getTaxonName();
@@ -137,31 +68,11 @@ public class IndividualChrLoad{
             bw.write("geneName\tnumSyn\tnumDerivedInSyn\tnumHeterInSyn\tnumNonsyn\tnumDerivedInNonsyn\t" +
                     "numHeterInNonsyn\tnumHGDeleterious\tnumDerivedInHGDeleterious\tnumHeterInHGDeleterious");
             bw.newLine();
-            StringBuilder sb;
-            String[] geneNames=this.getGeneNames();
-            TIntArrayList numSyn=this.getNumSyn();
-            TIntArrayList numDerivedInSyn=this.getNumDerivedInSyn();
-            TIntArrayList numHeterInSyn=this.getSynHeterSitesNum();
-            TIntArrayList numNonsyn=this.getNumNonsyn();
-            TIntArrayList numDerivedInNonsyn=this.getNumDerivedInNonsyn();
-            TIntArrayList numHeterInNonsyn=this.getNonsynHeterSitesNum();
-            TIntArrayList numHGDeleterious=this.getNumHGDeleterious();
-            TIntArrayList numDerivedInHGDeleterious=this.getNumDerivedInHGDeleterious();
-            TIntArrayList numHeterInHGDeleterious=this.getHGDeleteriousHeterSitesNum();
-            for (int i = 0; i < geneNames.length; i++) {
-                sb=new StringBuilder();
-                sb.append(geneNames[i]).append("\t").append(numSyn.get(i)).append("\t");
-                sb.append(numDerivedInSyn.get(i)).append("\t");
-                sb.append(numHeterInSyn.get(i)).append("\t");
-                sb.append(numNonsyn.get(i)).append("\t");
-                sb.append(numDerivedInNonsyn.get(i)).append("\t");
-                sb.append(numHeterInNonsyn.get(i)).append("\t");
-                sb.append(numHGDeleterious.get(i)).append("\t");
-                sb.append(numDerivedInHGDeleterious.get(i)).append("\t");
-                sb.append(numHeterInHGDeleterious.get(i));
-                bw.write(sb.toString());
+            for (GeneLoad geneLoad : this.geneLoads) {
+                bw.write(geneLoad.toString());
                 bw.newLine();
             }
+            bw.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }

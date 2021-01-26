@@ -1,6 +1,7 @@
 package daxing.load.ancestralSite;
 
 import gnu.trove.list.array.TByteArrayList;
+import gnu.trove.list.array.TDoubleArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,7 +12,8 @@ public class GeneLoad implements Comparable<GeneLoad>{
     TByteArrayList synGenotype;
     TByteArrayList nonsynGenotype;
     TByteArrayList hgDeleteriousGenop;
-
+    // this is use for reference bias correction
+    TDoubleArrayList hgDeleteriousCorrRatio;
 
     public static Map<String, Byte> genotypeToByteMap1 =initializeGenotypeToByteMap1();
     private static Map<String, Byte> initializeGenotypeToByteMap1(){
@@ -38,6 +40,7 @@ public class GeneLoad implements Comparable<GeneLoad>{
         this.synGenotype =new TByteArrayList();
         this.nonsynGenotype=new TByteArrayList();
         this.hgDeleteriousGenop=new TByteArrayList();
+        this.hgDeleteriousCorrRatio =new TDoubleArrayList();
     }
 
     public String getGeneName() {
@@ -52,7 +55,18 @@ public class GeneLoad implements Comparable<GeneLoad>{
             this.nonsynGenotype.add(indexGenotype[1]);
         }else if (indexGenotype[0]==1){
             this.nonsynGenotype.add(indexGenotype[1]);
+        }
+    }
 
+    public void addGenotype(byte[] indexGenotype, double corrRatio){
+        if (indexGenotype[0]==0){
+            this.synGenotype.add(indexGenotype[1]);
+        }else if(indexGenotype[0]==2){
+            this.hgDeleteriousGenop.add(indexGenotype[1]);
+            this.nonsynGenotype.add(indexGenotype[1]);
+            this.hgDeleteriousCorrRatio.add(corrRatio);
+        }else if (indexGenotype[0]==1){
+            this.nonsynGenotype.add(indexGenotype[1]);
         }
     }
 
@@ -122,6 +136,15 @@ public class GeneLoad implements Comparable<GeneLoad>{
         return sum;
     }
 
+    public double getCorrectedHGDeleteriousDerivedNum(){
+        double sum=0;
+        for (int i = 0; i < this.hgDeleteriousGenop.size(); i++) {
+            if (this.hgDeleteriousGenop.get(i)!=1) continue;
+            sum+=this.hgDeleteriousCorrRatio.get(i);
+        }
+        return sum;
+    }
+
     public static byte caculateGenotype(String genotype, boolean isRefAlleleAncestral){
         if (isRefAlleleAncestral){
             return genotypeToByteMap1.get(genotype);
@@ -132,5 +155,19 @@ public class GeneLoad implements Comparable<GeneLoad>{
     @Override
     public int compareTo(GeneLoad o) {
         return this.getGeneName().compareTo(o.geneName);
+    }
+
+    public String toString(){
+        StringBuilder sb=new StringBuilder();
+        sb.append(this.geneName).append("\t");
+        sb.append(this.synGenotype.size()).append("\t");
+        sb.append(this.getSynDerivedNum()).append("\t").append(this.getSynHeterSitesNum()).append("\t");
+        sb.append(this.nonsynGenotype.size()).append("\t");
+        sb.append(this.getNonsynDerivedNum()).append("\t").append(this.getNonsynHeterSitesNum()).append("\t");
+        sb.append(this.hgDeleteriousGenop.size()).append("\t");
+        sb.append(this.getHGDeleteriousDerivedNum()).append("\t").append(this.getHGDeleteriousHeterSitesNum());
+        // for correct reference bias
+//        sb.append(this.getCorrectedHGDeleteriousDerivedNum()).append("\t").append(this.getHGDeleteriousHeterSitesNum());
+        return sb.toString();
     }
 }
