@@ -12,10 +12,13 @@ import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.function.Predicate;
@@ -90,13 +93,14 @@ public class VCF {
 
     /**
      * merge chr001, chr002, chr003, ... to chr.Asubgenome.vcf, chr.Bsubgenome.vcf, chr.Dsubgenome.vcf
-     * @param inputVcfDir
-     * @param outDir
+     * @param inputVcfDir inputVcfDir
+     * @param outDir outDir
      */
     public static void mergeVCFtoLineage(String inputVcfDir, String outDir){
         File[] files=new File(inputVcfDir).listFiles();
         Predicate<File> hidden=File::isHidden;
         Predicate<File> p= hidden.negate().and(f->f.getName().toLowerCase().startsWith("chr"));
+        assert files != null;
         File[] f=Arrays.stream(files).filter(p).sorted().toArray(File[]::new);
         int[] chrIDArray=Arrays.stream(f).filter(p).map(File::getName).map(str->str.substring(3,6))
                 .mapToInt(Integer::parseInt).toArray();
@@ -108,7 +112,7 @@ public class VCF {
         for (int i = 0; i < 3; i++) {
             indexArray[i]=new TIntArrayList();
         }
-        int index=Integer.MIN_VALUE;
+        int index;
         for (int i = 0; i < lineage.length; i++) {
             for (int j = 0; j < lineage[i].length; j++) {
                 index=Arrays.binarySearch(chrIDArray, lineage[i][j]);
@@ -136,13 +140,14 @@ public class VCF {
     /**
      * merge chr001 chr002 chr003 chr004, ... to chr1A chr1B chr1D, ...
      * suitable for small VCF file
-     * @param inputVcfDir
-     * @param outDir
+     * @param inputVcfDir inputVcfDir
+     * @param outDir outDir
      */
     public static void mergeVCFtoChr(String inputVcfDir, String outDir){
         File[] files=new File(inputVcfDir).listFiles();
         Predicate<File> hidden=File::isHidden;
         Predicate<File> p= hidden.negate().and(f->f.getName().toLowerCase().startsWith("chr"));
+        assert files != null;
         File[] f=Arrays.stream(files).filter(p).sorted().toArray(File[]::new);
         int[] chrIDArray=Arrays.stream(f).filter(p).map(File::getName).map(str->str.substring(3,6))
                 .mapToInt(Integer::parseInt).sorted().toArray();
@@ -155,9 +160,9 @@ public class VCF {
                 i=i+1;
             }
         }
-        VCF vcf=null;
+        VCF vcf;
         String[] outNameArray= Arrays.stream(f).map(File::getName).map(str->str.substring(6)).toArray(String[]::new);
-        String outName=null;
+        String outName;
         for (int i = 0; i < indexList.size(); i=i+2) {
             vcf=new VCF(f[indexList.get(i)]);
             vcf.addVCF(new VCF(f[indexList.get(i+1)]));
@@ -169,14 +174,15 @@ public class VCF {
 
     /**
      *
-     * @param inputVcfDir
-     * @param outDir
+     * @param inputVcfDir inputVcfDir
+     * @param outDir outDir
      */
     public static void fastMergeVCFtoLineage(String inputVcfDir, String outDir){
         System.out.println(DateTime.getDateTimeOfNow()+ " start");
         File[] files=new File(inputVcfDir).listFiles();
         Predicate<File> hidden=File::isHidden;
         Predicate<File> p= hidden.negate().and(f->f.getName().toLowerCase().startsWith("chr"));
+        assert files != null;
         File[] f=Arrays.stream(files).filter(p).sorted().toArray(File[]::new);
         TIntArrayList[] abd=new TIntArrayList[3];
         abd[0]=new TIntArrayList(WheatLineage.valueOf("A").getChrID());
@@ -257,8 +263,8 @@ public class VCF {
 
     /**
      * only support even, between chr001 and chr042, suitable for large VCF file
-     * @param inputVcfDir
-     * @param outDir
+     * @param inputVcfDir inputVcfDir
+     * @param outDir outDir
      */
     public static void fastMergeVCFtoChr(String inputVcfDir, String outDir){
         System.out.println(DateTime.getDateTimeOfNow()+ "start");
@@ -294,7 +300,7 @@ public class VCF {
                     refPos= RefV1Utils.getPosOnChromosome(vcfChr, vcfPos);
                     temp.set(0, refChr);
                     temp.set(1, String.valueOf(refPos));
-                    bw.write(temp.stream().collect(Collectors.joining("\t")));
+                    bw.write(String.join("\t", temp));
                     bw.newLine();
                 }
                 br1.close();
@@ -307,7 +313,7 @@ public class VCF {
                     refPos= RefV1Utils.getPosOnChromosome(vcfChr, vcfPos);
                     temp.set(0, refChr);
                     temp.set(1, String.valueOf(refPos));
-                    bw.write(temp.stream().collect(Collectors.joining("\t")));
+                    bw.write(String.join("\t", temp));
                     bw.newLine();
                 }
                 br2.close();
@@ -325,8 +331,8 @@ public class VCF {
 
     /**
      * split A.vcf B.vcf D.vcf to chr001.vcf chr002.vcf et.al.
-     * @param subgenomeDir
-     * @param outDir
+     * @param subgenomeDir subgenomeDir
+     * @param outDir outDir
      */
     public static void splitSubgenome(String subgenomeDir, String outDir){
         List<File> files=IOUtils.getVisibleFileListInDir(subgenomeDir);
@@ -336,13 +342,13 @@ public class VCF {
     public static void splitSubgenome(File subgenomeFile, String outDir){
         Set<String> set=RowTableTool.getColumnSet(subgenomeFile.getAbsolutePath(), 0);
         List<String> chrs=new ArrayList<>(set);
-        Collections.sort(chrs, Comparator.comparing(str->Integer.parseInt(str)));
+        chrs.sort(Comparator.comparing(Integer::parseInt));
         Map<String, BufferedWriter> chrBufferedWriter=new HashMap<>();
         BufferedWriter bw;
-        for (int i = 0; i < chrs.size(); i++) {
-            int chr=Integer.parseInt(chrs.get(i));
-            bw=IOTool.getWriter(new File(outDir, "chr"+PStringUtils.getNDigitNumber(3, chr)+".txt"));
-            chrBufferedWriter.put(chrs.get(i), bw);
+        for (String s : chrs) {
+            int chr = Integer.parseInt(s);
+            bw = IOTool.getWriter(new File(outDir, "chr" + PStringUtils.getNDigitNumber(3, chr) + ".txt"));
+            chrBufferedWriter.put(s, bw);
         }
         try (BufferedReader bufferedReader = IOTool.getReader(subgenomeFile)) {
             String line;
@@ -369,47 +375,47 @@ public class VCF {
 
     /**
      * Genotype for 0/0, 0/1, 1/1, or 0/0, 0/1, 0/2, 1/1, 1/2, 2/2 if 2 alt alleles
-     * @param vcfLine
+     * @param vcfLine vcfLine
      * @return maf or -1, if 3 or more alt alleles exist
      */
-    public static double calculateMaf(String vcfLine){
+    public static String calculateMaf(String vcfLine){
         double[] alleleFrequency=new double[3]; // 0 1 2
         String[] genotypeArray={"0/0", "0/1", "0/2", "1/1", "1/2", "2/2"};
         long[] genotypeCount=new long[genotypeArray.length];
-        for (int i = 0; i < genotypeCount.length; i++) {
-            genotypeCount[i]=0;
-        }
         List<String> vcfLineList=PStringUtils.fastSplit(vcfLine);
         Predicate<String> p=str->str.startsWith("./.");
         List<String> vcfl=vcfLineList.stream().skip(9).filter(p.negate()).map(str->str.substring(0, 3)).collect(Collectors.toList());
         Map<String, Long> map=vcfl.stream().collect(Collectors.groupingBy(s-> s, Collectors.counting()));
         List<String> keyList=new ArrayList<>(map.keySet());
         Collections.sort(keyList);
-        int index=Integer.MIN_VALUE;
-        for (int i = 0; i < keyList.size(); i++) {
-            index=Arrays.binarySearch(genotypeArray, keyList.get(i));
-            if (index < 0){
-                System.out.println(keyList.get(i)+" genotype found");
-                return -1d;
+        int index;
+        for (String s : keyList) {
+            index = Arrays.binarySearch(genotypeArray, s);
+            if (index < 0) {
+                System.out.println(s + " genotype found");
+                return "-1";
 //                System.out.println("Only supports two or three alleles, program quit");
 //                System.exit(1);
             }
-            genotypeCount[index]=map.get(keyList.get(i));
+            genotypeCount[index] = map.get(s);
         }
         double sum=Arrays.stream(genotypeCount).sum();
         alleleFrequency[0]=(genotypeCount[0]*2+genotypeCount[1]+genotypeCount[2])/(sum*2);
         alleleFrequency[1]=(genotypeCount[1]+genotypeCount[3]*2+genotypeCount[4])/(sum*2);
         alleleFrequency[2]=(genotypeCount[2]+genotypeCount[4]+genotypeCount[5]*2)/(sum*2);
         Arrays.sort(alleleFrequency);
-        return NumberTool.format(alleleFrequency[1], 5);
+        NumberFormat numberFormat=NumberFormat.getInstance();
+        numberFormat.setGroupingUsed(false);
+        numberFormat.setMaximumFractionDigits(5);
+        return numberFormat.format(alleleFrequency[1]);
     }
 
     /**
      * 位点为二等位时，计算Daf, 不包括三等位、四等位等
-     * @param maf
-     * @param majorAllele
-     * @param minorAllele
-     * @param ancestralAllele
+     * @param maf maf
+     * @param majorAllele majorAllele
+     * @param minorAllele minorAllele
+     * @param ancestralAllele ancestralAllele
      * @return daf or -1 if two or more alt alleles exist
      */
     public static double calculateDaf(double maf, String majorAllele, String minorAllele, String ancestralAllele){
@@ -418,16 +424,14 @@ public class VCF {
             daf=maf;
         }else if (minorAllele.equals(ancestralAllele)){
             daf=1-maf;
-        }else {
-            daf=-1;
         }
         return daf;
     }
 
     /**
      *
-     * @param vcfDir
-     * @param subsetFileDir
+     * @param vcfDir vcfDir
+     * @param subsetFileDir subsetFileDir
      * @param rate 0.001
      * @param numThreads 36
      */
@@ -439,37 +443,37 @@ public class VCF {
         String[] f2=Arrays.stream(f1).map(File::getName).map(str->str.replaceAll("vcf.*$", "subset"+rate+".vcf"))
                 .toArray(String[]::new);
         int[][] indices= PArrayUtils.getSubsetsIndicesBySubsetSize(f1.length, numThreads);
-        for (int i = 0; i < indices.length; i++) {
-            Integer[] subLibIndices = new Integer[indices[i][1]-indices[i][0]];
+        for (int[] index : indices) {
+            Integer[] subLibIndices = new Integer[index[1] - index[0]];
             for (int j = 0; j < subLibIndices.length; j++) {
-                subLibIndices[j] = indices[i][0]+j;
+                subLibIndices[j] = index[0] + j;
             }
-            List<Integer> integerList=Arrays.asList(subLibIndices);
-            integerList.parallelStream().forEach(e->{
+            List<Integer> integerList = Arrays.asList(subLibIndices);
+            integerList.parallelStream().forEach(e -> {
                 BufferedReader br;
                 BufferedWriter bw;
-                long start=System.nanoTime();
+                long start = System.nanoTime();
                 try {
-                    if (f1[e].getName().endsWith("vcf")){
-                        br=IOUtils.getTextReader(f1[e].getAbsolutePath());
-                        bw=IOUtils.getTextWriter(new File(subsetFileDir, f2[e]).getAbsolutePath());
-                    }else {
-                        br=IOUtils.getTextGzipReader(f1[e].getAbsolutePath());
-                        bw=IOUtils.getTextWriter(new File(subsetFileDir, f2[e]).getAbsolutePath());
+                    if (f1[e].getName().endsWith("vcf")) {
+                        br = IOUtils.getTextReader(f1[e].getAbsolutePath());
+                        bw = IOUtils.getTextWriter(new File(subsetFileDir, f2[e]).getAbsolutePath());
+                    } else {
+                        br = IOUtils.getTextGzipReader(f1[e].getAbsolutePath());
+                        bw = IOUtils.getTextWriter(new File(subsetFileDir, f2[e]).getAbsolutePath());
                     }
                     String line;
-                    double r=-1d;
-                    int count=0;
-                    int total=0;
-                    while ((line=br.readLine()).startsWith("##")){
+                    double r;
+                    int count = 0;
+                    int total = 0;
+                    while ((line = br.readLine()).startsWith("##")) {
                         bw.write(line);
                         bw.newLine();
                     }
                     bw.write(line);
                     bw.newLine();
-                    while ((line=br.readLine())!=null){
+                    while ((line = br.readLine()) != null) {
                         total++;
-                        r=Math.random();
+                        r = Math.random();
                         if (r > rate) continue;
                         count++;
                         bw.write(line);
@@ -478,9 +482,9 @@ public class VCF {
                     br.close();
                     bw.flush();
                     bw.close();
-                    System.out.println("samping "+count+"("+total+") row from "
-                            +f1[e].getName()+" into "+new File(subsetFileDir, f2[e]).getName()+" in "
-                            +Benchmark.getTimeSpanMinutes(start)+" minutes");
+                    System.out.println("samping " + count + "(" + total + ") row from "
+                            + f1[e].getName() + " into " + new File(subsetFileDir, f2[e]).getName() + " in "
+                            + Benchmark.getTimeSpanMinutes(start) + " minutes");
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -498,8 +502,8 @@ public class VCF {
     /**
      * calculate r2 from genotype
      * note: only support binary allele, and genotype must be one of the following, "0/0", "1/1", "0/1", "./."
-     * @param genotype1
-     * @param genotype2
+     * @param genotype1 genotype1
+     * @param genotype2 genotype2
      * @return r2
      */
     public static double calculateR2(String[] genotype1, String[] genotype2){
@@ -546,18 +550,18 @@ public class VCF {
 
     /**
      * recode 1A, 1B, 1D, 2A, 2B, 2D, ... to 1, 2, 3, 4, 5, 6, ...
-     * @param vcfFile
-     * @param outFile
+     * @param vcfFile vcfFile
+     * @param outFile outFile
      */
     public static void recode(File vcfFile, File outFile){
         int[] integers= IntStream.range(1,8).toArray();
         String[] abd={"A","B","D"};
         Map<String, Integer> chrIDmap=new HashMap<>();
         int count=0;
-        for (int i = 0; i < integers.length; i++) {
-            for (int j = 0; j < abd.length; j++) {
+        for (int integer : integers) {
+            for (String s : abd) {
                 count++;
-                chrIDmap.put(integers[i]+abd[j], count);
+                chrIDmap.put(integer + s, count);
             }
         }
         try (BufferedReader br = IOUtils.getTextReader(vcfFile.getAbsolutePath());
@@ -577,7 +581,7 @@ public class VCF {
                 key=lineList.get(0);
                 value=chrIDmap.get(key);
                 lineList.set(0, String.valueOf(value));
-                bw.write(lineList.stream().collect(Collectors.joining("\t")));
+                bw.write(String.join("\t", lineList));
                 bw.newLine();
             }
         }catch (Exception e){
@@ -587,9 +591,9 @@ public class VCF {
 
     /**
      * parallel
-     * @param vcfDir
-     * @param outDir
-     * @param numThreads
+     * @param vcfDir vcfDir
+     * @param outDir outDir
+     * @param numThreads numThreads
      */
     public static void recode(String vcfDir, String outDir, int numThreads){
         long start=System.nanoTime();
@@ -599,17 +603,17 @@ public class VCF {
         String[] outNames= Arrays.stream(f1).map(File::getName).map(str->str.replaceAll("vcf$", "recoded.vcf"))
                 .toArray(String[]::new);
         int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(f1.length, numThreads);
-        for (int i = 0; i < indices.length; i++) {
-            Integer[] subLibIndices = new Integer[indices[i][1]-indices[i][0]];
+        for (int[] ints : indices) {
+            Integer[] subLibIndices = new Integer[ints[1] - ints[0]];
             for (int j = 0; j < subLibIndices.length; j++) {
-                subLibIndices[j] = indices[i][0]+j;
+                subLibIndices[j] = ints[0] + j;
             }
-            List<Integer> integerList=Arrays.asList(subLibIndices);
+            List<Integer> integerList = Arrays.asList(subLibIndices);
             integerList.parallelStream()
-                    .forEach(index-> {
-                        long start1=System.nanoTime();
+                    .forEach(index -> {
+                        long start1 = System.nanoTime();
                         VCF.recode(f1[index], new File(outDir, outNames[index]));
-                        System.out.println(new File(outDir, outNames[index]).getName()+" completed in "+Benchmark.getTimeSpanMinutes(start1)+" minutes");
+                        System.out.println(new File(outDir, outNames[index]).getName() + " completed in " + Benchmark.getTimeSpanMinutes(start1) + " minutes");
                     });
         }
         System.out.println("completed in "+Benchmark.getTimeSpanHours(start)+" hours");
@@ -617,8 +621,8 @@ public class VCF {
 
     /**
      *
-     * @param vcfInputFile
-     * @param columnIndex
+     * @param vcfInputFile vcfInputFile
+     * @param columnIndex columnIndex
      * @return chr pos columnIndex, no header
      */
     public static Table<Integer, Integer, String> getTable(String vcfInputFile, int columnIndex){
@@ -687,11 +691,11 @@ public class VCF {
     public static double getHeterozygousProportionBySite(List<String> temp){
         List<String> genotypeList=temp.subList(9, temp.size());
         double heteroCount=0, totalCount=0;
-        for (int i = 0; i < genotypeList.size(); i++) {
-            if (genotypeList.get(i).startsWith("./.")) continue;
+        for (String s : genotypeList) {
+            if (s.startsWith("./.")) continue;
             totalCount++;
-            if (genotypeList.get(i).startsWith("0/0")) continue;
-            if (genotypeList.get(i).startsWith("1/1")) continue;
+            if (s.startsWith("0/0")) continue;
+            if (s.startsWith("1/1")) continue;
             heteroCount++;
         }
         return heteroCount/totalCount;
@@ -713,17 +717,17 @@ public class VCF {
 
     /**
      *
-     * @param columnIndex
+     * @param columnIndex columnIndex
      * @return chr pos columnIndex, no header
      */
     public Table<Integer, Integer, String> getTable(int columnIndex){
         Table<Integer, Integer, String> table= HashBasedTable.create();
         List<List<String>> data=this.getData();
         String target;
-        for (int i = 0; i < data.size(); i++) {
-            int chr=Integer.parseInt(data.get(i).get(0));
-            int pos=Integer.parseInt(data.get(i).get(1));
-            target=data.get(i).get(columnIndex);
+        for (List<String> datum : data) {
+            int chr = Integer.parseInt(datum.get(0));
+            int pos = Integer.parseInt(datum.get(1));
+            target = datum.get(columnIndex);
             table.put(chr, pos, target);
         }
         return table;
@@ -731,7 +735,7 @@ public class VCF {
 
     /**
      *
-     * @param columnIndex
+     * @param columnIndex columnIndex
      * @return the specified column
      */
     public List<String> getColumnList(int columnIndex){
@@ -756,13 +760,9 @@ public class VCF {
         List<String> headList=this.getHeader();
         List<String> subsetTaxonList=new ArrayList<>(subsetTaxonSet);
         TIntArrayList subsetTaxonIndexList=new TIntArrayList();
-        int index=Integer.MIN_VALUE;
-        for (int i = 0; i < subsetTaxonList.size(); i++) {
-            index=headList.indexOf(subsetTaxonList.get(i));
-            if (index < -1){
-                System.out.println(subsetTaxonList.get(i)+" not in this VCF");
-                continue;
-            }
+        int index;
+        for (String s : subsetTaxonList) {
+            index = headList.indexOf(s);
             subsetTaxonIndexList.add(index);
         }
         subsetTaxonIndexList.add(IntStream.range(0, 9).toArray());
@@ -793,15 +793,14 @@ public class VCF {
 
     /**
      *
-     * @param heterozygousProportionBySite
-     * @return
+     * @param heterozygousProportionBySite heterozygousProportionBySite
      */
     public void filterOnHeterozygousProportionBySite(double heterozygousProportionBySite){
         List<List<String>> data=this.data;
         List<List<String>> newdata=new ArrayList<>();
-        for (int i = 0; i < data.size(); i++) {
-            if (VCF.getHeterozygousProportionBySite(data.get(i)) > heterozygousProportionBySite) continue;
-            newdata.add(data.get(i));
+        for (List<String> datum : data) {
+            if (VCF.getHeterozygousProportionBySite(datum) > heterozygousProportionBySite) continue;
+            newdata.add(datum);
         }
         this.data=newdata;
     }
@@ -824,7 +823,7 @@ public class VCF {
 
     /**
      *
-     * @param comparator
+     * @param comparator comparator
      */
     public void sort(Comparator<List<String>> comparator){
         data.sort(comparator);
@@ -850,7 +849,7 @@ public class VCF {
         for(int i=0,size=data.size();i<size;i++){
             String info=data.get(i).stream().limit(8).collect(Collectors.toList()).get(7);
             String ns=PStringUtils.fastSplit(info, ";").get(2);
-            int nsValue=Integer.parseInt(PStringUtils.fastSplit(ns, "=").get(1));
+            double nsValue=Integer.parseInt(PStringUtils.fastSplit(ns, "=").get(1));
             genotypeMissingRate[i]=(this.getNumberOfTaxa()-nsValue)/this.getNumberOfTaxa();
         }
         return genotypeMissingRate;
@@ -938,8 +937,7 @@ public class VCF {
         try (BufferedWriter bw = IOUtils.getTextWriter(outFile)) {
             bw.write("Chr1\tPos1\tChr2\tPos2\tr2\n");
             List<List<String>> data=this.getData();
-            String[] genotype1, genotype2;
-            double r2=-1;
+            double r2;
             StringBuilder sb;
             Iterator<int[]> iterator = CombinatoricsUtils.combinationsIterator(data.size(), 2);
             int[] combinationIndex;
@@ -974,21 +972,21 @@ public class VCF {
         try{
             bw.write(this.meta);
             StringBuilder sb=new StringBuilder();
-            for(int i=0;i<header.size();i++){
-                sb.append(header.get(i));
+            for (String s : header) {
+                sb.append(s);
                 sb.append("\t");
             }
             sb.deleteCharAt(sb.length()-1).append("\n");
             bw.write(sb.toString());
             sb=new StringBuilder();
             bw.write(sb.toString());
-            for(int i=0;i<data.size();i++){
-                for(int j=0;j<data.get(i).size();j++){
-                    sb=sb.append(data.get(i).get(j)).append("\t");
+            for (List<String> datum : data) {
+                for (int j = 0; j < datum.size(); j++) {
+                    sb = sb.append(datum.get(j)).append("\t");
                 }
-                sb.deleteCharAt(sb.length()-1).append("\n");
+                sb.deleteCharAt(sb.length() - 1).append("\n");
                 bw.write(sb.toString());
-                sb=new StringBuilder();
+                sb = new StringBuilder();
             }
             bw.flush();
             bw.close();
@@ -1013,15 +1011,15 @@ public class VCF {
         Map<Integer, BufferedWriter> strToBufferedWriterMap=new HashMap<>();
         Integer key;
         BufferedWriter value;
-        for(int i=0;i<chrList.size();i++){
-            key=chrList.get(i);
-            value=IOUtils.getTextWriter(outputDir+"/chr"+PStringUtils.getNDigitNumber(3, key)+".vcf");
+        for (Integer integer : chrList) {
+            key = integer;
+            value = IOUtils.getTextWriter(outputDir + "/chr" + PStringUtils.getNDigitNumber(3, key) + ".vcf");
             strToBufferedWriterMap.put(key, value);
         }
         StringBuilder sb=new StringBuilder();
         sb.append(meta);
-        for(int i=0;i<header.size();i++){
-            sb.append(header.get(i));
+        for (String s : header) {
+            sb.append(s);
             sb.append("\t");
         }
         sb.deleteCharAt(sb.length()-1).append("\n");
@@ -1029,11 +1027,11 @@ public class VCF {
             for(Map.Entry<Integer, BufferedWriter> entry:strToBufferedWriterMap.entrySet()){
                 entry.getValue().write(sb.toString());
             }
-            for(int i=0;i<data.size();i++){
-                for(int j=0;j<data.get(i).size();j++){
-                    key=Integer.valueOf(data.get(i).get(0));
-                    value=strToBufferedWriterMap.get(key);
-                    value.write(data.get(i).stream().collect(Collectors.joining("\t")));
+            for (List<String> datum : data) {
+                for (int j = 0; j < datum.size(); j++) {
+                    key = Integer.valueOf(datum.get(0));
+                    value = strToBufferedWriterMap.get(key);
+                    value.write(String.join("\t", datum));
                     value.newLine();
                     break;
                 }
@@ -1049,7 +1047,7 @@ public class VCF {
 
     /**
      * 将VCF按照"chr1A, chr1B.vcf"的形式进行输出
-     * @param outputDir
+     * @param outputDir outputDir
      */
     public void writeVcfToSplitedChr(String outputDir){
         if (StringTool.isNumeric(this.data.get(0).get(0))){
@@ -1060,15 +1058,15 @@ public class VCF {
         Map<String, BufferedWriter> strToBufferedWriterMap=new HashMap<>();
         String key;
         BufferedWriter value;
-        for(int i=0;i<chrList.size();i++){
-            key=chrList.get(i);
-            value=IOUtils.getTextWriter(outputDir+"/chr"+key+".vcf");
+        for (String s : chrList) {
+            key = s;
+            value = IOUtils.getTextWriter(outputDir + "/chr" + key + ".vcf");
             strToBufferedWriterMap.put(key, value);
         }
         StringBuilder sb=new StringBuilder();
         sb.append(meta);
-        for(int i=0;i<header.size();i++){
-            sb.append(header.get(i));
+        for (String s : header) {
+            sb.append(s);
             sb.append("\t");
         }
         sb.deleteCharAt(sb.length()-1).append("\n");
@@ -1076,11 +1074,11 @@ public class VCF {
             for(Map.Entry<String, BufferedWriter> entry:strToBufferedWriterMap.entrySet()){
                 entry.getValue().write(sb.toString());
             }
-            for(int i=0;i<data.size();i++){
-                for(int j=0;j<data.get(i).size();j++){
-                    key=data.get(i).get(0);
-                    value=strToBufferedWriterMap.get(key);
-                    value.write(data.get(i).stream().collect(Collectors.joining("\t")));
+            for (List<String> datum : data) {
+                for (int j = 0; j < datum.size(); j++) {
+                    key = datum.get(0);
+                    value = strToBufferedWriterMap.get(key);
+                    value.write(String.join("\t", datum));
                     value.newLine();
                     break;
                 }
@@ -1159,6 +1157,74 @@ public class VCF {
                     }else {
                         sb.append("./.").append("\t");
                     }
+                }
+                sb.deleteCharAt(sb.length()-1);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     *
+     * @param taxonListFile containing a list of individuals to include in subsequent analysis
+     * @param vcfDir input VCF dir
+     * @param outDir out dir
+     */
+    public static void extractPopulation(String taxonListFile, String vcfDir, String outDir){
+        try {
+            List<String> taxonList= Files.readAllLines(Paths.get(taxonListFile));
+            List<File> files= IOUtils.getVisibleFileListInDir(vcfDir);
+            String[] outFileNames=files.stream().map(File::getName).map(str->
+                    str.replaceAll(".vcf.gz", ".subset.vcf.gz")).toArray(String[]::new);
+            IntStream.range(0, files.size()).parallel().forEach(e->extractPopulation(taxonList, files.get(e),
+                    new File(outDir, outFileNames[e])));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void extractPopulation(List<String> taxonList, File vcfFile, File outFile){
+        try (BufferedReader br = IOTool.getReader(vcfFile);
+             BufferedWriter bw =IOTool.getWriter(outFile)){
+            String line;
+            List<String> temp;
+            while ((line=br.readLine()).startsWith("##")){
+                bw.write(line);
+                bw.newLine();
+            }
+            StringBuilder sb=new StringBuilder();
+            temp=PStringUtils.fastSplit(line);
+            TIntArrayList taxonIndexList=new TIntArrayList();
+            for (String taxon:taxonList){
+                taxonIndexList.add(temp.indexOf(taxon));
+            }
+            taxonIndexList.sort();
+            sb.append(String.join("\t", temp.subList(0,9))).append("\t");
+            for (int i = 0; i < taxonIndexList.size(); i++) {
+                sb.append(temp.get(taxonIndexList.get(i))).append("\t");
+            }
+            sb.deleteCharAt(sb.length()-1);
+            bw.write(sb.toString());
+            bw.newLine();
+            String genotype;
+            Set<String> genotypeSet;
+            while ((line=br.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                genotypeSet=new HashSet<>();
+                for (int i = 0; i < taxonIndexList.size(); i++) {
+                    genotype=temp.get(taxonIndexList.get(i));
+                    if (genotype.equals("./.")) continue;
+                    genotypeSet.add(genotype);
+                }
+                if (genotypeSet.size()<2) continue;
+                sb.setLength(0);
+                sb.append(String.join("\t", temp.subList(0, 9))).append("\t");
+                for (int i = 0; i < taxonIndexList.size(); i++) {
+                    sb.append(temp.get(taxonIndexList.get(i))).append("\t");
                 }
                 sb.deleteCharAt(sb.length()-1);
                 bw.write(sb.toString());
