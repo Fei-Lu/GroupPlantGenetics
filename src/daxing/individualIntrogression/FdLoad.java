@@ -17,6 +17,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -372,6 +373,9 @@ public class FdLoad {
                 List<String> temp;
                 String[] groupArray={"A0","A1","B0","B1","D0","D1"};
                 double[] loadSum;
+                NumberFormat numberFormat=NumberFormat.getInstance();
+                numberFormat.setMaximumFractionDigits(5);
+                numberFormat.setGroupingUsed(false);
                 for (int i = 0; i < files.size(); i++) {
                     taxaName=PStringUtils.fastSplit(files.get(i).getName(), ".").get(0);
                     br=IOTool.getReader(files.get(i));
@@ -396,7 +400,7 @@ public class FdLoad {
                         sb.setLength(0);
                         group=groupArray[j];
                         sb.append(taxaName).append("\t").append(group.substring(0,1)).append("\t");
-                        sb.append(group.substring(1,2)).append("\t").append(NumberTool.format(loadSum[j]/total, 4));
+                        sb.append(group.substring(1,2)).append("\t").append(numberFormat.format(loadSum[j]/total));
                         bw.write(sb.toString());
                         bw.newLine();
                     }
@@ -413,6 +417,9 @@ public class FdLoad {
         List<File> files=IOTool.getVisibleDir(addFdDir);
         BufferedReader br;
         BufferedWriter bw;
+        NumberFormat numberFormat=NumberFormat.getInstance();
+        numberFormat.setMaximumFractionDigits(5);
+        numberFormat.setGroupingUsed(false);
         try {
             bw = IOTool.getWriter(new File(summaryOutDir, "non.load.txt.gz"));
             bw.write("Taxa\tSub\tIfFd\tLoad");
@@ -447,7 +454,7 @@ public class FdLoad {
                     sb.setLength(0);
                     group=groupArray[j];
                     sb.append(taxaName).append("\t").append(group.substring(0,1)).append("\t");
-                    sb.append(group.substring(1,2)).append("\t").append(NumberTool.format(loadSum[j]/total, 4));
+                    sb.append(group.substring(1,2)).append("\t").append(numberFormat.format(loadSum[j]/total));
                     bw.write(sb.toString());
                     bw.newLine();
                 }
