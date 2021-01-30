@@ -15,7 +15,6 @@ public class NumberTool {
      * @param num
      * @param digit 小数点后保留位数
      * @return
-     * @deprecated using NumberFormat
      */
     public static double format(double num, int digit){
         BigDecimal d=new BigDecimal(num);
@@ -25,7 +24,6 @@ public class NumberTool {
     /**
      *
      * @param num separated by thousands separator，如"123,256";
-     * @deprecated using NumberFormat
      * @return
      */
     public static int intValue(String num){
