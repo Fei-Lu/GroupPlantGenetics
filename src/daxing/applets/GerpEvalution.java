@@ -3,7 +3,6 @@ package daxing.applets;
 import daxing.common.ChrConvertionRule;
 import daxing.common.NumberTool;
 import daxing.common.PGF;
-import pgl.infra.range.Range;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.IOUtils;
@@ -181,12 +180,8 @@ public class GerpEvalution {
         int pos=-1;
         double gerpScore=Double.MIN_VALUE;
         int geneIndex=Integer.MIN_VALUE;
-        int longestTranscriptIndex=Integer.MIN_VALUE;
-        List<Range> utr5List;
-        List<Range> utr3List;
-        List<Range> cdsList;
-        List<Range> intronList;
-        int tempIndex=Integer.MIN_VALUE;
+        int longestTranscriptIndex;
+        int tempIndex;
         StringBuilder sb;
         try (BufferedWriter bw = IOUtils.getTextWriter(outFile)) {
             bw.write("Chr\tPos\tGerpScore\tIsGene\tBioType");

@@ -2,10 +2,10 @@ package daxing.applets;
 
 import daxing.common.NumberTool;
 import daxing.common.WheatLineage;
-
 import gnu.trove.list.array.TByteArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
+import pgl.infra.dna.allele.AlleleEncoder;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;
@@ -14,11 +14,11 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
-import pgl.infra.dna.allele.AlleleEncoder;
 
 
 public class VmapII_BarleyAllele {
@@ -30,6 +30,9 @@ public class VmapII_BarleyAllele {
         File[] f1= Arrays.stream(files1).filter(p.negate()).toArray(File[]::new);
         File[] f2=Arrays.stream(files2).filter(p.negate()).toArray(File[]::new);
         String[] outName=Arrays.stream(f1).map(File::getName).map(str->str.substring(0, 6)).toArray(String[]::new);
+        NumberFormat numberFormat=NumberFormat.getInstance();
+        numberFormat.setGroupingUsed(false);
+        numberFormat.setMaximumFractionDigits(5);
         IntStream.range(0, f1.length).forEach(e->{
             String line;
             List<String> temp;
@@ -79,7 +82,7 @@ public class VmapII_BarleyAllele {
                     bw.newLine();
                 }
                 bw.flush();
-                System.out.println(", and only "+ NumberTool.format(((double)countBarley/countVmap2), 5)
+                System.out.println(", and only "+ numberFormat.format(((double)countBarley/countVmap2))
                         +"("+NumberTool.parse(countBarley)+", "+NumberTool.parse(countVmap2)+ ") " +"chr pos had barley "
                         + "allele in vmapII "+f1[e].getName().substring(0, 6));
 //                System.out.println("vamp2 "+f1[e].getName().substring(0, 6)+" "+NumberTool.format(((double)countBarley/countVmap2), 5)
