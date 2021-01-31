@@ -10,5 +10,6 @@
     <orderEntry type="library" name="lib" level="project" />
     <orderEntry type="library" name="lib1" level="project" />
     <orderEntry type="module" module-name="TIGER" />
+    <orderEntry type="module" module-name="SiPAS-Profiler" />
   </component>
 </module>
