@@ -3,8 +3,10 @@ package xiaohan.eQTL;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import daxing.load.ancestralSite.Standardization;
+import jxl.CellFeatures;
 import pgl.infra.range.Range;
 import pgl.infra.table.RowTable;
+import sun.security.util.Length;
 import xiaohan.rareallele.GeneFeature;
 import xiaohan.rareallele.IOUtils;
 
@@ -24,7 +26,7 @@ public class eQTL {
 //        this.getCisChrGene();
 //        this.getCisVCF();
 //        this.getCisEffectSize();
-//        this.getNominalSig();
+        this.getNominalSig();
 //        this.getcisSig();
 //        this.writecommand();
 //        this.geteGene();
@@ -44,7 +46,7 @@ public class eQTL {
         /*
         simulation
         */
-        this.generateFasta();
+//        this.generateFastq();
         /*
         Effect size
          */
@@ -75,11 +77,132 @@ public class eQTL {
 //        this.getsureofanno();
 //        this.getsubGerp();
 //        this.getGenelength();
+//        this.substring();
     }
 
-    public void generateFasta(){
-        String infile = "";
-        String outfile = "";
+    public void substring() {
+        String test = "ATGCTGCGCGGCGGCGCCGGACCGCGAGGAGGAGGAGGAGGAGCTGCGGCGGCGTCGTCGGCGGCGAGGC";
+        int a = 20;
+        System.out.println(test.substring(a, test.length()));
+        System.out.println(test.substring(0, a));
+    }
+
+    public void generateFastq() {
+        String infile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/tr_cds.fa";
+        String outfile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/tr_cds.fq";
+        HashSet<String> geneNameSet = new HashSet<>();
+        HashMap<String, Integer> geneLengthMap = new HashMap<>();
+        HashMap<String, Integer> geneEndNumber = new HashMap<>();
+        BufferedReader br = IOUtils.getTextReader(infile);
+        BufferedReader brinfo = IOUtils.getTextReader(infile);
+        BufferedWriter bw = IOUtils.getTextWriter(outfile);
+        String temp = null;
+        String geneName = null;
+//        GeneFeature gf = new GeneFeature("/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/wheat_v1.1_Lulab.gff3");
+        try {
+            int countline = 0;
+            int geneLength = 0;
+            int start = 0;
+            int end = 0;
+            int endNumber = 0;
+            temp = brinfo.readLine();
+            geneName = temp.split(" ")[0].substring(1, temp.length());
+            while ((temp = brinfo.readLine()) != null) {
+                countline++;
+                if (temp.startsWith(">")) {
+                    geneNameSet.add(geneName);
+                    geneLengthMap.put(geneName, (countline - 2) * 70 + endNumber);
+                    geneName = temp.split(" ")[0].substring(1, temp.length());
+                    countline = 0;
+                }
+                endNumber = temp.length();
+            }
+            geneNameSet.add(geneName);
+            geneLengthMap.put(geneName, (countline - 2) * 70 + endNumber);
+            brinfo.close();
+            while ((temp = br.readLine()) != null) {
+                if (temp.startsWith(">")) {
+                    geneName = temp.split(" ")[0].substring(1, temp.length());
+                    geneLength = geneLengthMap.get(geneName);
+                }
+                if (geneLength < 350) {
+                    int line = geneLength / 70;
+                    int left = geneLength % 70;
+                    if (left == 0) {
+                        for (int i = 0; i < line; i++) {
+                            br.readLine();
+                        }
+                    } else {
+                        for (int i = 0; i <= line; i++) {
+                            br.readLine();
+                        }
+                    }
+                    continue;
+                } else if (geneLength == 350) {
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < 5; i++) {
+                        temp = br.readLine();
+                        sb.append(temp);
+                    }
+                    bw.write(geneName + "\t" + sb.toString() + "\n");
+                } else {
+                    Random r = new Random();
+                    int totalline = 0;
+                    if (geneLength % 70 == 0) {
+                        totalline = geneLength / 70;
+                    } else {
+                        totalline = geneLength / 70 + 1;
+                    }
+                    int startsite = r.nextInt(geneLength - 350);
+                    int line = startsite / 70;
+                    int site1 = startsite % 70;
+                    System.out.println(geneLength);
+                    System.out.println(totalline);
+                    System.out.println(line);
+                    System.out.println(startsite);
+                    System.out.println(site1);
+                    System.out.println("\n");
+                    StringBuilder sb = new StringBuilder();
+                    if (site1 != 0) {
+                        for (int i = 0; i < line; i++) {
+                            br.readLine();
+                        }
+                        temp = br.readLine();
+                        sb.append(temp.substring(site1, temp.length()));
+                        for (int i = 0; i < 4; i++) {
+                            temp = br.readLine();
+                            sb.append(temp);
+                        }
+                        temp = br.readLine();
+//                        int lineend = 70 - site1 - 1;
+                        sb.append(temp.substring(0, site1));
+                        int leftline = totalline - line - 6;
+                        for (int i = 0; i < leftline; i++) {
+                            br.readLine();
+                        }
+                    } else {
+                        for (int i = 0; i < line; i++) {
+                            br.readLine();
+                        }
+                        for (int i = 0; i < 5; i++) {
+                            temp = br.readLine();
+                            sb.append(temp);
+                        }
+                        int leftline = totalline - line - 5;
+                        for (int i = 0; i < leftline; i++) {
+                            br.readLine();
+                        }
+                    }
+                    bw.write(geneName + "\t" + sb.toString() + "\n");
+                }
+            }
+            br.close();
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(geneName);
+        }
 
     }
 
@@ -1478,7 +1601,7 @@ public class eQTL {
             int upperindex = 0;
             while ((temp = br.readLine()) != null) {
                 if (temp.startsWith("pheno") || temp.startsWith("pid") || temp.startsWith("Index")) {
-                    bw.write(temp+"\n");
+                    bw.write(temp + "\n");
                     temps = temp.split("\t");
                     for (int i = 0; i < temps.length; i++) {
                         if (temps[i].equals("log2_aFC")) logaFCindex = i;
@@ -1488,14 +1611,14 @@ public class eQTL {
                     continue;
                 }
                 temps = temp.split("\t");
-                if(temps[logaFCindex].equals("nan"))continue;
+                if (temps[logaFCindex].equals("nan")) continue;
                 if (temps[upperindex].equals("nan") || temps[lowerindex].equals("nan")) continue;
                 double lower = Double.valueOf(temps[lowerindex]);
                 double upper = Double.valueOf(temps[upperindex]);
                 double ef = Math.abs(Double.valueOf(temps[logaFCindex]));
                 if (ef > 2 / Math.log10(2)) continue;
                 if (lower * upper < 0) continue;
-                bw.write(temp+"\n");
+                bw.write(temp + "\n");
             }
             br.close();
             bw.flush();
@@ -1724,7 +1847,7 @@ public class eQTL {
         try {
             HashSet<String> geneSet = new HashSet<>();
             BufferedReader brinfo = IOUtils.getTextReader(infor);
-            while((temp = brinfo.readLine())!=null){
+            while ((temp = brinfo.readLine()) != null) {
                 geneSet.add(temp);
             }
             BufferedReader br = IOUtils.getTextReader(inputFileS);
@@ -1738,7 +1861,7 @@ public class eQTL {
                 if (temp.startsWith("pid")) continue;
                 String[] temps = temp.split("\t");
                 geneName = temps[0];
-                if(!geneSet.contains(geneName))continue;
+                if (!geneSet.contains(geneName)) continue;
                 String snp = temps[1];
 //                if (String.valueOf(geneName.charAt(8)).equals("D")) {
 //                if(getHomoGene.ishomoGene(homogenefile,geneName).equals("A")){
@@ -2709,11 +2832,11 @@ public class eQTL {
         double threshold = 0.00;
         double qvalue = 0.00;
         double pval = 0.00;
-        String infileDir = "/data1/home/xiaohan/tensorQTL/1M_log2";
-        String Dir = "/data1/home/xiaohan/tensorQTL/1M_log2";
+        String infileDir = "/data2/xiaohan/tensorQTL/updated_1Mlog2";
+        String Dir = "/data2/xiaohan/tensorQTL/updated_1Mlog2";
         BufferedWriter bwerror = IOUtils.getTextWriter(new File(Dir, "error.txt").getAbsolutePath());
         try {
-            for (int j = 7; j < 9; j++) {
+            for (int j = 0; j < 42; j++) {
                 int f = j + 1;
                 BufferedReader brcis = IOUtils.getTextGzipReader(new File(infileDir, f + ".cis_qtl.txt.gz").getAbsolutePath());
                 BufferedReader brnominal = IOUtils.getTextGzipReader(new File(infileDir, f + ".cis_qtl_pairs." + f + ".txt.gz").getAbsolutePath());
