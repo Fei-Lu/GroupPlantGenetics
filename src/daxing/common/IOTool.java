@@ -16,16 +16,6 @@ import java.util.stream.Collectors;
  */
 public class IOTool extends IOUtils {
 
-    public static BufferedReader getReader(String file){
-        BufferedReader br;
-        if (file.endsWith("gz")){
-            br=IOUtils.getTextGzipReader(file);
-        }else {
-            br= IOUtils.getTextReader(file);
-        }
-        return br;
-    }
-
     public static BufferedReader getReader(File file){
         BufferedReader br;
         if (file.getName().endsWith("gz")){
@@ -34,6 +24,10 @@ public class IOTool extends IOUtils {
             br=IOUtils.getTextReader(file.getAbsolutePath());
         }
         return br;
+    }
+
+    public static BufferedReader getReader(String file){
+        return getReader(new File(file));
     }
 
     public static BufferedWriter getWriter(File file){
@@ -47,8 +41,8 @@ public class IOTool extends IOUtils {
 
     /**
      * 递归获取当前目录下的所有非隐藏文件
-     * @param dir
-     * @return
+     * @param dir dir
+     * @return 当前目录下的所有非隐藏文件
      */
     public static List<File> getVisibleFileRecursiveDir(String dir){
         File[] files= IOUtils.listRecursiveFiles(new File(dir));
@@ -59,7 +53,7 @@ public class IOTool extends IOUtils {
 
     /**
      * 获取当前目录下的所有非隐藏文件(不包含目录)，不递归
-     * @param dir
+     * @param dir dir
      * @return
      */
     public static List<File> getVisibleDir(String dir){
