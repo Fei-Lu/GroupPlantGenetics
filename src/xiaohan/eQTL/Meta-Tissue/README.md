@@ -1,6 +1,6 @@
-#Meta-Tissue pipeline
+# Meta-Tissue pipeline
 
-#Prerequisites
+# Prerequisites
 1.nominal files
 header must includes
 gene_id	variant_id	tss_distance	pval_nominal	slope	slope_se
@@ -9,11 +9,11 @@ gene_id	variant_id	tss_distance	pval_nominal	slope	slope_se
 header must includes
 variant_id	gene_id	
 
-#output files
+# output files
 
 output/Summary/meta_summary.metasoft.txt.gz
 
-#parameters
+# parameters
 1.list all significant pairs files like
 /data2/xiaohan/metasoft/v6_sig_egenes/GTEx_Analysis_v6p_eQTL/Brain_Anterior_cingulate_cortex_BA24_Analysis.v6p.signif_snpgene_pairs.txt.gz
 /data2/xiaohan/metasoft/v6_sig_egenes/GTEx_Analysis_v6p_eQTL/Uterus_Analysis.v6p.signif_snpgene_pairs.txt.gz
@@ -34,5 +34,5 @@ contains 4 rows including this Dir Path, sig_list files, nominal_list files, and
 /data2/xiaohan/metasoft/testoutput
 
 
-#usage
+# usage
 java -jar Meta_par.txt 
