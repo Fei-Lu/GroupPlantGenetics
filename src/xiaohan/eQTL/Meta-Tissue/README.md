@@ -15,12 +15,16 @@ output/Summary/meta_summary.metasoft.txt.gz
 
 # parameters
 1.list all significant pairs files like
+```bash
 /data2/xiaohan/metasoft/v6_sig_egenes/GTEx_Analysis_v6p_eQTL/Brain_Anterior_cingulate_cortex_BA24_Analysis.v6p.signif_snpgene_pairs.txt.gz
 /data2/xiaohan/metasoft/v6_sig_egenes/GTEx_Analysis_v6p_eQTL/Uterus_Analysis.v6p.signif_snpgene_pairs.txt.gz
+```
 
 2.list all nominal pairs files like
+```bash
 /data2/xiaohan/metasoft/v6_sig_egenes/GTEx_Analysis_v6p_eQTL/Brain_Anterior_cingulate_cortex_BA24_Analysis.v6p.signif_snpgene_pairs.txt.gz
 /data2/xiaohan/metasoft/v6_sig_egenes/GTEx_Analysis_v6p_eQTL/Uterus_Analysis.v6p.signif_snpgene_pairs.txt.gz
+```
 
 3.parameter files like
 contains 4 rows including this Dir Path, sig_list files, nominal_list files, and your output
