@@ -24,6 +24,7 @@ output/Summary/meta_summary.metasoft.txt.gz
 
 3.parameter files like
 contains 4 rows including this Dir Path, sig_list files, nominal_list files, and your output
+```bash
 #This is where the Java files Dir is
 /data2/xiaohan/jar/metasoft
 # This is a file contains where sig files are (file in parameters 1)
@@ -32,6 +33,7 @@ contains 4 rows including this Dir Path, sig_list files, nominal_list files, and
 /data2/xiaohan/metasoft/testoutput/allpairs.txt
 # This is your STUDY's output Dis
 /data2/xiaohan/metasoft/testoutput
+```
 
 
 # usage
