@@ -16,7 +16,7 @@ import java.util.*;
 
 public class eQTL {
 
-    public eQTL() throws IOException, InterruptedException {
+    public eQTL(String args) throws IOException, InterruptedException {
 //        this.command();
 //        this.Distance();
 //        this.intergenicPattern();
@@ -26,7 +26,7 @@ public class eQTL {
 //        this.getCisChrGene();
 //        this.getCisVCF();
 //        this.getCisEffectSize();
-        this.getNominalSig();
+//        this.getNominalSig();
 //        this.getcisSig();
 //        this.writecommand();
 //        this.geteGene();
@@ -78,6 +78,16 @@ public class eQTL {
 //        this.getsubGerp();
 //        this.getGenelength();
 //        this.substring();
+
+
+        /*
+        Meta-Tissue Analysis pipeline
+         */
+        this.metasoft(args);
+    }
+
+    public void metasoft(String infile){
+        new MetaTissue(infile);
     }
 
     public void substring() {
@@ -1806,7 +1816,7 @@ public class eQTL {
         String infor = "/data2/xiaohan/tensorQTL/1M_log2/homoeffect_top/genelist/donor02GeneName.txt";
         String f = "all";
 //        nameSet.parallelStream().forEach(f -> {
-        String Dir = "/data2/xiaohan/tensorQTL/1M_log2/homoeffect_top/";
+        String Dir = "/data2/xiaohan/tensorQTL/updated_1Mlog2/homoeffect_top/";
 //        String homogenefile = "/data2/xiaohan/reference/TheABD.txt";
         String inputFileS = Dir + f + ".cis.sig.DE.log2.txt";
         String outputFileUp = Dir + "distribution/" + f + ".up.distribution.txt";
@@ -1862,18 +1872,18 @@ public class eQTL {
                 String[] temps = temp.split("\t");
                 geneName = temps[0];
                 if (!geneSet.contains(geneName)) continue;
-                String snp = temps[1];
+                String snp = temps[6];
 //                if (String.valueOf(geneName.charAt(8)).equals("D")) {
 //                if(getHomoGene.ishomoGene(homogenefile,geneName).equals("A")){
-                if (temps[6].equals("nan")) {
+                if (temps[19].equals("nan")) {
 //                    ef = 0;
                     continue;
                 } else {
-                    ef = Math.abs(Double.valueOf(temps[6]));
+                    ef = Math.abs(Double.valueOf(temps[19]));
                 }
                 if (ef > 2 / Math.log10(2)) continue;
-                if (temps[7].equals("nan") || temps[8].equals("nan")) continue;
-                if (Double.valueOf(temps[7]) * Double.parseDouble(temps[8]) < 0) continue;
+                if (temps[20].equals("nan") || temps[21].equals("nan")) continue;
+                if (Double.valueOf(temps[20]) * Double.parseDouble(temps[21]) < 0) continue;
                 int i = gf.getGeneIndex(geneName);
                 if (gf.isWithinThisGene(i, Integer.valueOf(snp.split("_")[0]), Integer.valueOf(snp.split("_")[1]))) {
                     pos = Integer.valueOf(snp.split("_")[1]);
@@ -4054,6 +4064,6 @@ public class eQTL {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        new eQTL();
+        new eQTL(args[0]);
     }
 }
