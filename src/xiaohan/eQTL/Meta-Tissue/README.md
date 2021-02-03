@@ -1,13 +1,17 @@
 # Meta-Tissue pipeline
 
 # Prerequisites
-1.nominal files
+1.nominal files :
 header must includes
+```bash
 gene_id	variant_id	tss_distance	pval_nominal	slope	slope_se
+```
 
-2.significant pairs files
+2.significant pairs files :
 header must includes
+```bash
 variant_id	gene_id	
+```
 
 # output files
 
