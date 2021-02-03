@@ -45,4 +45,4 @@ contains 4 rows including this Dir Path, sig_list files, nominal_list files, and
 
 
 # usage
-java -jar Meta_par.txt 
+nohup java -jar MetaTissue.jar Meta_par.txt > log.txt & 
