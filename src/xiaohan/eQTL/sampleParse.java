@@ -1,23 +1,19 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 
-import format.table.RowTable;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import utils.Benchmark;
-import utils.IOUtils;
+import pgl.infra.table.RowTable;
+import pgl.infra.utils.Benchmark;
+import pgl.infra.utils.IOUtils;
+
 
 /**
  *
