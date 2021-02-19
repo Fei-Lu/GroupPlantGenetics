@@ -290,8 +290,8 @@ public class ScriptMethods {
         }
         List<File> subgenomeVcfFiles=vcfFiles.stream().filter(subgenomeP).collect(Collectors.toList());
         List<File> subgenomeVcfComplementBedFiles=vcfComplementBedFiles.stream().filter(subgenomeP).collect(Collectors.toList());
-        Multimap<String, String> map= TreeMultimap.create();
-        Map<String, String> popDistTaxon=new HashMap<>();
+        Multimap<String, String> popmap= TreeMultimap.create();
+        Map<String, String> popDistTaxonMap=new HashMap<>();
         Map<Integer, Integer> chrSizeMap=new HashMap<>();
         try (BufferedReader bufferedReader = IOTool.getReader(groupFile);
              BufferedReader brDistTaxon=IOTool.getReader(distTaxonFile);
@@ -302,12 +302,12 @@ public class ScriptMethods {
             bufferedReader.readLine();
             while ((line=bufferedReader.readLine())!=null){
                 temp=PStringUtils.fastSplit(line);
-                map.put(temp.get(0), temp.get(1));
+                popmap.put(temp.get(0), temp.get(1));
             }
             brDistTaxon.readLine();
             while ((line=brDistTaxon.readLine())!=null){
                 temp=PStringUtils.fastSplit(line);
-                popDistTaxon.put(temp.get(0), temp.get(1));
+                popDistTaxonMap.put(temp.get(0), temp.get(1));
             }
             while ((line=bufferedReader1.readLine())!=null){
                 temp=PStringUtils.fastSplit(line);
@@ -319,8 +319,8 @@ public class ScriptMethods {
             File outFile;
             for (int i = 0; i < subgenomeVcfFiles.size(); i++) {
                 for (String s : group) {
-                    individuals = new ArrayList<>(map.get(s));
-                    distTaxon = popDistTaxon.get(s);
+                    individuals = new ArrayList<>(popmap.get(s));
+                    distTaxon = popDistTaxonMap.get(s);
                     sb = new StringBuilder();
                     sb.append("nohup smc++ vcf2smc --cores 1 -m ").append(subgenomeVcfComplementBedFiles.get(i)).append(" ");
                     sb.append(subgenomeVcfFiles.get(i)).append(" -l ").append(chrSizeMap.get(subgenomeChrs.get(i))).append(" -d ");

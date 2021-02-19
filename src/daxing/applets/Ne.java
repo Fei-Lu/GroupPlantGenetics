@@ -278,6 +278,8 @@ public class Ne {
                         }else if (temp.get(i).startsWith("1|0")){
                             te=temp.get(i);
                             sb.append("0|1").append(te.substring(3)).append("\t");
+                        }else {
+                            sb.append(temp.get(i)).append("\t");
                         }
                     }
                     sb.deleteCharAt(sb.length()-1);
@@ -293,5 +295,7 @@ public class Ne {
             e.printStackTrace();
         }
     }
+
+
 
 }
