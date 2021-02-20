@@ -64,9 +64,9 @@ public class Ne {
         List<File> abFiles=getFiles(files, "AB");
         List<File> dFiles=getFiles(files, "D");
         String[] abOutFile= abFiles.stream().map(File::getName).
-                map(s -> s.replaceAll(".vcf.gz", ".DistinguishedLineages.vcf.gz")).toArray(String[]::new);
+                map(s -> s.replaceAll(".vcf.gz", ".PseudoDiploid.DistinguishedLineages.vcf.gz")).toArray(String[]::new);
         String[] dOutFile= dFiles.stream().map(File::getName).
-                map(s -> s.replaceAll(".vcf.gz", ".DistinguishedLineages.vcf.gz")).toArray(String[]::new);
+                map(s -> s.replaceAll(".vcf.gz", ".PseudoDiploid.DistinguishedLineages.vcf.gz")).toArray(String[]::new);
         Map<String,String> taxaGroupABMap=getTaxaGroupMap(taxaInfo_depthFile, groupBySubspeciesAB);
         Map<String,String> taxaGroupDMap=getTaxaGroupMap(taxaInfo_depthFile, groupBySubspeciesD);
         IntStream.range(0, abFiles.size()).parallel().forEach(e->syntheticPseudoDiploid(abFiles.get(e),taxaGroupABMap,
@@ -117,6 +117,7 @@ public class Ne {
                     indexListArray[i].add(indexArray);
                 }
             }
+            sb.deleteCharAt(sb.length()-1);
             bw.write(sb.toString());
             bw.newLine();
             while ((line=br.readLine())!=null){
