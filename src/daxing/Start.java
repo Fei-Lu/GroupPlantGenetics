@@ -1,19 +1,24 @@
 package daxing;
 
-import daxing.applets.ScriptMethods;
+import daxing.applets.Ne;
+import daxing.common.Group;
+import daxing.common.SubgenomeCombination;
 
 public class Start {
 
     public static void main(String[] args) {
-        String vcfDir="/Users/xudaxing/Desktop/Ne/004_refToAncestral_vcf";
-        String bedDir="/Users/xudaxing/Desktop/Ne/005_complementChr";
-        String outDir="/Users/xudaxing/Desktop/Ne/006_smc";
-        String groupFile="/Users/xudaxing/Desktop/Ne/006_/groupSMC.txt";
-        String distTaxon="/Users/xudaxing/Desktop/Ne/006_/popDistTaxon.txt";
-        String outFileAB="/Users/xudaxing/Desktop/Ne/007_out/ab.sh";
-        String outFileD="/Users/xudaxing/Desktop/Ne/007_out/d.sh";
-        String genomeFile="/Users/xudaxing/Desktop/Ne/006_/genome.txt";
-        String logDir="/Users/xudaxing/Desktop/Ne/log";
-        ScriptMethods.bulidSMC(vcfDir,bedDir,outDir,groupFile,distTaxon,outFileAB,outFileD,genomeFile,logDir);
+        String vcfDir=args[0];
+        String taxaInfo_depth=args[1];
+        String pseudoDiploidDir=args[2];
+        Group group=Group.valueOf(args[3]);
+        int pseudoDiploidNum=Integer.parseInt(args[4]);
+        String ancestralDir=args[5];
+        String ancestralVCFDir=args[6];
+
+        Ne.randomSyntheticPseudoDiploid(vcfDir, taxaInfo_depth, pseudoDiploidDir, group,
+                SubgenomeCombination.D, pseudoDiploidNum);
+        Ne.randomSyntheticPseudoDiploid(vcfDir, taxaInfo_depth, pseudoDiploidDir, group,
+                SubgenomeCombination.AB, pseudoDiploidNum);
+        Ne.transformRefToAncestral(pseudoDiploidDir, ancestralDir, ancestralVCFDir);
     }
 }

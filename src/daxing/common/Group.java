@@ -25,6 +25,10 @@ public enum Group {
         return groupABList;
     }
 
+    /**
+     *
+     * @return Wild_emmer not WE
+     */
     private List<String> getGroupD(){
         List<String> groupDList=new ArrayList<>();
         switch (this){
@@ -33,7 +37,7 @@ public enum Group {
                     if (group.equals(GroupBySubcontinent.WE)) continue;
                     if (group.equals(GroupBySubcontinent.DE)) continue;
                     if (group.equals(GroupBySubcontinent.FT)) continue;
-                    groupDList.add(group.getGroup());
+                    groupDList.add(group.getGroupAbbrev());
                 }
                 return groupDList;
             case Subspecies:
@@ -41,7 +45,7 @@ public enum Group {
                     if (group.equals(GroupBySubspecies.WE)) continue;
                     if (group.equals(GroupBySubspecies.DE)) continue;
                     if (group.equals(GroupBySubspecies.FT)) continue;
-                    groupDList.add(group.getGroup());
+                    groupDList.add(group.getGroupAbbrev());
                 }
                 return groupDList;
         }

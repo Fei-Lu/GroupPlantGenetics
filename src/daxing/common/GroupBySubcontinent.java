@@ -1,6 +1,6 @@
 package daxing.common;
 
-public enum GroupBySubcontinent {
+public enum GroupBySubcontinent implements GroupType{
 
     WE("Wild_emmer"),DE("Domesticated_emmer"),FT("Free_threshing_tetraploid"),AT("Ae.tauschii"),
     LR_EU("LR_EU"),
@@ -13,8 +13,14 @@ public enum GroupBySubcontinent {
         this.group=group;
     }
 
+    @Override
     public String getGroup() {
         return group;
+    }
+
+    @Override
+    public String getGroupAbbrev() {
+        return this.name();
     }
 
     public static GroupBySubcontinent newInstanceFrom(String group){

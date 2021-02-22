@@ -7,6 +7,7 @@ import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.util.CombinatoricsUtils;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -17,27 +18,23 @@ import java.util.stream.IntStream;
 
 public class Ne {
 
-//    static String[] groupBySubspecies={"Wild_emmer","Domesticated_emmer","Free_threshing_tetraploid","Ae.tauschii",
-//            "LR_EU","LR_EA","Cultivar"};
-//    static String[] groupBySubspeciesAB={"Wild_emmer","Domesticated_emmer","Free_threshing_tetraploid",
-//            "LR_EU","LR_EA","Cultivar"};
-//    static String[] groupBySubspeciesD={"Ae.tauschii","LR_EU","LR_EA","Cultivar"};
-
-    public static void syntheticPseudoDiploid(String vmap2InputDir, String taxaInfo_depthFile, String outDir,
-                                              Group group, SubgenomeCombination subgenomeCombination){
+    public static void randomSyntheticPseudoDiploid(String vmap2InputDir, String taxaInfo_depthFile, String outDir,
+                                              Group group, SubgenomeCombination subgenomeCombination,
+                                              int pseudoDiploidNum){
         System.out.println(DateTime.getDateTimeOfNow());
         List<File> files = IOUtils.getFileListInDirEndsWith(vmap2InputDir, "gz");
         List<File> subgenomeFiles=getFiles(files, subgenomeCombination);
         String[] subgenomeOutFileName= subgenomeFiles.stream().map(File::getName).
-                map(s -> s.replaceAll(".vcf.gz", ".PseudoDiploid.DistinguishedLineages.vcf.gz")).toArray(String[]::new);
+                map(s -> s.replaceAll(".vcf.gz", ".PseudoDiploid.vcf.gz")).toArray(String[]::new);
         Map<String,String> taxaGroupSubgenomeMap=getTaxaGroupSubgenomeMap(taxaInfo_depthFile, group, subgenomeCombination);
-        IntStream.range(0, subgenomeFiles.size()).parallel().forEach(e->syntheticPseudoDiploid(subgenomeFiles.get(e),taxaGroupSubgenomeMap,
-                new File(outDir, subgenomeOutFileName[e])));
+        IntStream.range(0, subgenomeFiles.size()).parallel().forEach(e->randomSyntheticPseudoDiploid(group, pseudoDiploidNum,
+                subgenomeFiles.get(e),taxaGroupSubgenomeMap, new File(outDir, subgenomeOutFileName[e])));
         System.out.println(subgenomeCombination.name()+" subgenome completed");
         System.out.println(DateTime.getDateTimeOfNow());
     }
 
-    private static void syntheticPseudoDiploid(File vmap2File, Map<String, String> taxaGroupMap, File outFile){
+    private static void randomSyntheticPseudoDiploid(Group group, int pseudoDiploidNumInPop, File vmap2File,
+                                               Map<String, String> taxaGroupMap, File outFile){
         Set<String> groupSet=getValueSet(taxaGroupMap);
         List<String> groupList=new ArrayList<>(groupSet);
         Collections.sort(groupList);
@@ -62,16 +59,23 @@ public class Ne {
                 indexListArray[i]=new ArrayList<>();
             }
             int[] indexArray;
-            GroupBySubcontinent groupBySubcontinent;
+            GroupType groupType;
+            List<int[]> combinationTotalList;
             for (int i = 0; i < iteratorCombinations.length; i++) {
-                groupBySubcontinent = GroupBySubcontinent.newInstanceFrom(groupList.get(i));
+                groupType = GroupType.newInstanceFrom(groupList.get(i), group);
                 Iterator<int[]> iterator=iteratorCombinations[i];
+                combinationTotalList=new ArrayList<>();
                 while (iterator.hasNext()){
                     int[] combination= iterator.next();
                     indexArray=new int[2];
                     indexArray[0]=distinguishedLineageIndexArray[i].get(combination[0]);
                     indexArray[1]=distinguishedLineageIndexArray[i].get(combination[1]);
-                    sb.append(groupBySubcontinent.name()).append("_").append(temp.get(indexArray[0])).append("_").append(temp.get(indexArray[1])).append("\t");
+                    combinationTotalList.add(indexArray);
+                }
+                Collections.shuffle(combinationTotalList);
+                for (int j = 0; j < pseudoDiploidNumInPop; j++) {
+                    indexArray=combinationTotalList.get(j);
+                    sb.append(groupType.getGroupAbbrev()).append("_").append(temp.get(indexArray[0])).append("_").append(temp.get(indexArray[1])).append("\t");
                     indexListArray[i].add(indexArray);
                 }
             }
@@ -97,6 +101,7 @@ public class Ne {
                 bw.newLine();
             }
             bw.flush();
+            System.out.println(outFile.getName()+" had completed");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -104,9 +109,17 @@ public class Ne {
 
     private static Map<String, String> getTaxaGroupSubgenomeMap(String taxaInfo_depthFile, Group group,
                                                          SubgenomeCombination subgenomeCombination){
-        Map<String, String> taxaGroupMap=RowTableTool.getMap(taxaInfo_depthFile, 0, 2);
         List<String> subgenomeGroupList=group.getGroup(subgenomeCombination);
         Map<String, String> taxaGroupSubgenomeMap=new HashMap<>();
+        Map<String, String> taxaGroupMap=null;
+        switch (group){
+            case Subcontinent:
+                taxaGroupMap=RowTableTool.getMap(taxaInfo_depthFile,0,2);
+                break;
+            case Subspecies:
+                taxaGroupMap=RowTableTool.getMap(taxaInfo_depthFile,0,3);
+                break;
+        }
         for (Map.Entry<String, String> entry : taxaGroupMap.entrySet()){
             if (!subgenomeGroupList.contains(entry.getValue())) continue;
             taxaGroupSubgenomeMap.put(entry.getKey(), entry.getValue());
