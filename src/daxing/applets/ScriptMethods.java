@@ -14,7 +14,6 @@ import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -259,27 +258,27 @@ public class ScriptMethods {
      *
      * @param vcfDir vcf dir
      * @param vcfComplementBedDir vcfComplementBedDir
-     * @param subgenome "AB" or "D"
+     * @param subgenomeCombination
      * @param groupFile groupFile
      * DomesticatedEmmer	CItr14822
      * DomesticatedEmmer	CItr14824
      * DomesticatedEmmer	CItr14916
      * FreeThreshTetraploid	CItr14892
      * FreeThreshTetraploid	CItr7798
-     * @param group group
+     * @param groupList group
      * @param shOutFile shOutFile
      */
-    public static void smc(String vcfDir, String vcfComplementBedDir, String outDir, String subgenome, String groupFile,
-                           String[] group, String shOutFile, String genomeFile, String logDir){
+    public static void smc(String vcfDir, String vcfComplementBedDir, String outDir, SubgenomeCombination subgenomeCombination,
+                           String groupFile, List<String> groupList, String shOutFile, String genomeFile, String logDir){
         List<File> vcfFiles=IOUtils.getFileListInDirEndsWith(vcfDir, "gz");
         List<File> vcfComplementBedFiles=IOUtils.getFileListInDirEndsWith(vcfComplementBedDir, "gz");
         Predicate<File> subgenomeP = null;
         TIntArrayList subgenomeChrs = null;
-        if (subgenome.equals("AB")){
+        if (subgenomeCombination.equals(SubgenomeCombination.AB)){
             TIntArrayList ab=new TIntArrayList(WheatLineage.ablineage());
             subgenomeP=f->ab.contains(StringTool.getNumFromString(f.getName()));
             subgenomeChrs=new TIntArrayList(WheatLineage.ablineage());
-        }else if (subgenome.equals("D")){
+        }else if (subgenomeCombination.equals(SubgenomeCombination.D)){
             TIntArrayList d=new TIntArrayList(WheatLineage.valueOf("D").getChrID());
             subgenomeP=f->d.contains(StringTool.getNumFromString(f.getName()));
             subgenomeChrs=new TIntArrayList(WheatLineage.valueOf("D").getChrID());
@@ -304,25 +303,25 @@ public class ScriptMethods {
             List<String> individuals;
             String distTaxon;
             File outFile;
-            Ne.Group abbrevGroup;
+            GroupBySubcontinent abbrevGroupBySubcontinent;
             for (int i = 0; i < subgenomeVcfFiles.size(); i++) {
-                for (String s : group) {
+                for (String s : groupList) {
                     individuals = new ArrayList<>(popmap.get(s));
                     distTaxon = popDistTaxonMap.get(s);
-                    abbrevGroup=Ne.Group.newInstanceFrom(s);
+                    abbrevGroupBySubcontinent = GroupBySubcontinent.newInstanceFrom(s);
                     sb = new StringBuilder();
                     sb.append("nohup smc++ vcf2smc --cores 1 -m ").append(subgenomeVcfComplementBedFiles.get(i)).append(" ");
                     sb.append(subgenomeVcfFiles.get(i)).append(" -l ").append(chrSizeMap.get(subgenomeChrs.get(i))).append(" -d ");
                     sb.append(distTaxon).append(" ").append(distTaxon).append(" ");
-                    outFile = new File(outDir, subgenomeVcfFiles.get(i).getName().substring(0, 6) + "." + abbrevGroup + ".smc" +
+                    outFile = new File(outDir, subgenomeVcfFiles.get(i).getName().substring(0, 6) + "." + abbrevGroupBySubcontinent + ".smc" +
                             ".gz");
                     sb.append(outFile.getAbsolutePath()).append(" ").append(subgenomeChrs.get(i)).append(" ");
-                    sb.append(abbrevGroup).append(":");
+                    sb.append(abbrevGroupBySubcontinent).append(":");
                     for (String individual : individuals) {
                         sb.append(individual).append(",");
                     }
                     sb.deleteCharAt(sb.length() - 1);
-                    sb.append(" >").append(logDir).append(subgenomeVcfFiles.get(i).getName(), 0, 6).append("_").append(abbrevGroup).append(".log");
+                    sb.append(" >").append(logDir).append(subgenomeVcfFiles.get(i).getName(), 0, 6).append("_").append(abbrevGroupBySubcontinent).append(".log");
                     sb.append(" ").append("2>&1");
                     bufferedWriter.write(sb.toString());
                     bufferedWriter.newLine();
@@ -353,11 +352,11 @@ public class ScriptMethods {
             StringBuilder sb=new StringBuilder();
             List<int[]> combinationList;
             int[] combiantion;
-            Ne.Group abbrevGroup;
+            GroupBySubcontinent abbrevGroupBySubcontinent;
             for (String group:groupList){
                 individualsList=new ArrayList<>(popMap.get(group));
                 Collections.sort(individualsList);
-                abbrevGroup= Ne.Group.newInstanceFrom(group);
+                abbrevGroupBySubcontinent = GroupBySubcontinent.newInstanceFrom(group);
                 Iterator<int[]> iterator=CombinatoricsUtils.combinationsIterator(individualsList.size(), 2);
                 combinationList=new ArrayList<>();
                 while (iterator.hasNext()){
@@ -367,7 +366,7 @@ public class ScriptMethods {
                 for (int i = 0; i < sampleSize; i++) {
                     combiantion=combinationList.get(i);
                     sb.setLength(0);
-                    sb.append(abbrevGroup).append("_");
+                    sb.append(abbrevGroupBySubcontinent).append("_");
                     sb.append(individualsList.get(combiantion[0])).append("_").append(individualsList.get(combiantion[1]));
                     res.put(group, sb.toString());
                 }
@@ -494,7 +493,8 @@ public class ScriptMethods {
         }
     }
 
-    public static void bulidSMC(String vcfDir, String bedDir, String outDir, String groupFile,
+    public static void bulidSMC(String vcfDir, String bedDir, String outDir, String groupFile, Group group,
+                                SubgenomeCombination subgenomeCombination,
                                 String outFileAB, String outFileD, String genomeFile, String logDir){
 //        vcfDir="/data1/home/daxing/vmap2.1Data/002_vmap2.1RefToAncestral";
 //        bedDir="/data1/home/daxing/vmap2.1Data/001_vmap2.1_complementChr";
@@ -507,8 +507,10 @@ public class ScriptMethods {
 //        String[] group_AB={"WildEmmer","DomesticatedEmmer","FreeThreshTetraploid","Landrace", "Cultivar"};
 //        String[] group_D={"Ae.tauschii","Landrace", "Cultivar"};
 //        logDir="/Users/xudaxing/Desktop/log";
-        ScriptMethods.smc(vcfDir, bedDir, outDir,"AB", groupFile, Ne.groupBySubspeciesAB, outFileAB, genomeFile, logDir);
-        ScriptMethods.smc(vcfDir, bedDir, outDir,"D", groupFile, Ne.groupBySubspeciesD, outFileD, genomeFile, logDir);
+        ScriptMethods.smc(vcfDir, bedDir, outDir,SubgenomeCombination.AB, groupFile,
+                group.getGroup(SubgenomeCombination.AB), outFileAB, genomeFile, logDir);
+        ScriptMethods.smc(vcfDir, bedDir, outDir,SubgenomeCombination.D, groupFile,
+                group.getGroup(SubgenomeCombination.D), outFileD, genomeFile, logDir);
     }
 
     public static void bulidSMC_split(String vcfDir, String bedDir, String outDir, String groupFile, String distTaxon,
