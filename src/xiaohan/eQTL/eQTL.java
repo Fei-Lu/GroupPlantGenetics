@@ -2,30 +2,27 @@ package xiaohan.eQTL;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import com.ibm.icu.impl.UResource;
 import daxing.load.ancestralSite.Standardization;
-import jxl.CellFeatures;
+import org.apache.commons.math3.stat.StatUtils;
 import pgl.infra.range.Range;
 import pgl.infra.table.RowTable;
-import smile.neighbor.lsh.Hash;
-import sun.security.util.Length;
 import xiaohan.rareallele.GeneFeature;
 import xiaohan.rareallele.IOUtils;
 
-import java.lang.Object;
-
-import java.io.*;
-import java.lang.reflect.Array;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.function.IntUnaryOperator;
 
 public class eQTL {
 
     int score = 0;
+//    String infileDir = null;
 
-    //    public eQTL(String args) throws IOException, InterruptedException {
-    public eQTL() throws IOException, InterruptedException {
+    public eQTL(String[] args) throws IOException, InterruptedException {
+//    public eQTL() throws IOException, InterruptedException {
 //        this.command();
 //        this.Distance();
 //        this.intergenicPattern();
@@ -55,11 +52,18 @@ public class eQTL {
         /*
         simulation
         */
-//        this.generateFastq();
-//        this.generateReads();
+        this.generateFastq(args);
+        this.generateReads(args[0]);
 //        this.getTrueSet();
-//        this.getRealCount();
-        this.getPrecisionRecall();
+        this.getReadslength(args[0]);
+        this.getalignment(args[0]);
+        this.getCount(args[0]);
+        this.getRealCount(args[0]);
+        this.getSummary(args[0]);
+        this.getShuf(args[0]);
+        this.getPrecisionRecall(args[0]);
+        this.getPrecisionPlot(args[0]);
+
 //        this.getphred(score);
 //        this.test();
         /*
@@ -99,6 +103,34 @@ public class eQTL {
         Meta-Tissue Analysis pipeline
          */
 //        this.metasoft(args);
+
+//        this.test1();
+    }
+
+    public void test1() {
+        String reads1 = "AAGGTACATAATATAATAAATATTGTTCTGGCACCAACTTGCATCGTGGGATAAGGATTTGTCTAGACCGAACTACATCAGGACGTGACCATCAGCCACGAGAGGAGTCAC";
+        String reads2 = new StringBuffer(reads1).reverse().toString();
+        System.out.println(reads2);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < reads2.length(); i++) {
+            String index = reads2.substring(i, i + 1);
+            String index1 = null;
+            if (index.equals("A")) {
+                index1 = "T";
+            }
+            if (index.equals("G")) {
+                index1 = "C";
+            }
+            if (index.equals("T")) {
+                index1 = "A";
+            }
+            if (index.equals("C")) {
+                index1 = "G";
+            }
+            sb.append(index1);
+        }
+        String Reads = sb.toString();
+        System.out.println(Reads);
     }
 
     public void getFilteredVCF() {
@@ -167,9 +199,18 @@ public class eQTL {
     }
 
     public void test() {
-        int a = 5;
-        String Q = getphred(a);
-        System.out.println(Q);
+//        for (int i = 0; i < 1000; i++) {
+//
+//            int min = 0;
+//            int max = 100;
+//            int num = min + (int) (Math.random() * (max - min + 1));
+//            System.out.println(num);
+//        }
+//        String a = "CGCCTCAGCCTCCTACCGCTCCACGACCCCGCCTCCCCGCTCGCCTCCCTCCCGCTCCCCTCCCGGCCCACGGCCCTCCGCTGCTCCCCTTCCGTCCTCGCCGCCGCCACCTCCTCCGGCTCCCTCCACCTCCTCCCCTCCTCCTTCGACACCGACTCGGCGGTGTCCGTCCCCGGCGGCGCGGGGTTCCATGTGGGGCCCGTGCGCGGGCTCGACTGCGGCGGCGAGGGGTGGGTGACGGCGGGGGAGGACGGGAGGGTGCACGTGGTGTCGGACGGCGGCGACGGCAGGGTGGTGGCCAGGAGGGTGTGGGATGGGAAGGGCATGTCAGGGTACGGGGCGGCGAGATG";
+        String a = "CGCCTCAGCCTCCTACCGCTCCACGACCCCGCCTC";
+        System.out.println(a.substring(0, 35));
+//        String Q = getphred(a);
+//        System.out.println(Q);
     }
 
     public String getphred(int score) {
@@ -186,8 +227,180 @@ public class eQTL {
         return phred;
     }
 
-    public void getPrecisionRecall() {
-        String outfile = "/data1/home/xiaohan/SiPASsimu/junxu/0219/boot/bootJun.txt";
+    public void getReadslength(String arg) {
+        for (int i = 50; i < 150; i++) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("zcat SE3724-150_R2.fq.gz | cut -c1-" + i + " > SE3724-" + i + "_R2.fq && bgzip SE3724-" + i + "_R2.fq");
+            String command = sb.toString();
+            System.out.println(command);
+            try {
+                File dir = new File(new File(arg).getAbsolutePath());
+                String[] cmdarry = {"/bin/bash", "-c", command};
+                Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+                p.waitFor();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("Finished readslength");
+    }
+
+    public void getalignment(String arg) {
+        for (int i = 50; i < 151; i++) {
+            String command = null;
+            StringBuilder sb2 = new StringBuilder();
+            sb2.append("/data1/home/junxu/software/STAR-2.6.1c/bin/Linux_x86_64/STAR --runThreadN 32 --genomeDir /data1/home/junxu/starLib1.1 --genomeLoad LoadAndKeep --readFilesCommand zcat --readFilesIn SE3724-" + i + "_R2.fq.gz --outFileNamePrefix SE3724-" + i + "_ --outFilterMultimapNmax 10 --outFilterMismatchNoverLmax 0.1 --outFilterIntronMotifs RemoveNoncanonicalUnannotated --outSAMtype BAM Unsorted --outFilterScoreMinOverLread 0 --outFilterMatchNminOverLread 0");
+            command = sb2.toString();
+            System.out.println(command);
+            try {
+                File dir = new File(new File(arg).getAbsolutePath());
+                String[] cmdarry = {"/bin/bash", "-c", command};
+                Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+                p.waitFor();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("Finished alignment");
+    }
+
+    public void getCount(String arg) {
+        for (int i = 50; i < 151; i++) {
+            String command = null;
+            StringBuilder sb3 = new StringBuilder();
+            sb3.append("htseq-count -f bam -m intersection-nonempty -s no SE3724-" + i + "_Aligned.out.bam /data1/home/junxu/wheat_v1.1_Lulab.gtf >  SE3724-" + i + "_Count.txt");
+            command = sb3.toString();
+            System.out.println(command);
+            try {
+                File dir = new File(new File(arg).getAbsolutePath());
+                String[] cmdarry = {"/bin/bash", "-c", command};
+                Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+                p.waitFor();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("Finished counting");
+    }
+
+    public void getShuf(String arg) {
+        String command = null;
+        StringBuilder sb5 = new StringBuilder();
+        sb5.append("mkdir boot\n" +
+                "for m in $(seq 1 100)\n" +
+                "do\n" +
+                "\tfor c in $(seq 50 150)\n" +
+                "\tdo shuf -n 5000 SE3724-${c}.s > boot/SE3724-${c}-${m}\n" +
+                "done\n" +
+                "done");
+        command = sb5.toString();
+        System.out.println(command);
+        try {
+            File dir = new File(new File(arg).getAbsolutePath());
+            String[] cmdarry = {"/bin/bash", "-c", command};
+            Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+            p.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println("Finished shufling");
+    }
+
+    public void getSummary(String arg) {
+        for (int i = 50; i < 151; i++) {
+            String command = null;
+            StringBuilder sb4 = new StringBuilder();
+            sb4.append("cp SE3724-" + i + "_Count.txt SE3724-" + i + "_forcalu.txt\n");
+            sb4.append("sed -i -e '/__/d' SE3724-" + i + "_forcalu.txt\n");
+            sb4.append("cut -f 2 SE3724-" + i + "_forcalu.txt > SE3724-" + i + "_forcalu_2.txt\n");
+            sb4.append("paste TrueSet.txt SE3724-" + i + "_forcalu_2.txt > SE3724-" + i + ".simu\n");
+            sb4.append("cat SE3724-" + i + ".simu | awk -F '\\t' '$2!=0||$3!=0{print $0}' > SE3724-" + i + ".s\n");
+            command = sb4.toString();
+            System.out.println(command);
+            try {
+                File dir = new File(new File(arg).getAbsolutePath());
+                String[] cmdarry = {"/bin/bash", "-c", command};
+                Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+                p.waitFor();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("Finished summary");
+    }
+
+    public void PlotPRplot(String infileDir) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("R CMD BATCH /data1/home/xiaohan/simulationplot.R ");
+        sb.append(new File(infileDir).getAbsolutePath());
+        String command = sb.toString();
+        System.out.println(command);
+        try {
+            File dir = new File(new File(infileDir).getAbsolutePath());
+            String[] cmdarry = {"/bin/bash", "-c", command};
+            Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+            p.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println("Finished plot");
+    }
+
+    public void getPrecisionPlot(String infileDir) {
+        String infile = new File(infileDir, "boot/simulation.txt").getAbsolutePath();
+        String outfile = new File(infileDir, "boot/simulationforplot.txt").getAbsolutePath();
+        BufferedReader br = IOUtils.getTextReader(infile);
+        String temp = null;
+        String[] temps = null;
+        try {
+            int countline = 0;
+            double[][] precision = new double[101][100];
+            double[][] recall = new double[101][100];
+            while ((temp = br.readLine()) != null) {
+                temps = temp.split("\t");
+                if (temp.startsWith("FileName")) continue;
+                precision[countline / 100][countline % 100] = Double.parseDouble(temps[4]);
+                recall[countline / 100][countline % 100] = Double.parseDouble(temps[5]);
+                countline++;
+            }
+            br.close();
+            double[] precisionsum = new double[101];
+            double[] precisionave = new double[101];
+            double[] precisionsd = new double[101];
+            double[] recallsum = new double[101];
+            double[] recallave = new double[101];
+            double[] recallsd = new double[101];
+            for (int i = 0; i < 101; i++) {
+                for (int j = 0; j < 100; j++) {
+                    precisionsum[i] += precision[i][j];
+                    recallsum[i] += recall[i][j];
+                }
+                precisionave[i] = (double) precisionsum[i] / 100;
+                recallave[i] = (double) recallsum[i] / 100;
+                for (int j = 0; j < 100; j++) {
+                    precisionsd[i] += (precision[i][j] - precisionave[i]) * (precision[i][j] - precisionave[i]);
+                    recallsd[i] += (recall[i][j] - recallave[i]) * (recall[i][j] - recallave[i]);
+                }
+                precisionsd[i] = Math.sqrt(precisionsd[i] / 99);
+                recallsd[i] = Math.sqrt(recallsd[i] / 99);
+            }
+            BufferedWriter bw = IOUtils.getTextWriter(outfile);
+            DecimalFormat decfor = new DecimalFormat("0.00000000");
+            bw.write("size\tprecision\tsd1\trecall\tsd2\n");
+            for (int i = 0; i < 101; i++) {
+                int index = 50 + i;
+                bw.write(index + "\t" + decfor.format(precisionave[i]) + "\t" + decfor.format(precisionsd[i]) + "\t" + decfor.format(recallave[i]) + "\t" + decfor.format(recallsd[i]) + "\n");
+            }
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void getPrecisionRecall(String infileDir) {
+        String outfile = new File(infileDir, "boot/simulation.txt").getAbsolutePath();
         BufferedWriter bw = IOUtils.getTextWriter(outfile);
         try {
             bw.write("FileName\tTP\tFP\tFN\tPrecision\tRecall\n");
@@ -195,15 +408,15 @@ public class eQTL {
                 for (int j = 1; j < 101; j++) {
                     int number = i;
                     String index = String.valueOf(number);
-                    BufferedReader br = IOUtils.getTextReader("/data1/home/junxu/20210219/boot/para2-8-" + i +"-" + j);
+                    BufferedReader br = IOUtils.getTextReader(new File(infileDir, "boot/SE3724-" + i + "-" + j).getAbsolutePath());
 //                    BufferedReader br = IOUtils.getTextReader("/data1/home/xiaohan/SiPASsimu/SE3724-" + i +".s");
                     String temp = null;
                     String[] temps = null;
                     int TP = 0;
                     int FN = 0;
                     int FP = 0;
-                    double precision = 0.0;
-                    double recall = 0.0;
+                    double precision = 0.00000000;
+                    double recall = 0.00000000;
                     try {
                         while ((temp = br.readLine()) != null) {
                             temps = temp.split("\t");
@@ -229,12 +442,12 @@ public class eQTL {
                             }
                         }
                         br.close();
-                        DecimalFormat decfor = new DecimalFormat("0.0000");
-                        precision = TP / (TP + FP);
-                        recall = TP / (TP + FN);
+                        DecimalFormat decfor = new DecimalFormat("0.00000000");
+                        precision = (double) TP / (TP + FP);
+                        recall = (double) TP / (TP + FN);
                         StringBuffer sb = new StringBuffer();
 //                        sb.append(i +"\t" + TP + "\t" + FP + "\t" + FN + "\t" + decfor.format(precision) + "\t" + decfor.format(recall) + "\n");
-                        sb.append(i +"-"+j+"\t" + TP + "\t" + FP + "\t" + FN + "\t" + decfor.format(precision) + "\t" + decfor.format(recall) + "\n");
+                        sb.append(i + "-" + j + "\t" + TP + "\t" + FP + "\t" + FN + "\t" + decfor.format(precision) + "\t" + decfor.format(recall) + "\n");
                         bw.write(sb.toString());
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -285,11 +498,11 @@ public class eQTL {
         }
     }
 
-    public void getRealCount() {
-        String infile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/0219SE3724-150_R2.fq";
-        String infile1 = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/SE3724-150_Count.txt";
-        String outfile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/0219TrueSet.txt";
-        BufferedReader br = IOUtils.getTextReader(infile);
+    public void getRealCount(String arg) {
+        String infile = new File(arg, "SE3724-150_R2.fq.gz").getAbsolutePath();
+        String infile1 = new File(arg, "SE3724-150_Count.txt").getAbsolutePath();
+        String outfile = new File(arg, "TrueSet.txt").getAbsolutePath();
+        BufferedReader br = IOUtils.getTextGzipReader(infile);
         BufferedWriter bw = IOUtils.getTextWriter(outfile);
         String temp = null;
         try {
@@ -311,10 +524,11 @@ public class eQTL {
             for (int i = 0; i < genelist.length; i++) {
                 geneIndexmap.put(genelist[i], i);
             }
-            BufferedReader br1 = IOUtils.getTextReader(infile);
+            BufferedReader br1 = IOUtils.getTextGzipReader(infile);
             while ((temp = br1.readLine()) != null) {
                 if (temp.startsWith("@")) {
                     String geneName = temp.split("@")[1];
+//                    System.out.println(geneName);
                     number[geneIndexmap.get(geneName)]++;
                 }
             }
@@ -326,10 +540,12 @@ public class eQTL {
             BufferedReader br2 = IOUtils.getTextReader(infile1);
             while ((temp = br2.readLine()) != null) {
                 String geneName = temp.split("\t")[0];
-                if (geneNumbermap.get(geneName) == null) {
-                    bw.write(geneName + "\t0\n");
-                } else {
-                    bw.write(geneName + "\t" + geneNumbermap.get(geneName) + "\n");
+                if (geneName.startsWith("T")) {
+                    if (!geneSet.contains(geneName)) {
+                        bw.write(geneName + "\t0\n");
+                    } else {
+                        bw.write(geneName + "\t" + geneNumbermap.get(geneName) + "\n");
+                    }
                 }
             }
             br2.close();
@@ -340,11 +556,13 @@ public class eQTL {
         }
     }
 
-    public void generateReads() {
-        String infile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/exons.fq";
-        String outfile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/SE3724_R2.fq";
+    public void generateReads(String arg) {
+        String infile = new File(arg, "exons.fq").getAbsolutePath();
+        String outfile = new File(arg, "SE3724-150_R2.fq").getAbsolutePath();
+        String outfile1 = new File(arg, "SE3724-350_R2.fq").getAbsolutePath();
         BufferedReader br = IOUtils.getTextReader(infile);
         BufferedWriter bw = IOUtils.getTextWriter(outfile);
+        BufferedWriter bw1 = IOUtils.getTextWriter(outfile1);
         HashMap<String, String> geneReadsMap = new HashMap();
         HashMap<Integer, String> IndexGeneMap = new HashMap<>();
         try {
@@ -359,19 +577,68 @@ public class eQTL {
                 IndexGeneMap.put(countline, geneName);
                 countline++;
             }
-            for (int i = 0; i < 10000; i++) {
-                int min = 0;
-                int max = countline;
-                int num = min + (int) (Math.random() * (max - min + 1));
+            for (int i = 0; i < 100000; i++) {
+                Random r = new Random();
+                int num = r.nextInt(countline);
+                System.out.println("This is reading gene : " + num);
                 String geneName = IndexGeneMap.get(num);
-                String Reads = geneReadsMap.get(geneName).substring(0, 150);
+                String Reads1 = null;
+                if (geneReadsMap.get(geneName).length() >= 350) {
+                    Reads1 = geneReadsMap.get(geneName).substring(200, 350);
+                }
+                StringBuilder sbreads = new StringBuilder();
+                for (int j = 0; j < Reads1.length(); j++) {
+                    String index = Reads1.substring(j, j + 1);
+                    String index1 = null;
+                    num = r.nextInt(100);
+                    if (num == 1) {
+                        int num1 = r.nextInt(100);
+                        if (num1 < 25) {
+                            index1 = "A";
+                        } else if (num1 >= 25 && num1 < 50) {
+                            index1 = "T";
+                        } else if (num1 >= 50 && num1 < 75) {
+                            index1 = "C";
+                        } else {
+                            index1 = "G";
+                        }
+                        sbreads.append(index1);
+                    } else {
+                        sbreads.append(index);
+                    }
+                }
+                Reads1 = sbreads.toString();
+                String Reads350 = geneReadsMap.get(geneName);
+                Reads1 = new StringBuffer(Reads1).reverse().toString();
+                StringBuffer sb1 = new StringBuffer();
+                for (int j = 0; j < Reads1.length(); j++) {
+                    String index = Reads1.substring(j, j + 1);
+                    String index1 = null;
+                    if (index.equals("A")) {
+                        index1 = "T";
+                    }
+                    if (index.equals("G")) {
+                        index1 = "C";
+                    }
+                    if (index.equals("T")) {
+                        index1 = "A";
+                    }
+                    if (index.equals("C")) {
+                        index1 = "G";
+                    }
+                    sb1.append(index1);
+                }
+                String Reads = sb1.toString();
                 bw.write("@" + geneName + "\n");
+                bw1.write("@" + geneName + "\n");
+//                bw.write(Reads1 +"\n");
                 bw.write(Reads + "\n");
+                bw1.write(Reads350 + "\n");
                 bw.write("+\n");
                 StringBuffer sb = new StringBuffer();
                 for (int j = 0; j < 150; j++) {
                     int score = -(j * j) / 1500 + 37;
-                    System.out.println(score);
+//                    System.out.println(score);
                     String Q = getphred(score);
                     sb.append(Q);
                 }
@@ -380,14 +647,29 @@ public class eQTL {
             br.close();
             bw.flush();
             bw.close();
+            bw1.flush();
+            bw1.close();
+            StringBuilder sb = new StringBuilder();
+            sb.append("bgzip SE3724-150_R2.fq && bgzip SE3724-350_R2.fq");
+            String command = sb.toString();
+            System.out.println(command);
+            try {
+                File dir = new File(new File(arg).getAbsolutePath());
+                String[] cmdarry = {"/bin/bash", "-c", command};
+                Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+                p.waitFor();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            System.out.println("Finished generate Reads");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void generateFastq() {
-        String infile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/exons.fa";
-        String outfile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/exons.fq";
+    public void generateFastq(String[] args) {
+        String infile = new File(args[1]).getAbsolutePath();
+        String outfile = new File(args[0], "exons.fq").getAbsolutePath();
         HashSet<String> geneNameSet = new HashSet<>();
         HashMap<String, Integer> geneLengthMap = new HashMap<>();
         HashMap<String, Integer> geneEndNumber = new HashMap<>();
@@ -405,7 +687,7 @@ public class eQTL {
             int endNumber = 0;
             temp = brinfo.readLine();
             geneName = temp.split(" ")[0].split(">")[1];
-            System.out.println(geneName);
+//            System.out.println(geneName);
             while ((temp = brinfo.readLine()) != null) {
                 countline++;
                 if (temp.startsWith(">")) {
@@ -417,7 +699,7 @@ public class eQTL {
                 endNumber = temp.length();
             }
             geneNameSet.add(geneName);
-            geneLengthMap.put(geneName, (countline - 2) * 70 + endNumber);
+            geneLengthMap.put(geneName, (countline - 1) * 70 + endNumber);
             brinfo.close();
             while ((temp = br.readLine()) != null) {
                 if (temp.startsWith(">")) {
@@ -452,15 +734,15 @@ public class eQTL {
                     } else {
                         totalline = geneLength / 70 + 1;
                     }
-                    int startsite = r.nextInt(geneLength - 350);
+                    int startsite = r.nextInt(geneLength - 350 + 1);
                     int line = startsite / 70;
                     int site1 = startsite % 70;
-                    System.out.println(geneLength);
-                    System.out.println(totalline);
-                    System.out.println(line);
-                    System.out.println(startsite);
-                    System.out.println(site1);
-                    System.out.println("\n");
+//                    System.out.println(geneLength);
+//                    System.out.println(totalline);
+//                    System.out.println(line);
+//                    System.out.println(startsite);
+//                    System.out.println(site1);
+//                    System.out.println("\n");
                     StringBuilder sb = new StringBuilder();
                     if (site1 != 0) {
                         for (int i = 0; i < line; i++) {
@@ -493,7 +775,7 @@ public class eQTL {
                         }
                     }
                     String seq = sb.toString();
-                    if (!seq.contains("N")) {
+                    if (!seq.contains("N") && seq.length() == 350) {
                         bw.write(geneName + "\t" + sb.toString() + "\n");
                     }
                 }
@@ -4356,7 +4638,7 @@ public class eQTL {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-//        new eQTL(args[0]);
-        new eQTL();
+        new eQTL(args);
+//        new eQTL();
     }
 }
