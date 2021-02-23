@@ -1,4 +1,4 @@
-package daxing.common;
+package daxing.common.vmap2Group;
 
 public enum GroupBySubspecies implements GroupType{
 

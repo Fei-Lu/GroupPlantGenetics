@@ -5,6 +5,8 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
 import com.google.common.collect.TreeMultimap;
 import daxing.common.*;
+import daxing.common.vmap2Group.Group;
+import daxing.common.vmap2Group.GroupType;
 import daxing.load.complementary.TriadsBlock;
 import daxing.load.complementary.TriadsBlockUtils;
 import gnu.trove.list.array.TIntArrayList;
@@ -265,11 +267,12 @@ public class ScriptMethods {
      * DomesticatedEmmer	CItr14916
      * FreeThreshTetraploid	CItr14892
      * FreeThreshTetraploid	CItr7798
-     * @param groupList group
+     * @param group group
      * @param shOutFile shOutFile
      */
     public static void smc(String vcfDir, String vcfComplementBedDir, String outDir, SubgenomeCombination subgenomeCombination,
-                           String taxaInfo_DepthFile, List<String> groupList, String shOutFile, String genomeFile, String logDir){
+                           String taxaInfo_DepthFile, Group group, String shOutFile, String genomeFile, String logDir
+            , int sampleSize){
         List<File> vcfFiles=IOUtils.getFileListInDirEndsWith(vcfDir, "gz");
         List<File> vcfComplementBedFiles=IOUtils.getFileListInDirEndsWith(vcfComplementBedDir, "gz");
         Predicate<File> subgenomeP = null;
@@ -288,7 +291,7 @@ public class ScriptMethods {
         }
         List<File> subgenomeVcfFiles=vcfFiles.stream().filter(subgenomeP).collect(Collectors.toList());
         List<File> subgenomeVcfComplementBedFiles=vcfComplementBedFiles.stream().filter(subgenomeP).collect(Collectors.toList());
-        Multimap<String, String> popmap=getPopMultiMap(taxaInfo_DepthFile, 10);
+        Multimap<String, String> popmap=getPopMultiMap(taxaInfo_DepthFile, group, sampleSize);
         Map<String, String> popDistTaxonMap=getPopDistTaxonMap(popmap);
         Map<Integer, Integer> chrSizeMap=new HashMap<>();
         try (BufferedReader bufferedReader1=IOTool.getReader(genomeFile);
@@ -303,25 +306,26 @@ public class ScriptMethods {
             List<String> individuals;
             String distTaxon;
             File outFile;
-            GroupBySubcontinent abbrevGroupBySubcontinent;
+            GroupType groupType;
+            List<String> groupList= group.getGroup(subgenomeCombination);
             for (int i = 0; i < subgenomeVcfFiles.size(); i++) {
                 for (String s : groupList) {
                     individuals = new ArrayList<>(popmap.get(s));
                     distTaxon = popDistTaxonMap.get(s);
-                    abbrevGroupBySubcontinent = GroupBySubcontinent.newInstanceFrom(s);
+                    groupType = GroupType.newInstanceFrom(s, group);
                     sb = new StringBuilder();
                     sb.append("nohup smc++ vcf2smc --cores 1 -m ").append(subgenomeVcfComplementBedFiles.get(i)).append(" ");
                     sb.append(subgenomeVcfFiles.get(i)).append(" -l ").append(chrSizeMap.get(subgenomeChrs.get(i))).append(" -d ");
                     sb.append(distTaxon).append(" ").append(distTaxon).append(" ");
-                    outFile = new File(outDir, subgenomeVcfFiles.get(i).getName().substring(0, 6) + "." + abbrevGroupBySubcontinent + ".smc" +
+                    outFile = new File(outDir, subgenomeVcfFiles.get(i).getName().substring(0, 6) + "." + groupType + ".smc" +
                             ".gz");
                     sb.append(outFile.getAbsolutePath()).append(" ").append(subgenomeChrs.get(i)).append(" ");
-                    sb.append(abbrevGroupBySubcontinent).append(":");
+                    sb.append(groupType).append(":");
                     for (String individual : individuals) {
                         sb.append(individual).append(",");
                     }
                     sb.deleteCharAt(sb.length() - 1);
-                    sb.append(" >").append(logDir).append(subgenomeVcfFiles.get(i).getName(), 0, 6).append("_").append(abbrevGroupBySubcontinent).append(".log");
+                    sb.append(" >").append(logDir).append(subgenomeVcfFiles.get(i).getName(), 0, 6).append("_").append(groupType).append(".log");
                     sb.append(" ").append("2>&1");
                     bufferedWriter.write(sb.toString());
                     bufferedWriter.newLine();
@@ -333,8 +337,18 @@ public class ScriptMethods {
         }
     }
 
-    private static Multimap<String, String> getPopMultiMap(String taxaInfo_DistinguishedLineageFile, int sampleSize){
-        Set<String> groupSet=RowTableTool.getColumnSet(taxaInfo_DistinguishedLineageFile, 2);
+    /**
+     *
+     * @param taxaInfo_DistinguishedLineageFile
+     * @param group
+     * @param sampleSize vcf2smc亚群的样本大小，不能超过亚群的组合数
+     * @return
+     */
+    private static Multimap<String, String> getPopMultiMap(String taxaInfo_DistinguishedLineageFile,
+                                                           Group group, int sampleSize){
+        int index= group.equals(Group.Subspecies) ? 3 : 2;
+        Set<String> groupSet=RowTableTool.getColumnSet(taxaInfo_DistinguishedLineageFile, index);
+        groupSet.remove("NA");
         List<String> groupList=new ArrayList<>(groupSet);
         Collections.sort(groupList);
         Multimap<String, String> res=TreeMultimap.create();
@@ -345,18 +359,19 @@ public class ScriptMethods {
             Multimap<String, String> popMap=TreeMultimap.create();
             while ((line=br.readLine())!=null){
                 temp=PStringUtils.fastSplit(line);
-                groupSet.add(temp.get(2));
-                popMap.put(temp.get(2), temp.get(0));
+                if (temp.get(index).equals("NA")) continue;
+                groupSet.add(temp.get(index));
+                popMap.put(temp.get(index), temp.get(0));
             }
             List<String> individualsList;
             StringBuilder sb=new StringBuilder();
             List<int[]> combinationList;
             int[] combiantion;
-            GroupBySubcontinent abbrevGroupBySubcontinent;
-            for (String group:groupList){
-                individualsList=new ArrayList<>(popMap.get(group));
+            GroupType groupType;
+            for (String pop:groupList){
+                individualsList=new ArrayList<>(popMap.get(pop));
                 Collections.sort(individualsList);
-                abbrevGroupBySubcontinent = GroupBySubcontinent.newInstanceFrom(group);
+                groupType = GroupType.newInstanceFrom(pop, group);
                 Iterator<int[]> iterator=CombinatoricsUtils.combinationsIterator(individualsList.size(), 2);
                 combinationList=new ArrayList<>();
                 while (iterator.hasNext()){
@@ -366,9 +381,9 @@ public class ScriptMethods {
                 for (int i = 0; i < sampleSize; i++) {
                     combiantion=combinationList.get(i);
                     sb.setLength(0);
-                    sb.append(abbrevGroupBySubcontinent).append("_");
+                    sb.append(groupType).append("_");
                     sb.append(individualsList.get(combiantion[0])).append("_").append(individualsList.get(combiantion[1]));
-                    res.put(group, sb.toString());
+                    res.put(pop, sb.toString());
                 }
             }
         } catch (IOException e) {
@@ -493,13 +508,12 @@ public class ScriptMethods {
         }
     }
 
-    public static void bulidSMC(String vcfDir, String bedDir, String outDir, String groupFile, Group group,
-                                SubgenomeCombination subgenomeCombination,
-                                String outFileAB, String outFileD, String genomeFile, String logDir){
+    public static void bulidSMC(String vcfDir, String bedDir, String outDir, String taxaInfo_depthFile, Group group,
+                                String outFileAB, String outFileD, String genomeFile, String logDir, int sampleSize){
 //        vcfDir="/data1/home/daxing/vmap2.1Data/002_vmap2.1RefToAncestral";
 //        bedDir="/data1/home/daxing/vmap2.1Data/001_vmap2.1_complementChr";
 //        outDir="/Users/xudaxing/Desktop/out";
-//        groupFile="/Users/xudaxing/Desktop/groupSMC_R1.txt";
+//        taxaInfo_depthFile="/Users/xudaxing/Desktop/groupSMC_R1.txt";
 //        distTaxon="/Users/xudaxing/Desktop/popDistTaxonR1.txt";
 //        outFileAB="/Users/xudaxing/Desktop/resAB.sh";
 //        outFileD="/Users/xudaxing/Desktop/resD.sh";
@@ -507,10 +521,10 @@ public class ScriptMethods {
 //        String[] group_AB={"WildEmmer","DomesticatedEmmer","FreeThreshTetraploid","Landrace", "Cultivar"};
 //        String[] group_D={"Ae.tauschii","Landrace", "Cultivar"};
 //        logDir="/Users/xudaxing/Desktop/log";
-        ScriptMethods.smc(vcfDir, bedDir, outDir,subgenomeCombination, groupFile,
-                group.getGroup(subgenomeCombination), outFileAB, genomeFile, logDir);
-        ScriptMethods.smc(vcfDir, bedDir, outDir,subgenomeCombination, groupFile,
-                group.getGroup(subgenomeCombination), outFileD, genomeFile, logDir);
+        ScriptMethods.smc(vcfDir, bedDir, outDir,SubgenomeCombination.AB, taxaInfo_depthFile, group,
+                outFileAB, genomeFile, logDir, sampleSize);
+        ScriptMethods.smc(vcfDir, bedDir, outDir,SubgenomeCombination.D, taxaInfo_depthFile, group,
+                outFileD, genomeFile, logDir, sampleSize);
     }
 
     public static void bulidSMC_split(String vcfDir, String bedDir, String outDir, String groupFile, String distTaxon,

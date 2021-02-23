@@ -3,6 +3,8 @@ package daxing.applets;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import daxing.common.*;
+import daxing.common.vmap2Group.Group;
+import daxing.common.vmap2Group.GroupType;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.util.CombinatoricsUtils;
 import pgl.infra.utils.IOUtils;
@@ -126,6 +128,7 @@ public class Ne {
                 break;
             case Subspecies:
                 taxaGroupMap=RowTableTool.getMap(taxaInfo_depthFile,0,3);
+                taxaGroupMap.remove("NA");
                 break;
         }
         for (Map.Entry<String, String> entry : taxaGroupMap.entrySet()){
@@ -199,9 +202,9 @@ public class Ne {
         System.out.println(DateTime.getDateTimeOfNow());
         List<File> vcfFiles=IOUtils.getVisibleFileListInDir(vcfDir);
         List<File> ancestralFiles=IOUtils.getVisibleFileListInDir(ancestralDir);
-        String[] outNames=vcfFiles.stream().map(File::getName).map(s->s.replaceAll("\\.vcf",".RefToAncestral" +
+        String[] outNames=vcfFiles.stream().map(File::getName).map(s->s.replaceAll("\\.vcf.gz",".RefToAncestral" +
                 ".vcf")).toArray(String[]::new);
-        IntStream.range(0, ancestralFiles.size()).parallel().forEach(e->transformRefToAncestral(vcfFiles.get(e),
+        IntStream.range(0, ancestralFiles.size()).forEach(e->transformRefToAncestral(vcfFiles.get(e),
                 ancestralFiles.get(e), new File(outDir, outNames[e])));
         System.out.println(DateTime.getDateTimeOfNow());
     }
