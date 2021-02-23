@@ -259,7 +259,7 @@ public class ScriptMethods {
      * @param vcfDir vcf dir
      * @param vcfComplementBedDir vcfComplementBedDir
      * @param subgenomeCombination
-     * @param groupFile groupFile
+     * @param taxaInfo_DepthFile groupFile
      * DomesticatedEmmer	CItr14822
      * DomesticatedEmmer	CItr14824
      * DomesticatedEmmer	CItr14916
@@ -269,7 +269,7 @@ public class ScriptMethods {
      * @param shOutFile shOutFile
      */
     public static void smc(String vcfDir, String vcfComplementBedDir, String outDir, SubgenomeCombination subgenomeCombination,
-                           String groupFile, List<String> groupList, String shOutFile, String genomeFile, String logDir){
+                           String taxaInfo_DepthFile, List<String> groupList, String shOutFile, String genomeFile, String logDir){
         List<File> vcfFiles=IOUtils.getFileListInDirEndsWith(vcfDir, "gz");
         List<File> vcfComplementBedFiles=IOUtils.getFileListInDirEndsWith(vcfComplementBedDir, "gz");
         Predicate<File> subgenomeP = null;
@@ -288,7 +288,7 @@ public class ScriptMethods {
         }
         List<File> subgenomeVcfFiles=vcfFiles.stream().filter(subgenomeP).collect(Collectors.toList());
         List<File> subgenomeVcfComplementBedFiles=vcfComplementBedFiles.stream().filter(subgenomeP).collect(Collectors.toList());
-        Multimap<String, String> popmap=getPopMultiMap(groupFile, 10);
+        Multimap<String, String> popmap=getPopMultiMap(taxaInfo_DepthFile, 10);
         Map<String, String> popDistTaxonMap=getPopDistTaxonMap(popmap);
         Map<Integer, Integer> chrSizeMap=new HashMap<>();
         try (BufferedReader bufferedReader1=IOTool.getReader(genomeFile);
@@ -507,10 +507,10 @@ public class ScriptMethods {
 //        String[] group_AB={"WildEmmer","DomesticatedEmmer","FreeThreshTetraploid","Landrace", "Cultivar"};
 //        String[] group_D={"Ae.tauschii","Landrace", "Cultivar"};
 //        logDir="/Users/xudaxing/Desktop/log";
-        ScriptMethods.smc(vcfDir, bedDir, outDir,SubgenomeCombination.AB, groupFile,
-                group.getGroup(SubgenomeCombination.AB), outFileAB, genomeFile, logDir);
-        ScriptMethods.smc(vcfDir, bedDir, outDir,SubgenomeCombination.D, groupFile,
-                group.getGroup(SubgenomeCombination.D), outFileD, genomeFile, logDir);
+        ScriptMethods.smc(vcfDir, bedDir, outDir,subgenomeCombination, groupFile,
+                group.getGroup(subgenomeCombination), outFileAB, genomeFile, logDir);
+        ScriptMethods.smc(vcfDir, bedDir, outDir,subgenomeCombination, groupFile,
+                group.getGroup(subgenomeCombination), outFileD, genomeFile, logDir);
     }
 
     public static void bulidSMC_split(String vcfDir, String bedDir, String outDir, String groupFile, String distTaxon,

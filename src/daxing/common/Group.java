@@ -37,7 +37,7 @@ public enum Group {
                     if (group.equals(GroupBySubcontinent.WE)) continue;
                     if (group.equals(GroupBySubcontinent.DE)) continue;
                     if (group.equals(GroupBySubcontinent.FT)) continue;
-                    groupDList.add(group.getGroupAbbrev());
+                    groupDList.add(group.getGroup());
                 }
                 return groupDList;
             case Subspecies:
@@ -45,7 +45,7 @@ public enum Group {
                     if (group.equals(GroupBySubspecies.WE)) continue;
                     if (group.equals(GroupBySubspecies.DE)) continue;
                     if (group.equals(GroupBySubspecies.FT)) continue;
-                    groupDList.add(group.getGroupAbbrev());
+                    groupDList.add(group.getGroup());
                 }
                 return groupDList;
         }

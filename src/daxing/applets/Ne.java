@@ -7,7 +7,6 @@ import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.util.CombinatoricsUtils;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -18,7 +17,16 @@ import java.util.stream.IntStream;
 
 public class Ne {
 
-    public static void randomSyntheticPseudoDiploid(String vmap2InputDir, String taxaInfo_depthFile, String outDir,
+    /**
+     *
+     * @param vmap2InputDir
+     * @param taxaInfo_depthFile
+     * @param outDir
+     * @param group
+     * @param subgenomeCombination
+     * @param pseudoDiploidNum 是taxaInfo_depthFile文件中，个体数最少的亚群的组合数
+     */
+    public static void syntheticPseudoDiploid(String vmap2InputDir, String taxaInfo_depthFile, String outDir,
                                               Group group, SubgenomeCombination subgenomeCombination,
                                               int pseudoDiploidNum){
         System.out.println(DateTime.getDateTimeOfNow());
@@ -27,13 +35,13 @@ public class Ne {
         String[] subgenomeOutFileName= subgenomeFiles.stream().map(File::getName).
                 map(s -> s.replaceAll(".vcf.gz", ".PseudoDiploid.vcf.gz")).toArray(String[]::new);
         Map<String,String> taxaGroupSubgenomeMap=getTaxaGroupSubgenomeMap(taxaInfo_depthFile, group, subgenomeCombination);
-        IntStream.range(0, subgenomeFiles.size()).parallel().forEach(e->randomSyntheticPseudoDiploid(group, pseudoDiploidNum,
+        IntStream.range(0, subgenomeFiles.size()).parallel().forEach(e->syntheticPseudoDiploid(group, pseudoDiploidNum,
                 subgenomeFiles.get(e),taxaGroupSubgenomeMap, new File(outDir, subgenomeOutFileName[e])));
         System.out.println(subgenomeCombination.name()+" subgenome completed");
         System.out.println(DateTime.getDateTimeOfNow());
     }
 
-    private static void randomSyntheticPseudoDiploid(Group group, int pseudoDiploidNumInPop, File vmap2File,
+    private static void syntheticPseudoDiploid(Group group, int pseudoDiploidNumInPop, File vmap2File,
                                                Map<String, String> taxaGroupMap, File outFile){
         Set<String> groupSet=getValueSet(taxaGroupMap);
         List<String> groupList=new ArrayList<>(groupSet);
