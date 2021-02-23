@@ -243,13 +243,34 @@ public class eQTL {
             }
         }
         System.out.println("Finished readslength");
+        for (int i = 50; i < 150; i++) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("zcat SE3724-150_R1.fq.gz | cut -c1-" + i + " > SE3724-" + i + "_R1.fq && bgzip SE3724-" + i + "_R1.fq");
+            String command = sb.toString();
+            System.out.println(command);
+            try {
+                File dir = new File(new File(arg).getAbsolutePath());
+                String[] cmdarry = {"/bin/bash", "-c", command};
+                Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+                p.waitFor();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("Finished readslength");
     }
 
     public void getalignment(String arg) {
+        String command = null;
+        StringBuilder sb5 = new StringBuilder();
+        sb5.append("mkdir PE && mkdir SE");
+        command = sb5.toString();
+        System.out.println(command);
         for (int i = 50; i < 151; i++) {
-            String command = null;
+            command = null;
             StringBuilder sb2 = new StringBuilder();
-            sb2.append("/data1/home/junxu/software/STAR-2.6.1c/bin/Linux_x86_64/STAR --runThreadN 32 --genomeDir /data1/home/junxu/starLib1.1 --genomeLoad LoadAndKeep --readFilesCommand zcat --readFilesIn SE3724-" + i + "_R2.fq.gz --outFileNamePrefix SE3724-" + i + "_ --outFilterMultimapNmax 10 --outFilterMismatchNoverLmax 0.1 --outFilterIntronMotifs RemoveNoncanonicalUnannotated --outSAMtype BAM Unsorted --outFilterScoreMinOverLread 0 --outFilterMatchNminOverLread 0");
+            sb2.append("/data1/home/junxu/software/STAR-2.6.1c/bin/Linux_x86_64/STAR --runThreadN 32 --genomeDir /data1/home/junxu/starLib1.1 --genomeLoad LoadAndKeep --readFilesCommand zcat --readFilesIn SE3724-" + i + "_R2.fq.gz --outFileNamePrefix SE/SE3724-" + i + "_ --outFilterMultimapNmax 10 --outFilterMismatchNoverLmax 0.1 --outFilterIntronMotifs RemoveNoncanonicalUnannotated --outSAMtype BAM Unsorted --outFilterScoreMinOverLread 0 --outFilterMatchNminOverLread 0 \n");
+            sb2.append("/data1/home/junxu/software/STAR-2.6.1c/bin/Linux_x86_64/STAR --runThreadN 32 --genomeDir /data1/home/junxu/starLib1.1 --genomeLoad LoadAndKeep --readFilesCommand zcat --readFilesIn SE3724-" + i + "_R1.fq.gz SE3724-150_R2.fq.gz --outFileNamePrefix PE/SE3724-" + i + "_ --outFilterMultimapNmax 10 --outFilterMismatchNoverLmax 0.1 --outFilterIntronMotifs RemoveNoncanonicalUnannotated --outSAMtype BAM Unsorted --outFilterScoreMinOverLread 0 --outFilterMatchNminOverLread 0 \n");
             command = sb2.toString();
             System.out.println(command);
             try {
@@ -268,7 +289,8 @@ public class eQTL {
         for (int i = 50; i < 151; i++) {
             String command = null;
             StringBuilder sb3 = new StringBuilder();
-            sb3.append("htseq-count -f bam -m intersection-nonempty -s no SE3724-" + i + "_Aligned.out.bam /data1/home/junxu/wheat_v1.1_Lulab.gtf >  SE3724-" + i + "_Count.txt");
+            sb3.append("htseq-count -f bam -m intersection-nonempty -s no SE/SE3724-" + i + "_Aligned.out.bam /data1/home/junxu/wheat_v1.1_Lulab.gtf >  SE/SE3724-" + i + "_Count.txt\n");
+            sb3.append("htseq-count -f bam -m intersection-nonempty -s no PE/SE3724-" + i + "_Aligned.out.bam /data1/home/junxu/wheat_v1.1_Lulab.gtf >  PE/SE3724-" + i + "_Count.txt\n");
             command = sb3.toString();
             System.out.println(command);
             try {
@@ -286,14 +308,34 @@ public class eQTL {
     public void getShuf(String arg) {
         String command = null;
         StringBuilder sb5 = new StringBuilder();
-        sb5.append("mkdir boot\n" +
+        sb5.append("mkdir SEboot\n" +
                 "for m in $(seq 1 100)\n" +
                 "do\n" +
                 "\tfor c in $(seq 50 150)\n" +
-                "\tdo shuf -n 5000 SE3724-${c}.s > boot/SE3724-${c}-${m}\n" +
+                "\tdo shuf -n 5000 SE/SE3724-${c}.s > SEboot/SE3724-${c}-${m}\n" +
                 "done\n" +
                 "done");
         command = sb5.toString();
+        System.out.println(command);
+        try {
+            File dir = new File(new File(arg).getAbsolutePath());
+            String[] cmdarry = {"/bin/bash", "-c", command};
+            Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+            p.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println("Finished shufling");
+        command = null;
+        StringBuilder sb6 = new StringBuilder();
+        sb6.append("mkdir PEboot\n" +
+                "for m in $(seq 1 100)\n" +
+                "do\n" +
+                "\tfor c in $(seq 50 150)\n" +
+                "\tdo shuf -n 5000 PE/SE3724-${c}.s > PEboot/SE3724-${c}-${m}\n" +
+                "done\n" +
+                "done");
+        command = sb6.toString();
         System.out.println(command);
         try {
             File dir = new File(new File(arg).getAbsolutePath());
@@ -310,11 +352,31 @@ public class eQTL {
         for (int i = 50; i < 151; i++) {
             String command = null;
             StringBuilder sb4 = new StringBuilder();
-            sb4.append("cp SE3724-" + i + "_Count.txt SE3724-" + i + "_forcalu.txt\n");
-            sb4.append("sed -i -e '/__/d' SE3724-" + i + "_forcalu.txt\n");
-            sb4.append("cut -f 2 SE3724-" + i + "_forcalu.txt > SE3724-" + i + "_forcalu_2.txt\n");
-            sb4.append("paste TrueSet.txt SE3724-" + i + "_forcalu_2.txt > SE3724-" + i + ".simu\n");
-            sb4.append("cat SE3724-" + i + ".simu | awk -F '\\t' '$2!=0||$3!=0{print $0}' > SE3724-" + i + ".s\n");
+            sb4.append("cp SE/SE3724-" + i + "_Count.txt SE/SE3724-" + i + "_forcalu.txt\n");
+            sb4.append("sed -i -e '/__/d' SE/SE3724-" + i + "_forcalu.txt\n");
+            sb4.append("cut -f 2 SE/SE3724-" + i + "_forcalu.txt > SE/SE3724-" + i + "_forcalu_2.txt\n");
+            sb4.append("paste TrueSet.txt SE/SE3724-" + i + "_forcalu_2.txt > SE/SE3724-" + i + ".simu\n");
+            sb4.append("cat SE/SE3724-" + i + ".simu | awk -F '\\t' '$2!=0||$3!=0{print $0}' > SE/SE3724-" + i + ".s\n");
+            command = sb4.toString();
+            System.out.println(command);
+            try {
+                File dir = new File(new File(arg).getAbsolutePath());
+                String[] cmdarry = {"/bin/bash", "-c", command};
+                Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+                p.waitFor();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("Finished summary");
+        for (int i = 50; i < 151; i++) {
+            String command = null;
+            StringBuilder sb4 = new StringBuilder();
+            sb4.append("cp PE/SE3724-" + i + "_Count.txt PE/SE3724-" + i + "_forcalu.txt\n");
+            sb4.append("sed -i -e '/__/d' PE/SE3724-" + i + "_forcalu.txt\n");
+            sb4.append("cut -f 2 PE/SE3724-" + i + "_forcalu.txt > PE/SE3724-" + i + "_forcalu_2.txt\n");
+            sb4.append("paste TrueSet.txt PE/SE3724-" + i + "_forcalu_2.txt > PE/SE3724-" + i + ".simu\n");
+            sb4.append("cat PE/SE3724-" + i + ".simu | awk -F '\\t' '$2!=0||$3!=0{print $0}' > PE/SE3724-" + i + ".s\n");
             command = sb4.toString();
             System.out.println(command);
             try {
@@ -400,64 +462,67 @@ public class eQTL {
     }
 
     public void getPrecisionRecall(String infileDir) {
-        String outfile = new File(infileDir, "boot/simulation.txt").getAbsolutePath();
-        BufferedWriter bw = IOUtils.getTextWriter(outfile);
-        try {
-            bw.write("FileName\tTP\tFP\tFN\tPrecision\tRecall\n");
-            for (int i = 50; i < 151; i++) {
-                for (int j = 1; j < 101; j++) {
-                    int number = i;
-                    String index = String.valueOf(number);
-                    BufferedReader br = IOUtils.getTextReader(new File(infileDir, "boot/SE3724-" + i + "-" + j).getAbsolutePath());
+        String[] dir = {"SE","PE"};
+        for (int m = 0; m < dir.length; m++) {
+            String outfile = new File(infileDir, dir[m]+"boot/simulation.txt").getAbsolutePath();
+            BufferedWriter bw = IOUtils.getTextWriter(outfile);
+            try {
+                bw.write("FileName\tTP\tFP\tFN\tPrecision\tRecall\n");
+                for (int i = 50; i < 151; i++) {
+                    for (int j = 1; j < 101; j++) {
+                        int number = i;
+                        String index = String.valueOf(number);
+                        BufferedReader br = IOUtils.getTextReader(new File(infileDir, dir[m]+"boot/SE3724-" + i + "-" + j).getAbsolutePath());
 //                    BufferedReader br = IOUtils.getTextReader("/data1/home/xiaohan/SiPASsimu/SE3724-" + i +".s");
-                    String temp = null;
-                    String[] temps = null;
-                    int TP = 0;
-                    int FN = 0;
-                    int FP = 0;
-                    double precision = 0.00000000;
-                    double recall = 0.00000000;
-                    try {
-                        while ((temp = br.readLine()) != null) {
-                            temps = temp.split("\t");
-                            int truevalue = Integer.parseInt(temps[1]);
-                            int observedvalue = Integer.parseInt(temps[2]);
-                            if (truevalue > 0 && observedvalue >= truevalue) {
-                                TP += truevalue;
-                                if (observedvalue > truevalue) {
-                                    FP += observedvalue - truevalue;
+                        String temp = null;
+                        String[] temps = null;
+                        int TP = 0;
+                        int FN = 0;
+                        int FP = 0;
+                        double precision = 0.00000000;
+                        double recall = 0.00000000;
+                        try {
+                            while ((temp = br.readLine()) != null) {
+                                temps = temp.split("\t");
+                                int truevalue = Integer.parseInt(temps[1]);
+                                int observedvalue = Integer.parseInt(temps[2]);
+                                if (truevalue > 0 && observedvalue >= truevalue) {
+                                    TP += truevalue;
+                                    if (observedvalue > truevalue) {
+                                        FP += observedvalue - truevalue;
+                                    }
+                                }
+                                if (observedvalue > 0 && observedvalue <= truevalue) {
+                                    TP += observedvalue;
+                                    if (observedvalue < truevalue) {
+                                        FN += truevalue - observedvalue;
+                                    }
+                                }
+                                if (truevalue > 0 && observedvalue == 0) {
+                                    FN += truevalue;
+                                }
+                                if (truevalue == 0 && observedvalue > 0) {
+                                    FP += observedvalue;
                                 }
                             }
-                            if (observedvalue > 0 && observedvalue <= truevalue) {
-                                TP += observedvalue;
-                                if (observedvalue < truevalue) {
-                                    FN += truevalue - observedvalue;
-                                }
-                            }
-                            if (truevalue > 0 && observedvalue == 0) {
-                                FN += truevalue;
-                            }
-                            if (truevalue == 0 && observedvalue > 0) {
-                                FP += observedvalue;
-                            }
-                        }
-                        br.close();
-                        DecimalFormat decfor = new DecimalFormat("0.00000000");
-                        precision = (double) TP / (TP + FP);
-                        recall = (double) TP / (TP + FN);
-                        StringBuffer sb = new StringBuffer();
+                            br.close();
+                            DecimalFormat decfor = new DecimalFormat("0.00000000");
+                            precision = (double) TP / (TP + FP);
+                            recall = (double) TP / (TP + FN);
+                            StringBuffer sb = new StringBuffer();
 //                        sb.append(i +"\t" + TP + "\t" + FP + "\t" + FN + "\t" + decfor.format(precision) + "\t" + decfor.format(recall) + "\n");
-                        sb.append(i + "-" + j + "\t" + TP + "\t" + FP + "\t" + FN + "\t" + decfor.format(precision) + "\t" + decfor.format(recall) + "\n");
-                        bw.write(sb.toString());
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                            sb.append(i + "-" + j + "\t" + TP + "\t" + FP + "\t" + FN + "\t" + decfor.format(precision) + "\t" + decfor.format(recall) + "\n");
+                            bw.write(sb.toString());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
+                bw.flush();
+                bw.close();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            bw.flush();
-            bw.close();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -558,11 +623,13 @@ public class eQTL {
 
     public void generateReads(String arg) {
         String infile = new File(arg, "exons.fq").getAbsolutePath();
-        String outfile = new File(arg, "SE3724-150_R2.fq").getAbsolutePath();
-        String outfile1 = new File(arg, "SE3724-350_R2.fq").getAbsolutePath();
+        String outfile1 = new File(arg,"SE3724-150_R2.fq").getAbsolutePath();
+        String outfile2 = new File(arg,"SE3724-150_R1.fq").getAbsolutePath();
+        String outfile = new File(arg, "SE3724-350_R2.fq").getAbsolutePath();
         BufferedReader br = IOUtils.getTextReader(infile);
         BufferedWriter bw = IOUtils.getTextWriter(outfile);
         BufferedWriter bw1 = IOUtils.getTextWriter(outfile1);
+        BufferedWriter bw2 = IOUtils.getTextWriter(outfile2);
         HashMap<String, String> geneReadsMap = new HashMap();
         HashMap<Integer, String> IndexGeneMap = new HashMap<>();
         try {
@@ -577,16 +644,17 @@ public class eQTL {
                 IndexGeneMap.put(countline, geneName);
                 countline++;
             }
+            br.close();
             for (int i = 0; i < 100000; i++) {
                 Random r = new Random();
                 int num = r.nextInt(countline);
                 System.out.println("This is reading gene : " + num);
                 String geneName = IndexGeneMap.get(num);
                 String Reads1 = null;
-                if (geneReadsMap.get(geneName).length() >= 350) {
-                    Reads1 = geneReadsMap.get(geneName).substring(200, 350);
-                }
-                StringBuilder sbreads = new StringBuilder();
+                String Reads2 = null;
+                //reads1 加随机突变率1%
+                Reads1 = geneReadsMap.get(geneName).substring(0, 150);
+                StringBuilder sbreads1 = new StringBuilder();
                 for (int j = 0; j < Reads1.length(); j++) {
                     String index = Reads1.substring(j, j + 1);
                     String index1 = null;
@@ -602,17 +670,40 @@ public class eQTL {
                         } else {
                             index1 = "G";
                         }
-                        sbreads.append(index1);
+                        sbreads1.append(index1);
                     } else {
-                        sbreads.append(index);
+                        sbreads1.append(index);
                     }
                 }
-                Reads1 = sbreads.toString();
-                String Reads350 = geneReadsMap.get(geneName);
-                Reads1 = new StringBuffer(Reads1).reverse().toString();
-                StringBuffer sb1 = new StringBuffer();
-                for (int j = 0; j < Reads1.length(); j++) {
-                    String index = Reads1.substring(j, j + 1);
+                Reads1 = sbreads1.toString();
+                //reads2 加随机突变率 1% 反向互补
+                Reads2 = geneReadsMap.get(geneName).substring(200, 350);
+                StringBuilder sbreads2 = new StringBuilder();
+                for (int j = 0; j < Reads2.length(); j++) {
+                    String index = Reads2.substring(j, j + 1);
+                    String index1 = null;
+                    num = r.nextInt(100);
+                    if (num == 1) {
+                        int num1 = r.nextInt(100);
+                        if (num1 < 25) {
+                            index1 = "A";
+                        } else if (num1 >= 25 && num1 < 50) {
+                            index1 = "T";
+                        } else if (num1 >= 50 && num1 < 75) {
+                            index1 = "C";
+                        } else {
+                            index1 = "G";
+                        }
+                        sbreads2.append(index1);
+                    } else {
+                        sbreads2.append(index);
+                    }
+                }
+                Reads2 = sbreads2.toString();
+                Reads2 = new StringBuffer(Reads2).reverse().toString();
+                StringBuffer sb = new StringBuffer();
+                for (int j = 0; j < Reads2.length(); j++) {
+                    String index = Reads2.substring(j, j + 1);
                     String index1 = null;
                     if (index.equals("A")) {
                         index1 = "T";
@@ -626,31 +717,47 @@ public class eQTL {
                     if (index.equals("C")) {
                         index1 = "G";
                     }
-                    sb1.append(index1);
+                    sb.append(index1);
                 }
-                String Reads = sb1.toString();
+                Reads2 = sb.toString();
+                String Reads350 = geneReadsMap.get(geneName);
                 bw.write("@" + geneName + "\n");
+                bw.write(Reads350 + "\n");
+
                 bw1.write("@" + geneName + "\n");
-//                bw.write(Reads1 +"\n");
-                bw.write(Reads + "\n");
-                bw1.write(Reads350 + "\n");
-                bw.write("+\n");
-                StringBuffer sb = new StringBuffer();
+                bw1.write(Reads1 +"\n");
+                bw1.write("+\n");
+                StringBuffer sb1 = new StringBuffer();
                 for (int j = 0; j < 150; j++) {
                     int score = -(j * j) / 1500 + 37;
 //                    System.out.println(score);
                     String Q = getphred(score);
-                    sb.append(Q);
+                    sb1.append(Q);
                 }
-                bw.write(sb.toString() + "\n");
+                bw1.write(sb1.toString() + "\n");
+
+                bw2.write("@" + geneName + "\n");
+                bw2.write(Reads2 +"\n");
+                bw2.write("+\n");
+                StringBuffer sb2 = new StringBuffer();
+                for (int j = 0; j < 150; j++) {
+                    int score = -(j * j) / 1500 + 37;
+//                    System.out.println(score);
+                    String Q = getphred(score);
+                    sb2.append(Q);
+                }
+                bw2.write(sb2.toString() + "\n");
             }
-            br.close();
+
             bw.flush();
             bw.close();
             bw1.flush();
             bw1.close();
+            bw2.flush();
+            bw2.close();
+
             StringBuilder sb = new StringBuilder();
-            sb.append("bgzip SE3724-150_R2.fq && bgzip SE3724-350_R2.fq");
+            sb.append("bgzip SE3724-150_R2.fq && bgzip SE3724-350_R2.fq && bgzip SE3724-150_R1.fq");
             String command = sb.toString();
             System.out.println(command);
             try {
