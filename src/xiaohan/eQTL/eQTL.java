@@ -52,14 +52,14 @@ public class eQTL {
         /*
         simulation
         */
-        this.generateFastq(args);
-        this.generateReads(args[0]);
+//        this.generateFastq(args);
+//        this.generateReads(args[0]);
 //        this.getTrueSet();
-        this.getReadslength(args[0]);
-        this.getalignment(args[0]);
-        this.getCount(args[0]);
-        this.getRealCount(args[0]);
-        this.getSummary(args[0]);
+//        this.getReadslength(args[0]);
+//        this.getalignment(args[0]);
+//        this.getCount(args[0]);
+//        this.getRealCount(args[0]);
+//        this.getSummary(args[0]);
         this.getShuf(args[0]);
         this.getPrecisionRecall(args[0]);
         this.getPrecisionPlot(args[0]);
@@ -266,6 +266,14 @@ public class eQTL {
         sb5.append("mkdir PE && mkdir SE");
         command = sb5.toString();
         System.out.println(command);
+        try {
+            File dir = new File(new File(arg).getAbsolutePath());
+            String[] cmdarry = {"/bin/bash", "-c", command};
+            Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+            p.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         for (int i = 50; i < 151; i++) {
             command = null;
             StringBuilder sb2 = new StringBuilder();
@@ -409,56 +417,58 @@ public class eQTL {
     }
 
     public void getPrecisionPlot(String infileDir) {
-        String infile = new File(infileDir, "boot/simulation.txt").getAbsolutePath();
-        String outfile = new File(infileDir, "boot/simulationforplot.txt").getAbsolutePath();
-        BufferedReader br = IOUtils.getTextReader(infile);
-        String temp = null;
-        String[] temps = null;
-        try {
-            int countline = 0;
-            double[][] precision = new double[101][100];
-            double[][] recall = new double[101][100];
-            while ((temp = br.readLine()) != null) {
-                temps = temp.split("\t");
-                if (temp.startsWith("FileName")) continue;
-                precision[countline / 100][countline % 100] = Double.parseDouble(temps[4]);
-                recall[countline / 100][countline % 100] = Double.parseDouble(temps[5]);
-                countline++;
-            }
-            br.close();
-            double[] precisionsum = new double[101];
-            double[] precisionave = new double[101];
-            double[] precisionsd = new double[101];
-            double[] recallsum = new double[101];
-            double[] recallave = new double[101];
-            double[] recallsd = new double[101];
-            for (int i = 0; i < 101; i++) {
-                for (int j = 0; j < 100; j++) {
-                    precisionsum[i] += precision[i][j];
-                    recallsum[i] += recall[i][j];
+        String[] dir = {"SE","PE"};
+        for (int m = 0; m < dir.length; m++) {
+            String infile = new File(infileDir, dir[m] + "boot/simulation.txt").getAbsolutePath();
+            String outfile = new File(infileDir, dir[m] + "boot/simulationforplot.txt").getAbsolutePath();
+            BufferedReader br = IOUtils.getTextReader(infile);
+            String temp = null;
+            String[] temps = null;
+            try {
+                int countline = 0;
+                double[][] precision = new double[101][100];
+                double[][] recall = new double[101][100];
+                while ((temp = br.readLine()) != null) {
+                    temps = temp.split("\t");
+                    if (temp.startsWith("FileName")) continue;
+                    precision[countline / 100][countline % 100] = Double.parseDouble(temps[4]);
+                    recall[countline / 100][countline % 100] = Double.parseDouble(temps[5]);
+                    countline++;
                 }
-                precisionave[i] = (double) precisionsum[i] / 100;
-                recallave[i] = (double) recallsum[i] / 100;
-                for (int j = 0; j < 100; j++) {
-                    precisionsd[i] += (precision[i][j] - precisionave[i]) * (precision[i][j] - precisionave[i]);
-                    recallsd[i] += (recall[i][j] - recallave[i]) * (recall[i][j] - recallave[i]);
+                br.close();
+                double[] precisionsum = new double[101];
+                double[] precisionave = new double[101];
+                double[] precisionsd = new double[101];
+                double[] recallsum = new double[101];
+                double[] recallave = new double[101];
+                double[] recallsd = new double[101];
+                for (int i = 0; i < 101; i++) {
+                    for (int j = 0; j < 100; j++) {
+                        precisionsum[i] += precision[i][j];
+                        recallsum[i] += recall[i][j];
+                    }
+                    precisionave[i] = (double) precisionsum[i] / 100;
+                    recallave[i] = (double) recallsum[i] / 100;
+                    for (int j = 0; j < 100; j++) {
+                        precisionsd[i] += (precision[i][j] - precisionave[i]) * (precision[i][j] - precisionave[i]);
+                        recallsd[i] += (recall[i][j] - recallave[i]) * (recall[i][j] - recallave[i]);
+                    }
+                    precisionsd[i] = Math.sqrt(precisionsd[i] / 99);
+                    recallsd[i] = Math.sqrt(recallsd[i] / 99);
                 }
-                precisionsd[i] = Math.sqrt(precisionsd[i] / 99);
-                recallsd[i] = Math.sqrt(recallsd[i] / 99);
+                BufferedWriter bw = IOUtils.getTextWriter(outfile);
+                DecimalFormat decfor = new DecimalFormat("0.00000000");
+                bw.write("size\tprecision\tsd1\trecall\tsd2\n");
+                for (int i = 0; i < 101; i++) {
+                    int index = 50 + i;
+                    bw.write(index + "\t" + decfor.format(precisionave[i]) + "\t" + decfor.format(precisionsd[i]) + "\t" + decfor.format(recallave[i]) + "\t" + decfor.format(recallsd[i]) + "\n");
+                }
+                bw.flush();
+                bw.close();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            BufferedWriter bw = IOUtils.getTextWriter(outfile);
-            DecimalFormat decfor = new DecimalFormat("0.00000000");
-            bw.write("size\tprecision\tsd1\trecall\tsd2\n");
-            for (int i = 0; i < 101; i++) {
-                int index = 50 + i;
-                bw.write(index + "\t" + decfor.format(precisionave[i]) + "\t" + decfor.format(precisionsd[i]) + "\t" + decfor.format(recallave[i]) + "\t" + decfor.format(recallsd[i]) + "\n");
-            }
-            bw.flush();
-            bw.close();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-
     }
 
     public void getPrecisionRecall(String infileDir) {
@@ -565,7 +575,7 @@ public class eQTL {
 
     public void getRealCount(String arg) {
         String infile = new File(arg, "SE3724-150_R2.fq.gz").getAbsolutePath();
-        String infile1 = new File(arg, "SE3724-150_Count.txt").getAbsolutePath();
+        String infile1 = new File(arg, "SE/SE3724-150_Count.txt").getAbsolutePath();
         String outfile = new File(arg, "TrueSet.txt").getAbsolutePath();
         BufferedReader br = IOUtils.getTextGzipReader(infile);
         BufferedWriter bw = IOUtils.getTextWriter(outfile);
@@ -623,9 +633,9 @@ public class eQTL {
 
     public void generateReads(String arg) {
         String infile = new File(arg, "exons.fq").getAbsolutePath();
-        String outfile1 = new File(arg,"SE3724-150_R2.fq").getAbsolutePath();
-        String outfile2 = new File(arg,"SE3724-150_R1.fq").getAbsolutePath();
-        String outfile = new File(arg, "SE3724-350_R2.fq").getAbsolutePath();
+        String outfile1 = new File(arg,"SE3724-150_R1.fq").getAbsolutePath();
+        String outfile2 = new File(arg,"SE3724-150_R2.fq").getAbsolutePath();
+        String outfile = new File(arg, "SE3724-350.fq").getAbsolutePath();
         BufferedReader br = IOUtils.getTextReader(infile);
         BufferedWriter bw = IOUtils.getTextWriter(outfile);
         BufferedWriter bw1 = IOUtils.getTextWriter(outfile1);
@@ -729,7 +739,7 @@ public class eQTL {
                 bw1.write("+\n");
                 StringBuffer sb1 = new StringBuffer();
                 for (int j = 0; j < 150; j++) {
-                    int score = -(j * j) / 1500 + 37;
+                    int score = (j-150) * (j-150) * 14/22201  + 24;
 //                    System.out.println(score);
                     String Q = getphred(score);
                     sb1.append(Q);
@@ -741,7 +751,7 @@ public class eQTL {
                 bw2.write("+\n");
                 StringBuffer sb2 = new StringBuffer();
                 for (int j = 0; j < 150; j++) {
-                    int score = -(j * j) / 1500 + 37;
+                    int score = -(j-1) * (j-1) * 8/22201  + 37;
 //                    System.out.println(score);
                     String Q = getphred(score);
                     sb2.append(Q);
@@ -757,7 +767,9 @@ public class eQTL {
             bw2.close();
 
             StringBuilder sb = new StringBuilder();
-            sb.append("bgzip SE3724-150_R2.fq && bgzip SE3724-350_R2.fq && bgzip SE3724-150_R1.fq");
+            sb.append("bgzip SE3724-150_R1.fq\n");
+            sb.append("bgzip SE3724-150_R2.fq\n");
+            sb.append("bgzip SE3724-350.fq\n");
             String command = sb.toString();
             System.out.println(command);
             try {
