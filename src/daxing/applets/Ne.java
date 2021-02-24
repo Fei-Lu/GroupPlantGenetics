@@ -9,6 +9,7 @@ import daxing.common.vmap2Group.Group;
 import daxing.common.vmap2Group.GroupType;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.util.CombinatoricsUtils;
+import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
@@ -23,12 +24,12 @@ import java.util.stream.IntStream;
 
 public class Ne {
 
-    public static void main(String[] args) {
-//        syntheticPseudoDiploid();
-//        transformRefToAncestral();
-//        bulidSMC();
-//        mergeSMC();
-    }
+//    public static void main(String[] args) {
+////        syntheticPseudoDiploid();
+////        transformRefToAncestral();
+////        bulidSMC();
+////        mergeSMC();
+//    }
 
     /**
      *
@@ -465,11 +466,16 @@ public class Ne {
      * @param popNumD
      */
     public static void mergeSMC(String inputDir, String outDir, int popNumAB, int popNumD){
+        System.out.println(DateTime.getDateTimeOfNow());
+        long start=System.nanoTime();
         mergeSMC_AB(inputDir, outDir, popNumAB);
         mergeSMC_D(inputDir, outDir, popNumD);
+        System.out.println("mergeSMC had completed in "+Benchmark.getTimeSpanHours(start)+ " hours");
+        System.out.println(DateTime.getDateTimeOfNow());
     }
 
     private static void mergeSMC_D(String inputDir, String outDir, int popNumD){
+        long start=System.nanoTime();
         List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
         TIntArrayList dindex=new TIntArrayList(WheatLineage.valueOf("D").getChrID());
         Predicate<File> d=f->dindex.contains(StringTool.getNumFromString(f.getName()));
@@ -489,10 +495,12 @@ public class Ne {
             }
             num[index].add(i);
         }
-        IntStream.range(0, num[0].size()).forEach(e->mergeSMC(dFiles.get(num[0].get(e)), dFiles.get(num[1].get(e)), outDir));
+        IntStream.range(0, num[0].size()).parallel().forEach(e->mergeSMC(dFiles.get(num[0].get(e)), dFiles.get(num[1].get(e)), outDir));
+        System.out.println("D subgenome had completed in "+ Benchmark.getTimeSpanMinutes(start)+ " minutes");
     }
 
     private static void mergeSMC_AB(String inputDir, String outDir, int popNumAB){
+        long start=System.nanoTime();
         List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
         TIntArrayList dindex=new TIntArrayList(WheatLineage.valueOf("D").getChrID());
         Predicate<File> d=f->dindex.contains(StringTool.getNumFromString(f.getName()));
@@ -512,14 +520,16 @@ public class Ne {
             }
             num[index].add(i);
         }
-        IntStream.range(0, num[0].size()).forEach(e->mergeSMC(dFiles.get(num[0].get(e)), dFiles.get(num[1].get(e)), outDir));
+        IntStream.range(0, num[0].size()).parallel().forEach(e->mergeSMC(dFiles.get(num[0].get(e)), dFiles.get(num[1].get(e)), outDir));
+        System.out.println("AB subgenome had completed in "+ Benchmark.getTimeSpanMinutes(start)+ " minutes");
     }
 
     private static void mergeSMC(File file1, File file2, String outDir){
         int chrID=StringTool.getNumFromString(file1.getName().substring(0,6));
         String filename=file1.getName().substring(6);
         String chr= RefV1Utils.getChromosome(chrID, 1);
-        try (BufferedWriter bw = IOTool.getWriter(new File(outDir, "chr" + chr + filename))) {
+        File outFile=new File(outDir, "chr" + chr + filename);
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
             long numLine1=IOTool.getReader(file1).lines().count();
             int num1=0;
             BufferedReader br1=IOTool.getReader(file1);
@@ -555,6 +565,7 @@ public class Ne {
             }
             br2.close();
             bw.flush();
+            System.out.println(outFile.getName()+ " had completed");
         } catch (IOException e) {
             e.printStackTrace();
         }
