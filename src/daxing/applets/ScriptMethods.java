@@ -5,8 +5,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
 import com.google.common.collect.TreeMultimap;
 import daxing.common.*;
-import daxing.common.vmap2Group.Group;
-import daxing.common.vmap2Group.GroupType;
 import daxing.load.complementary.TriadsBlock;
 import daxing.load.complementary.TriadsBlockUtils;
 import gnu.trove.list.array.TIntArrayList;
@@ -16,6 +14,7 @@ import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -258,154 +257,6 @@ public class ScriptMethods {
 
     /**
      *
-     * @param vcfDir vcf dir
-     * @param vcfComplementBedDir vcfComplementBedDir
-     * @param subgenomeCombination
-     * @param taxaInfo_DepthFile groupFile
-     * DomesticatedEmmer	CItr14822
-     * DomesticatedEmmer	CItr14824
-     * DomesticatedEmmer	CItr14916
-     * FreeThreshTetraploid	CItr14892
-     * FreeThreshTetraploid	CItr7798
-     * @param group group
-     * @param shOutFile shOutFile
-     */
-    public static void smc(String vcfDir, String vcfComplementBedDir, String outDir, SubgenomeCombination subgenomeCombination,
-                           String taxaInfo_DepthFile, Group group, String shOutFile, String genomeFile, String logDir
-            , int sampleSize){
-        List<File> vcfFiles=IOUtils.getFileListInDirEndsWith(vcfDir, "gz");
-        List<File> vcfComplementBedFiles=IOUtils.getFileListInDirEndsWith(vcfComplementBedDir, "gz");
-        Predicate<File> subgenomeP = null;
-        TIntArrayList subgenomeChrs = null;
-        if (subgenomeCombination.equals(SubgenomeCombination.AB)){
-            TIntArrayList ab=new TIntArrayList(WheatLineage.ablineage());
-            subgenomeP=f->ab.contains(StringTool.getNumFromString(f.getName()));
-            subgenomeChrs=new TIntArrayList(WheatLineage.ablineage());
-        }else if (subgenomeCombination.equals(SubgenomeCombination.D)){
-            TIntArrayList d=new TIntArrayList(WheatLineage.valueOf("D").getChrID());
-            subgenomeP=f->d.contains(StringTool.getNumFromString(f.getName()));
-            subgenomeChrs=new TIntArrayList(WheatLineage.valueOf("D").getChrID());
-        }else {
-            System.out.println("error your parameter subgenome");
-            System.exit(1);
-        }
-        List<File> subgenomeVcfFiles=vcfFiles.stream().filter(subgenomeP).collect(Collectors.toList());
-        List<File> subgenomeVcfComplementBedFiles=vcfComplementBedFiles.stream().filter(subgenomeP).collect(Collectors.toList());
-        Multimap<String, String> popmap=getPopMultiMap(taxaInfo_DepthFile, group, sampleSize);
-        Map<String, String> popDistTaxonMap=getPopDistTaxonMap(popmap);
-        Map<Integer, Integer> chrSizeMap=new HashMap<>();
-        try (BufferedReader bufferedReader1=IOTool.getReader(genomeFile);
-             BufferedWriter bufferedWriter =IOTool.getWriter(shOutFile)) {
-            String line;
-            List<String> temp;
-            while ((line=bufferedReader1.readLine())!=null){
-                temp=PStringUtils.fastSplit(line);
-                chrSizeMap.put(Integer.parseInt(temp.get(0)), Integer.parseInt(temp.get(1)));
-            }
-            StringBuilder sb;
-            List<String> individuals;
-            String distTaxon;
-            File outFile;
-            GroupType groupType;
-            List<String> groupList= group.getGroup(subgenomeCombination);
-            for (int i = 0; i < subgenomeVcfFiles.size(); i++) {
-                for (String s : groupList) {
-                    individuals = new ArrayList<>(popmap.get(s));
-                    distTaxon = popDistTaxonMap.get(s);
-                    groupType = GroupType.newInstanceFrom(s, group);
-                    sb = new StringBuilder();
-                    sb.append("nohup smc++ vcf2smc --cores 1 -m ").append(subgenomeVcfComplementBedFiles.get(i)).append(" ");
-                    sb.append(subgenomeVcfFiles.get(i)).append(" -l ").append(chrSizeMap.get(subgenomeChrs.get(i))).append(" -d ");
-                    sb.append(distTaxon).append(" ").append(distTaxon).append(" ");
-                    outFile = new File(outDir, subgenomeVcfFiles.get(i).getName().substring(0, 6) + "." + groupType + ".smc" +
-                            ".gz");
-                    sb.append(outFile.getAbsolutePath()).append(" ").append(subgenomeChrs.get(i)).append(" ");
-                    sb.append(groupType).append(":");
-                    for (String individual : individuals) {
-                        sb.append(individual).append(",");
-                    }
-                    sb.deleteCharAt(sb.length() - 1);
-                    sb.append(" >").append(logDir).append(subgenomeVcfFiles.get(i).getName(), 0, 6).append("_").append(groupType).append(".log");
-                    sb.append(" ").append("2>&1");
-                    bufferedWriter.write(sb.toString());
-                    bufferedWriter.newLine();
-                }
-            }
-            bufferedWriter.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     *
-     * @param taxaInfo_DistinguishedLineageFile
-     * @param group
-     * @param sampleSize vcf2smc亚群的样本大小，不能超过亚群的组合数
-     * @return
-     */
-    private static Multimap<String, String> getPopMultiMap(String taxaInfo_DistinguishedLineageFile,
-                                                           Group group, int sampleSize){
-        int index= group.equals(Group.Subspecies) ? 3 : 2;
-        Set<String> groupSet=RowTableTool.getColumnSet(taxaInfo_DistinguishedLineageFile, index);
-        groupSet.remove("NA");
-        List<String> groupList=new ArrayList<>(groupSet);
-        Collections.sort(groupList);
-        Multimap<String, String> res=TreeMultimap.create();
-        try (BufferedReader br = IOTool.getReader(taxaInfo_DistinguishedLineageFile)) {
-            String line;
-            List<String> temp;
-            br.readLine();
-            Multimap<String, String> popMap=TreeMultimap.create();
-            while ((line=br.readLine())!=null){
-                temp=PStringUtils.fastSplit(line);
-                if (temp.get(index).equals("NA")) continue;
-                groupSet.add(temp.get(index));
-                popMap.put(temp.get(index), temp.get(0));
-            }
-            List<String> individualsList;
-            StringBuilder sb=new StringBuilder();
-            List<int[]> combinationList;
-            int[] combiantion;
-            GroupType groupType;
-            for (String pop:groupList){
-                individualsList=new ArrayList<>(popMap.get(pop));
-                Collections.sort(individualsList);
-                groupType = GroupType.newInstanceFrom(pop, group);
-                Iterator<int[]> iterator=CombinatoricsUtils.combinationsIterator(individualsList.size(), 2);
-                combinationList=new ArrayList<>();
-                while (iterator.hasNext()){
-                    combinationList.add(iterator.next());
-                }
-                Collections.shuffle(combinationList);
-                for (int i = 0; i < sampleSize; i++) {
-                    combiantion=combinationList.get(i);
-                    sb.setLength(0);
-                    sb.append(groupType).append("_");
-                    sb.append(individualsList.get(combiantion[0])).append("_").append(individualsList.get(combiantion[1]));
-                    res.put(pop, sb.toString());
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return res;
-    }
-
-    private static Map<String,String> getPopDistTaxonMap(Multimap<String, String> popmap){
-        Set<String> keySet=popmap.keySet();
-        Map<String,String> res=new HashMap<>();
-        List<String> valueList;
-        for (String key:keySet){
-            valueList=new ArrayList<>(popmap.get(key));
-            Collections.shuffle(valueList);
-            res.put(key, valueList.get(0));
-        }
-        return res;
-    }
-
-    /**
-     *
      * @param vcfDir vcfDir
      * @param vcfComplementBedDir vcfComplementBedDir
      * @param outDir outDir
@@ -508,25 +359,6 @@ public class ScriptMethods {
         }
     }
 
-    public static void bulidSMC(String vcfDir, String bedDir, String outDir, String taxaInfo_depthFile, Group group,
-                                String outFileAB, String outFileD, String genomeFile, String logDir, int sampleSize){
-//        vcfDir="/data1/home/daxing/vmap2.1Data/002_vmap2.1RefToAncestral";
-//        bedDir="/data1/home/daxing/vmap2.1Data/001_vmap2.1_complementChr";
-//        outDir="/Users/xudaxing/Desktop/out";
-//        taxaInfo_depthFile="/Users/xudaxing/Desktop/groupSMC_R1.txt";
-//        distTaxon="/Users/xudaxing/Desktop/popDistTaxonR1.txt";
-//        outFileAB="/Users/xudaxing/Desktop/resAB.sh";
-//        outFileD="/Users/xudaxing/Desktop/resD.sh";
-//        genomeFile="/Users/xudaxing/Desktop/genome.txt";
-//        String[] group_AB={"WildEmmer","DomesticatedEmmer","FreeThreshTetraploid","Landrace", "Cultivar"};
-//        String[] group_D={"Ae.tauschii","Landrace", "Cultivar"};
-//        logDir="/Users/xudaxing/Desktop/log";
-        ScriptMethods.smc(vcfDir, bedDir, outDir,SubgenomeCombination.AB, taxaInfo_depthFile, group,
-                outFileAB, genomeFile, logDir, sampleSize);
-        ScriptMethods.smc(vcfDir, bedDir, outDir,SubgenomeCombination.D, taxaInfo_depthFile, group,
-                outFileD, genomeFile, logDir, sampleSize);
-    }
-
     public static void bulidSMC_split(String vcfDir, String bedDir, String outDir, String groupFile, String distTaxon,
                                       String outDirAB, String outDirD, String genomeFile, String logDir){
 //        vcfDir="/Users/xudaxing/Desktop/vcf";
@@ -614,109 +446,6 @@ public class ScriptMethods {
             e.printStackTrace();
         }
 
-    }
-
-    /**
-     * 将smc合并为RefChrSmc
-     * @param inputDir
-     * @param outDir
-     * @param popNumAB
-     * @param popNumD
-     */
-    public static void mergeSMC(String inputDir, String outDir, int popNumAB, int popNumD){
-        mergeSMC_AB(inputDir, outDir, popNumAB);
-        mergeSMC_D(inputDir, outDir, popNumD);
-    }
-
-    public static void mergeSMC_D(String inputDir, String outDir, int popNumD){
-        List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
-        TIntArrayList dindex=new TIntArrayList(WheatLineage.valueOf("D").getChrID());
-        Predicate<File> d=f->dindex.contains(StringTool.getNumFromString(f.getName()));
-        List<File> dFiles=files.stream().filter(d).collect(Collectors.toList());
-        TIntArrayList[] num=new TIntArrayList[2];
-        num[0]=new TIntArrayList();
-        num[1]=new TIntArrayList();
-        int count=0;
-        int index=0;
-        boolean flag=false;
-        for (int i = 0; i < dFiles.size(); i++) {
-            count++;
-            if (count>popNumD){
-                flag=!flag;
-                index=flag ? 1 : 0;
-                count=1;
-            }
-            num[index].add(i);
-        }
-        IntStream.range(0, num[0].size()).forEach(e->mergeSMC(dFiles.get(num[0].get(e)), dFiles.get(num[1].get(e)), outDir));
-    }
-
-    public static void mergeSMC_AB(String inputDir, String outDir, int popNumAB){
-        List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
-        TIntArrayList dindex=new TIntArrayList(WheatLineage.valueOf("D").getChrID());
-        Predicate<File> d=f->dindex.contains(StringTool.getNumFromString(f.getName()));
-        List<File> dFiles=files.stream().filter(d.negate()).collect(Collectors.toList());
-        TIntArrayList[] num=new TIntArrayList[2];
-        num[0]=new TIntArrayList();
-        num[1]=new TIntArrayList();
-        int count=0;
-        int index=0;
-        boolean flag=false;
-        for (int i = 0; i < dFiles.size(); i++) {
-            count++;
-            if (count>popNumAB){
-                flag=!flag;
-                index=flag ? 1 : 0;
-                count=1;
-            }
-            num[index].add(i);
-        }
-        IntStream.range(0, num[0].size()).forEach(e->mergeSMC(dFiles.get(num[0].get(e)), dFiles.get(num[1].get(e)), outDir));
-    }
-
-    public static void mergeSMC(File file1, File file2, String outDir){
-        int chrID=StringTool.getNumFromString(file1.getName().substring(0,6));
-        String filename=file1.getName().substring(6);
-        String chr=RefV1Utils.getChromosome(chrID, 1);
-        try (BufferedWriter bw = IOTool.getWriter(new File(outDir, "chr" + chr + filename))) {
-            long numLine1=IOTool.getReader(file1).lines().count();
-            int num1=0;
-            BufferedReader br1=IOTool.getReader(file1);
-            BufferedReader br2=IOTool.getReader(file2);
-            String header=br1.readLine();
-            num1++;
-            bw.write(header);
-            bw.newLine();
-            String line;
-            List<String> temp1, temp2;
-            while ((line=br1.readLine())!=null && num1 < numLine1-1){
-                num1++;
-                bw.write(line);
-                bw.newLine();
-            }
-            temp1=PStringUtils.fastSplit(line, " ");
-            br1.close();
-            br2.readLine();
-            line=br2.readLine();
-            temp2=PStringUtils.fastSplit(line, " ");
-            int count;
-            if (temp1.subList(1,temp1.size()).equals(temp2.subList(1,temp2.size()))){
-                count=Integer.parseInt(temp1.get(0))+Integer.parseInt(temp2.get(0));
-                bw.write(count+" "+String.join(" ", temp1.subList(1,4)));
-                bw.newLine();
-            }else {
-                bw.write(line);
-                bw.newLine();
-            }
-            while ((line=br2.readLine())!=null){
-                bw.write(line);
-                bw.newLine();
-            }
-            br2.close();
-            bw.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public static void vmap2_exon_ML_Parsimony(String exonSNP_annoFile, String outEst, String outpasimony){
