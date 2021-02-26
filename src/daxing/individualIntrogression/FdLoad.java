@@ -2,7 +2,10 @@ package daxing.individualIntrogression;
 
 import com.google.common.collect.Table;
 import com.google.common.collect.TreeBasedTable;
-import daxing.common.*;
+import daxing.common.DateTime;
+import daxing.common.IOTool;
+import daxing.common.LoadType;
+import daxing.common.RowTableTool;
 import daxing.load.ancestralSite.ChrSNPAnnoDB;
 import pgl.infra.pos.ChrPos;
 import pgl.infra.range.Range;
@@ -51,15 +54,15 @@ public class FdLoad {
 //        merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
 //        retainTreeValidatedLandraceCultivar(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
 //                new File(outDir, subdir[2]).getAbsolutePath());
-        addFd(individualFdDir, new File(outDir, subdir[2]).getAbsolutePath(), new File(outDir, subdir[3]).getAbsolutePath());
-//        summaryIndividualLoadFd(new File(outDir, subdir[3]).getAbsolutePath(),
-//                new File(outDir, subdir[4]).getAbsolutePath(), IndividualChrPosLoad.LoadType.Del);
-//        summaryIndividualLoadFd(new File(outDir, subdir[3]).getAbsolutePath(),
-//                new File(outDir, subdir[4]).getAbsolutePath(), IndividualChrPosLoad.LoadType.Non);
-//        summaryIndividualLoadFd(new File(outDir, subdir[3]).getAbsolutePath(),
-//                new File(outDir, subdir[4]).getAbsolutePath(), IndividualChrPosLoad.LoadType.Syn);
-        FdLoad.mergeIndividualLoadFdToSummary(new File(outDir, subdir[3]).getAbsolutePath(), new File(outDir,
-                subdir[5]).getAbsolutePath());
+//        addFd(individualFdDir, new File(outDir, subdir[2]).getAbsolutePath(), new File(outDir, subdir[3]).getAbsolutePath());
+        summaryIndividualLoadFd(new File(outDir, subdir[3]).getAbsolutePath(),
+                new File(outDir, subdir[4]).getAbsolutePath(), LoadType.Del);
+        summaryIndividualLoadFd(new File(outDir, subdir[3]).getAbsolutePath(),
+                new File(outDir, subdir[4]).getAbsolutePath(), LoadType.Non);
+        summaryIndividualLoadFd(new File(outDir, subdir[3]).getAbsolutePath(),
+                new File(outDir, subdir[4]).getAbsolutePath(), LoadType.Syn);
+//        FdLoad.mergeIndividualLoadFdToSummary(new File(outDir, subdir[3]).getAbsolutePath(), new File(outDir,
+//                subdir[5]).getAbsolutePath());
         System.out.println(DateTime.getDateTimeOfNow());
     }
 
@@ -384,8 +387,8 @@ public class FdLoad {
                     total=0;
                     while ((line=br.readLine())!=null){
                         temp=PStringUtils.fastSplit(line);
-                        if (!temp.get(2).equals(loadType.name())) continue;
                         total++;
+                        if (!temp.get(2).equals(loadType.name())) continue;
                         chrID=Integer.parseInt(temp.get(0));
                         sub=RefV1Utils.getSubgenomeFromChrID(chrID);
                         ifFd=Integer.parseInt(temp.get(5));
@@ -438,8 +441,8 @@ public class FdLoad {
                 total=0;
                 while ((line=br.readLine())!=null){
                     temp=PStringUtils.fastSplit(line);
-                    if (temp.get(2).equals("Syn")) continue;
                     total++;
+                    if (temp.get(2).equals("Syn")) continue;
                     chrID=Integer.parseInt(temp.get(0));
                     sub=RefV1Utils.getSubgenomeFromChrID(chrID);
                     ifFd=Integer.parseInt(temp.get(5));
