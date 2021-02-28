@@ -290,7 +290,7 @@ public class Ne {
     }
 
     public static void bulidSMC(String vcfDir, String bedDir, String outDir, String taxaInfo_depthFile, Group group,
-                                String outFileAB, String outFileD, String genomeFile, String logDir, int sampleSize){
+                                String outFileAB, String outFileD, String chrSizeFile, String logDir, int sampleSize){
 //        vcfDir="/data1/home/daxing/vmap2.1Data/002_vmap2.1RefToAncestral";
 //        bedDir="/data1/home/daxing/vmap2.1Data/001_vmap2.1_complementChr";
 //        outDir="/Users/xudaxing/Desktop/out";
@@ -298,14 +298,14 @@ public class Ne {
 //        distTaxon="/Users/xudaxing/Desktop/popDistTaxonR1.txt";
 //        outFileAB="/Users/xudaxing/Desktop/resAB.sh";
 //        outFileD="/Users/xudaxing/Desktop/resD.sh";
-//        genomeFile="/Users/xudaxing/Desktop/genome.txt";
+//        chrSizeFile="/Users/xudaxing/Desktop/genome.txt";
 //        String[] group_AB={"WildEmmer","DomesticatedEmmer","FreeThreshTetraploid","Landrace", "Cultivar"};
 //        String[] group_D={"Ae.tauschii","Landrace", "Cultivar"};
 //        logDir="/Users/xudaxing/Desktop/log";
         smc(vcfDir, bedDir, outDir,SubgenomeCombination.AB, taxaInfo_depthFile, group,
-                outFileAB, genomeFile, logDir, sampleSize);
+                outFileAB, chrSizeFile, logDir, sampleSize);
         smc(vcfDir, bedDir, outDir,SubgenomeCombination.D, taxaInfo_depthFile, group,
-                outFileD, genomeFile, logDir, sampleSize);
+                outFileD, chrSizeFile, logDir, sampleSize);
     }
 
     /**
@@ -324,7 +324,7 @@ public class Ne {
      */
     private static void smc(String vcfDir, String vcfComplementBedDir, String outDir,
                       SubgenomeCombination subgenomeCombination,
-                           String taxaInfo_DepthFile, Group group, String shOutFile, String genomeFile, String logDir
+                           String taxaInfo_DepthFile, Group group, String shOutFile, String chrSizeFile, String logDir
             , int sampleSize){
         List<File> vcfFiles=IOUtils.getFileListInDirEndsWith(vcfDir, "gz");
         List<File> vcfComplementBedFiles=IOUtils.getFileListInDirEndsWith(vcfComplementBedDir, "gz");
@@ -347,7 +347,7 @@ public class Ne {
         Multimap<String, String> popmap=getPopMultiMap(taxaInfo_DepthFile, group, sampleSize);
         Map<String, String> popDistTaxonMap=getPopDistTaxonMap(popmap);
         Map<Integer, Integer> chrSizeMap=new HashMap<>();
-        try (BufferedReader bufferedReader1=IOTool.getReader(genomeFile);
+        try (BufferedReader bufferedReader1=IOTool.getReader(chrSizeFile);
              BufferedWriter bufferedWriter =IOTool.getWriter(shOutFile)) {
             String line;
             List<String> temp;
