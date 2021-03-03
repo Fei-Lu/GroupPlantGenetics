@@ -24,12 +24,12 @@ public class eQTL {
          /*
 //        simulation
 //        */
-        this.simulationData(args);
+//        this.simulationData(args);
 
         /*
 //        Meta-Tissue Analysis pipeline
 //         */
-        this.metasoft(args);
+//        this.metasoft(args);
 
          /*
 //        Hapscanner parameter
@@ -39,52 +39,54 @@ public class eQTL {
         /*
         effect size
          */
-        this.effectsize(args);
+//        this.effectsize(args);
 
         /*
         triads
          */
-        this.getTraidsPattern();
-        this.patternIdentify();
+//        this.getTraidsPattern();
+//        this.patternIdentify();
 
         /*
         VCF
          */
-        this.vcf(args);
+//        this.vcf(args);
 
         /*
         pheno
          */
-        this.pheno(args);
+//        this.pheno(args);
 
         /*
         meta-tissue analysis
          */
-        this.multiTissue(args);
+//        this.multiTissue(args);
+//
+//        this.hapscannercp(args);
 
-        this.intergenicPattern();
-        this.intergenicPatternEnrichment();
-        this.intergenicPatternhuman();
-        this.intergenicPatternTransposon();
-        this.getCisChrGene();
-        this.getNominalSig();
-        this.getcisSig();
-        this.getQTLcount();
-        this.getExprWithQTL();
-        this.getGeneUpSnpCount();
-        this.getGeneInterSnpCount();
-        this.getGeneDownSnpCount();
-        this.getRandomDistance();
-        this.getCisDistance();
-        this.getTransposonLength();
-        this.geteQTLpos();
-        this.getTransposonClass();
-        this.getoverlap();
-        this.snppos();
-        this.getsureofanno();
-        this.getsubGerp();
-        this.getNominalThreshold();
-        this.command();
+//        this.intergenicPattern();
+//        this.intergenicPatternEnrichment();
+//        this.intergenicPatternhuman();
+//        this.intergenicPatternTransposon();
+//        this.getCisChrGene();
+//        this.getNominalSig();
+//        this.getcisSig();
+//        this.getQTLcount();
+//        this.getExprWithQTL();
+//        this.getGeneUpSnpCount();
+//        this.getGeneInterSnpCount();
+//        this.getGeneDownSnpCount();
+//        this.getRandomDistance();
+//        this.getCisDistance();
+//        this.getTransposonLength();
+//        this.geteQTLpos();
+//        this.getTransposonClass();
+//        this.getoverlap();
+//        this.snppos();
+//        this.getsureofanno();
+//        this.getsubGerp();
+//        this.getNominalThreshold();
+//        this.command();
     }
 
     public void pheno(String[] args){
@@ -451,6 +453,10 @@ public class eQTL {
         }
     }
 
+
+    public void hapscannercp(String[] args){
+        new HapScannercp(args[0]);
+    }
 
     public void hapscanner(String[] args) throws IOException, InterruptedException {
         new HapscannerParameters(args);

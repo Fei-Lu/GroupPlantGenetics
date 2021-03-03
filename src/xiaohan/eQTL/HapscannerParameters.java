@@ -17,22 +17,23 @@ import java.util.concurrent.ExecutionException;
 public class HapscannerParameters {
 
     public HapscannerParameters(String[] args) throws IOException, InterruptedException {
-        this.parseparameter();
-        File posDir = new File(new File("/data2/xiaohan/genotype/hapscanner/pos").getAbsolutePath());
-        File posAlleleDir = new File(new File("/data2/xiaohan/genotype/hapscanner/posAllele").getAbsolutePath());
-        if (!posDir.exists() || !posAlleleDir.exists()) {
-            this.poswithAllele();
-        }
-        this.parameter(args);
-        this.taxaRefBAM(args);
-        this.getsubgenotype(args);
+//        this.parseparameter();
+//        File posDir = new File(new File("/data2/xiaohan/genotype/hapscanner/pos").getAbsolutePath());
+//        File posAlleleDir = new File(new File("/data2/xiaohan/genotype/hapscanner/posAllele").getAbsolutePath());
+//        if (!posDir.exists() || !posAlleleDir.exists()) {
+//            this.poswithAllele();
+//        }
+//        this.parameter(args);
+//        this.taxaRefBAM(args);
+//        this.getsubgenotype(args);
+//        this.getsubRNAgenotype(args);
 
-        this.getSamePosition(args);
-        this.getIsec(args);
-        this.getMergedVCF(args);
-        this.getsortedVCF(args);
-        this.getIBdistane(args);
-        this.getDensityIBS(args);
+//        this.getIsec(args);
+//        this.getMergedVCF(a
+//        rgs);
+//        this.getsortedVCF(args);
+//        this.getIBdistane(args);
+//        this.getDensityIBS(args);
     }
 
 
@@ -40,42 +41,167 @@ public class HapscannerParameters {
 
     }
 
-    public void getsubgenotype(String[] args) {
-        String parameter = "/data2/junxu/dataTest/test/" + args[0] + "/sams";
-        File[] fs = new File(parameter).listFiles();
-        List<File> fList = new ArrayList(Arrays.asList());
-        fs = IOUtils.listFilesEndsWith(fs, "_Aligned.out.sorted.bam");
-        HashSet<String> nameSet = new HashSet();
+    public void getsubRNAgenotype(String[] args) {
         String plate = args[0];
-        for (int i = 0; i < fs.length; i++) {
-            if (fs[i].isHidden()) continue;
-            nameSet.add(fs[i].getName().replace("_" + plate + "_Aligned.out.sorted.bam", ""));
+        String parameter = "/data2/xiaohan/genotype/hapscanner/output/" + args[0] + "/VCF";
+        String RNADir = "/data2/xiaohan/genotype/hapscanner/output/" + args[0];
+
+        HashSet<String> nameSet = new HashSet<>();
+        for (int i = 0; i < 42; i++) {
+            int chr = i + 1;
+            nameSet.add(String.valueOf(chr));
         }
-        String[] namelist = nameSet.toArray(new String[nameSet.size()]);
-        Arrays.sort(namelist);
-
-        String genotypeDir = "/data2/xiaohan/genotype/hapscanner/output/" + plate + "DNA";
-        StringBuilder sb = new StringBuilder();
-        try {
-            for (int i = 0; i < namelist.length; i++) {
-                sb.append(namelist[i] + "\n");
+        nameSet.parallelStream().forEach(f -> {
+            BufferedReader br = null;
+            if (Integer.parseInt(f) <= 9) {
+                br = IOUtils.getTextReader(new File(parameter, "chr00" + f + ".vcf").getAbsolutePath());
+            } else {
+                br = IOUtils.getTextReader(new File(parameter, "chr0" + f + ".vcf").getAbsolutePath());
             }
-            BufferedWriter bw = IOUtils.getTextWriter(new File(genotypeDir, "samplelist.txt").getAbsolutePath());
-            bw.write(sb.toString());
-            bw.flush();
-            bw.close();
+            BufferedWriter bw = IOUtils.getTextWriter(new File(RNADir, "chr" + f + ".vcf").getAbsolutePath());
+            String temp = null;
+            String[] temps = null;
+            try {
+                while ((temp = br.readLine()) != null) {
+                    if(temp.startsWith("#")){
+                        bw.write(temp+"\n");
+                        continue;
+                    }
+                    temps = temp.split("\t");
+                    int num = 0;
+                    int total = temps.length/10;
+                    for (int i = 9; i < temps.length; i++) {
+                        if(temps[i].split(";")[0].equals("./.")){
+                            num ++;
+                        }
+                    }
+                    if(num <= total){
+                        bw.write(temp+"\n");
+                    }
+                }
+                br.close();
+                bw.flush();
+                bw.close();
+            } catch (Exception e) {
+            }
+        });
+    }
 
-            BufferedWriter bw1 = IOUtils.getTextWriter(new File(genotypeDir, "substract&merge.txt").getAbsolutePath());
+
+    public void getsubgenotype(String[] args) {
+        String plate = args[0];
+        String parameter = "/data2/xiaohan/genotype/hapscanner/output/" + args[0] + "/VCF";
+        String DNADir = "/data2/xiaohan/genotype/hapscanner/output/" + args[0] + "DNA";
+        BufferedReader brinfo = IOUtils.getTextReader(new File(parameter, "chr001.vcf").getAbsolutePath());
+        BufferedWriter bwsample = IOUtils.getTextWriter(new File(DNADir, "samplelist.txt").getAbsolutePath());
+        try {
+            String temp = null;
+            String[] temps = null;
+            HashSet<String> nameSet = new HashSet();
+            int num = 0;
+            while ((temp = brinfo.readLine()) != null) {
+                if (temp.startsWith("#C")) {
+                    temps = temp.split("\t");
+                    for (int i = 9; i < temps.length; i++) {
+                        if ((temps[i] + "").length() == 4) {
+                            bwsample.write(temps[i] + "\n");
+                        } else num++;
+                    }
+                }
+            }
+            brinfo.close();
+            bwsample.flush();
+            bwsample.close();
+//
             for (int i = 0; i < 42; i++) {
-                int chr = i+1;
+                int chr = i + 1;
                 StringBuilder sb1 = new StringBuilder();
                 sb1.append("bcftools view -S ");
-                sb1.append(new File(genotypeDir, "samplelist.txt").getAbsolutePath());
-                sb1.append(" /data2/xiaohan/genotype/genotype_eQTL/"+chr+".346.B18.recode.vcf.gz -Ov > ");
-                sb1.append(new File(genotypeDir,plate+"_chr"+chr+".vcf").getAbsolutePath());
+                sb1.append(new File(DNADir, "samplelist.txt").getAbsolutePath());
+                sb1.append(" /data2/xiaohan/genotype/genotype360/" + chr + ".346.B18.recode.vcf.gz -Ov > ");
+                sb1.append(new File(DNADir, plate + "_oldchr" + chr + ".vcf").getAbsolutePath());
+                sb1.append("  && bgzip ");
+                sb1.append(new File(DNADir, plate + "_oldchr" + chr + ".vcf").getAbsolutePath());
+                String command = sb1.toString();
+                System.out.println(command);
+                File dir = new File(new File(DNADir).getAbsolutePath());
+                String[] cmdarry = {"/bin/bash", "-c", command};
+                Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+                p.waitFor();
+            }
+
+            if (num != 0) {
+                for (int i = 1; i < num; i++) {
+                    for (int j = 0; j < 42; j++) {
+                        int chr = j + 1;
+                        StringBuilder sb1 = new StringBuilder();
+                        sb1.append("bcftools view -S ");
+                        sb1.append(new File("/data2/xiaohan/genotype/hapscanner/output/", "360.txt").getAbsolutePath());
+                        sb1.append(" /data2/xiaohan/genotype/genotype360/" + chr + ".346.B18.recode.vcf.gz -Ov > ");
+                        sb1.append(new File(DNADir, plate + "_oldchr" + chr + "_" + num + ".vcf\n").getAbsolutePath());
+                        sb1.append("sed -i \'s/" + "E360" + "/E360-" + num + "/g\' ");
+                        sb1.append(sb1.append(new File(DNADir, plate + "_oldchr" + chr + "_" + num + ".vcf\n").getAbsolutePath()));
+                        sb1.append("bgzip ");
+                        sb1.append(new File(DNADir, plate + "_oldchr" + chr + "_" + num + ".vcf\n").getAbsolutePath());
+                        String command = sb1.toString();
+                        System.out.println(command);
+                        File dir = new File(new File(DNADir).getAbsolutePath());
+                        String[] cmdarry = {"/bin/bash", "-c", command};
+                        Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+                        p.waitFor();
+                    }
+                }
+                for (int i = 0; i < 42; i++) {
+                    int chr = i + 1;
+                    StringBuilder sb2 = new StringBuilder();
+                    sb2.append("vcf-concat ");
+                    sb2.append(plate + "_oldchr" + chr + ".vcf.gz ");
+                    for (int j = 1; j < num; j++) {
+                        sb2.append(plate + "_oldchr" + chr + "_" + num + ".vcf.gz");
+                    }
+                    sb2.append(" > " + plate + "_chr" + chr + ".vcf \n");
+                    sb2.append("bgzip " + plate + "_chr" + chr + ".vcf \n");
+                    String command = sb2.toString();
+                    System.out.println(command);
+                    File dir = new File(new File(DNADir).getAbsolutePath());
+                    String[] cmdarry = {"/bin/bash", "-c", command};
+                    Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+                    p.waitFor();
+                }
+            }
+
+            for (int i = 0; i < 42; i++) {
+                int chr = i + 1;
+                StringBuilder sb2 = new StringBuilder();
+                sb2.append("mv " + plate + "_oldchr" + chr + ".vcf.gz " + plate + "_chr" + chr + ".vcf.gz ");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void getIsec(String[] args) {
+        String plate = args[0];
+        String infileDir1 = "/data2/xiaohan/genotype/hapscanner/output/" + plate;
+        String infileDir2 = "/data2/xiaohan/genotype/hapscanner/output/" + plate + "DNA";
+        File f = new File("/data2/xiaohan/genotype/hapscanner/output/", plate + "Isec");
+        f.mkdir();
+        String outputDir = f.getAbsolutePath();
+        try {
+            for (int i = 0; i < 42; i++) {
+                int chr = i + 1;
+                String infile1 = new File(infileDir1, "chr" + chr + ".vcf").getAbsolutePath();
+                String infile2 = new File(infileDir2, plate + "_chr" + chr + ".vcf.gz").getAbsolutePath();
+                StringBuilder sb = new StringBuilder();
+                sb.append("bedtools intersect -a " + infile1 + " -b " + infile2 + " -wa > " + plate + "_chr" + chr + "_RNA.vcf\n");
+                sb.append("bedtools intersect -a " + infile2 + " -b " + infile1 + " -wa > " + plate + "_chr" + chr + "_DNA.vcf\n");
+//                sb.append("rm "+infile1+"\n");
+//                sb.append("rm "+infile2+"\n");
+//                new File(infile1).delete();
+//                new File(infile2).delete();
                 String command = sb.toString();
                 System.out.println(command);
-                File dir = new File(new File(genotypeDir).getAbsolutePath());
+                File dir = new File(new File("/data2/xiaohan/genotype/hapscanner/output/").getAbsolutePath());
                 String[] cmdarry = {"/bin/bash", "-c", command};
                 Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
                 p.waitFor();
@@ -85,39 +211,12 @@ public class HapscannerParameters {
         }
     }
 
-    public void getIsec(String[] args){
-        String plate = args[0];
-        String infileDir1 = "/data2/xiaohan/genotype/hapscanner/output/"+plate;
-        String infileDir2 = "/data2/xiaohan/genotype/hapscanner/output/"+plate + "DNA";
-        File f = new File("/data2/xiaohan/genotype/hapscanner/output/", plate + "Isec");
-        f.mkdir();
-        String outputDir = f.getAbsolutePath();
-        try {
-            for (int i = 0; i < 42; i++) {
-                int chr = i + 1;
-                String infile1 = new File(infileDir1, "").getAbsolutePath();
-                String infile2 = new File(infileDir2, "").getAbsolutePath();
-                StringBuilder sb = new StringBuilder();
-                sb.append("bedtools intersect -a "+infile1+" -b "+infile2+" -wa > chr"+chr+"_A.vcf\n");
-                sb.append("bedtools intersect -a "+infile2+" -b "+infile1+" -wa > chr"+chr+"_B.vcf\n");
-                String command = sb.toString();
-                System.out.println(command);
-                File dir = new File(new File("/data2/xiaohan/genotype/hapscanner/output/").getAbsolutePath());
-                String[] cmdarry = {"/bin/bash", "-c", command};
-                Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
-                p.waitFor();
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    public void getsortedVCF(String[] args){
+    public void getsortedVCF(String[] args) {
         String plate = args[0];
         String infileDir = new File("/data2/xiaohan/genotype/hapscanner/output/", plate + "Isec").getAbsolutePath();
         try {
             StringBuilder sb1 = new StringBuilder();
-            sb1.append("cat RNA.vcf | awk '$1 ~ /^#/ {print $0;next} {print $0 | \"sort -k1,1 -k2,2n\"}' > RNA.sorted.vcf ");
+            sb1.append("cat " + plate + "_RNA.vcf | awk '$1 ~ /^#/ {print $0;next} {print $0 | \"sort -k1,1 -k2,2n\"}' > " + plate + "_RNA.sorted.vcf ");
             String command = sb1.toString();
             System.out.println(command);
             File dir = new File(infileDir).getAbsoluteFile();
@@ -126,18 +225,18 @@ public class HapscannerParameters {
             p.waitFor();
 
             StringBuilder sb2 = new StringBuilder();
-            sb2.append("cat DNA.vcf | awk '$1 ~ /^#/ {print $0;next} {print $0 | \"sort -k1,1 -k2,2n\"}' > DNA.sorted.vcf ");
+            sb2.append("cat " + plate + "_DNA.vcf | awk '$1 ~ /^#/ {print $0;next} {print $0 | \"sort -k1,1 -k2,2n\"}' > " + plate + "_DNA.sorted.vcf ");
             command = sb2.toString();
             System.out.println(command);
             String[] cmdarry1 = {"/bin/bash", "-c", command};
             Process p1 = Runtime.getRuntime().exec(cmdarry1, null, dir);
             p1.waitFor();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void getMergedVCF(String[] args){
+    public void getMergedVCF(String[] args) {
         String plate = args[0];
         String infileDir = new File("/data2/xiaohan/genotype/hapscanner/output/", plate + "Isec").getAbsolutePath();
         try {
@@ -145,9 +244,9 @@ public class HapscannerParameters {
             sb1.append("vcf-concat ");
             for (int i = 0; i < 42; i++) {
                 int chr = i + 1;
-                sb1.append(chr + ".vcf ");
+                sb1.append(plate + "_chr" + chr + "_RNA.vcf ");
             }
-            sb1.append(" > RNA.vcf");
+            sb1.append(" > " + plate + "_RNA.vcf");
             String command = sb1.toString();
             System.out.println(command);
             File dir = new File(infileDir).getAbsoluteFile();
@@ -159,128 +258,28 @@ public class HapscannerParameters {
             sb2.append("vcf-concat ");
             for (int i = 0; i < 42; i++) {
                 int chr = i + 1;
-                sb2.append(chr + ".vcf ");
+                sb2.append(plate + "_chr" + chr + "_DNA.vcf ");
             }
-            sb2.append(" > DNA.vcf");
+            sb2.append(" > " + plate + "_DNA.vcf");
             command = sb2.toString();
             System.out.println(command);
             String[] cmdarry1 = {"/bin/bash", "-c", command};
             Process p1 = Runtime.getRuntime().exec(cmdarry1, null, dir);
             p1.waitFor();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void getSamePosition(String[] args) {
-        String plate = args[0];
-        String inputDirRNA = "/data1/home/xiaohan/rareallele/Hapscanner/outputDir/mis01VCF";
-        String inputDirDNA = "/data2/xiaohan/DNAgenotype";
-        String outputDirRNA = "/data2/xiaohan/RNAgenotype";
-        String outputDirDNA = "/data2/xiaohan/DNAgenotype";
-//        String inputDirRNA = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/changename/inputDirRNA";
-//        String inputDirDNA = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/changename/inputDirDNA";
-//        String outputDirRNA = "/Users/yxh/Documents/RareAllele/004te..st/SiPASpipeline/input/changename/outputDirRNA";
-//        String outputDirDNA = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/changename/outputDirDNA";
-        String tempRNA = null;
-        String[] tempRNAs = null;
-        String tempDNA = null;
-        String[] tempDNAs = null;
-        String tempRNA1 = null;
-        String[] tempRNAs1 = null;
-        String tempDNA1 = null;
-        String[] tempDNAs1 = null;
-        for (int i = 0; i < 42; i++) {
-            int chrNumber = i + 1;
-//            int chrNumber = 1;
-            try {
-                //
-//                BufferedReader brRNA = IOUtils.getTextReader(new File(inputDirRNA, "chr" + chrNumber + ".mis01.recode.vcf").getAbsolutePath());
-//                HashSet<String> PositionSetRNA = new HashSet();
-                HashSet<String> PositionSetDNA = new HashSet();
-                HashMap<String, String> positionRNA = new HashMap();
-                HashMap<String, String> positionDNA = new HashMap();
-//                while ((tempRNA = brRNA.readLine()) != null) {
-//                    if (tempRNA.startsWith("#")) continue;
-//                    tempRNAs = tempRNA.split("\t");
-//                    String position1 = tempRNAs[1];
-//                    PositionSetRNA.add(position1);
-//                    positionRNA.put(position1, tempRNA);
-//                }
-//                brRNA.close();
-                BufferedReader brDNA = IOUtils.getTextReader(new File(inputDirDNA, "DNAchr" + chrNumber + ".vcf").getAbsolutePath());
-                while ((tempDNA = brDNA.readLine()) != null) {
-                    if (tempDNA.startsWith("#")) {
-                        continue;
-                    }
-                    tempDNAs = tempDNA.split("\t");
-                    String position2 = tempDNAs[1];
-                    PositionSetDNA.add(position2);
-                    positionDNA.put(position2, tempDNA);
-                }
-                brDNA.close();
-//                //
-                BufferedReader brRNA1 = IOUtils.getTextReader(new File(inputDirRNA, "chr" + chrNumber + ".mis01.recode.vcf").getAbsolutePath());
-                BufferedWriter bwRNA = IOUtils.getTextWriter(new File(outputDirRNA, "RNAchr" + chrNumber + ".vcf").getAbsolutePath());
-                int count = 0;
-                System.out.println("This is writing chr" + chrNumber + " File……………………………………………………………………………………………………………………");
-                while ((tempRNA1 = brRNA1.readLine()) != null) {
-                    if (tempRNA1.startsWith("#")) {
-                        bwRNA.write(tempRNA1);
-                        bwRNA.newLine();
-                        continue;
-                    }
-                    tempRNAs1 = tempRNA1.split("\t");
-                    String positionR = tempRNAs1[1];
-                    if (PositionSetDNA.contains(positionR)) {
-                        bwRNA.write(tempRNA1);
-                        bwRNA.newLine();
-                    }
-                    if (count % 5000 == 1) {
-                        System.out.println(count);
-                    }
-                }
-                brRNA1.close();
-                bwRNA.flush();
-                bwRNA.close();
-//                BufferedReader brDNA1 = IOUtils.getTextGzipReader(new File(inputDirDNA, chrNumber + ".92.B18.recode.vcf.gz").getAbsolutePath());
-//                BufferedWriter bwDNA = IOUtils.getTextWriter(new File(outputDirDNA, "DNAchr" + chrNumber + ".vcf").getAbsolutePath());
-//                int count = 0;
-//                System.out.println("This is writing chr"+chrNumber+" File……………………………………………………………………………………………………………………");
-//                while ((tempDNA1 = brDNA1.readLine()) != null) {
-//                    count ++;
-//                    if (tempDNA1.startsWith("#")) {
-//                        bwDNA.write(tempDNA1);
-//                        bwDNA.newLine();
-//                        continue;
-//                    }
-//                    tempDNAs1 = tempDNA1.split("\t");
-//                    String positionD = tempDNAs1[1];
-//                    if (PositionSetRNA.contains(positionD)) {
-//                        bwDNA.write(tempDNA1);
-//                        bwDNA.newLine();
-//                    }
-//                    if(count % 5000 ==1){
-//                        System.out.println(count);
-//                    }
-//                }
-//                brDNA1.close();
-//                bwDNA.flush();bwDNA.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-    }
 
     public void getIBdistane(String[] args) {
         String plate = args[0];
         String infileDir = new File("/data2/xiaohan/genotype/hapscanner/output/", plate + "Isec").getAbsolutePath();
-        String infileS1 = new File(infileDir,"RNA.sorted.vcf").getAbsolutePath();
-        String infileS2 = new File(infileDir,"DNA.sorted.vcf").getAbsolutePath();
+        String infileS1 = new File(infileDir, plate + "_RNA.sorted.vcf").getAbsolutePath();
+        String infileS2 = new File(infileDir, plate + "_DNA.sorted.vcf").getAbsolutePath();
 //        String infileS1 = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/DNA.all.sort.vcf";
 //        String infileS2 = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/RNA.all.sort.vcf";
-        String ibsOutfileS = new File(infileDir,"check.txt").getAbsolutePath();
+        String ibsOutfileS = new File(infileDir, "check.txt").getAbsolutePath();
 //        String ibsOutfileS = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/check.txt";
         GenotypeGrid g1 = new GenotypeGrid(infileS1, GenoIOFormat.VCF);
         GenotypeGrid g2 = new GenotypeGrid(infileS2, GenoIOFormat.VCF);
@@ -293,8 +292,8 @@ public class HapscannerParameters {
     public void getDensityIBS(String[] args) {
         String plate = args[0];
         String infileDir = new File("/data2/xiaohan/genotype/hapscanner/output/", plate + "Isec").getAbsolutePath();
-        String infile = new File(infileDir,"check.txt").getAbsolutePath();
-        String outfile = new File(infileDir,"IBSdensity.txt").getAbsolutePath();
+        String infile = new File(infileDir, "check.txt").getAbsolutePath();
+        String outfile = new File(infileDir, "IBSdensity.txt").getAbsolutePath();
         BufferedReader br = IOUtils.getTextReader(infile);
         BufferedWriter bw = IOUtils.getTextWriter(outfile);
         String temp = null;
@@ -308,9 +307,9 @@ public class HapscannerParameters {
                     continue;
                 }
                 temps = temp.split("\t");
-                if (countlines < 92) {
+                if (countlines < 96) {
                     countlines++;
-                    bw.write(temps[countlines + 92]);
+                    bw.write(temps[countlines + 96]);
                     bw.newLine();
                 }
             }
@@ -324,7 +323,7 @@ public class HapscannerParameters {
 
     public void parameter(String[] args) {
         String plate = args[0];
-        String outputdir = args[1];
+        String outputdir = "/data2/xiaohan/genotype/hapscanner/";
         try {
             StringBuilder sb = new StringBuilder();
             sb.append("mkdir " + plate + "&& mkdir" + plate + "DNA");
@@ -336,7 +335,7 @@ public class HapscannerParameters {
             p.waitFor();
             for (int i = 0; i < 42; i++) {
                 int chr = i + 1;
-                BufferedWriter bw = IOUtils.getTextWriter(new File(outputdir, "parameters" + plate + "_parameter_chr" + chr + ".txt").getAbsolutePath());
+                BufferedWriter bw = IOUtils.getTextWriter(new File(outputdir, "parameter/" + plate + "_parameter_chr" + chr + ".txt").getAbsolutePath());
                 bw.write("@App:\tHapScanner\n" +
                         "@Author:\tFei Lu\n" +
                         "@Email:\tflu@genetics.ac.cn; dr.lufei@gmail.com\n" +
@@ -393,11 +392,11 @@ public class HapscannerParameters {
             nameSet.add(fs[i].getName().replace("_Aligned.out.sorted.bam", ""));
         }
         try {
-            String outfileDir = args[1];
+            String outfileDir = "/data2/xiaohan/genotype/hapscanner/";
             String[] namelist = nameSet.toArray(new String[nameSet.size()]);
             for (int i = 0; i < 42; i++) {
                 int chr = i + 1;
-                BufferedWriter bw = IOUtils.getTextWriter(new File(outfileDir, plate + "_taxaRefBAM_chr" + chr + ".txt").getAbsolutePath());
+                BufferedWriter bw = IOUtils.getTextWriter(new File(outfileDir, "taxaRefBAM/"+plate + "_taxaRefBAM_chr" + chr + ".txt").getAbsolutePath());
                 bw.write("Taxa\tReference\tBamPath\n");
                 for (int j = 0; j < namelist.length; j++) {
                     StringBuilder sb = new StringBuilder();
