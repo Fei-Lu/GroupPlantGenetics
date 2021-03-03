@@ -16,7 +16,7 @@ public class MetaTissue {
     String StudyOutputDir = null;
     String[] subDirS = {"Extracted", "Input", "Output", "Summary"};
 
-    public MetaTissue(String args) {
+    public MetaTissue(String[] args) {
         this.parseparameters(args);
         this.extractsig();
         this.extractall();
@@ -226,11 +226,11 @@ public class MetaTissue {
         }
     }
 
-    public void parseparameters(String infileS) {
+    public void parseparameters(String[] infileS) {
         System.out.println("-----------------------------------Parsing parameters--------------------------------------");
         List<String> pLineList = new ArrayList<>();
         try {
-            BufferedReader br = new BufferedReader(new FileReader(infileS));
+            BufferedReader br = new BufferedReader(new FileReader(infileS[0]));
             String temp = null;
             while ((temp = br.readLine()) != null) {
                 if (temp.startsWith("#")) continue;
@@ -260,6 +260,6 @@ public class MetaTissue {
     }
 
     public static void main(String[] args) {
-        new MetaTissue(args[0]);
+        new MetaTissue(args);
     }
 }
