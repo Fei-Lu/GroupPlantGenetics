@@ -3,7 +3,6 @@ package daxing.load.complementary;
 import daxing.common.ChrRange;
 import daxing.common.PGF;
 import daxing.common.WheatLineage;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -113,10 +112,11 @@ public class TriadsBlock {
         ChrRange[] chrRanges=new ChrRange[WheatLineage.values().length];
         Arrays.fill(chrRanges, null);
         List<String>[] blockGeneName=triadsBlock.getBlockGeneName();
-        int geneIndex, startMini=Integer.MAX_VALUE, endMax=Integer.MIN_VALUE;
+        int geneIndex;
         ChrRange tempChrRange, chrRange;
         String chr = null;
         for (int i = 0; i < blockGeneName.length; i++) {
+            int startMini=Integer.MAX_VALUE, endMax=Integer.MIN_VALUE;
             for (int j = 0; j < blockGeneName[i].size(); j++) {
                 geneIndex=pgf.getGeneIndex(blockGeneName[i].get(j));
                 tempChrRange=ChrRange.changeToChrRange(pgf.getGene(geneIndex).getGeneRange());
