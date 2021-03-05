@@ -3,7 +3,13 @@ package xiaohan.eQTL;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import daxing.load.ancestralSite.Standardization;
+import pgl.app.hapScanner.HapScannercp2;
+import pgl.infra.dna.genot.GenoIOFormat;
+import pgl.infra.dna.genot.GenotypeGrid;
+import pgl.infra.dna.genot.GenotypeOperation;
+import pgl.infra.dna.genot.summa.SumTaxaDivergence;
 import pgl.infra.table.RowTable;
+import pgl.infra.utils.IOFileFormat;
 import xiaohan.rareallele.GeneFeature;
 import xiaohan.rareallele.IOUtils;
 import xiaohan.rareallele.pheno;
@@ -35,6 +41,12 @@ public class eQTL {
 //        Hapscanner parameter
 //         */
         this.hapscanner(args);
+
+        /*
+        test
+         */
+//        this.getIBdistane(args);
+//        this.getDensityIBS(args);
 
         /*
         effect size
@@ -105,6 +117,63 @@ public class eQTL {
         new multiTissue(args);
     }
 
+
+    public void getIBdistane(String[] args) {
+        System.out.println("This is getting IBS matrix *****************************************************************");
+//        String plate = args[0];
+//        String infileDir = new File("/data2/xiaohan/genotype/hapscanner/output/", plate + "Isec").getAbsolutePath();
+//        String infileS1 = new File(infileDir, plate + "_RNA.sorted.vcf").getAbsolutePath();
+//        String infileS2 = new File(infileDir, plate + "_DNA.sorted.vcf").getAbsolutePath();
+//        String infileS1 = "/data3/wgs/vcf/GATK/vmap3/1.SNP/36.snp.vcf.gz";
+//        String infileS2 = "/data2/junxu/genotype/36.346.B18.recode.vcf.gz";
+        String infileS1 = "/data1/home/xiaohan/jar/test1.vcf";
+        String infileS2 = "/data1/home/xiaohan/jar/test2.vcf";
+//        String ibsOutfileS = new File(infileDir, "check.txt").getAbsolutePath();
+        String ibsOutfileS = "/data1/home/xiaohan/jar/check.txt";
+        GenotypeGrid g1 = new GenotypeGrid(infileS1, GenoIOFormat.VCF);
+        GenotypeGrid g2 = new GenotypeGrid(infileS2, GenoIOFormat.VCF);
+        GenotypeGrid g = GenotypeOperation.mergeGenotypesByTaxon(g1, g2);
+        SumTaxaDivergence std = new SumTaxaDivergence(g);
+        std.writeDxyMatrix(ibsOutfileS, IOFileFormat.Text);
+        g.getIBSDistanceMatrix();
+    }
+
+    public void getDensityIBS(String[] args) {
+        System.out.println("This is writing file of RNA and DNA IBS plot ***********************************************");
+//        String plate = args[0];
+//        String infileDir = new File("/data2/xiaohan/genotype/hapscanner/output/", plate + "Isec").getAbsolutePath();
+//        String infile = new File(infileDir, "check.txt").getAbsolutePath();
+//        String outfile = new File(infileDir, "IBSdensity.txt").getAbsolutePath();
+        String infile = "/data1/home/xiaohan/jar/check.txt";
+        String outfile = "/data1/home/xiaohan/jar/IBSdensity.txt";
+        BufferedReader br = IOUtils.getTextReader(infile);
+        BufferedWriter bw = IOUtils.getTextWriter(outfile);
+        String temp = null;
+        String[] temps = null;
+        int countlines = 0;
+        try {
+            bw.write("IBSdistance");
+            bw.newLine();
+            while ((temp = br.readLine()) != null) {
+                if (!temp.startsWith("E")) {
+                    continue;
+                }
+                temps = temp.split("\t");
+                if (countlines < 346) {
+                    countlines++;
+                    bw.write(temps[countlines + 346]);
+                    bw.newLine();
+                }
+            }
+            br.close();
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
     public void getNominalThreshold() {
         String infileDir = "/data2/xiaohan/metasoft/v8/GTEx_Analysis_v8_eQTL";
         String infor = "/data2/xiaohan/metasoft/v8/samplesize.txt";
@@ -161,37 +230,47 @@ public class eQTL {
     }
 
     public void command() {
-        String[] sub = {"A", "B", "C", "D", "E", "F", "G", "H"};
-        for (int i = 0; i < sub.length; i++) {
-            for (int j = 1; j <= 9; j++) {
-                System.out.println("samtools sort -n /data2/junxu/dataTest/test/14/sams/" + sub[i] + "0" + j + "_14_Aligned.out.bam /data2/xiaohan/genotype/hapscanner/output/14sortedbam/" + sub[i] + "0" + j + "_14 && samtools index /data2/xiaohan/genotype/hapscanner/output/14sortedbam/" + sub[i] + "0" + j + "_14.bam");
-            }
-        }
-        for (int i = 0; i < sub.length; i++) {
-            for (int j = 10; j <= 12; j++) {
-                System.out.println("samtools sort -n /data2/junxu/dataTest/test/14/sams/" + sub[i] + j + "_14_Aligned.out.bam /data2/xiaohan/genotype/hapscanner/output/14sortedbam/" + sub[i] + j + "_14 && samtools index /data2/xiaohan/genotype/hapscanner/output/14sortedbam/" + sub[i] + j + "_14.bam");
-            }
-        }
-        for (int i = 0; i < sub.length; i++) {
-            for (int j = 1; j <= 9; j++) {
-                System.out.println("samtools sort -n /data2/junxu/dataTest/test/29/sams/" + sub[i] + "0" + j + "_29_Aligned.out.bam /data2/xiaohan/genotype/hapscanner/output/29sortedbam/" + sub[i] + "0" + j + "_29 && samtools index /data2/xiaohan/genotype/hapscanner/output/29sortedbam/" + sub[i] + "0" + j + "_29.bam");
-            }
-        }
-        for (int i = 0; i < sub.length; i++) {
-            for (int j = 10; j <= 12; j++) {
-                System.out.println("samtools sort -n /data2/junxu/dataTest/test/29/sams/" + sub[i] + j + "_29_Aligned.out.bam /data2/xiaohan/genotype/hapscanner/output/29sortedbam/" + sub[i] + j + "_29 && samtools index /data2/xiaohan/genotype/hapscanner/output/29sortedbam/" + sub[i] + j + "_29.bam");
-            }
-        }
-        for (int i = 0; i < sub.length; i++) {
-            for (int j = 1; j <= 9; j++) {
-                System.out.println("samtools sort -n /data2/junxu/dataTest/test/46/sams/" + sub[i] + "0" + j + "_46_Aligned.out.bam /data2/xiaohan/genotype/hapscanner/output/46sortedbam/" + sub[i] + "0" + j + "_46 && samtools index /data2/xiaohan/genotype/hapscanner/output/46sortedbam/" + sub[i] + "0" + j + "_46.bam");
-            }
-        }
-        for (int i = 0; i < sub.length; i++) {
-            for (int j = 10; j <= 12; j++) {
-                System.out.println("samtools sort -n /data2/junxu/dataTest/test/46/sams/" + sub[i] + j + "_46_Aligned.out.bam /data2/xiaohan/genotype/hapscanner/output/46sortedbam/" + sub[i] + j + "_46 && samtools index /data2/xiaohan/genotype/hapscanner/output/46sortedbam/" + sub[i] + j + "_46.bam");
-            }
-        }
+//        String[] sub = {"A", "B", "C", "D", "E", "F", "G", "H"};
+//        for (int i = 0; i < sub.length; i++) {
+//            for (int j = 1; j <= 9; j++) {
+//                System.out.println("samtools sort -n /data2/junxu/dataTest/test/14/sams/" + sub[i] + "0" + j + "_14_Aligned.out.bam /data2/xiaohan/genotype/hapscanner/output/14sortedbam/" + sub[i] + "0" + j + "_14 && samtools index /data2/xiaohan/genotype/hapscanner/output/14sortedbam/" + sub[i] + "0" + j + "_14.bam");
+//            }
+//        }
+//        for (int i = 0; i < sub.length; i++) {
+//            for (int j = 10; j <= 12; j++) {
+//                System.out.println("samtools sort -n /data2/junxu/dataTest/test/14/sams/" + sub[i] + j + "_14_Aligned.out.bam /data2/xiaohan/genotype/hapscanner/output/14sortedbam/" + sub[i] + j + "_14 && samtools index /data2/xiaohan/genotype/hapscanner/output/14sortedbam/" + sub[i] + j + "_14.bam");
+//            }
+//        }
+//        for (int i = 0; i < sub.length; i++) {
+//            for (int j = 1; j <= 9; j++) {
+//                System.out.println("samtools sort -n /data2/junxu/dataTest/test/29/sams/" + sub[i] + "0" + j + "_29_Aligned.out.bam /data2/xiaohan/genotype/hapscanner/output/29sortedbam/" + sub[i] + "0" + j + "_29 && samtools index /data2/xiaohan/genotype/hapscanner/output/29sortedbam/" + sub[i] + "0" + j + "_29.bam");
+//            }
+//        }
+//        for (int i = 0; i < sub.length; i++) {
+//            for (int j = 10; j <= 12; j++) {
+//                System.out.println("samtools sort -n /data2/junxu/dataTest/test/29/sams/" + sub[i] + j + "_29_Aligned.out.bam /data2/xiaohan/genotype/hapscanner/output/29sortedbam/" + sub[i] + j + "_29 && samtools index /data2/xiaohan/genotype/hapscanner/output/29sortedbam/" + sub[i] + j + "_29.bam");
+//            }
+//        }
+//        for (int i = 0; i < sub.length; i++) {
+//            for (int j = 1; j <= 9; j++) {
+//                System.out.println("samtools sort -n /data2/junxu/dataTest/test/46/sams/" + sub[i] + "0" + j + "_46_Aligned.out.bam /data2/xiaohan/genotype/hapscanner/output/46sortedbam/" + sub[i] + "0" + j + "_46 && samtools index /data2/xiaohan/genotype/hapscanner/output/46sortedbam/" + sub[i] + "0" + j + "_46.bam");
+//            }
+//        }
+//        for (int i = 0; i < sub.length; i++) {
+//            for (int j = 10; j <= 12; j++) {
+//                System.out.println("samtools sort -n /data2/junxu/dataTest/test/46/sams/" + sub[i] + j + "_46_Aligned.out.bam /data2/xiaohan/genotype/hapscanner/output/46sortedbam/" + sub[i] + j + "_46 && samtools index /data2/xiaohan/genotype/hapscanner/output/46sortedbam/" + sub[i] + j + "_46.bam");
+//            }
+//        }
+//        String output = "/data2/xiaohan";
+//        String plate = "14";
+//        File dir = new File(output,plate).getAbsoluteFile();
+//        System.out.println(dir);
+//        String infile = "/Users/yxh/Documents/eQTL/check.txt";
+//        RowTable<String> t = new RowTable<>(infile);
+//        System.out.println(t.getCell(0,1));
+        String RNA = "RNAE360_G03";
+        String DNA = RNA.substring(3,7);
+        System.out.println(DNA);
     }
 
     public void metasoft(String[] infile) {
@@ -455,7 +534,8 @@ public class eQTL {
 
 
     public void hapscannercp(String[] args){
-        new HapScannercp(args[0]);
+//        new HapScannercp(args[0]);
+        new HapScannercp2(args[0]);
     }
 
     public void hapscanner(String[] args) throws IOException, InterruptedException {
