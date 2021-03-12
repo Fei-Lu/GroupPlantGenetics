@@ -1,13 +1,13 @@
 package xiaohan.eQTL;
 
-import com.sun.xml.internal.ws.api.message.ExceptionHasMessage;
-import format.table.RowTable;
+import org.apache.commons.cli.*;
+import org.apache.commons.math3.genetics.Population;
+import pgl.app.hapScanner.HapScannercp;
 import pgl.infra.dna.genot.GenoIOFormat;
 import pgl.infra.dna.genot.GenotypeGrid;
 import pgl.infra.dna.genot.GenotypeOperation;
 import pgl.infra.dna.genot.summa.SumTaxaDivergence;
 import pgl.infra.utils.IOFileFormat;
-import smile.stat.Stat;
 import xiaohan.rareallele.IOUtils;
 
 import java.io.BufferedReader;
@@ -15,109 +15,368 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 public class HapscannerParameters {
 
-    String parameterDir = "/data2/xiaohan/genotype/hapscanner/parameter/";
-    String posDir = "/data2/xiaohan/genotype/hapscanner/pos/";
-    String posAlleleDir = "/data2/xiaohan/genotype/hapscanner/posAllele/";
-    String taxaRefBAMDir = "/data2/xiaohan/genotype/hapscanner/taxaRefBAM/";
-    String outputDir = "/data2/xiaohan/genotype/hapscanner/output/";
+    Options options = new Options();
 
-//    String genotypeDir = "/data2/junxu/genotypeMaf005/";
-//    String genotypesuffix = ".360.vcf.gz";
-//    String DNAprefix = "";
+    String outputDir = null;
+    String parameterDir = null;
+    String taxaRefBAMDir = null;
+    String posDir = null;
+    String posAlleleDir = null;
 
-    String genotypeDir = "/data2/junxu/genotype";
-    String genotypesuffix = ".346.B18.recode.vcf.gz";
-    String DNAprefix = "B18-";
-
-    String BamDir = "/data2/junxu/dataTest/test/";
-    String JarDir = "/data1/home/xiaohan/jar/";
+    String genotypeDir = null;
+    String BamDir = null;
+    String genotypesuffix = ".360.vcf.gz";
 
 
+    String plate = null;
+    String threads = null;
 
+    String introduction = this.createIntroduction();
+    HelpFormatter optionFormat = new HelpFormatter();
 
+    //    boolean changeName = false;
+    String overwrite = null;
 
     public HapscannerParameters(String[] args) throws IOException, InterruptedException {
-//        this.parseparameter(args);
-//        File posDir = new File(new File(this.posDir).getAbsolutePath());
-//        File posAlleleDir = new File(new File(this.posAlleleDir).getAbsolutePath());
-//        if (!posDir.exists() || !posAlleleDir.exists()) {
-//        this.poswithAllele();
-//        }
-//        this.parameter(args);
-//        this.taxaRefBAM(args);
+        this.createOptions();
+        this.parseparameter(args);
+        this.parameter();
+        this.taxaRefBAM();
 //        this.Hapscanner(args);
-//        this.Hapscanner();
-//
-//        this.changename(args);
+        this.Hapscanner();
 
+        this.getsubRNAgenotypeor();
 
-//        this.getsubgenotype(args);
-//        this.getsubRNAgenotype(args);
-
-        this.getIsec(args);
-        this.getMergedVCF(args);
-        this.getsortedVCF(args);
-        this.changeRNAVCFname(args);
-        this.getIBdistane(args);
-        this.getDensityIBS(args);
+        this.getIsec();
+        this.getMergedVCF();
+        this.getsortedVCF();
+        this.changeRNAVCFname();
+        this.getIBdistane();
+        this.getDensityIBS();
+        this.filtersample();
     }
 
+    public void filtersample() {
+        long startTime=System.currentTimeMillis();   //获取开始时间
+        System.out.println("This is filtering samples ******************************************************************");
+        String outfileDir = new File(outputDir,"output/"+plate+"/Isec").getAbsolutePath();
+        String infile = new File(outfileDir, "IBSdensity.txt").getAbsolutePath();
+        String infor = new File(outfileDir, "check.txt").getAbsolutePath();
+        HashSet<String> sampleSet = new HashSet<>();
+        HashSet<String> notsampleSet = new HashSet<>();
+        HashSet<String> addingsampleSet = new HashSet<>();
+        HashMap<String, String> RNADNAmap = new HashMap<>();
+        try {
+            String temp = null;
+            String[] temps = null;
+            BufferedReader br = IOUtils.getTextReader(infile);
+
+            while ((temp = br.readLine()) != null) {
+                if (temp.startsWith("RNA\t")) continue;
+                temps = temp.split("\t");
+                RNADNAmap.put(temps[0], temps[1]);
+                if (Double.parseDouble(temps[2]) < 0.1) {
+                    sampleSet.add(temps[0]);
+                } else {
+                    notsampleSet.add(temps[0]);
+                }
+            }
+            br.close();
+
+            System.out.println("original RNA samples");
+            String[] temp1 = sampleSet.toArray(new String[sampleSet.size()]);
+            for (int i = 0; i < temp1.length; i++) {
+                System.out.println(temp1[i]);
+            }
+
+            BufferedReader brinfo = IOUtils.getTextReader(infor);
+
+
+            xiaohan.eQTL.RowTable<String> t = new xiaohan.eQTL.RowTable<>(infor);
+            //index of RNA samples and DNA samples : 1,2,3,...,RNAsamplecount,...,total
+            HashMap<String, Integer> nameIndexMap = new HashMap<>();
+            int RNAsamplecount = 0;
+            int DNAsamplecount = 0;
+            List<String> header = t.getHeader();
+            String[] headers = header.toArray(new String[header.size()]);
+            for (int i = 0; i < headers.length; i++) {
+                if (headers[i].equals("Dxy")) continue;
+                nameIndexMap.put(headers[i], i);
+                if (headers[i].startsWith("RNA")) {
+                    RNAsamplecount++;
+                } else {
+                    DNAsamplecount++;
+                }
+            }
+
+            String[] notsamplelist = notsampleSet.toArray(new String[notsampleSet.size()]);
+
+            for (int i = 0; i < notsamplelist.length; i++) {
+                System.out.print("***This is dealing sample: " + notsamplelist[i] + " with original IBS : ");
+                System.out.println(t.getCell(nameIndexMap.get(notsamplelist[i]), nameIndexMap.get(RNADNAmap.get(notsamplelist[i])) - 1));
+                String sample = notsamplelist[i];
+                int index = nameIndexMap.get(sample);
+
+                double[] DNAIBS = new double[DNAsamplecount];
+                for (int j = 0; j < DNAsamplecount; j++) {
+                    DNAIBS[j] = Double.parseDouble(t.getCell(j + RNAsamplecount, index));
+                }
+
+                double min = Arrays.stream(DNAIBS).min().getAsDouble();
+
+                if (min > 0.1) {
+                    System.out.print("  Discard this sample: " + notsamplelist[i] + " with minimal IBS = ");
+                    System.out.println(min);
+                    continue;
+                }
+
+                System.out.print("  RNA sample has minimal IBS as ");
+                System.out.println(min);
+
+                HashSet<String> DNAcandidateSet = new HashSet<>();
+                for (int j = 0; j < DNAIBS.length; j++) {
+                    if (DNAIBS[j] == min) {
+                        DNAcandidateSet.add(t.getCell(j + RNAsamplecount, 0));
+                        System.out.println("    adding DNA candidate :" + t.getCell(j + RNAsamplecount, 0));
+                    }
+                }
+                String[] DNAlist = DNAcandidateSet.toArray(new String[DNAcandidateSet.size()]);
+
+                for (int j = 0; j < DNAlist.length; j++) {
+                    int DNAindex = j+1;
+                    System.out.println("    "+DNAindex+".This is examing DNA sample: " + DNAlist[j]);
+                    if (j == 0) {
+                        double[] RNAIBS = new double[RNAsamplecount];
+                        for (int k = 0; k < RNAIBS.length; k++) {
+                            RNAIBS[k] = Double.parseDouble(t.getCell(k, nameIndexMap.get(DNAlist[j])));
+                        }
+
+                        double min2 = Arrays.stream(RNAIBS).min().getAsDouble();
+                        System.out.println("    DNAsample No." + DNAindex + " : " + DNAlist[j] + " has min IBS " + min2);
+
+                        if (min == min2 && min < 0.1) {
+                            System.out.println("    Two mins equal : adding sample " + notsamplelist[i] + " and replace DNA sample " + RNADNAmap.get(notsamplelist[i]) + " as " + DNAlist[j]);
+                            sampleSet.add(notsamplelist[i]);
+                            addingsampleSet.add(notsamplelist[i]);
+                            RNADNAmap.put(notsamplelist[i], DNAlist[j]);
+                        }
+                        if (min != min2) {
+                            double residual = min - min2;
+                            double abs = Math.abs(residual);
+                            if (abs < 0.002) {
+                                System.out.println("    Two mins not equal but abs of residual < 0.002 adding sample " + notsamplelist[i] + " and replace DNA sample " + RNADNAmap.get(notsamplelist[i]) + " as " + DNAlist[j]);
+                                sampleSet.add(notsamplelist[i]);
+                                addingsampleSet.add(notsamplelist[i]);
+                                RNADNAmap.put(notsamplelist[i], DNAlist[j]);
+                            } else {
+                                System.out.println("    Discard DNA sample for better RNA sample with IBS " + min2);
+                            }
+                        }
+                        continue;
+                    }
+
+                    double IBStemp = t.getCellAsDouble(nameIndexMap.get(notsamplelist[i]), nameIndexMap.get(DNAlist[j]) - 1);
+                    double IBSbefore = t.getCellAsDouble(nameIndexMap.get(notsamplelist[i]), nameIndexMap.get(RNADNAmap.get(notsamplelist[i])) - 1);
+                    if (IBStemp == IBSbefore) {
+                        sampleSet.remove(notsamplelist[i]);
+                    } else if (IBSbefore < IBStemp) {
+                        continue;
+                    } else {
+                        double[] RNAIBS = new double[RNAsamplecount];
+                        for (int k = 0; k < RNAIBS.length; k++) {
+                            RNAIBS[k] = Double.parseDouble(t.getCell(k, nameIndexMap.get(DNAlist[j])));
+                        }
+
+                        double min2 = Arrays.stream(RNAIBS).min().getAsDouble();
+                        System.out.println("    DNAsample No." + DNAindex + " : " + DNAlist[j] + " has min IBS " + min2);
+
+                        if (min == min2 && min < 0.1) {
+                            System.out.println("    Two mins equal : adding sample " + notsamplelist[i] + " and replace DNA sample " + RNADNAmap.get(notsamplelist[i]) + " as " + DNAlist[j]);
+                            sampleSet.add(notsamplelist[i]);
+                            RNADNAmap.put(notsamplelist[i], DNAlist[j]);
+                        }
+                        if (min != min2) {
+                            double residual = min - min2;
+                            double abs = Math.abs(residual);
+                            if (abs < 0.002) {
+                                System.out.println("    Two mins not equal but abs < 0.002 adding sample " + notsamplelist[i] + " and replace DNA sample " + RNADNAmap.get(notsamplelist[i]) + " as " + DNAlist[j]);
+                                sampleSet.add(notsamplelist[i]);
+                                RNADNAmap.put(notsamplelist[i], DNAlist[j]);
+                            } else {
+                                System.out.println("    Discard DNA sample for better RNA sample with IBS " + min2);
+                            }
+                        }
+                    }
+                }
+            }
+
+            System.out.println("");
+            System.out.println("Eventually we changed sample ... to new DNA sampe");
+            for (String str : addingsampleSet) {
+                System.out.println(str+"\t"+RNADNAmap.get(str));
+            }
+
+
+            BufferedWriter bw = IOUtils.getTextWriter(new File(outfileDir, "phenolist.txt").getAbsolutePath());
+            String[] samplelist = sampleSet.toArray(new String[sampleSet.size()]);
+            for (int i = 0; i < samplelist.length; i++) {
+                bw.write(samplelist[i] + "\t" + RNADNAmap.get(samplelist[i]));
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        long endTime=System.currentTimeMillis(); //获取结束时间
+        System.out.println("******* Filtering samples takes "+(endTime-startTime)+"ms");
+        System.out.println("End of program.");
+    }
+
+    public void createOptions() {
+        options = new Options();
+        options.addOption("g", true, "genotype Dir");
+        options.addOption("b", true, "sorted bam file Dir");
+        options.addOption("o", true, "output File Dir");
+        options.addOption("p", true, "plate");
+        options.addOption("pos", true, "Whether or not to overwrite pos and posAllele Dir");
+        options.addOption("t", true, "threads");
+    }
 
     public void parseparameter(String[] args) {
         System.out.println("This is parsing parameter ******************************************************************");
-        String plate = args[0];
-        System.out.println("Dealing plate "+plate);
+        CommandLineParser parser = new DefaultParser();
+        try {
+            CommandLine line = parser.parse(options, args);
+            genotypeDir = line.getOptionValue("g");
+            BamDir = line.getOptionValue("b");
+            plate = line.getOptionValue("p");
+            outputDir = line.getOptionValue("o");
+            overwrite = line.getOptionValue("pos");
+            threads = line.getOptionValue("t");
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(0);
+        }
+        if (genotypeDir == null) {
+            System.out.println("Genotype Dir doesn't exist");
+            this.printIntroductionAndUsage();
+            System.exit(0);
+        }
+        if (BamDir == null) {
+            System.out.println("Bam Dir doesn't exist");
+            this.printIntroductionAndUsage();
+            System.exit(0);
+        }
+        if (outputDir == null) {
+            System.out.println("Output Dir doesn't exist");
+            this.printIntroductionAndUsage();
+            System.exit(0);
+        }
+        System.out.println("Dealing plate " + plate);
+
+        System.out.println("Start making dirs");
+        taxaRefBAMDir = new File(outputDir, "taxaRefBAM").getAbsolutePath();
+        File taxadir = new File(taxaRefBAMDir);
+        if (!taxadir.exists()) taxadir.mkdir();
+        System.out.println("mkdir taxaRefBAM");
+
+        parameterDir = new File(outputDir, "parameter").getAbsolutePath();
+        File paradir = new File(parameterDir);
+        if (!paradir.exists()) paradir.mkdir();
+        System.out.println("mkdir parameter");
+
+        posDir = new File(outputDir, "pos").getAbsolutePath();
+        posAlleleDir = new File(outputDir, "posAllele").getAbsolutePath();
+
+        File posdir = new File(new File(outputDir, "pos").getAbsolutePath());
+        File posAlleledir = new File(new File(outputDir, "posAllele").getAbsolutePath());
+
+        if (overwrite.equals("yes") || overwrite.equals("y")) {
+            posdir.mkdir();
+            posAlleledir.mkdir();
+            this.poswithAllele();
+        } else if (overwrite.equals("no") || overwrite.equals("n")) {
+            if (!posdir.exists() || !posAlleledir.exists()) {
+                posdir.mkdir();
+                posAlleledir.mkdir();
+                this.poswithAllele();
+            }
+        }
+
         String RNAdir = new File(this.outputDir, plate).getAbsolutePath();
-        String DNAdir = new File(this.outputDir, plate + "/DNA").getAbsolutePath();
+        System.out.println("mkdir " + plate);
+        String DNAdir = new File(this.outputDir, plate + "/RNA").getAbsolutePath();
         String Isecdir = new File(this.outputDir, plate + "/Isec").getAbsolutePath();
         File f2 = new File(RNAdir);
-        f2.mkdir();
+        if(!f2.exists()) {
+            f2.mkdir();
+        }
         File f = new File(DNAdir);
-        f.mkdir();
+        if(!f.exists()) {
+            f.mkdir();
+        }
         File f3 = new File(Isecdir);
-        f3.mkdir();
-        try{
-            if(!f.exists() || !f2.exists() || !f3.exists()){
+        if(!f3.exists()) {
+            f3.mkdir();
+        }
+        try {
+            if (!f.exists() || !f2.exists() || !f3.exists()) {
                 System.out.println("Not complete mkdir ***");
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        catch (Exception e){
 
-        }
     }
 
-    public void getsubRNAgenotype(String[] args) {
+    public void printIntroductionAndUsage() {
+        System.out.println("Incorrect options input. Program stops.");
+        System.out.println(introduction);
+        optionFormat.printHelp("Hapscan.jar", options);
+    }
+
+    public String createIntroduction() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Welcome to Use Hapscanner to genotyping and calculate IBS matrix.\n");
+        sb.append("It uses six options to run this programs. : \n");
+        sb.append("    -g  your genotype files dir is. \n");
+        sb.append("    -b  your sorted bam files dir is. \n");
+        sb.append("    -o  your output files dir is. \n");
+        sb.append("    -p your output files dir prefix is. \n");
+        sb.append("    -pos Whether or not to overwrite pos and posAllele files. e.g. \"yes\" or \"y\" for overwrite \"no\" or \"n\" for not. \n");
+        sb.append("    -t number of threads to running this program. \n");
+        sb.append("Command line like this: \n");
+        sb.append("java -jar HapscannerParameter.jar -g ../genotype -b ../bams -o /data1/home/xiaohan/hapscanner -prefix 41 -pos n > log.txt &\n");
+        sb.append("For more details, you can visit .\n");
+        return sb.toString();
+    }
+
+    public void getsubRNAgenotypeor() {
+        long startTime=System.currentTimeMillis();   //获取开始时间
         System.out.println("This is getting subRNA genotype ************************************************************");
-        String plate = args[0];
-        String parameter = this.outputDir + args[0] + "/changeName";
-        String RNADir = this.outputDir + args[0];
-
+        String RNADir = new File(outputDir, plate + "/RNA").getAbsolutePath();
+        String originalRNA = new File(outputDir, plate + "/VCF").getAbsolutePath();
         HashSet<String> nameSet = new HashSet<>();
-        for (int i = 0; i < 42; i++) {
-            int chr = i + 1;
-            nameSet.add(String.valueOf(chr));
+        File[] fs = new File(originalRNA).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, ".vcf");
+        for (int i = 0; i < fs.length; i++) {
+            nameSet.add(fs[i].getName());
         }
-
         BufferedWriter bw1 = IOUtils.getTextWriter(new File(RNADir, "header.txt").getAbsolutePath());
         nameSet.parallelStream().forEach(f -> {
-            BufferedReader br = null;
-            if (Integer.parseInt(f) <= 9) {
-                br = IOUtils.getTextReader(new File(parameter, "chr00" + f + ".vcf").getAbsolutePath());
-            } else {
-                br = IOUtils.getTextReader(new File(parameter, "chr0" + f + ".vcf").getAbsolutePath());
-            }
-            BufferedWriter bw = IOUtils.getTextWriter(new File(RNADir, "chr" + f + ".vcf").getAbsolutePath());
+            BufferedReader br = IOUtils.getTextReader(new File(originalRNA, f).getAbsolutePath());
+            BufferedWriter bw = IOUtils.getTextWriter(new File(RNADir, f).getAbsolutePath());
             String temp = null;
             String[] temps = null;
             try {
                 while ((temp = br.readLine()) != null) {
                     if (temp.startsWith("#")) {
                         bw.write(temp + "\n");
-                        if (f.equals("1")) {
+                        if (f.equals("chr001.vcf")) {
                             bw1.write(temp + "\n");
                         }
                         continue;
@@ -142,41 +401,43 @@ public class HapscannerParameters {
             } catch (Exception e) {
             }
         });
+        long endTime=System.currentTimeMillis(); //获取结束时间
+        System.out.println("******* Getting subRNA genotype vcf takes "+(endTime-startTime)+"ms");
     }
 
-    public void changename(String[] args) {
-        System.out.println("This is changing Names *********************************************************************");
-        String plate = args[0];
-        String parameter = this.outputDir + args[0] + "/VCF";
-        String changeName = this.outputDir + args[0] + "/changeName";
-        File f = new File(changeName);
-        f.mkdir();
-        File[] fs = new File(parameter).listFiles();
-        fs = IOUtils.listFilesEndsWith(fs, ".vcf");
-        HashSet<String> nameSet = new HashSet<>();
-        for (int i = 0; i < fs.length; i++) {
-            if (fs[i].isHidden()) continue;
-            nameSet.add(fs[i].getName());
-        }
-        nameSet.parallelStream().forEach(c -> {
-            try {
-                StringBuilder sb = new StringBuilder();
-                sb.append(" bcftools reheader -s /data2/xiaohan/genotype/hapscanner/output/" + plate + "_E.txt");
-                sb.append(" " + new File(parameter, c).getAbsolutePath());
-                sb.append(" -o " + new File(changeName, c).getAbsolutePath() + "\n");
-                String command = sb.toString();
-                System.out.println(command);
-                File dir = new File(parameter).getAbsoluteFile();
-                String[] cmdarry1 = {"/bin/bash", "-c", command};
-                Process p1 = Runtime.getRuntime().exec(cmdarry1, null, dir);
-                p1.waitFor();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-
-
-    }
+//    public void changename(String[] args) {
+//        System.out.println("This is changing Names *********************************************************************");
+//        String plate = args[0];
+//        String parameter = this.outputDir + args[0] + "/VCF";
+//        String changeName = this.outputDir + args[0] + "/changeName";
+//        File f = new File(changeName);
+//        f.mkdir();
+//        File[] fs = new File(parameter).listFiles();
+//        fs = IOUtils.listFilesEndsWith(fs, ".vcf");
+//        HashSet<String> nameSet = new HashSet<>();
+//        for (int i = 0; i < fs.length; i++) {
+//            if (fs[i].isHidden()) continue;
+//            nameSet.add(fs[i].getName());
+//        }
+//        nameSet.parallelStream().forEach(c -> {
+//            try {
+//                StringBuilder sb = new StringBuilder();
+//                sb.append(" bcftools reheader -s /data2/xiaohan/genotype/hapscanner/output/" + plate + "_E.txt");
+//                sb.append(" " + new File(parameter, c).getAbsolutePath());
+//                sb.append(" -o " + new File(changeName, c).getAbsolutePath() + "\n");
+//                String command = sb.toString();
+//                System.out.println(command);
+//                File dir = new File(parameter).getAbsoluteFile();
+//                String[] cmdarry1 = {"/bin/bash", "-c", command};
+//                Process p1 = Runtime.getRuntime().exec(cmdarry1, null, dir);
+//                p1.waitFor();
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        });
+//
+//
+//    }
 
 //
 //    public void getsubgenotype(String[] args) {
@@ -293,46 +554,43 @@ public class HapscannerParameters {
 //
 //    }
 
-    public void getIsec(String[] args) {
+    public void getIsec() {
+        long startTime=System.currentTimeMillis();   //获取开始时间
         System.out.println("This is getting intersection ***************************************************************");
-        String plate = args[0];
-        String infileDir1 = new File(this.outputDir, plate).getAbsolutePath();
-        String infileDir2 = new File(this.genotypeDir).getAbsolutePath();
-        String outputDir = new File(this.outputDir, plate + "/Isec").getAbsolutePath();
-        HashSet<String> chrSet = new HashSet<>();
-        for (int i = 0; i < 42; i++) {
-            int chr = i + 1;
-            chrSet.add(String.valueOf(chr));
+        String infileDir1 = new File(outputDir, plate + "/RNA").getAbsolutePath();
+        String infileDir2 = new File(genotypeDir).getAbsolutePath();
+        String IsecDir = new File(outputDir, plate + "/Isec").getAbsolutePath();
+        HashSet<String> nameSet = new HashSet<>();
+        File[] fs = new File(infileDir1).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, ".vcf");
+        for (int i = 0; i < fs.length; i++) {
+            nameSet.add(fs[i].getName());
         }
-
-        BufferedReader br = IOUtils.getTextGzipReader(new File(this.genotypeDir,"1"+genotypesuffix).getAbsolutePath());
-        BufferedWriter bw = IOUtils.getTextWriter(new File(this.outputDir,plate+"/DNAheader.txt").getAbsolutePath());
+        BufferedReader br = IOUtils.getTextGzipReader(new File(genotypeDir, "1" + genotypesuffix).getAbsolutePath());
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, plate + "/DNAheader.txt").getAbsolutePath());
         String temp = null;
-        try{
-            while((temp = br.readLine())!=null){
-                if(temp.startsWith("#")){
-                    bw.write(temp+"\n");
+        try {
+            while ((temp = br.readLine()) != null) {
+                if (temp.startsWith("#")) {
+                    bw.write(temp + "\n");
                 }
-                if(!temp.startsWith("#"))break;
+                if (!temp.startsWith("#")) break;
             }
             br.close();
             bw.flush();
             bw.close();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        chrSet.parallelStream().forEach(chr -> {
+        nameSet.stream().forEach(f -> {
             try {
-                String infile1 = new File(infileDir1, "chr" + chr + ".vcf").getAbsolutePath();
+                int chr = Integer.parseInt(String.valueOf(f).replace(".vcf", "").replace("", ""));
+                String infile1 = new File(infileDir1, f).getAbsolutePath();
                 String infile2 = new File(infileDir2, chr + genotypesuffix).getAbsolutePath();
                 StringBuilder sb = new StringBuilder();
                 sb.append("bedtools intersect -a " + infile1 + " -b " + infile2 + " -wa > " + plate + "_chr" + chr + "_RNA_noheader.vcf\n");
                 sb.append("bedtools intersect -a " + infile2 + " -b " + infile1 + " -wa > " + plate + "_chr" + chr + "_DNA_noheader.vcf\n");
 
-//                sb.append("rm "+infile1+"\n");
-//                sb.append("rm "+infile2+"\n");
-//                new File(infile1).delete();
-//                new File(infile2).delete();
                 String command = sb.toString();
                 System.out.println(command);
                 File dir = new File(new File(outputDir).getAbsolutePath());
@@ -366,12 +624,12 @@ public class HapscannerParameters {
                 e.printStackTrace();
             }
         });
+        long endTime=System.currentTimeMillis(); //获取结束时间
+        System.out.println("******* Getting intersect takes "+(endTime-startTime)+"ms");
     }
 
-
-    public void changeRNAVCFname(String[] args) {
-        String plate = args[0];
-        String infileDir = new File(this.outputDir, plate + "/Isec").getAbsolutePath();
+    public void changeRNAVCFname() {
+        String infileDir = new File(outputDir, plate + "/Isec").getAbsolutePath();
         try {
             BufferedReader br = IOUtils.getTextReader(new File(infileDir, plate + "_RNA.sortedtemp.vcf").getAbsolutePath());
             BufferedWriter bw = IOUtils.getTextWriter(new File(infileDir, plate + "_RNA.sorted.vcf").getAbsolutePath());
@@ -403,10 +661,9 @@ public class HapscannerParameters {
         }
     }
 
-    public void getsortedVCF(String[] args) {
+    public void getsortedVCF() {
         System.out.println("This is sorting merged VCF files ***********************************************************");
-        String plate = args[0];
-        String infileDir = new File(this.outputDir, plate + "/Isec").getAbsolutePath();
+        String infileDir = new File(outputDir, plate + "/Isec").getAbsolutePath();
         try {
             StringBuilder sb1 = new StringBuilder();
             sb1.append("cat " + plate + "_RNA.vcf | awk '$1 ~ /^#/ {print $0;next} {print $0 | \"sort -k1,1 -k2,2n\"}' > " + plate + "_RNA.sortedtemp.vcf");
@@ -431,10 +688,9 @@ public class HapscannerParameters {
         }
     }
 
-    public void getMergedVCF(String[] args) {
+    public void getMergedVCF() {
         System.out.println("This is merging VCF files (RNA and DNA) ****************************************************");
-        String plate = args[0];
-        String infileDir = new File(this.outputDir, plate + "/Isec").getAbsolutePath();
+        String infileDir = new File(outputDir, plate + "/Isec").getAbsolutePath();
         try {
             StringBuilder sb1 = new StringBuilder();
             sb1.append("vcf-concat ");
@@ -468,10 +724,9 @@ public class HapscannerParameters {
     }
 
 
-    public void getIBdistane(String[] args) {
+    public void getIBdistane() {
         System.out.println("This is getting IBS matrix *****************************************************************");
-        String plate = args[0];
-        String infileDir = new File("/data2/xiaohan/genotype/hapscanner/output/", plate + "/Isec").getAbsolutePath();
+        String infileDir = new File(outputDir, plate + "/Isec").getAbsolutePath();
         String infileS1 = new File(infileDir, plate + "_RNA.sorted.vcf").getAbsolutePath();
         String infileS2 = new File(infileDir, plate + "_DNA.sorted.vcf").getAbsolutePath();
 //        String infileS1 = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/DNA.all.sort.vcf";
@@ -522,14 +777,13 @@ public class HapscannerParameters {
 //    }
 
 
-    public void getDensityIBS(String[] args) {
+    public void getDensityIBS() {
         System.out.println("This is writing file of RNA and DNA IBS plot ***********************************************");
-        String plate = args[0];
-        String infileDir = new File(this.outputDir, plate + "/Isec").getAbsolutePath();
+        String infileDir = new File(outputDir, plate + "/Isec").getAbsolutePath();
 //        String infor = new File(this.outputDir,plate+"/chr001.vcf").getAbsolutePath();
         String infile = new File(infileDir, "check.txt").getAbsolutePath();
         String outfile = new File(infileDir, "IBSdensity.txt").getAbsolutePath();
-        String outfile1 = new File(infileDir,"IBSheatmap.txt").getAbsolutePath();
+        String outfile1 = new File(infileDir, "IBSheatmap.txt").getAbsolutePath();
         BufferedReader br = IOUtils.getTextReader(infile);
         BufferedReader brinfo = IOUtils.getTextReader(infile);
         BufferedWriter bw = IOUtils.getTextWriter(outfile);
@@ -558,9 +812,9 @@ public class HapscannerParameters {
             xiaohan.eQTL.RowTable<String> t = new xiaohan.eQTL.RowTable<>(infile);
             for (int i = 0; i < samplelist.length; i++) {
                 String RNA = samplelist[i];
-                String DNA = this.DNAprefix+RNA.substring(3,7);
+                String DNA = RNA.replace("RNA", "");
                 int RNAindex = nameIndexMap.get(RNA);
-                int DNAindex = nameIndexMap.get(DNA)-1;
+                int DNAindex = nameIndexMap.get(DNA) - 1;
                 bw.write(RNA + "\t" + DNA + "\t");
                 bw.write(t.getCell(DNAindex, RNAindex));
                 bw.write("\n");
@@ -573,9 +827,9 @@ public class HapscannerParameters {
                 String RNA = samplelist[i];
                 for (int j = 0; j < samplelist.length; j++) {
                     String RNAtemp = samplelist[j];
-                    String DNA = this.DNAprefix+RNAtemp.substring(3,7);
+                    String DNA = RNAtemp.replace("RNA", "");
                     int RNAindex = nameIndexMap.get(RNA);
-                    int DNAindex = nameIndexMap.get(DNA)-1;
+                    int DNAindex = nameIndexMap.get(DNA) - 1;
                     bw1.write(RNA + "\t" + DNA + "\t");
                     bw1.write(t.getCell(DNAindex, RNAindex));
                     bw1.write("\n");
@@ -583,21 +837,19 @@ public class HapscannerParameters {
             }
             bw1.flush();
             bw1.close();
-
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
 
-    public void parameter(String[] args) {
+    public void parameter() {
+        long startTime=System.currentTimeMillis();
         System.out.println("This is writing parameters files ***********************************************************");
-        String plate = args[0];
-        String outputdir = this.parameterDir;
         try {
             for (int i = 0; i < 42; i++) {
                 int chr = i + 1;
-                BufferedWriter bw = IOUtils.getTextWriter(new File(outputdir, plate + "_parameter_chr" + chr + ".txt").getAbsolutePath());
+                BufferedWriter bw = IOUtils.getTextWriter(new File(parameterDir, plate + "_parameter_chr" + chr + ".txt").getAbsolutePath());
                 bw.write("@App:\tHapScanner\n" +
                         "@Author:\tFei Lu\n" +
                         "@Email:\tflu@genetics.ac.cn; dr.lufei@gmail.com\n" +
@@ -630,7 +882,7 @@ public class HapscannerParameters {
                         "/usr/bin/samtools\n" +
                         "\n" +
                         "#Parameter 7: Number of threads\n" +
-                        "8\n" +
+                        threads + "\n" +
                         "\n" +
                         "#Parameter 8: The directory of output\n");
                 bw.write("/data2/xiaohan/genotype/hapscanner/output/" + plate + "\n");
@@ -640,11 +892,23 @@ public class HapscannerParameters {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        long endTime=System.currentTimeMillis();
+        System.out.println("******* Writing parameter files takes "+(endTime-startTime)+"ms");
     }
 
-    public void Hapscanner(String[] args) {
+//    public void Hapscanner() {
+//        File[] fs = new File(parameterDir).listFiles();
+//        fs = IOUtils.listFilesStartsWith(fs,plate);
+//        for (int i = 0; i < fs.length; i++) {
+//            System.out.println(fs[i].getAbsolutePath());
+//            new HapScannercp(fs[i].getAbsolutePath());
+//        }
+//    }
+
+    public void Hapscanner() {
+        long startTime=System.currentTimeMillis();
         System.out.println("This is running hapscanner *****************************************************************");
-        String plate = args[0];
+        String JarDir = "/data1/home/xiaohan/jar";
         BufferedWriter bw = IOUtils.getTextWriter("command_" + plate + ".txt");
         File[] fs = new File(String.valueOf(new File(this.parameterDir).getAbsoluteFile())).listFiles();
         fs = IOUtils.listFilesStartsWith(fs, plate + "_");
@@ -658,66 +922,42 @@ public class HapscannerParameters {
             bw.flush();
             bw.close();
             StringBuilder sb = new StringBuilder();
-            sb.append("sh command1.sh command_" + plate + ".txt");
+            sb.append("sh hapscann.sh command_" + plate + ".txt");
             String command = sb.toString();
             System.out.println(command);
-            File dir = new File(new File(this.JarDir).getAbsolutePath());
+            File dir = new File(new File(JarDir).getAbsolutePath());
             String[] cmdarry = {"/bin/bash", "-c", command};
             Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
             p.waitFor();
         } catch (Exception e) {
             e.printStackTrace();
         }
-//        fList.stream().forEach(p -> {
-//            new HapScannercp(String.valueOf(p));
-//        });
+        long endTime=System.currentTimeMillis(); //获取结束时间
+        System.out.println("******* Hapscanner genotyping takes "+(endTime-startTime)+"ms");
     }
 
-//    public void Hapscanner(String[] args) {
-//        System.out.println("This is running Hapscanner *****************************************************************");
-////        List<File> fList = fList;
-//        fList.stream().forEach(p -> {
-//            try {
-//                StringBuilder sb = new StringBuilder();
-//                sb.append("java -jar /data1/home/xiaohan/jar/TIGER_v1.0.1.jar -a HapScaner -p ");
-//                sb.append(p);
-//                String command = sb.toString();
-//                System.out.println(command);
-//                File dir = new File("/data1/home/xiaohan/jar/").getAbsoluteFile();
-//                String[] cmdarry1 = {"/bin/bash", "-c", command};
-//                Process p1 = Runtime.getRuntime().exec(cmdarry1, null, dir);
-//                p1.waitFor();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        });
-//    }
-
-    public void taxaRefBAM(String[] args) {
+    public void taxaRefBAM() {
+        long startTime=System.currentTimeMillis();
         System.out.println("This is writing taxaRefBam files *************************************************************************");
-        String parameter = BamDir + args[0] + "/sams";
-        File[] fs = new File(parameter).listFiles();
+        File[] fs = new File(BamDir).listFiles();
         List<File> fList = new ArrayList(Arrays.asList());
         fs = IOUtils.listFilesEndsWith(fs, "_Aligned.out.sorted.bam");
         HashSet<String> nameSet = new HashSet();
-        String plate = null;
         for (int i = 0; i < fs.length; i++) {
             if (fs[i].isHidden()) continue;
             nameSet.add(fs[i].getName().replace("_Aligned.out.sorted.bam", ""));
         }
         try {
-//
-            String outfileDir = this.taxaRefBAMDir;
             String[] namelist = nameSet.toArray(new String[nameSet.size()]);
             for (int i = 0; i < 42; i++) {
                 int chr = i + 1;
-                BufferedWriter bw = IOUtils.getTextWriter(new File(outfileDir, plate + "_taxaRefBAM_chr" + chr + ".txt").getAbsolutePath());
+                BufferedWriter bw = IOUtils.getTextWriter(new File(taxaRefBAMDir, plate + "_taxaRefBAM_chr" + chr + ".txt").getAbsolutePath());
                 bw.write("Taxa\tReference\tBamPath\n");
                 for (int j = 0; j < namelist.length; j++) {
                     StringBuilder sb = new StringBuilder();
                     sb.append(namelist[j]).append("\t");
                     sb.append("/data2/xiaohan/genotype/hapscanner/ref/chr" + chr + ".fa\t");
-                    sb.append(new File(parameter, namelist[j] + "_Aligned.out.sorted.bam").getAbsolutePath());
+                    sb.append(new File(BamDir, namelist[j] + "_Aligned.out.sorted.bam").getAbsolutePath());
                     bw.write(sb.toString());
                     bw.newLine();
                 }
@@ -727,25 +967,26 @@ public class HapscannerParameters {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        long endTime=System.currentTimeMillis(); //获取结束时间
+        System.out.println("******* Writing taxaRefBam files takes "+(endTime-startTime)+"ms");
+
     }
 
     public void poswithAllele() {
-        File dir = new File(this.posDir).getAbsoluteFile();
-        dir.mkdir();
-        File dir2 = new File(this.posAlleleDir).getAbsoluteFile();
-        dir2.mkdir();
+        long startTime=System.currentTimeMillis();
         System.out.println("This is writing pos file ****************************************************");
-        HashSet<String> chrSet = new HashSet<>();
-        for (int i = 0; i < 42; i++) {
-            int chr = i + 1;
-            chrSet.add(String.valueOf(chr));
+        HashSet<String> nameSet = new HashSet<>();
+        File[] fs = new File(genotypeDir).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, "vcf.gz");
+        for (int i = 0; i < fs.length; i++) {
+            nameSet.add(fs[i].getName());
         }
-        chrSet.parallelStream().forEach(chr -> {
-            System.out.println("Chr " + chr);
-//            String infile = "/data2/xiaohan/genotype/genotype_eQTL/" + chr + ".346.B18.recode.vcf.gz";
-            String infile = "/data2/junxu/genotype/" + chr + ".346.B18.recode.vcf.gz";
-            String outfile = new File(this.posDir,"pos_chr" + chr + ".txt").getAbsolutePath();
-            String outfile1 = new File(this.posAlleleDir,"posAllele_chr" + chr + ".txt").getAbsolutePath();
+        nameSet.parallelStream().forEach(p -> {
+            System.out.println("Reading file :" + p);
+            int chr = Integer.parseInt(p.split(".")[0]);
+            String infile = new File(genotypeDir, p).getAbsolutePath();
+            String outfile = new File(posDir, "pos_chr" + chr + ".txt").getAbsolutePath();
+            String outfile1 = new File(posAlleleDir, "posAllele_chr" + chr + ".txt").getAbsolutePath();
             BufferedReader br = IOUtils.getTextGzipReader(infile);
             BufferedWriter bw = IOUtils.getTextWriter(outfile);
             BufferedWriter bw1 = IOUtils.getTextWriter(outfile1);
@@ -768,6 +1009,8 @@ public class HapscannerParameters {
                 e.printStackTrace();
             }
         });
+        long endTime=System.currentTimeMillis(); //获取结束时间
+        System.out.println("******* Writing pos and posAllele files takes "+(endTime-startTime)+"ms");
     }
 
 
