@@ -3,10 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package xiaohan.eQTL;
+package pgl.app.hapScanner;
 import static cern.jet.math.Arithmetic.factorial;
 import com.koloboke.collect.map.IntDoubleMap;
 import com.koloboke.collect.map.hash.HashIntDoubleMaps;
+import pgl.AppUtils;
 import pgl.infra.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -17,6 +18,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.LongAdder;
+
+import pgl.infra.utils.Dyad;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;
@@ -38,6 +41,8 @@ public class HapScannercp {
     String samtoolsPath = null;
     //The directory of output
     String outputDirS = null;
+    int regionStart = Integer.MIN_VALUE;
+    int regionEnd = Integer.MIN_VALUE;
 
     int nThreads = -1;
 
@@ -55,8 +60,8 @@ public class HapScannercp {
     public HapScannercp (String infileS) {
         this.parseParameters(infileS);
         this.mkDir();
-        this.scanIndiVCFByStream();
-//        this.scanIndiVCFByThreadPool();
+//        this.scanIndiVCFByStream();
+        this.scanIndiVCFByThreadPool();
         this.mkFinalVCF();
     }
 
@@ -231,12 +236,15 @@ public class HapScannercp {
             String indiVCFFileS = new File(indiVCFFolderS, taxaList.get(i) + ".chr" + PStringUtils.getNDigitNumber(3, chr) + ".indi.vcf").getAbsolutePath();
             List<String> bamPaths = taxaBamsMap.get(taxaList.get(i));
             StringBuilder sb = new StringBuilder(samtoolsPath);
-            sb.append(" mpileup -d 800 -A -B -q 20 -Q 20 -f ").append(this.taxaRefMap.get(taxaList.get(i)));
+            sb.append(" mpileup -A -B -q 20 -Q 20 -f ").append(this.taxaRefMap.get(taxaList.get(i)));
             for (int j = 0; j < bamPaths.size(); j++) {
                 sb.append(" ").append(bamPaths.get(j));
             }
             sb.append(" -l ").append(posFileS).append(" -r ");
             sb.append(chr);
+            if (this.regionStart != Integer.MIN_VALUE) {
+                sb.append(":").append(this.regionStart).append("-").append(regionEnd-1);
+            }
             String command = sb.toString();
             IndiVCF idv = new IndiVCF(command, indiVCFFileS, posRefMap, posAltMap, positions, bamPaths, counter);
             Future<IndiVCF> result = pool.submit(idv);
@@ -249,6 +257,7 @@ public class HapScannercp {
         catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     class IndiVCF implements Callable<IndiVCF> {
@@ -277,14 +286,14 @@ public class HapScannercp {
                 Process p = rt.exec(command);
                 BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
-                BufferedReader bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-                String temp = null;
-                while ((temp = bre.readLine()) != null) {
-                    if (temp.startsWith("[m")) continue;
-                    System.out.println(command);
-                    System.out.println(temp);
-                }
-                bre.close();
+//                BufferedReader bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+//                String temp = null;
+//                while ((temp = bre.readLine()) != null) {
+//                    if (temp.startsWith("[m")) continue;
+//                    System.out.println(command);
+//                    System.out.println(temp);
+//                }
+//                bre.close();
 
                 BufferedWriter bw = IOUtils.getTextWriter(indiVCFFileS);
                 String current = br.readLine();
@@ -427,7 +436,7 @@ public class HapScannercp {
                     BufferedReader bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
                     String temp = null;
                     while ((temp = bre.readLine()) != null) {
-                        if (temp.startsWith("[m")) continue;
+                        if (temp.startsWith("<m")) continue;
                         System.out.println(command);
                         System.out.println(temp);
                     }
@@ -738,25 +747,18 @@ public class HapScannercp {
     }
 
     public void parseParameters (String infileS) {
-        List<String> pLineList = new ArrayList<>();
-        try {
-            BufferedReader br = IOUtils.getTextReader(infileS);
-            String temp = null;
-            while ((temp = br.readLine()) != null) {
-                if (temp.startsWith("#")) continue;
-                if (temp.startsWith("@")) continue;
-                if (temp.isEmpty()) continue;
-                pLineList.add(temp);
-            }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
+        Dyad<List<String>, List<String>> d = AppUtils.getParameterList(infileS);
+        List<String> pLineList = d.getFirstElement();
         taxaRefBamFileS = pLineList.get(0);
         posAlleleFileS = pLineList.get(1);
         posFileS = pLineList.get(2);
-        chr = Integer.valueOf(pLineList.get(3));
+        String[] tem = pLineList.get(3).split(":");
+        chr = Integer.valueOf(tem[0]);
+        if (tem.length == 2) {
+            tem = tem[1].split(",");
+            this.regionStart = Integer.parseInt(tem[0]);
+            this.regionEnd = Integer.parseInt(tem[1])+1;
+        }
         this.combinedErrorRate = Double.parseDouble(pLineList.get(4));
         samtoolsPath = pLineList.get(5);
         this.nThreads = Integer.parseInt(pLineList.get(6));
@@ -780,6 +782,7 @@ public class HapScannercp {
         catch (Exception e) {
             e.printStackTrace();
         }
+        System.out.println("Finished parsing parameter *****************************************************************");
 
     }
 
