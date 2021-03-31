@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.Random;
 
 public class simulationData {
-    public simulationData(String[] args){
+    public simulationData(String[] args) {
         this.generateFastq(args);
         this.generateReads(args[0]);
         this.getTrueSet();
@@ -24,6 +24,25 @@ public class simulationData {
         this.getShuf(args[0]);
         this.getPrecisionRecall(args[0]);
         this.getPrecisionPlot(args[0]);
+        this.getPrecisionandRecall(args[0],args[1]);
+    }
+
+    public static double[] getPrecisionandRecall(String tru, String obs) {
+        double TP = 0;
+        double FN = 0;
+        double FP = 0;
+        double observedvalue = Double.parseDouble(obs);
+        double truevalue = Double.parseDouble(tru);
+        if (observedvalue >= truevalue) {
+            TP += truevalue;
+            FP += observedvalue - truevalue;
+        }
+        if (observedvalue <= truevalue) {
+            TP += observedvalue;
+            FN += truevalue - observedvalue;
+        }
+        double[] TPFPFN = {TP,FP,FN};
+        return TPFPFN;
     }
 
     private String getphred(int score) {
@@ -94,6 +113,7 @@ public class simulationData {
             }
         }
     }
+
     public void getSummary(String arg) {
         for (int i = 50; i < 151; i++) {
             String command = null;
@@ -201,6 +221,7 @@ public class simulationData {
             }
         }
     }
+
     public void getShuf(String arg) {
         String command = null;
         StringBuilder sb5 = new StringBuilder();
@@ -696,7 +717,7 @@ public class simulationData {
         }
     }
 
-    public static void main (String[] args){
+    public static void main(String[] args) {
         new simulationData(args);
     }
 }

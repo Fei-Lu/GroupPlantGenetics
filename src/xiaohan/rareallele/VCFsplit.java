@@ -12,7 +12,8 @@ public class VCFsplit {
     public VCFsplit() {
 //        this.split();
 //        this.splitGerp();
-        this.splitgff3();
+//        this.splitgff3();
+        this.splitphyloP();
     }
 
     public void splitgff3(){
@@ -49,18 +50,7 @@ public class VCFsplit {
         }
         String infile = "/data2/xiaohan/Transposon/iwgsc_refseqv1.0_TransposableElements_2017Mar13.gff3";
         String outputDir = "/data2/xiaohan/Transposon/chr";
-//        File[] fs = new File(infileDir).listFiles();
-//        fs = IOUtils.listFilesEndsWith(fs, ".gz");
-//        HashSet<String> nameSet = new HashSet();
-//        for (int i = 0; i < fs.length; i++) {
-//            if (fs[i].isHidden()) continue;
-//            String Name = fs[i].getName().split("\\.")[0];
-//            nameSet.add(Name);
-//            System.out.println(Name);
-//        }
-//        nameSet.stream().forEach(f -> {
             try {
-//                BufferedReader br = IOUtils.getTextGzipReader(new File(infileDir, f + ".bed.gz").getAbsolutePath());
                 BufferedReader br = IOUtils.getTextReader(infile);
                 String temp1 = null;
                 String[] temps1 = null;
@@ -70,13 +60,6 @@ public class VCFsplit {
                     bw[i] = IOUtils.getTextWriter(new File(outputDir,"chr"+chr+"_Transposon.gff3").getAbsolutePath());
                 }
                 bw[42] = IOUtils.getTextWriter(new File(outputDir,"chrUn_Transposon.gff3").getAbsolutePath());
-//                String name = "chr"+f.toString();
-//                System.out.println(name);
-//                int number = ChromosomeMap.get(name);
-//                int number1 = number +1;
-//                System.out.println(number);
-//                bw[0] = IOUtils.getTextWriter(new File(outputDir, "chr" + number + ".bed").getAbsolutePath());
-//                bw[1] = IOUtils.getTextWriter(new File(outputDir, "chr" + number1 + ".bed").getAbsolutePath());
                 while ((temp1 = br.readLine()) != null) {
                     if(temp1.startsWith("#")){
                         for(int i = 0;i<42;i++){
@@ -103,7 +86,6 @@ public class VCFsplit {
                         bw[chrNumber - 1].newLine();
                     } else if (ChromosomeLength.get(chrABD) <= positionstart) {
                         int posstart = positionstart - ChromosomeLength.get(chrABD);
-//                        int pos = position;
                         int posend = positionend - ChromosomeLength.get(chrABD);
                         bw[chrNumber].write(chrNumber+1 + "\t");
                         for (int i = 1; i < 3; i++) {
@@ -120,22 +102,105 @@ public class VCFsplit {
                 for (int i = 0; i < 43; i++) {
                     bw[i].flush();bw[i].close();
                 }
-//                StringBuilder sb = new StringBuilder();
-//                sb.append("bgzip chr"+ number +".bed"+" && bgzip chr"+ number1 +".bed");
-//                String command = sb.toString();
-//                try {
-//                    File dir = new File(new File(outputDir).getAbsolutePath());
-//                    String[] cmdarry = {"/bin/bash", "-c", command};
-//                    Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
-//                    p.waitFor();
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
 //        });
 
+    }
+
+    public void splitphyloP(){
+        String positionFileS =
+                "1	0	471304005	chr1A	0	471304005\n" +
+                        "3	0	438720154	chr1B	0	438720154\n" +
+                        "5	0	452179604	chr1D	0	452179604\n" +
+                        "7	0	462376173	chr2A	0	462376173\n" +
+                        "9	0	453218924	chr2B	0	453218924\n" +
+                        "11	0	462216879	chr2D	0	462216879\n" +
+                        "13	0	454103970	chr3A	0	454103970\n" +
+                        "15	0	448155269	chr3B	0	448155269\n" +
+                        "17	0	476235359	chr3D	0	476235359\n" +
+                        "19	0	452555092	chr4A	0	452555092\n" +
+                        "21	0	451014251	chr4B	0	451014251\n" +
+                        "23	0	451004620	chr4D	0	451004620\n" +
+                        "25	0	453230519	chr5A	0	453230519\n" +
+                        "27	0	451372872	chr5B	0	451372872\n" +
+                        "29	0	451901030	chr5D	0	451901030\n" +
+                        "31	0	452440856	chr6A	0	452440856\n" +
+                        "33	0	452077197	chr6B	0	452077197\n" +
+                        "35	0	450509124	chr6D	0	450509124\n" +
+                        "37	0	450046986	chr7A	0	450046986\n" +
+                        "39	0	453822637	chr7B	0	453822637\n" +
+                        "41	0	453812268	chr7D	0	453812268\n";
+        HashMap<String, Integer> ChromosomeMap = new HashMap<>();
+        HashMap<String, Integer> ChromosomeLength = new HashMap<>();
+        String[] temps = positionFileS.split("\n");
+        String[] temp = null;
+        for (int i = 0; i < temps.length; i++) {
+            temp = temps[i].split("\t");
+            ChromosomeMap.put(temp[3], Integer.parseInt(temp[0]));
+            ChromosomeLength.put(temp[3], Integer.parseInt(temp[5]));
+        }
+        String infileDir = "/data1/home/lipeng/data/05_conservation/91way/phyloP/";
+        String outputDir = "/data1/home/xiaohan/annotation/phyloP";
+        File[] fs = new File(infileDir).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, "monocots_phyloP.bed.gz");
+        HashSet<String> nameSet = new HashSet();
+        for (int i = 0; i < fs.length; i++) {
+            if (fs[i].isHidden()) continue;
+            String Name = fs[i].getName().split("_")[0];
+            nameSet.add(Name);
+            System.out.println(Name);
+        }
+        nameSet.stream().forEach(f -> {
+            try {
+                BufferedReader br = IOUtils.getTextGzipReader(new File(infileDir, f + "_monocots_phyloP.bed.gz").getAbsolutePath());
+                String temp1 = null;
+                String[] temps1 = null;
+                BufferedWriter[] bw = new BufferedWriter[2];
+                String name = "chr"+f.toString();
+                System.out.println(name);
+                int number = ChromosomeMap.get(name);
+                int number1 = number +1;
+                System.out.println(number);
+                bw[0] = IOUtils.getTextWriter(new File(outputDir, "chr" + number + ".bed").getAbsolutePath());
+                bw[1] = IOUtils.getTextWriter(new File(outputDir, "chr" + number1 + ".bed").getAbsolutePath());
+                while ((temp1 = br.readLine()) != null) {
+                    temps1 = temp1.split("\t");
+                    String chrABD = temps1[0];
+                    int chrNumber = ChromosomeMap.get(chrABD);
+                    int position = Integer.parseInt(temps1[1]);
+                    if (ChromosomeLength.get(chrABD) >= position) {
+                        bw[0].write(number+"\t");
+                        bw[0].write(temps1[1]+"\t"+temps1[2]+"\t"+temps1[3]+"\t"+temps1[4]);
+                        bw[0].newLine();
+                    } else if (ChromosomeLength.get(chrABD) <= position) {
+                        int pos = position - ChromosomeLength.get(chrABD);
+//                        int pos = position;
+                        int pos1 = pos +1;
+                        bw[1].write(number1+"\t"+pos+"\t"+pos1+"\t"+temps1[3]+"\t"+temps1[4]);
+                        bw[1].newLine();
+                    }
+                }
+                br.close();
+                bw[0].flush();bw[0].close();
+                bw[1].flush();bw[1].close();
+                System.out.println("Finished split file "+ f);
+                StringBuilder sb = new StringBuilder();
+                sb.append("bgzip chr"+ number +".bed"+" && bgzip chr"+ number1 +".bed");
+                String command = sb.toString();
+                try {
+                    File dir = new File(new File(outputDir).getAbsolutePath());
+                    String[] cmdarry = {"/bin/bash", "-c", command};
+                    Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+                    p.waitFor();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public void splitGerp() {

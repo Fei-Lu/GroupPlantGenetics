@@ -22,6 +22,7 @@
 
         /**
          * Class holding protein-coding gene feature for fast access. Annotation information from GFF format.
+         *
          * @author Fei Lu
          */
         public class GeneFeature {
@@ -33,19 +34,21 @@
 
             /**
              * Constructs a object from reading pgf (key gene feature) format
+             *
              * @param infileS
              */
-            public GeneFeature (String infileS) {
+            public GeneFeature(String infileS) {
 //        this.readFileFromGTF(infileS);
 //        this.readFromMaizeGFF(infileS);
                 this.readFromChangeWheatGFF(infileS);
             }
-            public void readFromChangeWheatGFF (String infileS) {
-                String geneName=null;
-                int geneIndex=0;
-                int transcriptIndex=0;
-                String transcriptName=null;
-                String temp = null ;
+
+            public void readFromChangeWheatGFF(String infileS) {
+                String geneName = null;
+                int geneIndex = 0;
+                int transcriptIndex = 0;
+                String transcriptName = null;
+                String temp = null;
                 try {
                     BufferedReader br;
                     if (infileS.endsWith("gz")) br = IOUtils.getTextGzipReader(infileS);
@@ -55,8 +58,8 @@
                     String[] tem = null;
                     while ((temp = br.readLine()) != null) {
                         char s = temp.charAt(0);
-                        if ((int)s < 48 || (int)s > 57) continue;
-                        List<String> tList= FStringUtils.fastSplit(temp);
+                        if ((int) s < 48 || (int) s > 57) continue;
+                        List<String> tList = FStringUtils.fastSplit(temp);
                         tem = tList.toArray(new String[tList.size()]);
                         if (tem[2].startsWith("exon")) continue;
                         if (tem[2].startsWith("chromosome")) continue;
@@ -76,7 +79,7 @@
                             String[] te = tem[8].split("=");
                             String query = te[1].split(";")[0];
                             int index = Arrays.binarySearch(geneNames, query);
-                            genes[index] = new Gene (query, Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1, (byte)(tem[6].equals("+")? 1:0));
+                            genes[index] = new Gene(query, Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4]) + 1, (byte) (tem[6].equals("+") ? 1 : 0));
                         }
                     }
                     for (int i = 0; i < info.length; i++) {
@@ -86,7 +89,7 @@
                             //                   String geneName;
                             geneName = te[1].split("=")[1];
                             geneIndex = Arrays.binarySearch(geneNames, geneName);
-                            Transcript t = new Transcript (te[0].split("=")[1], Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1, (byte)(tem[6].equals("+")? 1:0));
+                            Transcript t = new Transcript(te[0].split("=")[1], Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4]) + 1, (byte) (tem[6].equals("+") ? 1 : 0));
                             genes[geneIndex].addTranscript(t);
                         }
                     }
@@ -96,8 +99,8 @@
                         tem = info[i].split("\t");
                         if (tem[2].startsWith("CDS")) {
 //                    String[] te = tem[8].split("=");
-                            if(tem[8].contains(":cds.")){
-                                tem[8]=tem[8].replace(":cds.", ".cds");
+                            if (tem[8].contains(":cds.")) {
+                                tem[8] = tem[8].replace(":cds.", ".cds");
                             }
                             transcriptName = tem[8].split("=")[1].split("\\.cds")[0];
 //                    String geneName;
@@ -105,33 +108,31 @@
 //                    geneName = transcriptName.substring(0,transcriptName.length()-2);
                             geneIndex = Arrays.binarySearch(geneNames, geneName);
                             transcriptIndex = genes[geneIndex].getTranscriptIndex(transcriptName);
-                            genes[geneIndex].ts.get(transcriptIndex).addCDS(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1);
-                        }
-                        else if (tem[2].startsWith("five_prime_UTR")) {
-                            if(tem[8].contains(":five_prime_UTR.")){
-                                tem[8]=tem[8].replace(":five_prime_UTR.", ".utr5p");
+                            genes[geneIndex].ts.get(transcriptIndex).addCDS(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4]) + 1);
+                        } else if (tem[2].startsWith("five_prime_UTR")) {
+                            if (tem[8].contains(":five_prime_UTR.")) {
+                                tem[8] = tem[8].replace(":five_prime_UTR.", ".utr5p");
                             }
                             String[] te = tem[8].split("=");
                             transcriptName = te[1].split("\\.utr5")[0];
 //                    String geneName;
                             geneName = transcriptName.split("\\.")[0];
                             geneIndex = Arrays.binarySearch(geneNames, geneName);
-                            sortType=1;
+                            sortType = 1;
                             transcriptIndex = genes[geneIndex].getTranscriptIndex(transcriptName);
-                            genes[geneIndex].ts.get(transcriptIndex).add5UTR(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1);
-                        }
-                        else if (tem[2].startsWith("three_prime_UTR")) {
-                            if(tem[8].contains(":three_prime_UTR.")){
-                                tem[8]=tem[8].replace(":three_prime_UTR.", ".utr3p");
+                            genes[geneIndex].ts.get(transcriptIndex).add5UTR(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4]) + 1);
+                        } else if (tem[2].startsWith("three_prime_UTR")) {
+                            if (tem[8].contains(":three_prime_UTR.")) {
+                                tem[8] = tem[8].replace(":three_prime_UTR.", ".utr3p");
                             }
                             String[] te = tem[8].split("=");
                             transcriptName = te[1].split("\\.utr3")[0];
 //                   String geneName;
                             geneName = transcriptName.split("\\.")[0];
                             geneIndex = Arrays.binarySearch(geneNames, geneName);
-                            sortType=1;
+                            sortType = 1;
                             transcriptIndex = genes[geneIndex].getTranscriptIndex(transcriptName);
-                            genes[geneIndex].ts.get(transcriptIndex).add3UTR(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1);
+                            genes[geneIndex].ts.get(transcriptIndex).add3UTR(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4]) + 1);
                         }
                     }
                     for (int i = 0; i < this.genes.length; i++) {
@@ -143,15 +144,14 @@
                         }
                         genes[i].calculateLongestTranscriptIndex();
                     }
-                }
-                catch (Exception e) {
-                    System.out.println(geneName+"\t"+geneIndex+"\t"+transcriptIndex+"\t"+transcriptName);
+                } catch (Exception e) {
+                    System.out.println(geneName + "\t" + geneIndex + "\t" + transcriptIndex + "\t" + transcriptName);
                     e.printStackTrace();
                 }
                 this.sortGeneByName();
             }
 
-            public void readFromMaizeGFF3 (String infileS) {
+            public void readFromMaizeGFF3(String infileS) {
                 try {
                     BufferedReader br;
                     if (infileS.endsWith("gz")) br = IOUtils.getTextGzipReader(infileS);
@@ -162,8 +162,8 @@
                     String[] tem = null;
                     while ((temp = br.readLine()) != null) {
                         char s = temp.charAt(0);
-                        if ((int)s < 48 || (int)s > 57) continue;
-                        List<String> tList= FStringUtils.fastSplit(temp);
+                        if ((int) s < 48 || (int) s > 57) continue;
+                        List<String> tList = FStringUtils.fastSplit(temp);
                         tem = tList.toArray(new String[tList.size()]);
                         if (tem[2].startsWith("exon")) continue;
                         if (tem[2].startsWith("chromosome")) continue;
@@ -188,12 +188,11 @@
                             for (int j = 1; j < te.length; j++) {
                                 if (te[j].startsWith("biotype")) {
                                     biotype = te[j].replaceFirst("biotype=", "");
-                                }
-                                else if (te[j].startsWith("description")) {
+                                } else if (te[j].startsWith("description")) {
                                     description = te[j].replaceFirst("description=", "");
                                 }
                             }
-                            genes[index] = new Gene (query, Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1, (byte)(tem[6].equals("+")? 1:0), biotype, description);
+                            genes[index] = new Gene(query, Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4]) + 1, (byte) (tem[6].equals("+") ? 1 : 0), biotype, description);
                         }
                     }
                     for (int i = 0; i < info.length; i++) {
@@ -202,7 +201,7 @@
                             String[] te = tem[8].split(";");
                             String geneName = te[1].split(":")[1];
                             int geneIndex = Arrays.binarySearch(geneNames, geneName);
-                            Transcript t = new Transcript (te[0].split(":")[1], Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1, (byte)(tem[6].equals("+")? 1:0));
+                            Transcript t = new Transcript(te[0].split(":")[1], Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4]) + 1, (byte) (tem[6].equals("+") ? 1 : 0));
                             genes[geneIndex].addTranscript(t);
                         }
                     }
@@ -216,25 +215,23 @@
                             geneName = transcriptName.split("_")[0];
                             int geneIndex = Arrays.binarySearch(geneNames, geneName);
                             int transcriptIndex = genes[geneIndex].getTranscriptIndex(transcriptName);
-                            genes[geneIndex].ts.get(transcriptIndex).addCDS(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1);
-                        }
-                        else if (tem[2].startsWith("five_prime_UTR")) {
+                            genes[geneIndex].ts.get(transcriptIndex).addCDS(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4]) + 1);
+                        } else if (tem[2].startsWith("five_prime_UTR")) {
                             String[] te = tem[8].split(":");
                             String transcriptName = te[1];
                             String geneName;
                             geneName = transcriptName.split("_")[0];
                             int geneIndex = Arrays.binarySearch(geneNames, geneName);
                             int transcriptIndex = genes[geneIndex].getTranscriptIndex(transcriptName);
-                            genes[geneIndex].ts.get(transcriptIndex).add5UTR(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1);
-                        }
-                        else if (tem[2].startsWith("three_prime_UTR")) {
+                            genes[geneIndex].ts.get(transcriptIndex).add5UTR(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4]) + 1);
+                        } else if (tem[2].startsWith("three_prime_UTR")) {
                             String[] te = tem[8].split(":");
                             String transcriptName = te[1];
                             String geneName;
                             geneName = transcriptName.split("_")[0];
                             int geneIndex = Arrays.binarySearch(geneNames, geneName);
                             int transcriptIndex = genes[geneIndex].getTranscriptIndex(transcriptName);
-                            genes[geneIndex].ts.get(transcriptIndex).add3UTR(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1);
+                            genes[geneIndex].ts.get(transcriptIndex).add3UTR(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4]) + 1);
                         }
                     }
                     for (int i = 0; i < this.genes.length; i++) {
@@ -246,8 +243,7 @@
                         }
                         genes[i].calculateLongestTranscriptIndex();
                     }
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 this.sortGeneByStartPosition();
@@ -317,9 +313,10 @@
 
             /**
              * Read from pgf file of gene annotation
+             *
              * @param infileS
              */
-            private void readFile (String infileS) {
+            private void readFile(String infileS) {
                 try {
                     BufferedReader br = IOUtils.getTextReader(infileS);
                     int geneNumber = Integer.valueOf(br.readLine().split("\t")[1]);
@@ -364,8 +361,7 @@
                             genes[i].addTranscript(t);
                         }
                     }
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 this.sortGeneByName();
@@ -373,57 +369,58 @@
 
             /**
              * Write all CDS of the longest transcripts to a file
+             *
              * @param genomef
              * @param outfileS
              */
-            public void writeCDSSequence (FastaByte genomef, String outfileS) {
+            public void writeCDSSequence(FastaByte genomef, String outfileS) {
                 genomef.sortByName();
                 try {
                     BufferedWriter bw = IOUtils.getTextWriter(outfileS);
                     for (int i = 0; i < this.getGeneNumber(); i++) {
-                        String title = String.valueOf(this.getGeneChromosome(i))+"_"+String.valueOf(this.getGeneStart(i)+"_"+String.valueOf(this.getGeneEnd(i))+"_"+String.valueOf(this.getGeneName(i)));
+                        String title = String.valueOf(this.getGeneChromosome(i)) + "_" + String.valueOf(this.getGeneStart(i) + "_" + String.valueOf(this.getGeneEnd(i)) + "_" + String.valueOf(this.getGeneName(i)));
                         int chrIndex = genomef.getIndexByName(String.valueOf(this.getGeneChromosome(i)));
                         String chrseq = genomef.getSeq(chrIndex);
                         StringBuilder sb = new StringBuilder();
                         int longestTranscriptIndex = this.getLongestTranscriptIndex(i);
                         List<Range> cdsList = this.getCDSList(i, longestTranscriptIndex);
                         for (int j = 0; j < cdsList.size(); j++) {
-                            sb.append(chrseq.subSequence(cdsList.get(j).getRangeStart()-1, cdsList.get(j).getRangeEnd()-1));
+                            sb.append(chrseq.subSequence(cdsList.get(j).getRangeStart() - 1, cdsList.get(j).getRangeEnd() - 1));
                         }
                         String cdsSeq = sb.toString();
                         if (this.getTranscriptStrand(i, 0) == 0) {
                             SequenceByte s = new SequenceByte(cdsSeq);
                             cdsSeq = s.getReverseComplementarySeq();
                         }
-                        bw.write(">"+title);
+                        bw.write(">" + title);
                         bw.newLine();
                         bw.write(FStringUtils.getMultiplelineString(60, cdsSeq));
                         bw.newLine();
                     }
                     bw.flush();
                     bw.close();
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
 
             /**
              * Write genomic sequence of gene, from start to the end, no flip if the gene is in the minus direction
+             *
              * @param genomef
              * @param outfileS
              */
-            public void writeGeneSequence (FastaByte genomef, String outfileS) {
+            public void writeGeneSequence(FastaByte genomef, String outfileS) {
                 genomef.sortByName();
                 try {
                     BufferedWriter bw = IOUtils.getTextWriter(outfileS);
                     for (int i = 0; i < this.getGeneNumber(); i++) {
-                        String title = String.valueOf(this.getGeneChromosome(i))+"_"+String.valueOf(this.getGeneStart(i)+"_"+String.valueOf(this.getGeneEnd(i))+"_"+String.valueOf(this.getGeneName(i)));
+                        String title = String.valueOf(this.getGeneChromosome(i)) + "_" + String.valueOf(this.getGeneStart(i) + "_" + String.valueOf(this.getGeneEnd(i)) + "_" + String.valueOf(this.getGeneName(i)));
                         int chrIndex = genomef.getIndexByName(String.valueOf(this.getGeneChromosome(i)));
                         String chrseq = genomef.getSeq(chrIndex);
-                        String geneSeq = chrseq.substring(this.getGeneStart(i)-1, this.getGeneEnd(i)-1);
+                        String geneSeq = chrseq.substring(this.getGeneStart(i) - 1, this.getGeneEnd(i) - 1);
                         String[] geneSeqs = FStringUtils.getMultilineString(60, geneSeq);
-                        bw.write(">"+title);
+                        bw.write(">" + title);
                         bw.newLine();
                         for (int j = 0; j < geneSeqs.length; j++) {
                             bw.write(geneSeqs[j]);
@@ -432,20 +429,20 @@
                     }
                     bw.flush();
                     bw.close();
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
 
             /**
              * Write pgf file of gene annotation
+             *
              * @param outfileS
              */
-            public void writeFile (String outfileS) {
+            public void writeFile(String outfileS) {
                 try {
                     BufferedWriter bw = IOUtils.getTextWriter(outfileS);
-                    bw.write("GeneNumber\t"+String.valueOf(this.getGeneNumber()));
+                    bw.write("GeneNumber\t" + String.valueOf(this.getGeneNumber()));
                     bw.newLine();
                     for (int i = 0; i < this.getGeneNumber(); i++) {
                         StringBuilder sb = new StringBuilder();
@@ -459,34 +456,31 @@
                         bw.newLine();
                         for (int j = 0; j < this.getTranscriptNumber(i); j++) {
                             sb = new StringBuilder();
-                            sb.append("Transcript\t").append(this.getTranscriptName(i, j)).append("\t").append(this.getTranscriptChromosome(i, j)).append("\t").append(this.getTranscriptStart(i, j)).append("\t").append(this.getTranscriptEnd(i, j)).append("\t").append(this.getTranscriptStrand(i,j));
+                            sb.append("Transcript\t").append(this.getTranscriptName(i, j)).append("\t").append(this.getTranscriptChromosome(i, j)).append("\t").append(this.getTranscriptStart(i, j)).append("\t").append(this.getTranscriptEnd(i, j)).append("\t").append(this.getTranscriptStrand(i, j));
                             bw.write(sb.toString());
                             bw.newLine();
                             sb = new StringBuilder();
                             sb.append("5'UTR\t");
                             if (this.isThere5UTR(i, j)) {
                                 sb.append(this.get5UTRPositionString(i, j));
-                            }
-                            else {
+                            } else {
                                 sb.append("NA");
                             }
                             bw.write(sb.toString());
                             bw.newLine();
-                            bw.write("CDS\t"+this.getCDSPositionString(i, j));
+                            bw.write("CDS\t" + this.getCDSPositionString(i, j));
                             bw.newLine();
                             if (this.getIntronPositionString(i, j).equals("")) {
-                                bw.write("Intron\t"+"NA");
-                            }
-                            else {
-                                bw.write("Intron\t"+this.getIntronPositionString(i, j));
+                                bw.write("Intron\t" + "NA");
+                            } else {
+                                bw.write("Intron\t" + this.getIntronPositionString(i, j));
                             }
                             bw.newLine();
                             sb = new StringBuilder();
                             sb.append("3'UTR\t");
                             if (this.isThere3UTR(i, j)) {
                                 sb.append(this.get3UTRPositionString(i, j));
-                            }
-                            else {
+                            } else {
                                 sb.append("NA");
                             }
                             bw.write(sb.toString());
@@ -495,49 +489,49 @@
                     }
                     bw.flush();
                     bw.close();
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
 
             /**
              * Return transcription start site (TSS) of a gene, null if 5'UTR does not exist.
+             *
              * @param geneIndex
              * @return
              */
-            public ChrPos getTSSOfGene (int geneIndex) {
+            public ChrPos getTSSOfGene(int geneIndex) {
                 int index = this.getLongestTranscriptIndex(geneIndex);
                 List<Range> utr5 = this.get5UTRList(geneIndex, index);
                 if (utr5.isEmpty()) return null;
                 if (this.getTranscriptStrand(geneIndex, index) == 1) {
-                    return new ChrPos((short)this.getGeneChromosome(geneIndex),utr5.get(0).getRangeStart());
-                }
-                else {
-                    return new ChrPos((short)this.getGeneChromosome(geneIndex),utr5.get(utr5.size()-1).getRangeEnd()-1);
+                    return new ChrPos((short) this.getGeneChromosome(geneIndex), utr5.get(0).getRangeStart());
+                } else {
+                    return new ChrPos((short) this.getGeneChromosome(geneIndex), utr5.get(utr5.size() - 1).getRangeEnd() - 1);
                 }
             }
 
-            public int getCDSIndex (int geneIndex, int transcriptIndex, int chr, int pos) {
+            public int getCDSIndex(int geneIndex, int transcriptIndex, int chr, int pos) {
                 return this.genes[geneIndex].ts.get(transcriptIndex).getCDSIndex(chr, pos);
             }
 
             /**
              * Return gene index from of a position, make sure the genes are sorted by position
+             *
              * @param chr
              * @param pos
              * @return negative value if the position is not in the range of any gene
              */
-            public int getGeneIndex (int chr, int pos) {
+            public int getGeneIndex(int chr, int pos) {
                 if (this.sortType != 0) {
                     System.out.println("Genes needs to be sorted by position, program quits");
                     System.exit(0);
                 }
-                Gene query = new Gene(chr, pos, pos+1);
+                Gene query = new Gene(chr, pos, pos + 1);
                 int hit = Arrays.binarySearch(this.genes, query);
                 int index = hit;
                 if (index < -1) {
-                    index = -index-2;
+                    index = -index - 2;
                     if (this.isWithinThisGene(index, chr, pos)) return index;
                 }
                 return hit;
@@ -545,12 +539,13 @@
 
             /**
              * Return if a position belong to a gene model
+             *
              * @param geneIndex
              * @param chr
              * @param pos
              * @return
              */
-            public boolean isWithinThisGene (int geneIndex, int chr, int pos) {
+            public boolean isWithinThisGene(int geneIndex, int chr, int pos) {
                 if (chr != this.getGeneChromosome(geneIndex)) return false;
                 if (pos < this.getGeneStart(geneIndex)) return false;
                 if (pos >= this.getGeneEnd(geneIndex)) return false;
@@ -559,10 +554,11 @@
 
             /**
              * Return index of a gene, make sure the genes are sorted by name first
+             *
              * @param geneName
              * @return negative value if the gene name is not found
              */
-            public int getGeneIndex (String geneName) {
+            public int getGeneIndex(String geneName) {
                 if (this.sortType != 1) {
                     System.out.println("Genes needs to be sorted by name, program quits");
                     System.exit(0);
@@ -572,40 +568,43 @@
 
             /**
              * Return the starting index of the gene on a chromosome, inclusive
+             *
              * @param chromosome
              * @return
              */
-            public int getStartIndexOfChromosome (int chromosome) {
+            public int getStartIndexOfChromosome(int chromosome) {
                 if (this.sortType != 0) {
                     System.out.println("Genes needs to be sorted by position, program quits");
                     System.exit(0);
                 }
-                Gene query  = new Gene ("Query", chromosome, Integer.MIN_VALUE, Integer.MIN_VALUE, Byte.MIN_VALUE, "", "");
-                int hit  = Arrays.binarySearch(genes, query);
-                int index = -hit-1;
+                Gene query = new Gene("Query", chromosome, Integer.MIN_VALUE, Integer.MIN_VALUE, Byte.MIN_VALUE, "", "");
+                int hit = Arrays.binarySearch(genes, query);
+                int index = -hit - 1;
                 if (this.getGeneChromosome(index) == chromosome) return index;
                 return hit;
             }
 
             /**
              * Return the ending index of the gene on a chromosome, exclusive
+             *
              * @param chromosome
              * @return
              */
-            public int getEndIndexOfChromosome (int chromosome) {
+            public int getEndIndexOfChromosome(int chromosome) {
                 if (this.sortType != 0) {
                     System.out.println("Genes needs to be sorted by position, program quits");
                     System.exit(0);
                 }
-                Gene query  = new Gene ("Query", chromosome+1, Integer.MIN_VALUE, Integer.MIN_VALUE, Byte.MIN_VALUE, "", "");
-                int hit  = Arrays.binarySearch(genes, query);
-                int index = -hit-1;
-                if (this.getGeneChromosome(index-1) == chromosome) return index;
+                Gene query = new Gene("Query", chromosome + 1, Integer.MIN_VALUE, Integer.MIN_VALUE, Byte.MIN_VALUE, "", "");
+                int hit = Arrays.binarySearch(genes, query);
+                int index = -hit - 1;
+                if (this.getGeneChromosome(index - 1) == chromosome) return index;
                 return hit;
             }
 
             /**
              * Return the name of the gene
+             *
              * @param index
              * @return
              */
@@ -615,239 +614,265 @@
 
             /**
              * Return the chromosome number of the gene
+             *
              * @param index
              * @return
              */
-            public int getGeneChromosome (int index) {
+            public int getGeneChromosome(int index) {
                 return genes[index].geneRange.chr;
             }
 
             /**
              * Return the starting position of the gene
+             *
              * @param index
              * @return
              */
-            public int getGeneStart (int index) {
+            public int getGeneStart(int index) {
                 return genes[index].geneRange.start;
             }
 
             /**
              * Return the end position of the gene
+             *
              * @param index
              * @return
              */
-            public int getGeneEnd (int index) {
+            public int getGeneEnd(int index) {
                 return genes[index].geneRange.end;
             }
 
             /**
              * Return the strand of the gene, 1 is plus, 0 is minus
+             *
              * @param index
              * @return
              */
-            public byte getGeneStrand (int index) {
+            public byte getGeneStrand(int index) {
                 return genes[index].strand;
             }
 
             /**
              * Return the biotype of the gene
+             *
              * @param index
              * @return
              */
-            public String getGeneBiotype (int index) {
+            public String getGeneBiotype(int index) {
                 return genes[index].biotype;
             }
 
             /**
              * Return the description of the gene
+             *
              * @param index
              * @return
              */
-            public String getGeneDescription (int index) {
+            public String getGeneDescription(int index) {
                 return genes[index].description;
             }
-            public int getGeneLength (int index) {
+
+            public int getGeneLength(int index) {
                 return genes[index].geneLength;
             }
 
 
             /**
              * Return the name of transcript
+             *
              * @param i
              * @param j
              * @return
              */
-            public String getTranscriptName (int i, int j) {
+            public String getTranscriptName(int i, int j) {
                 return genes[i].ts.get(j).transcriptName;
             }
 
             /**
              * Return the name of transcript
+             *
              * @param i
              * @param j
              * @return
              */
-            public int getTranscriptChromosome (int i, int j) {
+            public int getTranscriptChromosome(int i, int j) {
                 return genes[i].ts.get(j).transcriptRange.chr;
             }
 
             /**
              * Return the start position of the transcript
+             *
              * @param i
              * @param j
              * @return
              */
-            public int getTranscriptStart (int i, int j) {
+            public int getTranscriptStart(int i, int j) {
                 return genes[i].ts.get(j).transcriptRange.start;
             }
 
             /**
              * Return the end position of transcript
+             *
              * @param i
              * @param j
              * @return
              */
-            public int getTranscriptEnd (int i, int j) {
+            public int getTranscriptEnd(int i, int j) {
                 return genes[i].ts.get(j).transcriptRange.end;
             }
 
             /**
              * Return the strand of the transcript, 1 is plus, 0 is minus
+             *
              * @param i
              * @param j
              * @return
              */
-            public byte getTranscriptStrand (int i, int j) {
+            public byte getTranscriptStrand(int i, int j) {
                 return genes[i].ts.get(j).strand;
             }
 
             /**
              * Return a range list of CDS, return an empty list if there is no CDS
+             *
              * @param i
              * @param j
              * @return
              */
-            public List<Range> getCDSList (int i, int j) {
+            public List<Range> getCDSList(int i, int j) {
                 return genes[i].ts.get(j).cdsList;
             }
 
             /**
              * Return a range list of 5UTR, return an empty list if there is no 5UTR
+             *
              * @param i
              * @param j
              * @return
              */
-            public List<Range> get5UTRList (int i, int j) {
+            public List<Range> get5UTRList(int i, int j) {
                 return genes[i].ts.get(j).utr5List;
             }
 
-            private String getRangePositionString (List<Range> rList) {
+            private String getRangePositionString(List<Range> rList) {
                 StringBuilder sb = new StringBuilder();
                 for (int i = 0; i < rList.size(); i++) {
                     sb.append(rList.get(i).getRangeStart()).append(":").append(rList.get(i).getRangeEnd()).append(";");
                 }
-                if (rList.size()!=0)sb.deleteCharAt(sb.length()-1);
+                if (rList.size() != 0) sb.deleteCharAt(sb.length() - 1);
                 return sb.toString();
             }
+
             /**
              * Return a range list of 3UTR, return an empty list if there is no 3UTR
+             *
              * @param i
              * @param j
              * @return
              */
-            public List<Range> get3UTRList (int i, int j) {
+            public List<Range> get3UTRList(int i, int j) {
                 return genes[i].ts.get(j).utr3List;
             }
 
 
             /**
              * Return intron Range list, return an empty list if there is no intron
+             *
              * @param i
              * @param j
              * @return
              */
-            public List<Range> getIntronList (int i, int j) {
+            public List<Range> getIntronList(int i, int j) {
                 return genes[i].ts.get(j).intronList;
             }
 
             /**
              * Return a string of CDS positions for output, return empty when there is no CDS
+             *
              * @param i
              * @param j
              * @return
              */
-            public String getCDSPositionString (int i, int j) {
+            public String getCDSPositionString(int i, int j) {
                 return getRangePositionString(this.getCDSList(i, j));
             }
 
             /**
              * Return a string of intron positions, return empty when there is no intron
+             *
              * @param i
              * @param j
              * @return
              */
-            public String getIntronPositionString (int i, int j) {
+            public String getIntronPositionString(int i, int j) {
                 return getRangePositionString(this.getIntronList(i, j));
             }
 
             /**
              * Return a string of 5UTR positions, return empty when there is no 5UTR
+             *
              * @param i
              * @param j
              * @return
              */
-            public String get5UTRPositionString (int i, int j) {
+            public String get5UTRPositionString(int i, int j) {
                 return getRangePositionString(this.get5UTRList(i, j));
             }
 
             /**
              * Return a string of 3UTR positions, return empty when there is no 3UTR
+             *
              * @param i
              * @param j
              * @return
              */
-            public String get3UTRPositionString (int i, int j) {
+            public String get3UTRPositionString(int i, int j) {
                 return getRangePositionString(this.get3UTRList(i, j));
             }
 
             /**
              * Return if there is 5UTR
+             *
              * @param i
              * @param j
              * @return
              */
-            public boolean isThere5UTR (int i, int j) {
-                return genes[i].ts.get(j).utr5List.isEmpty() ? false:true;
+            public boolean isThere5UTR(int i, int j) {
+                return genes[i].ts.get(j).utr5List.isEmpty() ? false : true;
             }
 
             /**
              * Return if there is 3UTR
+             *
              * @param i
              * @param j
              * @return
              */
-            public boolean isThere3UTR (int i, int j) {
-                return genes[i].ts.get(j).utr3List.isEmpty() ? false:true;
+            public boolean isThere3UTR(int i, int j) {
+                return genes[i].ts.get(j).utr3List.isEmpty() ? false : true;
             }
+
             /**
              * Return if there is CDS
+             *
              * @param i
              * @param j
              * @return
              */
-            public boolean isCDS (int i, int j) {
-                return genes[i].ts.get(j).cdsList.isEmpty() ? false:true;
+            public boolean isCDS(int i, int j) {
+                return genes[i].ts.get(j).cdsList.isEmpty() ? false : true;
             }
 
             /**
              * Read from Maize GFF file (ftp://ftp.ensemblgenomes.org/pub/plants/release-38/gff3/zea_mays)
+             *
              * @param infileS
              */
-            public void readFromMaizeGFF (String infileS) {
-                String geneName=null;
-                int geneIndex=0;
-                int transcriptIndex=0;
-                String transcriptName=null;
+            public void readFromMaizeGFF(String infileS) {
+                String geneName = null;
+                int geneIndex = 0;
+                int transcriptIndex = 0;
+                String transcriptName = null;
                 try {
                     BufferedReader br;
                     if (infileS.endsWith("gz")) br = IOUtils.getTextGzipReader(infileS);
@@ -858,8 +883,8 @@
                     String[] tem = null;
                     while ((temp = br.readLine()) != null) {
                         char s = temp.charAt(0);
-                        if ((int)s < 48 || (int)s > 57) continue;
-                        List<String> tList= FStringUtils.fastSplit(temp);
+                        if ((int) s < 48 || (int) s > 57) continue;
+                        List<String> tList = FStringUtils.fastSplit(temp);
                         tem = tList.toArray(new String[tList.size()]);
                         if (tem[2].startsWith("exon")) continue;
                         if (tem[2].startsWith("chromosome")) continue;
@@ -884,12 +909,11 @@
                             for (int j = 1; j < te.length; j++) {
                                 if (te[j].startsWith("biotype")) {
                                     biotype = te[j].replaceFirst("biotype=", "");
-                                }
-                                else if (te[j].startsWith("description")) {
+                                } else if (te[j].startsWith("description")) {
                                     description = te[j].replaceFirst("description=", "");
                                 }
                             }
-                            genes[index] = new Gene (query, Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1, (byte)(tem[6].equals("+")? 1:0), biotype, description);
+                            genes[index] = new Gene(query, Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4]) + 1, (byte) (tem[6].equals("+") ? 1 : 0), biotype, description);
                         }
                     }
                     for (int i = 0; i < info.length; i++) {
@@ -899,7 +923,7 @@
                             //                   String geneName;
                             geneName = te[1].split(":")[1];
                             geneIndex = Arrays.binarySearch(geneNames, geneName);
-                            Transcript t = new Transcript (te[0].split(":")[1], Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1, (byte)(tem[6].equals("+")? 1:0));
+                            Transcript t = new Transcript(te[0].split(":")[1], Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4]) + 1, (byte) (tem[6].equals("+") ? 1 : 0));
                             genes[geneIndex].addTranscript(t);
                         }
                     }
@@ -914,27 +938,25 @@
                             geneName = transcriptName.split("_")[0];
                             geneIndex = Arrays.binarySearch(geneNames, geneName);
                             transcriptIndex = genes[geneIndex].getTranscriptIndex(transcriptName);
-                            genes[geneIndex].ts.get(transcriptIndex).addCDS(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1);
-                        }
-                        else if (tem[2].startsWith("five_prime_UTR")) {
+                            genes[geneIndex].ts.get(transcriptIndex).addCDS(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4]) + 1);
+                        } else if (tem[2].startsWith("five_prime_UTR")) {
                             String[] te = tem[8].split(":");
                             transcriptName = te[1];
 //                    String geneName;
                             geneName = transcriptName.split("_")[0];
                             geneIndex = Arrays.binarySearch(geneNames, geneName);
-                            sortType=1;
+                            sortType = 1;
                             transcriptIndex = genes[geneIndex].getTranscriptIndex(transcriptName);
-                            genes[geneIndex].ts.get(transcriptIndex).add5UTR(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1);
-                        }
-                        else if (tem[2].startsWith("three_prime_UTR")) {
+                            genes[geneIndex].ts.get(transcriptIndex).add5UTR(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4]) + 1);
+                        } else if (tem[2].startsWith("three_prime_UTR")) {
                             String[] te = tem[8].split(":");
                             transcriptName = te[1];
 //                   String geneName;
                             geneName = transcriptName.split("_")[0];
                             geneIndex = Arrays.binarySearch(geneNames, geneName);
-                            sortType=1;
+                            sortType = 1;
                             transcriptIndex = genes[geneIndex].getTranscriptIndex(transcriptName);
-                            genes[geneIndex].ts.get(transcriptIndex).add3UTR(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4])+1);
+                            genes[geneIndex].ts.get(transcriptIndex).add3UTR(Integer.valueOf(tem[0]), Integer.valueOf(tem[3]), Integer.valueOf(tem[4]) + 1);
                         }
                     }
                     for (int i = 0; i < this.genes.length; i++) {
@@ -946,9 +968,8 @@
                         }
                         genes[i].calculateLongestTranscriptIndex();
                     }
-                }
-                catch (Exception e) {
-                    System.out.println(geneName+"\t"+geneIndex+"\t"+transcriptIndex+"\t"+transcriptName);
+                } catch (Exception e) {
+                    System.out.println(geneName + "\t" + geneIndex + "\t" + transcriptIndex + "\t" + transcriptName);
                     e.printStackTrace();
                 }
                 this.sortGeneByName();
@@ -956,42 +977,46 @@
 
             /**
              * Return number of genes
+             *
              * @return
              */
-            public int getGeneNumber () {
+            public int getGeneNumber() {
                 return genes.length;
             }
 
             /**
              * Return transcript number of a gene
+             *
              * @param index
              * @return
              */
-            public int getTranscriptNumber (int index) {
+            public int getTranscriptNumber(int index) {
                 return genes[index].getTranscriptNumber();
             }
 
 
             /**
              * Return the index of the longest transcript of a gene
+             *
              * @param index
              * @return
              */
-            public int getLongestTranscriptIndex (int index) {
+            public int getLongestTranscriptIndex(int index) {
                 return genes[index].longestTranscriptIndex;
             }
 
             /**
              * Return transcript number of all genes
+             *
              * @return
              */
-            public int getTotalTranscriptNumber () {
+            public int getTotalTranscriptNumber() {
                 int n = 0;
-                for (int i = 0; i < this.getGeneNumber(); i++) n+=this.getTranscriptNumber(i);
+                for (int i = 0; i < this.getGeneNumber(); i++) n += this.getTranscriptNumber(i);
                 return n;
             }
 
-            public void sortGeneByName () {
+            public void sortGeneByName() {
                 this.sortType = 1;
                 Arrays.sort(genes);
 
@@ -1000,15 +1025,15 @@
             /**
              * Sort genes by their chromosome positions
              */
-            public void sortGeneByStartPosition () {
+            public void sortGeneByStartPosition() {
                 this.sortType = 0;
                 Arrays.sort(genes);
             }
 
             class Gene implements Comparable<Gene> {
                 String geneName = null;
-                String pos = null ;
-                int geneLength=0;
+                String pos = null;
+                int geneLength = 0;
                 Range geneRange = null;
                 byte strand = Byte.MIN_VALUE;
                 String biotype = null;
@@ -1016,43 +1041,44 @@
                 ArrayList<Transcript> ts = new ArrayList();
                 int longestTranscriptIndex = -1;
 
-                public Gene (String geneName, int chr, int start, int end, byte strand, String biotype, String discription) {
+                public Gene(String geneName, int chr, int start, int end, byte strand, String biotype, String discription) {
                     this.geneName = geneName;
                     this.strand = strand;
                     geneRange = new Range(chr, start, end);
                     this.biotype = biotype;
                     this.description = discription;
                 }
-                public Gene (String geneName, int chr,String pos, int start, int end, byte strand) {
+
+                public Gene(String geneName, int chr, String pos, int start, int end, byte strand) {
                     this.geneName = geneName;
-                    this.pos = pos ;
+                    this.pos = pos;
                     this.strand = strand;
                     geneRange = new Range(chr, start, end);
                 }
 
-                public Gene (String geneName) {
+                public Gene(String geneName) {
                     this.geneName = geneName;
                 }
 
-                public Gene (String geneName,int chr, int start, int end,byte strand) {
+                public Gene(String geneName, int chr, int start, int end, byte strand) {
                     this.geneName = geneName;
                     geneRange = new Range(chr, start, end);
                     this.strand = strand;
                 }
 
-                public Gene (int chr, int start, int end) {
+                public Gene(int chr, int start, int end) {
                     geneRange = new Range(chr, start, end);
                 }
 
-                public void addTranscript (Transcript t) {
+                public void addTranscript(Transcript t) {
                     ts.add(t);
                 }
 
-                public int getTranscriptNumber () {
+                public int getTranscriptNumber() {
                     return ts.size();
                 }
 
-                public int getLongestTranscriptIndex () {
+                public int getLongestTranscriptIndex() {
                     return this.longestTranscriptIndex;
                 }
 //        public int getGeneIndex (String geneName) {
@@ -1063,14 +1089,15 @@
 //            return Arrays.binarySearch(genes, new Gene(geneName));
 //      }
 
-                public int getTranscriptIndex (String transcriptName) {
+                public int getTranscriptIndex(String transcriptName) {
                     return Collections.binarySearch(ts, new Transcript(transcriptName));
                 }
-                public void calculateLongestTranscriptIndex () {
+
+                public void calculateLongestTranscriptIndex() {
                     int index = -1;
                     int len = -1;
                     for (int i = 0; i < this.getTranscriptNumber(); i++) {
-                        if (ts.get(i).transcriptRange.getRangeSize()>len) {
+                        if (ts.get(i).transcriptRange.getRangeSize() > len) {
                             len = ts.get(i).transcriptRange.getRangeSize();
                             index = i;
                         }
@@ -1078,19 +1105,19 @@
                     this.longestTranscriptIndex = index;
                 }
 
-                public void setLongestTranscriptIndex (int index) {
+                public void setLongestTranscriptIndex(int index) {
                     this.longestTranscriptIndex = index;
                 }
 
-                public void sortTranscriptsByName () {
+                public void sortTranscriptsByName() {
                     Collections.sort(ts);
                 }
+
                 @Override
                 public int compareTo(Gene t) {
                     if (sortType == 0) {
                         return geneRange.compareTo(t.geneRange);
-                    }
-                    else if (sortType == 1) {
+                    } else if (sortType == 1) {
                         return this.geneName.compareTo(t.geneName);
                     }
                     return 0;
@@ -1101,131 +1128,143 @@
                 String transcriptName = null;
                 Range transcriptRange = null;
                 byte strand = Byte.MIN_VALUE;
-                String pos=null;
-                int transLength=0;
+                String pos = null;
+                int transLength = 0;
                 List<Range> cdsList = new ArrayList();
                 List<Range> intronList = new ArrayList();
                 List<Range> utr5List = new ArrayList();
                 List<Range> utr3List = new ArrayList();
 
-                public Transcript (String transcriptName) {
+                public Transcript(String transcriptName) {
                     this.transcriptName = transcriptName;
                 }
-                public Transcript (String transcriptName, int chr, int start, int end, byte strand) {
+
+                public Transcript(String transcriptName, int chr, int start, int end, byte strand) {
                     this.transcriptName = transcriptName;
-                    this.strand = strand;
-                    transcriptRange = new Range(chr, start, end);
-                }
-                public Transcript (String transcriptName, int chr,String pos, int start, int end, byte strand) {
-                    this.transcriptName = transcriptName;
-                    this.strand = strand;
-                    this.pos = pos ;
-                    transcriptRange = new Range(chr, start, end);
-                }
-                public Transcript (String transcriptName, int chr, int start, int end,int transLength, byte strand) {
-                    this.transcriptName = transcriptName;
-                    this.transLength=transLength;
                     this.strand = strand;
                     transcriptRange = new Range(chr, start, end);
                 }
 
-                public void addCDS (int chr, int start, int end) {
+                public Transcript(String transcriptName, int chr, String pos, int start, int end, byte strand) {
+                    this.transcriptName = transcriptName;
+                    this.strand = strand;
+                    this.pos = pos;
+                    transcriptRange = new Range(chr, start, end);
+                }
+
+                public Transcript(String transcriptName, int chr, int start, int end, int transLength, byte strand) {
+                    this.transcriptName = transcriptName;
+                    this.transLength = transLength;
+                    this.strand = strand;
+                    transcriptRange = new Range(chr, start, end);
+                }
+
+                public void addCDS(int chr, int start, int end) {
                     cdsList.add(new Range(chr, start, end));
                 }
 
-                public void add5UTR (int chr, int start, int end) {
+                public void add5UTR(int chr, int start, int end) {
                     utr5List.add(new Range(chr, start, end));
                 }
 
-                public void add3UTR (int chr, int start, int end) {
+                public void add3UTR(int chr, int start, int end) {
                     utr3List.add(new Range(chr, start, end));
                 }
 
-                public int getChromosome () {
+                public int getChromosome() {
                     return this.transcriptRange.chr;
                 }
-                public int getTranscriptlength () {
+
+                public int getTranscriptlength() {
                     return this.transLength;
                 }
-                public String getTranscriptName () {
+
+                public String getTranscriptName() {
                     return this.transcriptName;
                 }
-                public int getTranscriptStart(){
+
+                public int getTranscriptStart() {
                     return this.transcriptRange.start;
                 }
-                public int getTranscriptEnd(){
+
+                public int getTranscriptEnd() {
                     return this.transcriptRange.end;
                 }
-                public void sortCDSByPosition () {
+
+                public void sortCDSByPosition() {
                     Collections.sort(cdsList);
                 }
 
-                public void sort5UTRByPosition () {
+                public void sort5UTRByPosition() {
                     if (utr5List.isEmpty()) return;
                     Collections.sort(utr5List);
                 }
 
-                public void sort3UTRByPosition () {
+                public void sort3UTRByPosition() {
                     if (utr3List.isEmpty()) return;
                     Collections.sort(utr5List);
                 }
 
-                public int getCDSIndex (int chr, int pos) {
-                    Range query = new Range(chr, pos, pos+1);
+                public int getCDSIndex(int chr, int pos) {
+                    Range query = new Range(chr, pos, pos + 1);
                     int hit = Collections.binarySearch(cdsList, query);
                     int index = hit;
                     if (index < -1) {
-                        index = -index-2;
+                        index = -index - 2;
                         if (this.isWithinThisCDS(index, chr, pos)) return index;
                     }
                     return hit;
                 }
-                public int get3UTRIndex (int chr, int pos) {
-                    Range query = new Range(chr, pos, pos+1);
+
+                public int get3UTRIndex(int chr, int pos) {
+                    Range query = new Range(chr, pos, pos + 1);
                     int hit = Collections.binarySearch(utr3List, query);
                     int index = hit;
                     if (index < -1) {
-                        index = -index-2;
+                        index = -index - 2;
                         if (this.isWithinThis3UTR(index, chr, pos)) return index;
                     }
                     return hit;
                 }
-                public int get5UTRIndex (int chr, int pos) {
-                    Range query = new Range(chr, pos, pos+1);
+
+                public int get5UTRIndex(int chr, int pos) {
+                    Range query = new Range(chr, pos, pos + 1);
                     int hit = Collections.binarySearch(utr5List, query);
                     int index = hit;
                     if (index < -1) {
-                        index = -index-2;
+                        index = -index - 2;
                         if (this.isWithinThis5UTR(index, chr, pos)) return index;
                     }
                     return hit;
                 }
 
-                public boolean isWithinThisCDS (int cdsIndex, int chr, int pos) {
+                public boolean isWithinThisCDS(int cdsIndex, int chr, int pos) {
                     if (cdsList.get(cdsIndex).chr != chr) return false;
                     if (pos < cdsList.get(cdsIndex).start) return false;
                     if (pos >= cdsList.get(cdsIndex).end) return false;
                     return true;
                 }
-                public boolean isWithinThis3UTR (int utr3Index, int chr, int pos) {
+
+                public boolean isWithinThis3UTR(int utr3Index, int chr, int pos) {
                     if (utr3List.get(utr3Index).chr != chr) return false;
                     if (pos < utr3List.get(utr3Index).start) return false;
                     if (pos >= utr3List.get(utr3Index).end) return false;
                     return true;
                 }
-                public boolean isWithinThis5UTR (int utr5Index, int chr, int pos) {
+
+                public boolean isWithinThis5UTR(int utr5Index, int chr, int pos) {
                     if (utr5List.get(utr5Index).chr != chr) return false;
                     if (pos < utr5List.get(utr5Index).start) return false;
                     if (pos >= utr5List.get(utr5Index).end) return false;
                     return true;
                 }
 
-                public void calculateIntron () {
+                public void calculateIntron() {
                     if (cdsList.size() < 2) return;
-                    for (int i = 0; i < cdsList.size()-1; i++) {
+                    for (int i = 0; i < cdsList.size() - 1; i++) {
                         Range r = cdsList.get(i);
-                        Range nr = cdsList.get(i+1);
-                        intronList.add(new Range(r.chr, r.end, nr.start ));
+                        Range nr = cdsList.get(i + 1);
+                        intronList.add(new Range(r.chr, r.end, nr.start));
                     }
                 }
 

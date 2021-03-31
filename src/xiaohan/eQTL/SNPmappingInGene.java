@@ -1,0 +1,77 @@
+package xiaohan.eQTL;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+
+public class SNPmappingInGene {
+    //array in two values for start/end or three values for chr/start/end
+    public static int[] bSearch(int[][] a, int key) {
+        if (a == null || a.length <= 0 || key > a[a.length - 1][a[a.length - 1].length - 1]) {
+            return new int[]{-1};
+        }
+        int low = 0;
+        int high = a.length - 1;
+        int mid = 0;
+        ArrayList<Integer> res = new ArrayList<>();
+        while (low <= high) {
+            mid = low + (high - low) / 2;
+            if (a[mid][0] > key) {
+                high = mid - 1;
+            } else if (a[mid][1] < key) {
+                low = mid + 1;
+            } else {
+                break;
+            }
+        }
+
+        if (a[mid][0] > key) {
+            res.add(mid - 1);
+        }
+        res.add(mid);
+        if (a[mid][1] < key) {
+            res.add(mid + 1);
+        }
+
+        int[] ints = new int[res.size()];
+        for (int i = 0; i < res.size(); i++) {
+            ints[i] = res.get(i);
+        }
+        return ints;
+//        return new int[]{-1};
+    }
+
+    public static int[] binarySearch(int[][] array, int value) {
+        if (array == null || array.length <= 0 || value > array[array.length - 1][array[array.length - 1].length - 1]) {
+            return new int[]{-1};
+        }
+        int colums = array[array.length - 1].length;
+        int low = 0;
+        int high = array.length - 1;
+        int mid = 0;
+
+        ArrayList<Integer> res = new ArrayList<>();
+
+        while (low <= high) {
+            mid = low + (high - low) / 2;
+            if (array[mid][colums - 2] <= value && array[mid][colums - 1] >= value) {
+                res.add(mid);
+                low = mid + 1;
+            } else if (array[mid][colums - 1] < value) {
+                low = mid + 1;
+            } else if (array[mid][colums - 2] > value) {
+                high = mid - 1;
+            } else break;
+        }
+
+        if(res.isEmpty()){
+            res.add(-1);
+        }
+
+        int[] ints = new int[res.size()];
+        for (int i = 0; i < res.size(); i++) {
+            ints[i] = res.get(i);
+        }
+        return ints;
+    }
+}

@@ -239,6 +239,22 @@ import java.util.zip.GZIPOutputStream;
             return al.toArray(new File[al.size()]);
         }
 
+        public static File[] listFilesStartsWithout (File[] fAll, String startStr) {
+            ArrayList<File> al = new ArrayList();
+            for (int i = 0; i < fAll.length; i++) {
+                if (!fAll[i].getName().startsWith(startStr)) al.add(fAll[i]);
+            }
+            return al.toArray(new File[al.size()]);
+        }
+
+        public static File[] listFilesEndsWithout (File[] fAll, String endStr) {
+            ArrayList<File> al = new ArrayList();
+            for (int i = 0; i < fAll.length; i++) {
+                if (!fAll[i].getName().endsWith(endStr)) al.add(fAll[i]);
+            }
+            return al.toArray(new File[al.size()]);
+        }
+
         /**
          * List all the files in a directory
          * @param dir
