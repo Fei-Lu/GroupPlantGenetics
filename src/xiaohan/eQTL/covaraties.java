@@ -90,7 +90,7 @@ public class covaraties {
         }
     }
 
-    class Command implements Callable<Command> {
+    static class Command implements Callable<Command> {
         String command = null;
         File dir = null;
         public Command (String command, File dir){
