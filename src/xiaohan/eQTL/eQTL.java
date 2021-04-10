@@ -2,6 +2,7 @@ package xiaohan.eQTL;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.sun.tools.internal.ws.wscompile.Options;
 import daxing.load.ancestralSite.Standardization;
 import javafx.scene.ParallelCamera;
 import pgl.app.hapScanner.HapScannercp2;
@@ -25,6 +26,10 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLOutput;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public class eQTL {
 
@@ -75,7 +80,7 @@ public class eQTL {
         pheno
          */
 //        this.pheno(args);
-        this.covaraties(args);
+//        this.covaraties(args);
 
         /*
         annotation
@@ -88,6 +93,11 @@ public class eQTL {
          */
 //        this.multiTissue(args);
 //
+        /*
+        hetero
+         */
+        this.getheterogeneity(args[0],args[1]);
+
 //        this.hapscannercp(args);
 
 //        this.intergenicPattern();
@@ -95,7 +105,7 @@ public class eQTL {
 //        this.intergenicPatternhuman();
 //        this.intergenicPatternTransposon();
 //        this.getCisChrGene();
-//        this.getNominalSig();
+//        this.getNominalSig(args);
 //        this.getcisSig();
 //        this.getQTLcount();
 //        this.getExprWithQTL();
@@ -122,7 +132,90 @@ public class eQTL {
 //        this.summary();
 
 //        this.ERCCRoc();
+//        this.ThreadPool(args[0],args[1]);
+    }
 
+    public void getheterogeneity(String infile,String outfile){
+        BufferedReader br = null;
+        BufferedReader br1 = null;
+        if(infile.endsWith("gz")){
+            br = IOUtils.getTextGzipReader(infile);
+            br1 = IOUtils.getTextGzipReader(infile);
+        }
+        else{
+            br = IOUtils.getTextReader(infile);
+            br1 = IOUtils.getTextReader(infile);
+        }
+        BufferedWriter bw = IOUtils.getTextWriter(outfile);
+        String temp = null;
+        String[] temps = null;
+        Multimap<String,String> eQTLeGeneMap = ArrayListMultimap.create();
+        Multimap<String,String> eGeneeQTLMap = ArrayListMultimap.create();
+        try {
+            int index = 0;
+            int pindex = 0;
+            while ((temp = br.readLine()) != null) {
+                if(temp.startsWith("p") || temp.startsWith("In")){
+                    temps = temp.split("\t");
+                    for (int i = 0; i < temps.length; i++) {
+                        if(temps[i].equals("variant_id")){
+                            index = i;
+//                            System.out.println(index);
+                        }
+                        if(temps[i].equals("phenotype_id")){
+                            pindex = i;
+                        }
+                    }
+                    bw.write("phenotype_id\tvariant_id\teQTLs/pereGene\teGenes/pereQTL");
+                    bw.newLine();
+                    continue;
+                }
+                temps = temp.split("\t");
+                String gene = temps[pindex];
+                String variant = temps[index];
+                eGeneeQTLMap.put(gene,variant);
+                eQTLeGeneMap.put(variant,gene);
+//                System.out.println(gene);
+//                System.out.println(variant);
+            }
+            br.close();
+            StringBuilder sb = new StringBuilder();
+            while((temp = br1.readLine())!=null){
+                if(temp.startsWith("p")||temp.startsWith("In"))continue;
+                temps = temp.split("\t");
+                String[] eQTLs = eGeneeQTLMap.get(temps[pindex]).toArray(new String[0]);
+                String[] eGenes = eQTLeGeneMap.get(temps[index]).toArray(new String[0]);
+                sb.setLength(0);
+                sb.append(temps[pindex]+"\t"+temps[index]+"\t");
+                sb.append(eQTLs.length+"\t");
+                sb.append(eGenes.length);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    public void ThreadPool(String infile, String thread){
+        BufferedReader br = IOUtils.getTextReader(infile);
+        String temp = null;
+        ExecutorService pool = Executors.newFixedThreadPool(Integer.parseInt(thread));
+        File dir = new File(new File("/data1/home/xiaohan/jar").getAbsolutePath());
+        try{
+            while((temp = br.readLine())!=null){
+                String command = temp;
+                covaraties.Command com = new covaraties.Command(command,dir);
+                Future<covaraties.Command> chrom = pool.submit(com);
+            }
+            pool.shutdown();
+            pool.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public void covaraties(String[] args){
@@ -1751,7 +1844,7 @@ public class eQTL {
         }
     }
 
-    public void getNominalSig() throws IOException {
+    public void getNominalSig(String[] args) throws IOException {
         HashSet<String> nameSet = new HashSet<>();
         String geneName = null;
         String cis = null;
@@ -1762,8 +1855,10 @@ public class eQTL {
         double threshold = 0.00;
         double qvalue = 0.00;
         double pval = 0.00;
-        String infileDir = "/data2/xiaohan/tensorQTL/Filter";
-        String Dir = "/data2/xiaohan/tensorQTL/Filter";
+//        String infileDir = "/data2/xiaohan/tensorQTL/Filter";
+//        String Dir = "/data2/xiaohan/tensorQTL/Filter";
+        String infileDir = args[0];
+        String Dir = args[0];
         BufferedWriter bwerror = IOUtils.getTextWriter(new File(Dir, "error.txt").getAbsolutePath());
         try {
             for (int j = 0; j < 42; j++) {
