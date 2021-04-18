@@ -61,7 +61,7 @@ public class PGF {
     @SuppressFBWarnings("DM_BOXED_PRIMITIVE_FOR_PARSING")
     private void readFile (String infileS) {
         try {
-            BufferedReader br = IOUtils.getTextReader(infileS);
+            BufferedReader br = IOTool.getReader(infileS);
             int geneNumber = Integer.parseInt(br.readLine().split("\t")[1]);
             genes = new Gene[geneNumber];
             String temp;
