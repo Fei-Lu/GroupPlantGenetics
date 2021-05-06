@@ -1,8 +1,7 @@
 package xiaohan.eQTL;
 
-import org.biojava.nbio.core.sequence.io.BufferedReaderBytesRead;
+import com.koloboke.collect.map.hash.HashIntIntMaps;
 import pgl.infra.range.Range;
-import sun.swing.StringUIClientPropertyKey;
 import xiaohan.rareallele.GeneFeature;
 import xiaohan.rareallele.IOUtils;
 
@@ -11,10 +10,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class annotation {
 
@@ -26,7 +22,165 @@ public class annotation {
 //        this.genePhyloP();
 //        this.eQTLgerp(args[0], args[1]);
 //        this.eQTLphyloP(args[0], args[1]);
-        this.getGeneannotation(args[0], args[1], args[2]);
+//        this.getGeneannotation(args[0], args[1], args[2]);
+        this.getWholeGenomeAnnotationMap();
+    }
+
+    public void getWholeGenomeAnnotationMap() {
+//        String outputdir = "/Users/yxh/Documents/important/Lulab/exon_anno";
+        String outputdir = "/data2/xiaohan/annotation/FCE";
+        GeneFeature gf = new GeneFeature(annotationfile);
+        System.out.println("Finished gathering gff3");
+        HashSet<String> chrSet = new HashSet<>();
+        for (int i = 0; i < 42; i++) {
+            int chr = i + 1;
+            chrSet.add(String.valueOf(chr));
+        }
+//        BufferedReader brinfo = IOUtils.getTextGzipReader("/Users/yxh/Documents/important/Lulab/exon_anno/001_exonSNP_anno.txt.gz");
+        BufferedReader brinfo = IOUtils.getTextGzipReader("/data2/xiaohan/annotation/exon_anno/001_exonSNP_anno.txt.gz");
+        HashMap<String, String> annotationMap = new HashMap<>();
+        HashSet<String> snpposition = new HashSet<>();
+        String info = null;
+        String[] infos = null;
+        try {
+            while ((info = brinfo.readLine()) != null) {
+                if (info.startsWith("ID")) continue;
+                infos = info.split("\t");
+                snpposition.add(infos[0].split("-")[0] + "_" + infos[0].split("-")[1]);
+                annotationMap.put(infos[0].split("-")[0] + "_" + infos[0].split("-")[1], infos[12]);
+            }
+            brinfo.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println("Finished gathering annotations");
+
+        chrSet.stream().forEach(f -> {
+            try {
+                BufferedWriter bw = IOUtils.getTextWriter(new File(outputdir, "chr" + f + ".bed").getAbsolutePath());
+                int chr = Integer.parseInt(f);
+
+                HashSet<String> geneSet = new HashSet<>();
+                for (int i = 0; i < gf.getGeneNumber(); i++) {
+                    if (gf.getGeneChromosome(i) == chr) {
+                        geneSet.add(gf.getGeneName(i));
+                    }
+                }
+                String[] genelist = geneSet.toArray(new String[geneSet.size()]);
+                Arrays.sort(genelist);
+                System.out.println("Finished gathering genelist");
+
+                int[][] geneRange = new int[genelist.length][3];
+                for (int i = 0; i < genelist.length; i++) {
+                    geneRange[i][0] = gf.getGeneChromosome(gf.getGeneIndex(genelist[i]));
+                    geneRange[i][1] = gf.getGeneStart(gf.getGeneIndex(genelist[i]));
+                    geneRange[i][2] = gf.getGeneEnd(gf.getGeneIndex(genelist[i]));
+                }
+                System.out.println("Finished gathering geneRange");
+
+
+                int chrStart = geneRange[0][1];
+                int chrEnd = geneRange[geneRange.length - 1][2] + 1;
+//                System.out.println(chrStart);
+//                System.out.println(chrEnd);
+
+                StringBuilder sb = new StringBuilder();
+                for (int i = chrStart; i < chrEnd; i++) {
+                    sb.setLength(0);
+                    String annotation = null;
+                    int startsite = i - 1;
+                    int endsite = i;
+                    String site = f + "_" + String.valueOf(i);
+                    if (annotationMap.containsKey(site)) {
+                        annotation = annotationMap.get(site);
+                        sb.append(annotation);
+                    } else {
+                        int pos = i;
+                        int[] index = SNPmappingInGene.binarySearch(geneRange, pos);
+                        int finalindex = index[0];
+                        if (index[0] == -1) {
+                            annotation = "Intergenic";
+                            sb.append(annotation);
+                        } else {
+                            if (index.length > 1) {
+                                System.out.println(site);
+                                for (int j = 0; j < index.length; j++) {
+                                    System.out.println(genelist[index[j]]);
+                                    if (finalindex > index[j]) {
+                                        finalindex = index[j];
+                                    }
+                                }
+                            }
+                            Map<Integer, Integer> snpannotationMap = HashIntIntMaps.newMutableMap();
+                            int geneindex = gf.getGeneIndex(genelist[finalindex]);
+                            int t = gf.getLongestTranscriptIndex(geneindex);
+                            if (gf.get5UTRList(geneindex, t).size() != 0) {
+                                List<Range> fU = gf.get5UTRList(geneindex, t);
+                                for (int a = 0; a < fU.size(); a++) {
+                                    int start = fU.get(a).getRangeStart();
+                                    int end = fU.get(a).getRangeEnd();
+                                    for (int k = start; k <= end; k++) {
+                                        snpannotationMap.put(k, 1);
+                                    }
+                                }
+                            }
+                            if (gf.getCDSList(geneindex, t).size() != 0) {
+                                List<Range> CDS = gf.getCDSList(geneindex, t);
+                                for (int a = 0; a < CDS.size(); a++) {
+                                    int start = CDS.get(a).getRangeStart();
+                                    int end = CDS.get(a).getRangeEnd();
+                                    for (int k = start; k <= end; k++) {
+                                        snpannotationMap.put(k, 2);
+                                    }
+                                }
+                            }
+                            if (gf.get3UTRList(geneindex, t).size() != 0) {
+                                List<Range> tU = gf.get3UTRList(geneindex, t);
+                                for (int a = 0; a < tU.size(); a++) {
+                                    int start = tU.get(a).getRangeStart();
+                                    int end = tU.get(a).getRangeEnd();
+                                    for (int k = start; k <= end; k++) {
+                                        snpannotationMap.put(k, 3);
+                                    }
+                                }
+                            }
+                            if (!snpannotationMap.containsKey(pos)) {
+                                annotation = "Intron";
+                            } else if (snpannotationMap.get(pos) == 1) {
+                                annotation = "5-UTR";
+                            } else if (snpannotationMap.get(pos) == 2) {
+                                annotation = "CDS";
+                            } else if (snpannotationMap.get(pos) == 3) {
+                                annotation = "3-UTR";
+                            }
+                        }
+                        if (sb.toString().replaceAll("\\s+$", "").contains("\t")) {
+                            System.out.println(sb.toString());
+                            if (sb.toString().contains("CDS")) {
+                                annotation = "CDS";
+                                continue;
+                            } else if (sb.toString().contains("Intron")) {
+                                annotation = "Intron";
+                                continue;
+                            } else if (sb.toString().contains("3-UTR")) {
+                                annotation = "3-UTR";
+                                continue;
+                            } else if (sb.toString().contains("3-UTR")) {
+                                annotation = "5-UTR";
+                                continue;
+                            }
+                        }
+                        sb.setLength(0);
+                        sb.append(annotation);
+                    }
+                    bw.write(chr + "\t" + startsite + "\t" + endsite + "\t" + sb.toString() + "\n");
+                }
+                bw.flush();
+                bw.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public void getGeneannotation(String infile, String outfile, String chr) {
@@ -44,10 +198,10 @@ public class annotation {
             String info = null;
             String[] infos = null;
             while ((info = brinfo.readLine()) != null) {
-                if(info.startsWith("ID"))continue;
+                if (info.startsWith("ID")) continue;
                 infos = info.split("\t");
-                snpposition.add(infos[0].split("-")[0]+"_"+infos[0].split("-")[1]);
-                annotationMap.put(infos[0].split("-")[0]+"_"+infos[0].split("-")[1], infos[12]);
+                snpposition.add(infos[0].split("-")[0] + "_" + infos[0].split("-")[1]);
+                annotationMap.put(infos[0].split("-")[0] + "_" + infos[0].split("-")[1], infos[12]);
             }
             brinfo.close();
 
@@ -74,7 +228,7 @@ public class annotation {
             int vindex = 0;
             int pindex = 0;
             StringBuilder sb = new StringBuilder();
-            StringBuilder sb1 =new StringBuilder();
+            StringBuilder sb1 = new StringBuilder();
 
             while ((temp = br.readLine()) != null) {
                 if (temp.startsWith("p") || temp.startsWith("In")) {
@@ -100,7 +254,7 @@ public class annotation {
                     System.out.println(temps[vindex]);
                     System.out.println(annotationMap.get(temps[vindex]));
                     sb1.append(annotationMap.get(temps[vindex]));
-                } else if(!snpposition.contains(temps[vindex])){
+                } else if (!snpposition.contains(temps[vindex])) {
                     int pos = Integer.parseInt(temps[vindex].split("_")[1]);
                     int[] index = SNPmappingInGene.binarySearch(geneRange, pos);
                     int finalindex = 0;
@@ -131,7 +285,7 @@ public class annotation {
                                     annotation = "5-UTR";
                                 }
                             }
-                            if(annotation == "5-UTR"){
+                            if (annotation == "5-UTR") {
                                 sb1.append("5-UTR");
                             }
                         }
@@ -144,7 +298,7 @@ public class annotation {
                                     annotation = "3-UTR";
                                 }
                             }
-                            if(annotation == "3-UTR"){
+                            if (annotation == "3-UTR") {
                                 sb1.append("3-UTR");
                             }
                         }
@@ -157,7 +311,7 @@ public class annotation {
                                     annotation = "CDS";
                                 }
                             }
-                            if(annotation == "CDS"){
+                            if (annotation == "CDS") {
                                 sb1.append("CDS");
                             }
                         }

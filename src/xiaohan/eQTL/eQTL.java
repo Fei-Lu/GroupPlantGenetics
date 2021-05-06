@@ -2,30 +2,24 @@ package xiaohan.eQTL;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import com.sun.tools.internal.ws.wscompile.Options;
 import daxing.load.ancestralSite.Standardization;
-import javafx.scene.ParallelCamera;
-import pgl.app.hapScanner.HapScannercp2;
 import pgl.infra.dna.genot.GenoIOFormat;
 import pgl.infra.dna.genot.GenotypeGrid;
 import pgl.infra.dna.genot.GenotypeOperation;
 import pgl.infra.dna.genot.summa.SumTaxaDivergence;
 import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOFileFormat;
+import pgl.infra.utils.PStringUtils;
+import xiaohan.eQTL.javapractice.javaPractice;
 import xiaohan.rareallele.GeneFeature;
 import xiaohan.rareallele.IOUtils;
 import xiaohan.rareallele.VCFsplit;
 import xiaohan.rareallele.pheno;
-import xiaohan.eQTL.annotation;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.sql.SQLOutput;
+import java.io.*;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -34,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 public class eQTL {
 
     int score = 0;
-//    String infileDir = null;
 
     public eQTL(String[] args) throws IOException, InterruptedException {
          /*
@@ -51,7 +44,6 @@ public class eQTL {
 //        Hapscanner parameter
 //         */
 //        this.hapscanner(args);
-
 
         /*
         test
@@ -87,6 +79,7 @@ public class eQTL {
          */
 //        this.annotation(args);
 //        this.test();
+//        this.getExpressionWithaFC(args[0], args[1]);
 
         /*
         meta-tissue analysis
@@ -96,73 +89,286 @@ public class eQTL {
         /*
         hetero
          */
-        this.getheterogeneity(args[0],args[1]);
+//        this.getheterogeneity(args[0],args[1]);
 
-//        this.hapscannercp(args);
+        /*
+        heterozygosity
+         */
+        this.heterozygosity();
 
-//        this.intergenicPattern();
-//        this.intergenicPatternEnrichment();
-//        this.intergenicPatternhuman();
-//        this.intergenicPatternTransposon();
-//        this.getCisChrGene();
-//        this.getNominalSig(args);
-//        this.getcisSig();
-//        this.getQTLcount();
-//        this.getExprWithQTL();
-//        this.getGeneUpSnpCount();
-//        this.getGeneInterSnpCount();
-//        this.getGeneDownSnpCount();
-//        this.getRandomDistance();
-//        this.getCisDistance();
-//        this.getTransposonLength();
-//        this.geteQTLpos();
-//        this.getTransposonClass();
-//        this.getoverlap();
-//        this.snppos();
-//        this.getsureofanno();
-//        this.getsubGerp();
-//        this.getNominalThreshold();
-//        this.command();
+
+        this.intergenicPattern();
+        this.intergenicPatternEnrichment();
+        this.intergenicPatternTransposon();
+        this.getTransposonLength();
+        this.getTransposonClass();
+        this.command();
+        this.depth();
 
         /*
         java with faster java practice
          */
-//        this.javaPractice(args);
-//        this.changeTable();
-//        this.summary();
+        this.javaPractice(args);
+        this.ERCCRoc();
+        this.ThreadPool(args[0],args[1]);
+        this.subextractGeneRegion(args[0], args[1]);
+        this.hetandMaf(args[0], args[1]);
 
-//        this.ERCCRoc();
-//        this.ThreadPool(args[0],args[1]);
     }
 
-    public void getheterogeneity(String infile,String outfile){
+    public void hetandMaf(String infileDir, String outfileDir) {
+        HashSet<Integer> nameSet = new HashSet<>();
+        for (int i = 0; i < 42; i++) {
+            int chr = i + 1;
+            nameSet.add(chr);
+        }
+        nameSet.parallelStream().forEach(f -> {
+            try {
+                String infile = new File(infileDir, "chr" + PStringUtils.getNDigitNumber(3, f) + ".vcf").getAbsolutePath();
+                String outfile = new File(outfileDir, "chr" + PStringUtils.getNDigitNumber(3, f) + ".txt").getAbsolutePath();
+                BufferedReader br = IOUtils.getTextReader(infile);
+                BufferedWriter bw = IOUtils.getTextWriter(outfile);
+                String temp = null;
+                String[] temps = null;
+                bw.write("chr\tpos\thet\tmaf\tdepth\n");
+                while ((temp = br.readLine()) != null) {
+                    if (temp.startsWith("#")) {
+                        continue;
+                    }
+                    temps = PStringUtils.fastSplit(temp).toArray(new String[0]);
+                    String info = temps[7];
+                    String[] infos = info.split(";");
+                    String het = infos[5].split("=")[1];
+                    String maf = infos[6].split("=")[1];
+                    String depth = infos[2].split("=")[1];
+                    bw.write(temps[0] + "\t" + temps[1] + "\t" + het + "\t" + maf + "\t" + depth + "\n");
+                }
+                br.close();
+                bw.flush();
+                bw.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+
+    public void subextractGeneRegion(String infileDir, String outfileDir) {
+        String annotationfile = "/data1/home/xiaohan/reference/wheat_v1.1_Lulab.gff3";
+        HashSet<Integer> nameSet = new HashSet<>();
+        for (int i = 0; i < 42; i++) {
+            int chr = i + 1;
+            nameSet.add(chr);
+        }
+        nameSet.parallelStream().forEach(f -> {
+            String infile = new File(infileDir, "chr" + PStringUtils.getNDigitNumber(3, f) + ".vcf").getAbsolutePath();
+            String outfile = new File(outfileDir, "chr" + PStringUtils.getNDigitNumber(3, f) + ".vcf").getAbsolutePath();
+            BufferedReader br = IOUtils.getTextReader(infile);
+            BufferedWriter bw = IOUtils.getTextWriter(outfile);
+            String temp = null;
+            String[] temps = null;
+            try {
+                GeneFeature gf = new GeneFeature(annotationfile);
+                HashSet<String> geneSet = new HashSet<>();
+                for (int i = 0; i < gf.getGeneNumber(); i++) {
+                    if (gf.getGeneChromosome(i) == f) {
+                        geneSet.add(gf.getGeneName(i));
+                    }
+                }
+                String[] genelist = geneSet.toArray(new String[geneSet.size()]);
+                Arrays.sort(genelist);
+                System.out.println("Finished gathering genelist");
+
+                int[][] geneRange = new int[genelist.length][3];
+                for (int i = 0; i < genelist.length; i++) {
+                    geneRange[i][0] = gf.getGeneChromosome(gf.getGeneIndex(genelist[i]));
+                    geneRange[i][1] = gf.getGeneStart(gf.getGeneIndex(genelist[i]));
+                    geneRange[i][2] = gf.getGeneEnd(gf.getGeneIndex(genelist[i]));
+                }
+
+                while ((temp = br.readLine()) != null) {
+                    if (temp.startsWith("#")) {
+                        bw.write(temp + "\n");
+                        continue;
+                    }
+                    int snppos = Integer.parseInt(PStringUtils.fastSplit(temp).toArray(new String[0])[1]);
+                    int[] index = SNPmappingInGene.binarySearch(geneRange, snppos);
+                    if (index[0] == -1) {
+                        continue;
+                    } else {
+                        bw.write(temp + "\n");
+                    }
+                }
+                br.close();
+                bw.flush();
+                bw.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void getExpressionWithaFC(String plate, String outfile) {
+        //reading file with effect size
+        String[] plates = plate.split(",");
+        String[] infor = new String[plates.length];
+        String[] infile = new String[plates.length];
+        for (int i = 0; i < plates.length; i++) {
+            infor[i] = "/data2/xiaohan/pheno/" + plates[i] + "/" + plates[i] + "_expressionMedian.txt";
+            infile[i] = "/data2/xiaohan/tensorResult/effect/" + plates[i] + "/all.cis.top.DE.log2.txt";
+        }
+
+        BufferedReader[] br = new BufferedReader[plates.length];
+        for (int i = 0; i < infile.length; i++) {
+            System.out.println(infile[i]);
+            if (infile[i].endsWith("gz")) {
+                br[i] = IOUtils.getTextGzipReader(infile[i]);
+            } else {
+                br[i] = IOUtils.getTextReader(infile[i]);
+            }
+        }
+
+        String temp = null;
+        String[] temps = null;
+        try {
+            //Get geneset united
+            HashSet<String> geneSet = new HashSet<>();
+            HashMap<String, Integer> geneindexMap = new HashMap<>();
+            for (int i = 0; i < infile.length; i++) {
+                int pindex = 0;
+                int aFCindex = 0;
+                temp = br[i].readLine();
+                temps = PStringUtils.fastSplit(temp).toArray(new String[0]);
+                for (int k = 0; k < temps.length; k++) {
+                    if (temps[k].startsWith("pheno")) {
+                        pindex = k;
+                    }
+                    if (temps[k].equals("log2_aFC")) {
+                        aFCindex = k;
+                    }
+                }
+                while ((temp = br[i].readLine()) != null) {
+                    if (temp.startsWith("p")) continue;
+                    temps = PStringUtils.fastSplit(temp).toArray(new String[0]);
+                    geneSet.add(temps[pindex]);
+                }
+                br[i].close();
+            }
+
+            String[] genelist = geneSet.toArray(new String[0]);
+            Arrays.sort(genelist);
+
+            //Initiating a new countTable
+            String[][] countTable = new String[genelist.length][infor.length * 2 + 1];
+            for (int i = 0; i < genelist.length; i++) {
+                for (int j = 0; j < infor.length * 2 + 1; j++) {
+                    countTable[i][j] = String.valueOf(0);
+                }
+            }
+
+            for (int i = 0; i < genelist.length; i++) {
+                geneindexMap.put(genelist[i], i);
+                countTable[i][0] = genelist[i];
+            }
+
+            //Reading gene expression median files
+            for (int i = 0; i < infor.length; i++) {
+                if (infor[i].endsWith("gz")) {
+                    br[i] = IOUtils.getTextGzipReader(infor[i]);
+                } else {
+                    br[i] = IOUtils.getTextReader(infor[i]);
+                }
+            }
+
+            for (int i = 0; i < infor.length; i++) {
+                while ((temp = br[i].readLine()) != null) {
+                    if (!temps[0].startsWith("T")) continue;
+                    temps = PStringUtils.fastSplit(temp).toArray(new String[0]);
+                    //locating gene index with infor index to gene expression
+                    if (geneSet.contains(temps[0])) {
+                        countTable[geneindexMap.get(temps[0])][i + 1] = temps[1];
+                    }
+                }
+                br[i].close();
+            }
+
+            //Reading top variants effect size files
+            for (int i = 0; i < infile.length; i++) {
+                if (infile[i].endsWith("gz")) {
+                    br[i] = IOUtils.getTextGzipReader(infile[i]);
+                } else {
+                    br[i] = IOUtils.getTextReader(infile[i]);
+                }
+            }
+
+            for (int i = 0; i < infile.length; i++) {
+                int pindex = 0;
+                int aFCindex = 0;
+                temp = br[i].readLine();
+                temps = PStringUtils.fastSplit(temp).toArray(new String[0]);
+                for (int k = 0; k < temps.length; k++) {
+                    if (temps[k].startsWith("pheno")) {
+                        pindex = k;
+                    }
+                    if (temps[k].equals("log2_aFC")) {
+                        aFCindex = k;
+                    }
+                }
+                while ((temp = br[i].readLine()) != null) {
+                    if (temp.startsWith("p")) continue;
+                    temps = PStringUtils.fastSplit(temp).toArray(new String[0]);
+                    countTable[geneindexMap.get(temps[pindex])][i + 1 + infor.length] = temps[aFCindex];
+                }
+                br[i].close();
+            }
+
+            BufferedWriter bw = IOUtils.getTextWriter(outfile);
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < genelist.length; i++) {
+                for (int j = 0; j < infor.length * 2 + 1; j++) {
+                    sb.append(countTable[i][j] + "\t");
+                }
+                bw.write(sb.toString().replaceAll("\\s+$", ""));
+                bw.newLine();
+                sb.setLength(0);
+            }
+            bw.flush();
+            bw.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void getheterogeneity(String infile, String outfile) {
         BufferedReader br = null;
         BufferedReader br1 = null;
-        if(infile.endsWith("gz")){
+        if (infile.endsWith("gz")) {
             br = IOUtils.getTextGzipReader(infile);
             br1 = IOUtils.getTextGzipReader(infile);
-        }
-        else{
+        } else {
             br = IOUtils.getTextReader(infile);
             br1 = IOUtils.getTextReader(infile);
         }
         BufferedWriter bw = IOUtils.getTextWriter(outfile);
         String temp = null;
         String[] temps = null;
-        Multimap<String,String> eQTLeGeneMap = ArrayListMultimap.create();
-        Multimap<String,String> eGeneeQTLMap = ArrayListMultimap.create();
+        Multimap<String, String> eQTLeGeneMap = ArrayListMultimap.create();
+        Multimap<String, String> eGeneeQTLMap = ArrayListMultimap.create();
         try {
             int index = 0;
             int pindex = 0;
             while ((temp = br.readLine()) != null) {
-                if(temp.startsWith("p") || temp.startsWith("In")){
+                if (temp.startsWith("p") || temp.startsWith("In")) {
                     temps = temp.split("\t");
                     for (int i = 0; i < temps.length; i++) {
-                        if(temps[i].equals("variant_id")){
+                        if (temps[i].equals("variant_id")) {
                             index = i;
 //                            System.out.println(index);
                         }
-                        if(temps[i].equals("phenotype_id")){
+                        if (temps[i].equals("phenotype_id")) {
                             pindex = i;
                         }
                     }
@@ -173,52 +379,52 @@ public class eQTL {
                 temps = temp.split("\t");
                 String gene = temps[pindex];
                 String variant = temps[index];
-                eGeneeQTLMap.put(gene,variant);
-                eQTLeGeneMap.put(variant,gene);
+                eGeneeQTLMap.put(gene, variant);
+                eQTLeGeneMap.put(variant, gene);
 //                System.out.println(gene);
 //                System.out.println(variant);
             }
             br.close();
             StringBuilder sb = new StringBuilder();
-            while((temp = br1.readLine())!=null){
-                if(temp.startsWith("p")||temp.startsWith("In"))continue;
+            while ((temp = br1.readLine()) != null) {
+                if (temp.startsWith("p") || temp.startsWith("In")) continue;
                 temps = temp.split("\t");
                 String[] eQTLs = eGeneeQTLMap.get(temps[pindex]).toArray(new String[0]);
                 String[] eGenes = eQTLeGeneMap.get(temps[index]).toArray(new String[0]);
                 sb.setLength(0);
-                sb.append(temps[pindex]+"\t"+temps[index]+"\t");
-                sb.append(eQTLs.length+"\t");
+                sb.append(temps[pindex] + "\t" + temps[index] + "\t");
+                sb.append(eQTLs.length + "\t");
                 sb.append(eGenes.length);
                 bw.write(sb.toString());
                 bw.newLine();
             }
             bw.flush();
             bw.close();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
 
-    public void ThreadPool(String infile, String thread){
+    public void ThreadPool(String infile, String thread) {
         BufferedReader br = IOUtils.getTextReader(infile);
         String temp = null;
         ExecutorService pool = Executors.newFixedThreadPool(Integer.parseInt(thread));
         File dir = new File(new File("/data1/home/xiaohan/jar").getAbsolutePath());
-        try{
-            while((temp = br.readLine())!=null){
+        try {
+            while ((temp = br.readLine()) != null) {
                 String command = temp;
-                covaraties.Command com = new covaraties.Command(command,dir);
+                covaraties.Command com = new covaraties.Command(command, dir);
                 Future<covaraties.Command> chrom = pool.submit(com);
             }
             pool.shutdown();
             pool.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void covaraties(String[] args){
+    public void covaraties(String[] args) {
         new covaraties(args);
     }
 
@@ -286,235 +492,12 @@ public class eQTL {
         }
     }
 
-    public void summary() {
-        String infile = "/Users/yxh/Documents/RareAllele/006information/sampleinformation.txt";
-        String outfile = "/Users/yxh/Documents/RareAllele/006information/S1_coleoptile.txt";
-        try {
-            BufferedReader br = IOUtils.getTextReader(infile);
-            BufferedWriter bw = IOUtils.getTextWriter(outfile);
-            String temp = null;
-            String[] temps = null;
-            temp = br.readLine();
-            bw.write(temp + "\n");
-            while ((temp = br.readLine()) != null) {
-                temps = temp.split("\t");
-                if (temps.length >= 7) {
-                    String stage = temps[4] + "_" + temps[5];
-                    System.out.println(stage);
-                    if (stage.equals("S1_coleoptile")) {
-                        bw.write(temp + "\n");
-                    }
-                }
-            }
-            br.close();
-            bw.flush();
-            bw.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void changeTable() {
-        String info = "/Users/yxh/Documents/eQTL/changeInformation/information.txt";
-        String table = "/Users/yxh/Documents/eQTL/changeInformation/changTabl.txt";
-        String output = "/Users/yxh/Documents/eQTL/changeInformation/output.txt";
-        BufferedReader brinfo = IOUtils.getTextReader(info);
-        BufferedReader brtable = IOUtils.getTextReader(table);
-        BufferedWriter bw = IOUtils.getTextWriter(output);
-        try {
-            String temp = null;
-            String[] temps = null;
-            HashMap<String, String> sampleinfoMap = new HashMap<>();
-            while ((temp = brinfo.readLine()) != null) {
-                temps = temp.split("\t");
-                sampleinfoMap.put(temps[1], temp);
-            }
-            brinfo.close();
-
-            while ((temp = brtable.readLine()) != null) {
-                temps = temp.split("\t");
-//                System.out.println(temps[2]);
-                if (temps.length >= 3) {
-                    String outputline = sampleinfoMap.get(temps[2]);
-                    bw.write(temp + "\t" + outputline + "\n");
-                } else {
-                    bw.write(temp + "\n");
-                }
-            }
-            brtable.close();
-            bw.flush();
-            bw.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public void test(String... args) {
         VCFsplit.main(args);
     }
 
     public void javaPractice(String[] args) {
         new javaPractice(args);
-    }
-
-    public void filtersample(String[] args) {
-        String plate = args[0];
-        String outfileDir = new File("/data2/xiaohan/genotype/hapscanner/output").getAbsolutePath();
-        String infile = new File(outfileDir, plate + "/Isec/IBSdensity.txt").getAbsolutePath();
-        String infor = new File(outfileDir, plate + "/Isec/check.txt").getAbsolutePath();
-        HashSet<String> sampleSet = new HashSet<>();
-        HashSet<String> notsampleSet = new HashSet<>();
-        HashMap<String, String> RNADNAmap = new HashMap<>();
-        try {
-            String temp = null;
-            String[] temps = null;
-            BufferedReader br = IOUtils.getTextReader(infile);
-
-            while ((temp = br.readLine()) != null) {
-                if (temp.startsWith("RNA\t")) continue;
-                temps = temp.split("\t");
-                RNADNAmap.put(temps[0], temps[1]);
-                if (Double.parseDouble(temps[2]) < 0.1) {
-                    sampleSet.add(temps[0]);
-                } else {
-                    notsampleSet.add(temps[0]);
-                }
-            }
-            br.close();
-
-            System.out.println("original RNA samples");
-            String[] temp1 = sampleSet.toArray(new String[sampleSet.size()]);
-            for (int i = 0; i < temp1.length; i++) {
-                System.out.println(temp1[i]);
-            }
-
-            BufferedReader brinfo = IOUtils.getTextReader(infor);
-
-
-            xiaohan.eQTL.RowTable<String> t = new xiaohan.eQTL.RowTable<>(infor);
-            //index of RNA samples and DNA samples : 1,2,3,...,RNAsamplecount,...,total
-            HashMap<String, Integer> nameIndexMap = new HashMap<>();
-            int RNAsamplecount = 0;
-            int DNAsamplecount = 0;
-            List<String> header = t.getHeader();
-            String[] headers = header.toArray(new String[header.size()]);
-            for (int i = 0; i < headers.length; i++) {
-                if (headers[i].equals("Dxy")) continue;
-                nameIndexMap.put(headers[i], i);
-                if (headers[i].startsWith("RNA")) {
-                    RNAsamplecount++;
-                } else {
-                    DNAsamplecount++;
-                }
-            }
-
-            String[] notsamplelist = notsampleSet.toArray(new String[notsampleSet.size()]);
-
-            for (int i = 0; i < notsamplelist.length; i++) {
-                System.out.print("This is dealing sample: " + notsamplelist[i] + " with original IBS : ");
-                System.out.println(t.getCell(nameIndexMap.get(notsamplelist[i]), nameIndexMap.get(RNADNAmap.get(notsamplelist[i])) - 1));
-                String sample = notsamplelist[i];
-                int index = nameIndexMap.get(sample);
-
-                double[] DNAIBS = new double[DNAsamplecount];
-                for (int j = 0; j < DNAsamplecount; j++) {
-                    DNAIBS[j] = Double.parseDouble(t.getCell(j + RNAsamplecount, index));
-                }
-
-                double min = Arrays.stream(DNAIBS).min().getAsDouble();
-
-                if (min > 0.1) {
-                    System.out.print("Discard this sample: " + notsamplelist[i] + " with minimal IBS = ");
-                    System.out.println(min);
-                    continue;
-                }
-
-                HashSet<String> DNAcandidateSet = new HashSet<>();
-                for (int j = 0; j < DNAIBS.length; j++) {
-                    if (DNAIBS[j] == min) {
-                        DNAcandidateSet.add(t.getCell(j + RNAsamplecount, 0));
-                        System.out.println("adding DNA candidate :" + t.getCell(j + RNAsamplecount, 0));
-                    }
-                }
-                String[] DNAlist = DNAcandidateSet.toArray(new String[DNAcandidateSet.size()]);
-
-                for (int j = 0; j < DNAlist.length; j++) {
-                    System.out.println("This is examing DNA sample: " + DNAlist[j]);
-                    if (j == 0) {
-                        int DNAindex = j + 1;
-                        double[] RNAIBS = new double[RNAsamplecount];
-                        for (int k = 0; k < RNAIBS.length; k++) {
-                            RNAIBS[k] = Double.parseDouble(t.getCell(k, nameIndexMap.get(DNAlist[j])));
-                        }
-
-                        double min2 = Arrays.stream(RNAIBS).min().getAsDouble();
-                        System.out.println("DNAsample No." + DNAindex + " : " + DNAlist[j] + " has min IBS " + min2);
-
-                        if (min == min2 && min < 0.1) {
-                            System.out.println("Two mins equal : adding sample " + notsamplelist[i] + " and replace DNA sample " + RNADNAmap.get(notsamplelist[i]) + " as " + DNAlist[j]);
-                            sampleSet.add(notsamplelist[i]);
-                            RNADNAmap.put(notsamplelist[i], DNAlist[j]);
-                        }
-                        if (min != min2) {
-                            double residual = min - min2;
-                            double abs = Math.abs(residual);
-                            if (abs < 0.02) {
-                                System.out.println("Two mins not equal but abs < 0.02 adding sample " + notsamplelist[i] + " and replace DNA sample " + RNADNAmap.get(notsamplelist[i]) + " as " + DNAlist[j]);
-                                sampleSet.add(notsamplelist[i]);
-                                RNADNAmap.put(notsamplelist[i], DNAlist[j]);
-                            } else {
-                                System.out.println("Discard DNA sample for better RNA sample with IBS " + min2);
-                            }
-                        }
-                        continue;
-                    }
-
-                    double IBStemp = t.getCellAsDouble(nameIndexMap.get(notsamplelist[i]), nameIndexMap.get(DNAlist[j]) - 1);
-                    double IBSbefore = t.getCellAsDouble(nameIndexMap.get(notsamplelist[i]), nameIndexMap.get(RNADNAmap.get(notsamplelist[i])) - 1);
-                    if (IBStemp == IBSbefore) {
-                        sampleSet.remove(notsamplelist[i]);
-                    } else if (IBSbefore < IBStemp) {
-                        continue;
-                    } else {
-                        double[] RNAIBS = new double[RNAsamplecount];
-                        for (int k = 0; k < RNAIBS.length; k++) {
-                            RNAIBS[k] = Double.parseDouble(t.getCell(k, nameIndexMap.get(DNAlist[j])));
-                        }
-
-                        double min2 = Arrays.stream(RNAIBS).min().getAsDouble();
-                        System.out.println("DNAsample No." + j + " : " + DNAlist[j] + " has min IBS " + min2);
-
-                        if (min == min2 && min < 0.1) {
-                            System.out.println("Two mins equal : adding sample " + notsamplelist[i] + " and replace DNA sample " + RNADNAmap.get(notsamplelist[i]) + " as " + DNAlist[j]);
-                            sampleSet.add(notsamplelist[i]);
-                            RNADNAmap.put(notsamplelist[i], DNAlist[j]);
-                        }
-                        if (min != min2) {
-                            double residual = min - min2;
-                            double abs = Math.abs(residual);
-                            if (abs < 0.02) {
-                                System.out.println("Two mins not equal but abs < 0.02 adding sample " + notsamplelist[i] + " and replace DNA sample " + RNADNAmap.get(notsamplelist[i]) + " as " + DNAlist[j]);
-                                sampleSet.add(notsamplelist[i]);
-                                RNADNAmap.put(notsamplelist[i], DNAlist[j]);
-                            } else {
-                                System.out.println("Discard DNA sample for better RNA sample with IBS " + min2);
-                            }
-                        }
-                    }
-                }
-            }
-
-            BufferedWriter bw = IOUtils.getTextWriter(new File(outfileDir, plate + "/Isec/phenolist.txt").getAbsolutePath());
-            String[] samplelist = sampleSet.toArray(new String[sampleSet.size()]);
-            for (int i = 0; i < samplelist.length; i++) {
-                bw.write(samplelist[i] + "\t" + RNADNAmap.get(samplelist[i]));
-                bw.newLine();
-            }
-            bw.flush();
-            bw.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public void pheno(String[] args) {
@@ -537,259 +520,148 @@ public class eQTL {
         new multiTissue(args);
     }
 
-
-    public void getIBdistane(String[] args) {
-        System.out.println("This is getting IBS matrix *****************************************************************");
-//        String plate = args[0];
-//        String infileDir = new File("/data2/xiaohan/genotype/hapscanner/output/", plate + "Isec").getAbsolutePath();
-//        String infileS1 = new File(infileDir, plate + "_RNA.sorted.vcf").getAbsolutePath();
-//        String infileS2 = new File(infileDir, plate + "_DNA.sorted.vcf").getAbsolutePath();
-//        String infileS1 = "/data3/wgs/vcf/GATK/vmap3/1.SNP/36.snp.vcf.gz";
-//        String infileS2 = "/data2/junxu/genotype/36.346.B18.recode.vcf.gz";
-        String infileS1 = "/data1/home/xiaohan/jar/test1.vcf";
-        String infileS2 = "/data1/home/xiaohan/jar/test2.vcf";
-//        String ibsOutfileS = new File(infileDir, "check.txt").getAbsolutePath();
-        String ibsOutfileS = "/data1/home/xiaohan/jar/IBS/check.txt";
-        GenotypeGrid g1 = new GenotypeGrid(infileS1, GenoIOFormat.VCF);
-        GenotypeGrid g2 = new GenotypeGrid(infileS2, GenoIOFormat.VCF);
-        GenotypeGrid g = GenotypeOperation.mergeGenotypesByTaxon(g1, g2);
-        SumTaxaDivergence std = new SumTaxaDivergence(g);
-        std.writeDxyMatrix(ibsOutfileS, IOFileFormat.Text);
-        g.getIBSDistanceMatrix();
-    }
-
-    public void getDensityIBS(String[] args) {
-        System.out.println("This is writing file of RNA and DNA IBS plot ***********************************************");
-        String infileDir = new File("/data1/home/xiaohan/jar/IBS").getAbsolutePath();
-        String infor = new File("/data1/home/xiaohan/jar/B18-AT.txt").getAbsolutePath();
-        HashMap<String, String> batMap = new HashMap<>();
-        xiaohan.eQTL.RowTable<String> t1 = new xiaohan.eQTL.RowTable<>(infor);
-        HashSet<String> samples = new HashSet<>();
-//        for (int i = 0; i < t1.getRowNumber(); i++) {
-//            batMap.put(t1.getCell(i,0),t1.getCell(i,1));
-//            System.out.println(t1.getCell(i,0));
-//            samples.add(t1.getCell(i,0));
-//        }
-        String infile = new File(infileDir, "check.txt").getAbsolutePath();
-        String outfile = new File(infileDir, "IBSdensity.txt").getAbsolutePath();
-        String outfile1 = new File(infileDir, "IBSheatmap.txt").getAbsolutePath();
-        BufferedReader br = IOUtils.getTextReader(infile);
-        BufferedReader brinfo = IOUtils.getTextReader(infile);
-        BufferedWriter bw = IOUtils.getTextWriter(outfile);
-        BufferedWriter bw1 = IOUtils.getTextWriter(outfile1);
-        String temp = null;
-        String[] temps = null;
-        int countlines = 0;
-        try {
-            HashMap<String, Integer> nameIndexMap = new HashMap<>();
-            while ((temp = brinfo.readLine()) != null) {
-                if (temp.startsWith("Dxy")) {
-                    temps = temp.split("\t");
-                    for (int i = 0; i < temps.length; i++) {
-                        nameIndexMap.put(temps[i], i);
-//                        if (temps[i].startsWith("AT") && temps[i].length() > 7){
-//                            nameIndexMap.put(temps[i].substring(0,7), i);
-//                            System.out.println(temps[i].substring(0,7));
-//                        }else {
-                        if (temps[i].startsWith("B18")) {
-                            samples.add(temps[i]);
-                        }
-                    }
-                }
-            }
-            brinfo.close();
-            String[] samplelist = samples.toArray(new String[samples.size()]);
-
-            bw.write("RNA\tDNA\tIBSdistance\n");
-            xiaohan.eQTL.RowTable<String> t = new xiaohan.eQTL.RowTable<>(infile);
-            for (int i = 0; i < samplelist.length; i++) {
-                String RNA = samplelist[i];
-                String DNA = RNA.replace("B18-", "RNA");
-//                String DNA = batMap.get(RNA);
-                int RNAindex = nameIndexMap.get(RNA);
-                int DNAindex = nameIndexMap.get(DNA) - 1;
-                bw.write(RNA + "\t" + DNA + "\t");
-                bw.write(t.getCell(DNAindex, RNAindex));
-                bw.write("\n");
-            }
-            bw.flush();
-            bw.close();
-
-            bw1.write("RNA\tDNA\tIBSdistance\n");
-            for (int i = 0; i < samplelist.length; i++) {
-                String RNA = samplelist[i];
-                for (int j = 0; j < samplelist.length; j++) {
-                    String RNAtemp = samplelist[j];
-                    String DNA = RNA.replace("B18-", "RNA");
-//                    String DNA = batMap.get(RNA);
-                    int RNAindex = nameIndexMap.get(RNA);
-                    int DNAindex = nameIndexMap.get(DNA) - 1;
-                    bw1.write(RNA + "\t" + DNA + "\t");
-                    bw1.write(t.getCell(DNAindex, RNAindex));
-                    bw1.write("\n");
-                }
-            }
-            bw1.flush();
-            bw1.close();
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
+    public void depth() {
+        String infileDir = "/data1/home/xiaohan/hapscanner/testforerror/VCF";
+        String outfile = "/data1/home/xiaohan/nam/subsample/";
+        HashSet<Integer> nameSet = new HashSet<>();
+        for (int i = 0; i < 42; i++) {
+            int chr = i + 1;
+            nameSet.add(chr);
         }
-    }
-
-    public void getNominalThreshold() {
-        String infileDir = "/data2/xiaohan/metasoft/v8/GTEx_Analysis_v8_eQTL";
-        String infor = "/data2/xiaohan/metasoft/v8/samplesize.txt";
-        File[] fs = new File(infileDir).listFiles();
-        List<File> fList = new ArrayList(Arrays.asList());
-        fs = IOUtils.listFilesEndsWith(fs, ".v8.egenes.txt.gz");
-        HashSet<String> nameSet = new HashSet();
-        for (int i = 0; i < fs.length; i++) {
-            if (fs[i].isHidden()) continue;
-        }
-        try {
-            BufferedReader brinfo = IOUtils.getTextReader(infor);
-            String temp1 = null;
-            String[] temps1 = null;
-            HashMap<String, Integer> TissueSize = new HashMap<>();
-            while ((temp1 = brinfo.readLine()) != null) {
-                if (temp1.startsWith("Tissue")) continue;
-                temps1 = temp1.split("\t");
-                System.out.println(temps1[0]);
-                nameSet.add(temps1[0]);
-                TissueSize.put(temps1[0], Integer.parseInt(temps1[1]));
-            }
-            brinfo.close();
-            BufferedWriter bw = IOUtils.getTextWriter(new File(infileDir, "NominalT.txt").getAbsolutePath());
-            bw.write("Group\tSampleSize\tNominalT\n");
-            nameSet.stream().forEach(f -> {
+        nameSet.stream().forEach(f -> {
+            try {
+                BufferedReader br = IOUtils.getTextReader(new File(infileDir, "chr" + PStringUtils.getNDigitNumber(3, f) + ".vcf").getAbsolutePath());
+                BufferedWriter bw = IOUtils.getTextWriter(new File(outfile, "chr" + PStringUtils.getNDigitNumber(3, f) + ".depth").getAbsolutePath());
+                StringBuilder sb = new StringBuilder();
                 String temp = null;
                 String[] temps = null;
-                BufferedReader br = IOUtils.getTextGzipReader(new File(infileDir, f + ".v8.egenes.txt.gz").getAbsolutePath());
-                String Tissue = String.valueOf(f);
-                System.out.println(Tissue);
-                int samplesize = TissueSize.get(Tissue);
-                try {
-                    while ((temp = br.readLine()) != null) {
-                        if (temp.startsWith("gene")) continue;
+                String tems = null;
+                int depth = 0;
+                while ((temp = br.readLine()) != null) {
+                    sb.setLength(0);
+                    if (temp.startsWith("##")) continue;
+                    if (temp.startsWith("#C")) {
                         temps = temp.split("\t");
-                        double qval = Double.parseDouble(temps[28]);
-                        double nomiT = 0.0000;
-                        if (qval < 0.05) {
-                            nomiT = Double.parseDouble(temps[29]);
-                            bw.write(Tissue + "\t" + samplesize + "\t" + nomiT + "\n");
+                        sb.append(temps[0] + "\t" + temps[1] + "\t");
+                        for (int i = 9; i < temps.length; i++) {
+                            sb.append(temps[i] + "\t");
                         }
+                        bw.write(sb.toString().replaceAll("\\s+$", ""));
+                        bw.newLine();
+                        continue;
                     }
-                    br.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    temps = temp.split("\t");
+                    sb.append(temps[0] + "\t" + temps[1] + "\t");
+                    for (int i = 9; i < temps.length; i++) {
+                        tems = temps[i].split(":")[1];
+                        if (tems.equals(".")) {
+                            depth = 0;
+                        } else {
+                            depth = Integer.parseInt(tems.split(",")[0]) + Integer.parseInt(tems.split(",")[1]);
+                        }
+                        sb.append(depth + "\t");
+                    }
+                    bw.write(sb.toString().replaceAll("\\s+$", ""));
+                    bw.newLine();
                 }
-            });
-            bw.flush();
-            bw.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+                bw.flush();
+                bw.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void heterozygosity(){
+        new heterozygosity();
     }
 
     public void command() {
-//        String[] sub = {"A", "B", "C", "D", "E", "F", "G", "H"};
-//        for (int i = 0; i < sub.length; i++) {
-//            for (int j = 1; j <= 9; j++) {
-//                System.out.println("samtools sort -n /data2/junxu/dataTest/test/14/sams/" + sub[i] + "0" + j + "_14_Aligned.out.bam /data2/xiaohan/genotype/hapscanner/output/14sortedbam/" + sub[i] + "0" + j + "_14 && samtools index /data2/xiaohan/genotype/hapscanner/output/14sortedbam/" + sub[i] + "0" + j + "_14.bam");
-//            }
-//        }
-//        for (int i = 0; i < sub.length; i++) {
-//            for (int j = 10; j <= 12; j++) {
-//                System.out.println("samtools sort -n /data2/junxu/dataTest/test/14/sams/" + sub[i] + j + "_14_Aligned.out.bam /data2/xiaohan/genotype/hapscanner/output/14sortedbam/" + sub[i] + j + "_14 && samtools index /data2/xiaohan/genotype/hapscanner/output/14sortedbam/" + sub[i] + j + "_14.bam");
-//            }
-//        }
-//        for (int i = 0; i < sub.length; i++) {
-//            for (int j = 1; j <= 9; j++) {
-//                System.out.println("samtools sort -n /data2/junxu/dataTest/test/29/sams/" + sub[i] + "0" + j + "_29_Aligned.out.bam /data2/xiaohan/genotype/hapscanner/output/29sortedbam/" + sub[i] + "0" + j + "_29 && samtools index /data2/xiaohan/genotype/hapscanner/output/29sortedbam/" + sub[i] + "0" + j + "_29.bam");
-//            }
-//        }
-//        for (int i = 0; i < sub.length; i++) {
-//            for (int j = 10; j <= 12; j++) {
-//                System.out.println("samtools sort -n /data2/junxu/dataTest/test/29/sams/" + sub[i] + j + "_29_Aligned.out.bam /data2/xiaohan/genotype/hapscanner/output/29sortedbam/" + sub[i] + j + "_29 && samtools index /data2/xiaohan/genotype/hapscanner/output/29sortedbam/" + sub[i] + j + "_29.bam");
-//            }
-//        }
-//        for (int i = 0; i < sub.length; i++) {
-//            for (int j = 1; j <= 9; j++) {
-//                System.out.println("samtools sort -n /data2/junxu/dataTest/test/46/sams/" + sub[i] + "0" + j + "_46_Aligned.out.bam /data2/xiaohan/genotype/hapscanner/output/46sortedbam/" + sub[i] + "0" + j + "_46 && samtools index /data2/xiaohan/genotype/hapscanner/output/46sortedbam/" + sub[i] + "0" + j + "_46.bam");
-//            }
-//        }
-//        for (int i = 0; i < sub.length; i++) {
-//            for (int j = 10; j <= 12; j++) {
-//                System.out.println("samtools sort -n /data2/junxu/dataTest/test/46/sams/" + sub[i] + j + "_46_Aligned.out.bam /data2/xiaohan/genotype/hapscanner/output/46sortedbam/" + sub[i] + j + "_46 && samtools index /data2/xiaohan/genotype/hapscanner/output/46sortedbam/" + sub[i] + j + "_46.bam");
-//            }
-//        }
-//        String output = "/data2/xiaohan";
-//        String plate = "14";
-//        File dir = new File(output,plate).getAbsoluteFile();
-//        System.out.println(dir);
-//        String infile = "/Users/yxh/Documents/eQTL/check.txt";
-//        RowTable<String> t = new RowTable<>(infile);
-//        System.out.println(t.getCell(0,1));
-//        String RNA = "RNAE360_G03";
-//        String DNA = RNA.substring(3,7);
-//        System.out.println(DNA);
-//        String inputDir = "/data2/junxu/dataTest/42/sams";
-//        String outputDir = "/data2/xiaohan/genotype/hapscanner/sortedsams/42";
-//        File[] fs = new File(inputDir).listFiles();
-//        fs = IOUtils.listFilesEndsWith(fs, "Aligned.out.bam");
-//        HashSet<String> nameSet = new HashSet<>();
-//        for (int i = 0; i < fs.length; i++) {
-//            String name = fs[i].getName();
-//            nameSet.add(name);
-//        }
-//        String[] namelist = nameSet.toArray(new String[nameSet.size()]);
-//        for (int i = 0; i < namelist.length; i++) {
-//            String name1 = namelist[i];
-//            String name2 = namelist[i].replace("Aligned.out.bam", "Aligned.out.sorted.bam");
-//            System.out.println("samtools sort " + inputDir + "/" + name1 + " -o " + outputDir + "/" + name2);
-//        }
-//        for (int i = 0; i < namelist.length; i++) {
-//            String name1 = namelist[i];
-//            String name2 = namelist[i].replace("Aligned.out.bam", "Aligned.out.sorted.bam");
-//            System.out.println("samtools index " + outputDir + "/" + name2);
-//        }
-//        String BamDir = "/Users/yxh/Documents/eQTL/data/pheno/S6/leaf";
-//        System.out.println(new File(BamDir).getAbsolutePath());
-//        String[] bams = new File(BamDir).list();
-//        System.out.println(bams[1]);
-//        System.out.println(new File(BamDir,bams[1]).getAbsolutePath());
-//        File[] dirs = new File(BamDir).listFiles();
-//        dirs = IOUtils.listFilesEndsWithout(dirs,"DS_Store");
-//        ArrayList<String> files = new ArrayList<>();
-//        for (int i = 0; i < dirs.length; i++) {
-//            File[] fs1 = new File(dirs[i],"sams").listFiles();
-//            fs1 = IOUtils.listFilesEndsWith(fs1,"_Aligned.out.sorted.bam");
-//            for (int j = 0; j < fs1.length; j++) {
-//                files.add(fs1[j].getAbsolutePath());
-////                System.out.println(fs1[j].getAbsolutePath());
-//            }
-//        }
-//        HashSet<String> nameSet = new HashSet();
-//        for (int i = 0; i < files.size(); i++) {
-//            nameSet.add(files.get(i));
-//            System.out.println(files.get(i));
-//        }
-//        String annotationfile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/wheat_v1.1_Lulab.gff3";
-//        GeneFeature gf = new GeneFeature(annotationfile);
-//        String geneName = "TraesCS4B02G212800";
-//        int length = gf.getGeneLength(gf.getGeneIndex(geneName));
-//        System.out.println(gf.getGeneIndex(geneName));
-//        System.out.println(gf.getGeneEnd(54695));
-//        System.out.println(length);
-//        String name = "E358.2";
-//        String name1 = name.replace(".","-");
-//        System.out.println(name1);
-        HashMap<String, String>[] pcamap = new HashMap[3];
-        for (int i = 0; i < 9; i++) {
-            int index = i % 3;
-            pcamap[index].put("pca" + i, String.valueOf(i));
+        String infileDir = "/data1/home/xiaohan/hapscanner/testforerror/VCF";
+        String infor = "/data1/home/xiaohan/nam/subsample/basename.txt";
+        String outfileDir = "/data1/home/xiaohan/nam/subsample/";
+        HashSet<String> chrSet = new HashSet<>();
+        for (int m = 0; m < 42; m++) {
+            int chr = m + 1;
+            chrSet.add(String.valueOf(chr));
+        }
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outfileDir, "sum.txt").getAbsolutePath());
+        chrSet.stream().forEach(f -> {
+            try {
+
+                BufferedReader brinfor = IOUtils.getTextReader(infor);
+                String temp = null;
+                String[] temps = null;
+                HashSet<String> nameSet = new HashSet<>();
+                while ((temp = brinfor.readLine()) != null) {
+                    temps = temp.split("-");
+                    String name = temp.replace("-" + temps[temps.length - 1], "");
+                    if (!nameSet.contains(name)) {
+                        nameSet.add(name);
+                    }
+                }
+                brinfor.close();
+                String[] namelist = nameSet.toArray(new String[0]);
+                Arrays.sort(namelist);
+                int[][] count = new int[namelist.length][4];
+                for (int i = 0; i < namelist.length; i++) {
+                    for (int j = 0; j < 4; j++) {
+                        count[i][j] = 0;
+                    }
+                }
+
+                BufferedReader br = IOUtils.getTextReader(new File(infileDir, "chr" + PStringUtils.getNDigitNumber(3, Integer.parseInt(f)) + ".vcf").getAbsolutePath());
+                HashMap<String, Integer> nameMap = new HashMap<>();
+                int countline = 0;
+                while ((temp = br.readLine()) != null) {
+                    countline++;
+                    if (countline % 5000 == 0) {
+                        System.out.println(f + ": " + countline);
+                    }
+                    if (temp.startsWith("##")) continue;
+                    if (temp.startsWith("#C")) {
+                        temps = temp.split("\t");
+                        for (int i = 9; i < temps.length; i++) {
+                            nameMap.put(temps[i], i);
+                        }
+                        continue;
+                    }
+                    temps = temp.split("\t");
+                    for (int i = 0; i < namelist.length; i++) {
+//                        System.out.println(namelist[i]);
+                        if (!temps[nameMap.get(namelist[i] + "-low")].split(":")[0].equals("./.")) {
+                            count[i][0] += 1;
+                        }
+                        if (!temps[nameMap.get(namelist[i] + "-high")].split(":")[0].equals("./.")) {
+                            count[i][1] += 1;
+                        }
+                        if (!temps[nameMap.get(namelist[i] + "-low")].split(":")[0].equals("./.") && !temps[nameMap.get(namelist[i] + "-high")].split(":")[0].equals("./.")) {
+                            count[i][2] += 1;
+                            if (!temps[nameMap.get(namelist[i] + "-low")].split(":")[0].equals(temps[nameMap.get(namelist[i] + "-high")].split(":")[0])) {
+                                count[i][3] += 1;
+                            }
+                        }
+                    }
+                }
+                br.close();
+                bw.write("chr\ttaxa\tlow\thigh\tcomman\terror\n");
+                for (int i = 0; i < namelist.length; i++) {
+                    bw.write(f + "\t");
+                    bw.write(namelist[i] + "\t");
+                    for (int j = 0; j < 4; j++) {
+                        bw.write(count[i][j] + "\t");
+                    }
+                    bw.newLine();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        try {
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -797,193 +669,8 @@ public class eQTL {
         new MetaTissue(infile);
     }
 
-    public void PlotPRplot(String infileDir) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("R CMD BATCH /data1/home/xiaohan/simulationplot.R ");
-        sb.append(new File(infileDir).getAbsolutePath());
-        String command = sb.toString();
-        System.out.println(command);
-        try {
-            File dir = new File(new File(infileDir).getAbsolutePath());
-            String[] cmdarry = {"/bin/bash", "-c", command};
-            Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
-            p.waitFor();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        System.out.println("Finished plot");
-    }
-
-
     public void simulationData(String[] args) {
         new simulationData(args);
-    }
-
-    public void getsubGerp() {
-        String infileDir = "/data2/xiaohan/tensorQTL/1M_log2/homoeffect_top/";
-        String inputDir = "/data2/xiaohan/VCF_information/Gerpsnp";
-        String outputDir = "/data2/xiaohan/tensorQTL/1M_log2/homoeffect_top/Gerpsnp";
-        for (int m = 0; m < 42; m++) {
-            int chr = m + 1;
-            BufferedReader br = IOUtils.getTextReader(new File(infileDir, chr + ".cis.sig.DE.log2.txt").getAbsolutePath());
-            BufferedReader br1 = IOUtils.getTextGzipReader(new File(inputDir, chr + ".bed.gz").getAbsolutePath());
-            BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, chr + ".bed").getAbsolutePath());
-            String temp = null;
-            String[] temps = null;
-            HashSet<String> posSet = new HashSet<>();
-            try {
-                System.out.println("Reading Gerp file chr" + chr + "...........");
-                int countline = 0;
-                while ((temp = br.readLine()) != null) {
-                    countline++;
-                    if (countline % 5000 == 0) {
-                        System.out.println(countline);
-                    }
-                    temps = temp.split("\t");
-                    String pos = temps[1];
-                    posSet.add(pos);
-                }
-                br.close();
-                countline = 0;
-                System.out.println("Reading Snp file chr" + chr + "...............");
-                while ((temp = br1.readLine()) != null) {
-                    countline++;
-                    if (countline % 5000 == 0) {
-                        System.out.println(countline);
-                    }
-                    temps = temp.split("\t");
-                    String pos = temps[0] + "_" + temps[2];
-                    double gerp = Double.parseDouble(temps[4]);
-                    if (gerp < 0) continue;
-                    if (posSet.contains(pos)) {
-                        bw.write(temp + "\n");
-                    }
-                }
-                br1.close();
-                bw.flush();
-                bw.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public void snppos() {
-        for (int m = 0; m < 42; m++) {
-            int chr = m + 1;
-            BufferedReader br = IOUtils.getTextGzipReader("/data2/junxu/genotypeMaf005_87/" + chr + ".87.B18.maf005.recode.vcf.gz");
-            BufferedWriter bw = IOUtils.getTextWriter("/data2/xiaohan/VCF_information/snppos/" + chr + ".bed");
-            String temp = null;
-            String[] temps = null;
-            try {
-                System.out.println("Loading chr" + chr);
-                int countline = 0;
-                while ((temp = br.readLine()) != null) {
-                    countline++;
-                    if (temp.startsWith("#")) continue;
-                    temps = temp.split("\t");
-                    int end = Integer.parseInt(temps[1]);
-                    int start = end - 1;
-                    bw.write(temps[0] + "\t" + start + "\t" + end + "\t" + temps[3] + "\t" + temps[4] + "\n");
-                }
-                System.out.println(chr + "\t" + countline);
-                System.out.println("Finish chr" + chr);
-                br.close();
-                bw.flush();
-                bw.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public void getsureofanno() {
-        String infile = "/data2/xiaohan/tensorQTL/001_exonSNP_anno.txt";
-        String outfile = "/data2/xiaohan/tensorQTL/002_exonSNP_anno.txt";
-        BufferedReader br = IOUtils.getTextReader(infile);
-        BufferedWriter bw = IOUtils.getTextWriter(outfile);
-        String mafdir = "/data2/xiaohan/VCF_information/snppos/";
-        String tempdir = "/data2/xiaohan/tensorQTL/temp/";
-        String temp = null;
-        String[] temps = null;
-        try {
-            while ((temp = br.readLine()) != null) {
-                temps = temp.split("\t");
-                if (temp.startsWith("ID")) continue;
-                if (temps[12].equals("NONCODING")) continue;
-                String chr = temps[1];
-                int end = Integer.parseInt(temps[2]);
-                int start = end - 1;
-                String ref = temps[3];
-                String alt = temps[4];
-                String pos = chr + ":" + start + "-" + end;
-                StringBuilder sb = new StringBuilder();
-                sb.append("tabix " + chr + ".bed.gz " + pos + " > " + tempdir + "temp.bed");
-                String command = sb.toString();
-                File dir = new File(new File(mafdir).getAbsolutePath());
-                String[] cmdarry = {"/bin/bash", "-c", command};
-                Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
-                p.waitFor();
-                BufferedReader brtemp = IOUtils.getTextReader(new File(tempdir, "temp.bed").getAbsolutePath());
-                String temp1 = brtemp.readLine();
-                if (temp1 != null) {
-                    String[] temps1 = temp1.split("\t");
-                    if (temps1[1].equals(String.valueOf(start))) {
-                        if (temps1[3].equals(ref) && temps1[4].equals(alt)) {
-                            bw.write(new StringBuilder(temps[1] + "\t" + temps[2] + "\t" + temps[3] + "\t" + temps[4] + "\t" + ref + "\t" + alt + "\t" + temps[12] + "\n").toString());
-                        } else if (temps1[3].equals(alt) && temps1[4].equals(ref)) {
-                            bw.write(new StringBuilder(temps[1] + "\t" + temps[2] + "\t" + temps[3] + "\t" + temps[4] + "\t" + ref + "\t" + alt + "\t" + temps[12] + "\n").toString());
-                        } else {
-                            System.out.println(chr + "\t" + pos + "\t" + ref + "\t" + alt + "\t" + temps1[3] + "\t" + temps1[4]);
-                        }
-                    }
-                }
-                brtemp.close();
-                StringBuilder sb2 = new StringBuilder();
-                sb2.append("rm temp.bed ");
-                String command2 = sb2.toString();
-//                        System.out.println(command2);
-                File dir2 = new File(new File(tempdir).getAbsolutePath());
-                String[] cmdarry2 = {"/bin/bash", "-c", command2};
-                Process p2 = Runtime.getRuntime().exec(cmdarry2, null, dir2);
-                p2.waitFor();
-            }
-            br.close();
-            bw.flush();
-            bw.close();
-        } catch (
-                Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    public void getoverlap() {
-        String infile = "/data2/xiaohan/tensorQTL/annosite.txt";
-        String infile2 = "/data2/xiaohan/tensorQTL/1M_log2/homoeffect/all.cis.sig.DE.log2.txt";
-        BufferedReader br = IOUtils.getTextReader(infile);
-        BufferedReader br2 = IOUtils.getTextReader(infile2);
-        String temp = null;
-        String[] temps = null;
-        HashSet<String> annosite = new HashSet<>();
-        try {
-            while ((temp = br.readLine()) != null) {
-                temps = temp.split("\t");
-                for (int i = 0; i < temps.length; i++) {
-                    annosite.add(temps[i]);
-                }
-            }
-            br.close();
-            while ((temp = br2.readLine()) != null) {
-                temps = temp.split("\t");
-                if (annosite.contains(temps[2])) {
-                    System.out.println(temps[2]);
-                }
-            }
-            br2.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public void getTransposonClass() {
@@ -1012,146 +699,9 @@ public class eQTL {
         }
     }
 
-    public void gettransformedaFCfile() {
-        String infile = "";
-        String outfile = "";
-        BufferedReader br = IOUtils.getTextReader(infile);
-        BufferedWriter bw = IOUtils.getTextWriter(outfile);
-        try {
-            String temp = null;
-            String[] temps = null;
-            int logaFCindex = 0;
-            int lowerindex = 0;
-            int upperindex = 0;
-            while ((temp = br.readLine()) != null) {
-                if (temp.startsWith("pheno") || temp.startsWith("pid") || temp.startsWith("Index")) {
-                    bw.write(temp + "\n");
-                    temps = temp.split("\t");
-                    for (int i = 0; i < temps.length; i++) {
-                        if (temps[i].equals("log2_aFC")) logaFCindex = i;
-                        if (temps[i].equals("log2_aFC_lower")) lowerindex = i;
-                        if (temps[i].equals("log2_aFC_upper")) upperindex = i;
-                    }
-                    continue;
-                }
-                temps = temp.split("\t");
-                if (temps[logaFCindex].equals("nan")) continue;
-                if (temps[upperindex].equals("nan") || temps[lowerindex].equals("nan")) continue;
-                double lower = Double.valueOf(temps[lowerindex]);
-                double upper = Double.valueOf(temps[upperindex]);
-                double ef = Math.abs(Double.valueOf(temps[logaFCindex]));
-                if (ef > 2 / Math.log10(2)) continue;
-                if (lower * upper < 0) continue;
-                bw.write(temp + "\n");
-            }
-            br.close();
-            bw.flush();
-            bw.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    public void hapscannercp(String[] args) {
-//        new HapScannercp(args[0]);
-        new HapScannercp2(args[0]);
-    }
-
     public void hapscanner(String[] args) throws IOException, InterruptedException {
-        new HapscannerParameters(args);
-    }
-
-
-    public void geteQTLpos() {
-        for (int m = 0; m < 42; m++) {
-            int chr = m + 1;
-//            File file = new File("/data1/home/xiaohan/tensorQTL/1M_log2/effectsize/" + chr + ".cis.sig.DE.log2.txt");
-//            if (!file.exists()) continue;
-            String infile = "/data1/home/xiaohan/tensorQTL/1M_log2/effectsize/" + chr + ".cis.sig.DE.log2.txt";
-            String infor = "/data1/home/xiaohan/VCF_information/heter/7_87/site/chr" + chr + "heter.txt";
-            String info = null;
-            String[] infos = null;
-            String outfile1 = "/data1/home/xiaohan/tensorQTL/1M_log2/heter/same" + chr + ".txt";
-            String outfile2 = "/data1/home/xiaohan/tensorQTL/1M_log2/heter/dif" + chr + ".txt";
-            String temp = null;
-            String[] temps = null;
-            HashMap<String, String> siteHeter = new HashMap<>();
-            BufferedReader br = IOUtils.getTextReader(infile);
-            BufferedReader br1 = IOUtils.getTextReader(infor);
-            BufferedWriter bw1 = IOUtils.getTextWriter(outfile1);
-            BufferedWriter bw2 = IOUtils.getTextWriter(outfile2);
-            try {
-                while ((info = br1.readLine()) != null) {
-                    infos = info.split("\t");
-                    siteHeter.put(infos[0], infos[1]);
-                }
-                while ((temp = br.readLine()) != null) {
-                    if (temp.startsWith("Index")) continue;
-                    temps = temp.split("\t");
-                    double slope = Double.parseDouble(temps[8]);
-                    double aFC = Double.parseDouble(temps[11]);
-                    if (slope * aFC > 0) {
-                        bw1.write(temps[1] + "\t" + temps[2] + "\t" + temps[8] + "\t" + temps[11] + "\t" + siteHeter.get(temps[2]));
-                        bw1.newLine();
-                    } else if (slope * aFC < 0) {
-                        bw2.write(temps[1] + "\t" + temps[2] + "\t" + temps[8] + "\t" + temps[11] + "\t" + siteHeter.get(temps[2]));
-                        bw2.newLine();
-                    } else continue;
-                }
-                br.close();
-                bw1.flush();
-                bw1.close();
-                bw2.flush();
-                bw2.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public void calheterforSite() {
-        for (int m = 0; m < 42; m++) {
-            int chr = m + 1;
-            String infile = "/data2/junxu/genotypeMaf005_87/" + chr + ".87.B18.maf005.recode.vcf.gz";
-            String outfile = "/data2/xiaohan/VCF_information/heter/7_87/site/chr" + chr + "heter.txt";
-            BufferedReader br = IOUtils.getTextGzipReader(infile);
-            BufferedWriter bw = IOUtils.getTextWriter(outfile);
-            String temp = null;
-            String[] temps = null;
-            DecimalFormat decfor = new DecimalFormat("0.0000");
-            try {
-                while ((temp = br.readLine()) != null) {
-                    int sum = 0;
-                    int heter = 0;
-                    double het = 0;
-                    if (temp.startsWith("#")) continue;
-                    temps = temp.split("\t");
-                    for (int i = 9; i < temps.length; i++) {
-                        String genotype = temps[i].split(":")[0];
-//                    System.out.print(genotype);
-                        if (genotype.equals("0/0") || genotype.equals("1/1")) {
-                            sum += 1;
-                        } else if (genotype.equals("0/1")) {
-                            sum += 1;
-                            heter += 1;
-                        }
-                    }
-//                System.out.println(sum + "\t" + heter +"\t" + decfor.format(het));
-                    het = (double) heter / sum;
-//                het = heter/sum;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(temps[0] + "_" + temps[1] + "\t" + decfor.format(het));
-                    bw.write(sb.toString());
-                    bw.newLine();
-                }
-                br.close();
-                bw.flush();
-                bw.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+//        new HapscannerParameters(args);
+        new Hapscann(args);
     }
 
     public void getTransposonLength() {
@@ -1231,433 +781,6 @@ public class eQTL {
         }
     }
 
-    public void getCisDistance() {
-        HashSet<String> nameSet = new HashSet<>();
-        for (int m = 0; m < 42; m++) {
-            int chr = m + 1;
-            nameSet.add(String.valueOf(chr));
-        }
-        nameSet.parallelStream().forEach(chr -> {
-            System.out.println(chr);
-            String infile = "/data2/xiaohan/tensorQTL/5M/" + chr + ".pre.cis_qtl_pairs_sig.txt.gz";
-            String outfile = "/data2/xiaohan/tensorQTL/snpcount/" + chr + ".5M.cis_distance.txt";
-            BufferedReader br = IOUtils.getTextGzipReader(infile);
-            BufferedWriter bw = IOUtils.getTextWriter(outfile);
-            String temp = null;
-            String[] temps = null;
-            GeneFeature gf = new GeneFeature("/data1/home/xiaohan/rareallele/SiPASpipeline/reference/wheat_v1.1_Lulab.gff3");
-            try {
-                int distance = 0;
-                while ((temp = br.readLine()) != null) {
-                    if (temp.startsWith("Index")) continue;
-                    temps = temp.split("\t");
-                    String geneName = temps[1];
-                    String pos = temps[2].split("_")[1];
-                    int position = Integer.parseInt(pos);
-                    int index = gf.getGeneIndex(geneName);
-                    int start = gf.getGeneStart(index);
-                    int end = gf.getGeneEnd(index);
-                    if (gf.getGeneStrand(gf.getGeneIndex(geneName)) == 1 && start >= position) {
-                        distance = start - position;
-                    } else if (gf.getGeneStrand(gf.getGeneIndex(geneName)) == 0 && end <= position) {
-                        distance = position - end;
-                    } else continue;
-                    bw.write(geneName + "\t" + temp.split("\t")[2] + "\t" + distance);
-                    bw.newLine();
-                }
-                br.close();
-                bw.flush();
-                bw.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
-    public void getRandomDistance() {
-        int dis = 1000000;
-        HashSet<String> nameSet = new HashSet<>();
-        for (int m = 0; m < 42; m++) {
-            int chr = m + 1;
-            nameSet.add(String.valueOf(chr));
-        }
-        nameSet.parallelStream().forEach(chr -> {
-            String infile = "/data2/xiaohan/tensorQTL/output/" + chr + ".cis_qtl_pairs_sig.txt.gz";
-            String outfile = chr + ".1M.random_distance.txt";
-            String inputDir = "/data2/xiaohan/tensorQTL/tempvcf/";
-            String outputDir = "/data2/xiaohan/tensorQTL/snpcount";
-            String vcfdir = "/data2/junxu/genotypeMaf005_87";
-            HashSet<String> geneSet = new HashSet<>();
-            GeneFeature gf = new GeneFeature("/data1/home/xiaohan/rareallele/SiPASpipeline/reference/wheat_v1.1_Lulab.gff3");
-            try {
-                String temp = null;
-                BufferedReader br = IOUtils.getTextGzipReader(infile);
-                BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, outfile).getAbsolutePath());
-                while ((temp = br.readLine()) != null) {
-                    if (temp.startsWith("Index")) continue;
-                    String geneName = temp.split("\t")[1];
-                    geneSet.add(geneName);
-                }
-                br.close();
-                String[] genelist = geneSet.toArray(new String[geneSet.size()]);
-                int startsite = 0;
-                int endsite = 0;
-                int start = 0;
-                int end = 0;
-                for (int i = 0; i < genelist.length; i++) {
-                    String geneName = genelist[i];
-                    start = gf.getGeneStart(gf.getGeneIndex(geneName));
-                    end = gf.getGeneEnd(gf.getGeneIndex(geneName));
-                    int strand = gf.getGeneStrand(gf.getGeneIndex(geneName));
-                    if (strand == 1) {
-                        startsite = start - dis + 1;
-                        endsite = start;
-                    } else {
-                        startsite = end;
-                        endsite = end + dis - 1;
-                    }
-                    if (startsite < 0) startsite = 0;
-                    String pos = chr + ":" + startsite + "-" + endsite;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("tabix " + chr + ".87.B18.maf005.recode.vcf.gz " + pos + " > " + inputDir + "temp_" + chr + "1Mrandom.vcf ");
-                    String command = sb.toString();
-                    File dir = new File(new File(vcfdir).getAbsolutePath());
-                    String[] cmdarry = {"/bin/bash", "-c", command};
-                    Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
-                    p.waitFor();
-                    BufferedReader brtemp = IOUtils.getTextReader(new File(inputDir, "temp_" + chr + "1Mrandom.vcf").getAbsolutePath());
-                    String temp1 = null;
-                    int countline = 0;
-                    while ((temp1 = brtemp.readLine()) != null) {
-                        countline++;
-                        int distance = Math.abs(start - Integer.parseInt(temp1.split("\t")[1]));
-                        bw.write(geneName + "\t" + temp1.split("\t")[2] + "\t" + distance);
-                        bw.newLine();
-                    }
-                    brtemp.close();
-                    StringBuilder sb2 = new StringBuilder();
-                    sb2.append("rm temp_" + chr + "1Mrandom.vcf ");
-                    String command2 = sb2.toString();
-//                        System.out.println(command2);
-                    File dir2 = new File(new File(inputDir).getAbsolutePath());
-                    String[] cmdarry2 = {"/bin/bash", "-c", command2};
-                    Process p2 = Runtime.getRuntime().exec(cmdarry2, null, dir2);
-                    p2.waitFor();
-                    continue;
-                }
-                bw.flush();
-                bw.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
-    public void getGeneInterSnpCount() {
-
-    }
-
-    public void getGeneDownSnpCount() {
-
-    }
-
-    public void getGeneUpSnpCount() throws IOException, InterruptedException {
-        String inputDir = "/data2/xiaohan/tensorQTL/tempvcf/";
-        String outputDir = "/data2/xiaohan/tensorQTL/snpcount";
-        String vcfdir = "/data2/junxu/genotypeMaf005_87";
-        GeneFeature gf = new GeneFeature("/data1/home/xiaohan/rareallele/SiPASpipeline/reference/wheat_v1.1_Lulab.gff3");
-        HashSet<String> nameSet = new HashSet<>();
-        for (int i = 0; i < 42; i++) {
-            String chr = String.valueOf(i + 1);
-            nameSet.add(chr);
-        }
-        nameSet.parallelStream().forEach(f -> {
-            try {
-                String chr = f;
-                String infile = "/data2/xiaohan/tensorQTL/bed/S7expression" + chr + ".bed";
-                String[] genelist = utils.getGenelist(infile);
-//            System.out.println(genelist[0]);
-                int start = 0;
-                int end = 0;
-                String pos = null;
-                int startsite = 0;
-                int endsite = 0;
-                for (int k = 1; k <= 5000; k++) {
-                    int pos1 = k * 1000;
-                    int pos2 = (k - 1) * 1000;
-                    BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, "chr" + chr + "_up_" + k + ".txt").getAbsolutePath());
-                    for (int j = 0; j < genelist.length; j++) {
-                        String geneName = genelist[j];
-                        System.out.println(geneName);
-                        if (gf.getGeneStrand(gf.getGeneIndex(geneName)) == 1) {
-                            start = gf.getGeneStart(gf.getGeneIndex(geneName));
-                            end = gf.getGeneEnd(gf.getGeneIndex(geneName));
-                            startsite = start - pos1;
-                            endsite = start - pos2;
-                            pos = chr + ":" + startsite + "-" + endsite;
-                            if (startsite < 0) {
-                                startsite = 0;
-                            }
-                            StringBuilder sb = new StringBuilder();
-                            sb.append("tabix " + chr + ".87.B18.maf005.recode.vcf.gz " + pos + " > " + inputDir + chr + "_temp_" + k + "_" + j + ".vcf ");
-                            String command = sb.toString();
-//                        System.out.println(command);
-                            File dir = new File(new File(vcfdir).getAbsolutePath());
-                            String[] cmdarry = {"/bin/bash", "-c", command};
-                            Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
-                            p.waitFor();
-                            BufferedReader brtemp = IOUtils.getTextReader(new File(inputDir, chr + "_temp_" + k + "_" + j + ".vcf").getAbsolutePath());
-                            String temp = null;
-                            int countline = 0;
-                            while ((temp = brtemp.readLine()) != null) {
-                                countline++;
-//                            System.out.println(countline);
-                            }
-                            brtemp.close();
-                            bw.write(geneName + "\t" + countline);
-                            bw.newLine();
-                            StringBuilder sb2 = new StringBuilder();
-                            sb2.append("rm " + chr + "_temp_" + k + "_" + j + ".vcf ");
-                            String command2 = sb2.toString();
-//                        System.out.println(command2);
-                            File dir2 = new File(new File(inputDir).getAbsolutePath());
-                            String[] cmdarry2 = {"/bin/bash", "-c", command2};
-                            Process p2 = Runtime.getRuntime().exec(cmdarry2, null, dir2);
-                            p2.waitFor();
-                            continue;
-                        } else {
-                            start = gf.getGeneStart(gf.getGeneIndex(geneName));
-                            end = gf.getGeneEnd(gf.getGeneIndex(geneName));
-                            startsite = start + pos2;
-                            endsite = start + pos1;
-                            pos = chr + ":" + startsite + "-" + endsite;
-                            if (startsite < 0) {
-                                startsite = 0;
-                            }
-                            StringBuilder sb = new StringBuilder();
-                            sb.append("tabix " + chr + ".87.B18.maf005.recode.vcf.gz " + pos + " > " + inputDir + chr + "_temp_" + k + "_" + j + ".vcf ");
-                            String command = sb.toString();
-//                        System.out.println(command);
-                            File dir = new File(new File(vcfdir).getAbsolutePath());
-                            String[] cmdarry = {"/bin/bash", "-c", command};
-                            Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
-                            p.waitFor();
-                            BufferedReader brtemp = IOUtils.getTextReader(new File(inputDir, chr + "_temp_" + k + "_" + j + ".vcf").getAbsolutePath());
-                            String temp = null;
-                            int countline = 0;
-                            while ((temp = brtemp.readLine()) != null) {
-                                countline++;
-                            }
-                            brtemp.close();
-                            bw.write(geneName + "\t" + countline);
-                            bw.newLine();
-                            StringBuilder sb2 = new StringBuilder();
-                            sb2.append("rm " + chr + "_temp_" + k + "_" + j + ".vcf ");
-                            String command2 = sb2.toString();
-//                        System.out.println(command2);
-                            File dir2 = new File(new File(inputDir).getAbsolutePath());
-                            String[] cmdarry2 = {"/bin/bash", "-c", command2};
-                            Process p2 = Runtime.getRuntime().exec(cmdarry2, null, dir2);
-                            p2.waitFor();
-                            continue;
-                        }
-                    }
-                    bw.flush();
-                    bw.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
-    public void getExprWithQTL() {
-        String infileDir = "/data2/xiaohan/tensorQTL/1Mqtl/";
-        String temp = null;
-        String[] temps = null;
-        String sample = "posgeneRegion";
-        for (int m = 0; m < 87; m++) {
-            int indi = m + 2;
-            try {
-                BufferedReader br = IOUtils.getTextGzipReader(new File(infileDir + sample + "/", "all.snp." + sample + ".txt.gz").getAbsolutePath());
-                HashMap<String, Integer> geneCountMap = new HashMap<>();
-                HashSet<String> geneSet = new HashSet<>();
-                String index = null;
-                temp = br.readLine();
-                temps = temp.split("\t");
-                if (temp.startsWith("Gene")) {
-                    index = temps[indi];
-                }
-                System.out.println(index);
-                temp = br.readLine();
-                temps = temp.split("\t");
-                String geneName = temps[0];
-                System.out.println(geneName);
-                geneSet.add(geneName);
-                int count = Integer.parseInt(temps[indi]);
-//                int countline = 0;
-                while ((temp = br.readLine()) != null) {
-//                    countline++;
-//                    if (countline % 50000 == 0) {
-//                        System.out.println(countline);
-//                    }
-                    temps = temp.split("\t");
-                    if (temps[0].equals(geneName)) {
-                        count += Integer.parseInt(temps[indi]);
-//                        System.out.println(count);
-                    } else {
-                        geneCountMap.put(geneName, count);
-                        geneName = temps[0];
-                        geneSet.add(geneName);
-                        count = Integer.parseInt(temps[indi]);
-                    }
-                }
-                geneCountMap.put(geneName, count);
-                br.close();
-                String triad = null;
-                String[] triads = null;
-                BufferedReader br1 = IOUtils.getTextReader("/data2/xiaohan/tensorQTL/1Mqtl/Science/" + index + "-region.txt");
-//                System.out.println("/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7/expression_pattern/Science/" + index + "-region.txt");
-                BufferedWriter bw = IOUtils.getTextWriter("/data2/xiaohan/tensorQTL/1Mqtl/geneRegion_output/" + index + "-region_count_" + sample + ".txt");
-                bw.write("geneA\texprA\tratioA\tgeneB\texprB\tratioB\tgeneD\texprD\tratioD\tgroup\tcountA\tcountB\tcountD\tcountratioA\tcountratioB\tcountratioD\tcountGroup");
-                bw.newLine();
-                int countA = 0;
-                int countB = 0;
-                int countD = 0;
-                while ((triad = br1.readLine()) != null) {
-                    triads = triad.split("\t");
-                    if (!triads[2].equals("NaN") && !triads[5].equals("NaN") && !triads[8].equals("NaN")) {
-                        String geneA = triads[0];
-                        if (geneSet.contains(geneA)) {
-                            countA = geneCountMap.get(geneA);
-                        } else {
-                            countA = 0;
-                        }
-                        String geneB = triads[3];
-                        if (geneSet.contains(geneB)) {
-                            countB = geneCountMap.get(geneB);
-                        } else {
-                            countB = 0;
-                        }
-                        String geneD = triads[6];
-                        if (geneSet.contains(geneD)) {
-                            countD = geneCountMap.get(geneD);
-                        } else {
-                            countD = 0;
-                        }
-                        StringBuilder sb = new StringBuilder();
-                        if (countA + countB + countD == 0) {
-                            String region = "M000";
-                            sb.append(triad).append("\t").append(countA).append("\t").append(countB).append("\t").append(countD).append("\t");
-                            sb.append("0").append("\t").append("0").append("\t").append("0").append("\t");
-                            sb.append(region);
-                        } else {
-                            double countratioA = (double) countA / (countA + countB + countD) / 2;
-                            double countratioB = (double) countB / (countA + countB + countD) / 3;
-                            double countratioD = (double) countD / (countA + countB + countD);
-                            double[] ratiodABD = {countratioA, countratioB, countratioD};
-                            String region = Standardization.getNearestPointIndex(ratiodABD).getRegion();
-                            sb.append(triad).append("\t").append(countA).append("\t").append(countB).append("\t").append(countD).append("\t");
-                            sb.append(countratioA).append("\t").append(countratioB).append("\t").append(countratioD).append("\t");
-                            sb.append(region);
-                        }
-                        bw.write(sb.toString());
-                        bw.newLine();
-                    }
-                }
-                br1.close();
-                bw.flush();
-                bw.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public void getQTLcount() {
-        String inputDir = "/data2/junxu/genotypeMaf005_87";
-        String inforDir = "/data2/xiaohan/tensorQTL/output";
-        String outputDir = "/data2/xiaohan/tensorQTL/1Mqtl/neggeneRegion";
-        File[] fs = new File(inputDir).listFiles();
-        fs = IOUtils.listFilesEndsWith(fs, "maf005.recode.vcf.gz");
-        HashSet<String> nameSet = new HashSet();
-        for (int i = 0; i < fs.length; i++) {
-            if (fs[i].isHidden()) {
-                continue;
-            }
-            String Name = fs[i].getName().split("\\.")[0];
-            nameSet.add(Name);
-//            System.out.println(Name);
-        }
-        nameSet.stream().forEach(f -> {
-            BufferedReader br = IOUtils.getTextGzipReader(new File(inputDir, f + ".87.B18.maf005.recode.vcf.gz").getAbsolutePath());
-            BufferedReader brinfo = IOUtils.getTextGzipReader(new File(inforDir, f + ".cis_qtl_pairs_sig.txt.gz").getAbsolutePath());
-            BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, f + ".snp.neg.txt").getAbsolutePath());
-            String info = null;
-            String[] infos = null;
-            String temp = null;
-            String[] temps = null;
-            HashSet<String> SNPset = new HashSet<>();
-            Multimap<String, String> geneposMap = ArrayListMultimap.create();
-            GeneFeature gf = new GeneFeature("/data1/home/xiaohan/rareallele/SiPASpipeline/reference/wheat_v1.1_Lulab.gff3");
-            try {
-                while ((info = brinfo.readLine()) != null) {
-                    if (info.startsWith("Index")) continue;
-                    infos = info.split("\t");
-                    String snp = infos[2];
-                    String gene = infos[1];
-                    if (gf.isWithinThisGene(gf.getGeneIndex(gene), Integer.valueOf(snp.split("_")[0]), Integer.valueOf(snp.split("_")[1]))) {
-                        geneposMap.put(snp, gene);
-                        double ef = Double.parseDouble(infos[8]);
-                        if (ef > 0) {
-                            SNPset.add(snp);
-                        }
-                    }
-                }
-                while ((temp = br.readLine()) != null) {
-                    if (temp.startsWith("##")) continue;
-                    if (temp.startsWith("#C")) {
-                        temps = temp.split("\t");
-                        bw.write("Gene\tPOS\t");
-                        for (int i = 9; i < temps.length; i++) {
-                            bw.write(temps[i] + "\t");
-                        }
-                        bw.newLine();
-                        continue;
-                    }
-                    temps = temp.split("\t");
-                    if (SNPset.contains(temps[2])) {
-                        Collection<String> genelist = geneposMap.get(temps[2]);
-                        String[] genes = genelist.toArray(new String[genelist.size()]);
-                        for (int j = 0; j < genes.length; j++) {
-                            StringBuilder sb = new StringBuilder();
-                            sb.append(genes[j]).append("\t");
-                            sb.append(temps[2]).append("\t");
-                            for (int i = 9; i < temps.length; i++) {
-                                if (temps[i].split(":")[0].equals("0/0")) {
-                                    sb.append("0\t");
-                                } else if (temps[i].split(":")[0].equals("0/1")) {
-                                    sb.append("1\t");
-                                } else if (temps[i].split(":")[0].equals("1/1")) {
-                                    sb.append("2\t");
-                                } else {
-                                    sb.append("0\t");
-                                }
-                            }
-                            bw.write(sb.toString());
-                            bw.newLine();
-                        }
-                    }
-                }
-                br.close();
-                brinfo.close();
-                bw.flush();
-                bw.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
 
     public void patternIdentify() throws IOException {
         String infileDir = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7/expression_pattern/Science";
@@ -1806,158 +929,6 @@ public class eQTL {
         }
     }
 
-    public void getcisSig() {
-        for (int m = 0; m < 42; m++) {
-            int chr = m + 1;
-            String infile = "/data1/home/xiaohan/tensorQTL/1M_log2/" + chr + ".cis_qtl.txt.gz";
-            String outfile = "/data1/home/xiaohan/tensorQTL/1M_log2/" + chr + ".top.cis_qtl.txt";
-            BufferedReader br = IOUtils.getTextGzipReader(infile);
-            BufferedWriter bw = IOUtils.getTextWriter(outfile);
-            String temp = null;
-            String[] temps = null;
-            try {
-                while ((temp = br.readLine()) != null) {
-                    temps = temp.split("\t");
-                    if (temp.startsWith("phenotype_id")) {
-                        temps[0] = "pid";
-                        temps[6] = "sid";
-                        StringBuilder sb = new StringBuilder();
-                        sb.append(temps[0] + "\t" + temps[6] + "\t" + temps[7] + "\t" + temps[10] + "\t" + temps[13] + "\t" + temps[14]);
-                        bw.write(sb.toString());
-                        bw.newLine();
-                        continue;
-                    }
-                    double qvalue = Double.parseDouble(temps[temps.length - 2]);
-                    if (qvalue < 0.05) {
-                        StringBuilder sb = new StringBuilder();
-                        sb.append(temps[0] + "\t" + temps[6] + "\t" + temps[7] + "\t" + temps[10] + "\t" + temps[13] + "\t" + temps[14]);
-                        bw.write(sb.toString());
-                        bw.newLine();
-                    }
-                }
-                br.close();
-                bw.flush();
-                bw.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public void getNominalSig(String[] args) throws IOException {
-        HashSet<String> nameSet = new HashSet<>();
-        String geneName = null;
-        String cis = null;
-        String nominal = null;
-        String[] cistemp = null;
-        String[] nominaltemp = null;
-        String index = null;
-        double threshold = 0.00;
-        double qvalue = 0.00;
-        double pval = 0.00;
-//        String infileDir = "/data2/xiaohan/tensorQTL/Filter";
-//        String Dir = "/data2/xiaohan/tensorQTL/Filter";
-        String infileDir = args[0];
-        String Dir = args[0];
-        BufferedWriter bwerror = IOUtils.getTextWriter(new File(Dir, "error.txt").getAbsolutePath());
-        try {
-            for (int j = 0; j < 42; j++) {
-                int f = j + 1;
-                BufferedReader brcis = IOUtils.getTextGzipReader(new File(infileDir, f + ".cis_qtl.txt.gz").getAbsolutePath());
-                BufferedReader brnominal = IOUtils.getTextGzipReader(new File(infileDir, f + ".cis_qtl_pairs." + f + ".txt.gz").getAbsolutePath());
-                BufferedWriter bw = IOUtils.getTextWriter(new File(Dir, f + ".cis_qtl_pairs_sig.txt").getAbsolutePath());
-                HashMap<String, Double> geneT = new HashMap<>();
-                HashSet<String> eGene = new HashSet<>();
-                while ((cis = brcis.readLine()) != null) {
-                    if (cis.startsWith("p")) continue;
-                    cistemp = cis.split("\t");
-                    geneName = cistemp[0];
-                    threshold = Double.parseDouble(cistemp[cistemp.length - 1]);
-                    qvalue = Double.parseDouble(cistemp[cistemp.length - 2]);
-                    if (qvalue < 0.05) {
-                        eGene.add(geneName);
-                        geneT.put(geneName, threshold);
-                    }
-                }
-                brcis.close();
-                while ((nominal = brnominal.readLine()) != null) {
-                    nominaltemp = nominal.split("\t");
-                    if (nominaltemp[1].startsWith("p")) {
-                        bw.write("Index\tphenotype_id\tvariant_id\t");
-                        for (int i = 3; i < nominaltemp.length; i++) {
-                            bw.write(nominaltemp[i] + "\t");
-                        }
-                        bw.write("threshold");
-                        bw.newLine();
-                        continue;
-                    }
-                    geneName = nominaltemp[1];
-                    if (!eGene.contains(nominaltemp[1])) continue;
-                    threshold = geneT.get(nominaltemp[1]);
-                    if (nominaltemp.length > 7) {
-                        pval = Double.parseDouble(nominaltemp[7]);
-                        index = nominaltemp[0];
-                        if (pval < threshold) {
-                            bw.write(nominal + "\t" + threshold);
-                            bw.newLine();
-                        }
-                    }
-                }
-                geneT.clear();
-                eGene.clear();
-                brnominal.close();
-                bw.flush();
-                bw.close();
-
-                StringBuilder sb1 = new StringBuilder();
-                sb1.append("bgzip " + f + ".cis_qtl_pairs_sig.txt");
-                String command = sb1.toString();
-                File dir = new File(new File(Dir).getAbsolutePath());
-                String[] cmdarry = {"/bin/bash", "-c", command};
-                Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
-                p.waitFor();
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            System.out.println(geneName);
-            System.out.println(pval);
-            System.out.println(index);
-            bwerror.write(nominal);
-            bwerror.flush();
-            bwerror.close();
-        }
-    }
-
-    public void getCisChrGene() {
-        RowTable rt = new RowTable("/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/S7/expressionTable/DEnorm7_87chr1-42_donor02.txt");
-        xujun.analysis.rnaseq.GeneFeature gf = new xujun.analysis.rnaseq.GeneFeature("/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/wheat_v1.1_Lulab.gff3");
-//        String geneName=gf.getGeneName(19374);
-        try {
-            BufferedWriter[] bw = new BufferedWriter[42];
-            for (int i = 0; i < bw.length; i++) {
-                int chr = i + 1;
-                bw[i] = pgl.infra.utils.IOUtils.getTextWriter("/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/" + chr + ".txt");
-                bw[i].write("Chr\tgene");
-                bw[i].newLine();
-            }
-            for (int i = 0; i < rt.getRowNumber(); i++) {
-                if (rt.getCell(i, 0).equals("Chr")) {
-                    continue;
-                }
-                int index = gf.getGeneIndex(rt.getCell(i, 3).toString());
-                int chro = gf.getGeneChromosome(index);
-                System.out.println(rt.getCellAsString(i, 0) + "\t" + rt.getCellAsString(i, 3));
-                bw[chro - 1].write(rt.getCellAsString(i, 0) + "\t" + rt.getCellAsString(i, 3));
-                bw[chro - 1].newLine();
-            }
-            for (int i = 0; i < bw.length; i++) {
-                bw[i].flush();
-                bw[i].close();
-            }
-        } catch (Exception ex) {
-            ex.getStackTrace();
-        }
-    }
 
     public void intergenicPattern() {
 //        String inputFileS="/data1/home/junxu/eQTL/FastQTL2/vst/5nominalsThred/result/nominals.txt.gz";
@@ -2740,152 +1711,6 @@ public class eQTL {
             }
             long endTime = System.currentTimeMillis();
             System.out.println("程序运行时间： " + (endTime - startTime) + "ms");
-        }
-    }
-
-    public void intergenicPatternhuman() {
-        String infileinfo = "/Users/yxh/Documents/eQTL/GTEx/Whole_Blood.v8.egenes.txt";
-        String inputFileS = "/Users/yxh/Documents/eQTL/GTEx/GTEx_Analysis_v8_eQTL/Whole_Blood.v8.signif_variant_gene_pairs.txt";
-        String outputFileUp = "/Users/yxh/Documents/eQTL/GTEx/up.distribution.txt";
-//        String outputFileDown = "/Users/yxh/Documents/eQTL/data_explain/" + mode + ".down.distribution.txt";
-//        String outputFileInter = "/Users/yxh/Documents/eQTL/data_explain/" + mode + ".inter.distribution.txt";
-        String outputFileUpEf = "/Users/yxh/Documents/eQTL/GTEx/up.ef.txt";
-//        String outputFileDownEf = "/Users/yxh/Documents/eQTL/data_explain/" + mode + ".down.ef.txt";
-//        String outputFileInterEf = "/Users/yxh/Documents/eQTL/data_explain/" + mode + ".inter.ef.txt";
-//        GeneFeature gf = new GeneFeature("/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/wheat_v1.1_Lulab.gff3");
-//        int a=gf.getGeneStart(gf.getGeneIndex("TraesCS1A02G004400"));
-//        int b=gf.getGeneEnd(gf.getGeneIndex("TraesCS1A02G004400"));
-        int[] countUp = new int[1000];
-        double[] efCUp = new double[1000];
-        int up = 0;
-//        int[] countDown = new int[100];
-//        double[] efCDown = new double[100];
-//        int down = 0;
-//        int[] countInter = new int[1000];
-//        double[] efCInter = new double[1000];
-//        int Inter = 0;
-        String temp = null;
-        String info = null;
-        int pos = 0;
-        int start = 0;
-        int end = 0;
-        int length = 0;
-        String geneName = null;
-        double ef = 0;
-        HashMap<String, String> geneStartMap = new HashMap<>();
-        HashMap<String, String> geneEndMap = new HashMap<>();
-        HashMap<String, String> geneStrandMap = new HashMap<>();
-        try {
-            BufferedReader brinfo = IOUtils.getTextReader(infileinfo);
-            BufferedReader br = IOUtils.getTextReader(inputFileS);
-            BufferedWriter bwUp = IOUtils.getTextWriter(outputFileUp);
-//            BufferedWriter bwDown = IOUtils.getTextWriter(outputFileDown);
-//            BufferedWriter bwInter = IOUtils.getTextWriter(outputFileInter);
-            BufferedWriter bwUpEf = IOUtils.getTextWriter(outputFileUpEf);
-//            BufferedWriter bwDownEf = IOUtils.getTextWriter(outputFileDownEf);
-//            BufferedWriter bwInterEf = IOUtils.getTextWriter(outputFileInterEf);
-            while ((info = brinfo.readLine()) != null) {
-                if (info.startsWith("gene")) continue;
-                geneStartMap.put(info.split("\t")[0], info.split("\t")[3]);
-                geneEndMap.put(info.split("\t")[0], info.split("\t")[4]);
-                if (info.split("\t")[5].equals("+")) {
-                    geneStrandMap.put(info.split("\t")[0], "1");
-                } else {
-                    geneStrandMap.put(info.split("\t")[0], "0");
-                }
-            }
-            while ((temp = br.readLine()) != null) {
-                if (temp.startsWith("variant_id")) continue;
-                if (temp.split("\t")[7].equals("nan")) {
-                    ef = 0;
-                } else {
-                    ef = Math.abs(Double.valueOf(temp.split("\t")[7]));
-                }
-                pos = Integer.valueOf(temp.split("\t")[0].split("_")[1]);
-                if (geneStrandMap.get(temp.split("\t")[1]).equals("1")) {//1表示的是正链
-                    start = Integer.parseInt(geneStartMap.get(temp.split("\t")[1]));
-                    if (start >= pos) {
-                        int chunk = (start - pos) / 1000;
-                        countUp[chunk]++;
-                        up++;
-                        efCUp[chunk] += ef;
-//                        } else {
-//                            end = gf.getGeneEnd(i);
-//                            int chunk = (pos - end) / 1000;
-//                            countDown[chunk]++;
-//                            down++;
-//                            efCDown[chunk] += ef;
-                    }
-                } else {
-                    start = Integer.parseInt(geneEndMap.get(temp.split("\t")[1]));
-                    if (start <= pos) {
-                        int chunk = (pos - start) / 1000;
-                        countUp[chunk]++;
-                        up++;
-                        efCUp[chunk] += ef;
-//                        } else {
-//                            end = gf.getGeneStart(i);
-//                            int chunk = (end - pos) / 1000;
-//                            countDown[chunk]++;
-//                            down++;
-//                            efCDown[chunk] += ef;
-//                        }
-                    }
-//                }
-                }
-            }
-            br.close();
-            DecimalFormat decFor = new DecimalFormat("0.000000");
-//            for (int i = 0; i < countInter.length; i++) {
-//                int chunk = 10 * (i + 1) + 1000;
-//                bwInter.write("Inter" + "\t" + chunk + "\t" + countInter[i] + "\n");
-//                if (efCUp[i] == 0) {
-//                    bwInterEf.write("Inter" + "\t" + chunk + "\t" + 0 + "\n");
-//                } else {
-//                    bwInterEf.write("Inter" + "\t" + chunk + "\t" + decFor.format((efCInter[i] / countInter[i]) * 1000000 / 1000000) + "\n");
-//                }
-//            }
-//            bwInter.flush();
-//            bwInter.close();
-//            bwInterEf.flush();
-//            bwInterEf.close();
-//            System.out.println(Inter);
-
-            for (int i = 0; i < countUp.length; i++) {
-                int chunk = 1000 - i;
-                bwUp.write("Up" + "\t" + chunk + "\t" + countUp[i] + "\n");
-                if (efCUp[i] == 0) {
-                    bwUpEf.write("Up" + "\t" + chunk + "\t" + 0 + "\n");
-                } else {
-                    bwUpEf.write("Up" + "\t" + chunk + "\t" + decFor.format((efCUp[i] / countUp[i]) * 1000000 / 1000000) + "\n");
-                }
-            }
-            bwUp.flush();
-            bwUp.close();
-            bwUpEf.flush();
-            bwUpEf.close();
-            System.out.println(up);
-
-//            for (int i = 0; i < countDown.length; i++) {
-//                int chunk = i + 1 + 2000;
-//                bwDown.write("Down" + "\t" + chunk + "\t" + countDown[i] + "\n");
-//                if (efCDown[i] == 0) {
-//                    bwDownEf.write("Down" + "\t" + chunk + "\t" + 0 + "\n");
-//                } else {
-//                    bwDownEf.write("Down" + "\t" + chunk + "\t" + decFor.format((efCDown[i] / countDown[i]) * 1000000 / 1000000) + "\n");
-//                }
-//            }
-//            bwDown.flush();
-//            bwDown.close();
-//            bwDownEf.flush();
-//            bwDownEf.close();
-//            System.out.println(down);
-        } catch (Exception ex) {
-            System.out.println(geneName);
-            System.out.println(pos);
-            System.out.println(start);
-//            ex.getStackTrace();
-            ex.printStackTrace();
         }
     }
 

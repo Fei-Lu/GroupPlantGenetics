@@ -3,35 +3,30 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package pgl.app.hapScanner;
-import static cern.jet.math.Arithmetic.factorial;
+package xiaohan.eQTL;
+
 import com.koloboke.collect.map.IntDoubleMap;
 import com.koloboke.collect.map.hash.HashIntDoubleMaps;
+import pgl.AppUtils;
 import pgl.infra.table.RowTable;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.LongAdder;
+import pgl.infra.utils.Dyad;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;
+
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.LongAdder;
+
+import static cern.jet.math.Arithmetic.factorial;
 
 /**
  *
  * @author feilu
  */
-public class HapScannercp2 {
+public class HapScanner {
     //The taxaRefBam file containing information of taxon and its corresponding bam files. The bam file should have .bai file in the same folder
     String taxaRefBamFileS = null;
     //The posAllele file (with header), the format is Chr\tPos\tRef\tAlt (from VCF format). The positions come from haplotype library.
@@ -44,24 +39,27 @@ public class HapScannercp2 {
     String samtoolsPath = null;
     //The directory of output
     String outputDirS = null;
-
+    int regionStart = Integer.MIN_VALUE;
+    int regionEnd = Integer.MIN_VALUE;
+    
     int nThreads = -1;
-
+    
     HashMap<String, List<String>> taxaBamsMap = new HashMap<>();
-
+    
     HashMap<String, String> taxaRefMap = new HashMap<>();
-
+    
     String[] subDirS = {"mpileup", "indiVCF", "VCF"};
-
+    
     IntDoubleMap factorialMap = null;
     int maxFactorial = 150;
     //combined: sequencing error and alignment error
     double combinedErrorRate = 0.05;
-
-    public HapScannercp2 (String infileS) {
+    
+    public HapScanner(String infileS) {
         this.parseParameters(infileS);
         this.mkDir();
-        this.scanIndiVCFByStream();
+//        this.scanIndiVCFByStream();
+        this.scanIndiVCFByThreadPool();
         this.mkFinalVCF();
     }
 
@@ -109,7 +107,7 @@ public class HapScannercp2 {
             else {
                 br = IOUtils.getTextReader(posAlleleFileS);
             }
-
+            
             String temp = br.readLine();
             List<String> temList = null;
             int cnt = 0;
@@ -149,7 +147,7 @@ public class HapScannercp2 {
         new File(outputDirS, subDirS[1]).delete();
         System.out.println("Final VCF is completed at " + outfileS);
     }
-
+    
     private String getInfo (String[] genoArray, String altList) {
         int dp = 0;
         int nz = 0;
@@ -211,6 +209,188 @@ public class HapScannercp2 {
         return sb.toString();
     }
 
+    public void scanIndiVCFByThreadPool () {
+        this.creatFactorialMap();
+        RowTable<String> t = new RowTable<>(posAlleleFileS);
+        HashMap<Integer, String> posRefMap = new HashMap<>();
+        HashMap<Integer, String[]> posAltMap = new HashMap<>();
+        int[] positions = new int[t.getRowNumber()];
+        for (int i = 0; i < t.getRowNumber(); i++) {
+            positions[i] = t.getCellAsInteger(i, 1);
+            posRefMap.put(positions[i], t.getCell(i, 2));
+            String[] tem = t.getCell(i, 3).split(",");
+            posAltMap.put(t.getCellAsInteger(i, 1), tem);
+        }
+        Set<String> taxaSet = taxaBamsMap.keySet();
+        ArrayList<String> taxaList = new ArrayList(taxaSet);
+        Collections.sort(taxaList);
+
+//        int[][] indices = PArrayUtils.getSubsetsIndicesBySubsetSize(taxaList.size(), this.nThreads);
+        LongAdder counter = new LongAdder();
+        ExecutorService pool = Executors.newFixedThreadPool(this.nThreads);
+        List<Future<IndiVCF>> resultList = new ArrayList<>();
+        for (int i = 0; i < taxaList.size(); i++) {
+            String indiVCFFolderS = new File(outputDirS, subDirS[1]).getAbsolutePath();
+            String indiVCFFileS = new File(indiVCFFolderS, taxaList.get(i) + ".chr" + PStringUtils.getNDigitNumber(3, chr) + ".indi.vcf").getAbsolutePath();
+            List<String> bamPaths = taxaBamsMap.get(taxaList.get(i));
+            StringBuilder sb = new StringBuilder(samtoolsPath);
+            sb.append(" mpileup -A -B -q 20 -Q 20 -f ").append(this.taxaRefMap.get(taxaList.get(i)));
+            for (int j = 0; j < bamPaths.size(); j++) {
+                sb.append(" ").append(bamPaths.get(j));
+            }
+            sb.append(" -l ").append(posFileS).append(" -r ");
+            sb.append(chr);
+            if (this.regionStart != Integer.MIN_VALUE) {
+                sb.append(":").append(this.regionStart).append("-").append(regionEnd-1);
+            }
+            String command = sb.toString();
+            IndiVCF idv = new IndiVCF(command, indiVCFFileS, posRefMap, posAltMap, positions, bamPaths, counter);
+            Future<IndiVCF> result = pool.submit(idv);
+            resultList.add(result);
+        }
+        try {
+            pool.shutdown();
+            pool.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    class IndiVCF implements Callable<IndiVCF> {
+        String command = null;
+        String indiVCFFileS = null;
+        HashMap<Integer, String> posRefMap = null;
+        HashMap<Integer, String[]> posAltMap = null;
+        int[] positions = null;
+        List<String> bamPaths = null;
+        LongAdder counter = null;
+        public IndiVCF (String command, String indiVCFFileS, HashMap<Integer, String> posRefMap, HashMap<Integer, String[]> posAltMap, int[] positions, List<String> bamPaths, LongAdder counter) {
+            this.command = command;
+            this.indiVCFFileS = indiVCFFileS;
+            this.posRefMap = posRefMap;
+            this.posAltMap = posAltMap;
+            this.positions = positions;
+            this.bamPaths = bamPaths;
+            this.counter = counter;
+        }
+
+        @Override
+        public IndiVCF call() throws Exception {
+            try {
+                Runtime rt = Runtime.getRuntime();
+                Process p = rt.exec(command);
+                BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+//                BufferedReader bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+//                String temp = null;
+//                while ((temp = bre.readLine()) != null) {
+//                    if (temp.startsWith("[m")) continue;
+//                    System.out.println(command);
+//                    System.out.println(temp);
+//                }
+//                bre.close();
+
+                BufferedWriter bw = IOUtils.getTextWriter(indiVCFFileS);
+                String current = br.readLine();
+                List<String> currentList = null;
+                int currentPosition = -1;
+                if (current != null) {
+                    currentList = PStringUtils.fastSplit(current);
+                    currentPosition = Integer.parseInt(currentList.get(1));
+                }
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < positions.length; i++) {
+                    if (current == null) {
+                        bw.write("./.");
+                        bw.newLine();
+                    }
+                    else {
+                        if (positions[i] == currentPosition) {
+                            String ref = posRefMap.get(currentPosition);
+                            String[] alts = posAltMap.get(currentPosition);
+                            char[] alleleC = new char[alts.length+1];
+                            alleleC[0] = ref.charAt(0);
+                            for (int j = 0; j < alts.length; j++) {
+                                if (alts[j].startsWith("I") || alts[j].startsWith("<I")) {
+                                    alleleC[j+1] = '+';
+                                }
+                                else if (alts[j].startsWith("D") || alts[j].startsWith("<D")) {
+                                    alleleC[j+1] = '-';
+                                }
+                                else {
+                                    alleleC[j+1] = alts[j].charAt(0);
+                                }
+                            }
+                            int[] cnts = new int[alts.length+1];
+                            sb.setLength(0);
+                            for (int j = 0; j < bamPaths.size(); j++) {
+                                sb.append(currentList.get(4+j*3));
+                            }
+                            StringBuilder ssb = new StringBuilder();
+                            int curIndex = 0;
+                            for (int j = 0; j < sb.length(); j++) {
+                                char cChar = sb.charAt(j);
+                                if (cChar == '+') {
+                                    ssb.append(sb.subSequence(curIndex, j+1));
+                                    curIndex = j+2+Character.getNumericValue(sb.charAt(j+1));
+                                }
+                                else if (cChar == '-') {
+                                    ssb.append(sb.subSequence(curIndex, j+1));
+                                    curIndex = j+2+Character.getNumericValue(sb.charAt(j+1));
+                                }
+                            }
+                            ssb.append(sb.subSequence(curIndex, sb.length()));
+                            sb = ssb;
+                            String s = sb.toString().toUpperCase();
+                            for (int j = 0; j < s.length(); j++) {
+                                char cChar = s.charAt(j);
+                                if (cChar == '.' || cChar == ',') {
+                                    cnts[0]++;
+                                    continue;
+                                }
+                                for (int k = 1; k < alleleC.length; k++) {
+                                    if (cChar == alleleC[k]) cnts[k]++;
+                                }
+                            }
+                            for (int j = 1; j < alleleC.length; j++) {
+                                if (alleleC[j] == '+') cnts[0] = cnts[0]-cnts[j];
+                                else if (alleleC[j] == '-') cnts[0] = cnts[0]-cnts[j];
+                            }
+                            String vcf = getGenotype(cnts);
+                            bw.write(vcf);
+                            bw.newLine();
+                            current = br.readLine();
+                            if (current != null) {
+                                currentList = PStringUtils.fastSplit(current);
+                                currentPosition = Integer.parseInt(currentList.get(1));
+                            }
+                        }
+                        else if (positions[i] < currentPosition) {
+                            bw.write("./.");
+                            bw.newLine();
+                        }
+                        else {
+                            System.out.println("Current position is greater than pileup position. It should not happen. Program quits");
+                            System.exit(1);
+                        }
+                    }
+                }
+                p.waitFor();
+                bw.flush();
+                bw.close();
+                br.close();
+            }
+            catch (Exception ee) {
+                ee.printStackTrace();
+            }
+            counter.increment();
+            int cnt = counter.intValue();
+            if (cnt%10 == 0) System.out.println("Finished individual genotyping in " + String.valueOf(cnt) + " taxa. Total: " + String.valueOf(taxaBamsMap.size()));
+            return this;
+        }
+    }
+
     public void scanIndiVCFByStream () {
         this.creatFactorialMap();
         RowTable<String> t = new RowTable<> (posAlleleFileS);
@@ -248,6 +428,14 @@ public class HapScannercp2 {
                     Runtime rt = Runtime.getRuntime();
                     Process p = rt.exec(command);
                     BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+                    BufferedReader bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                    String temp = null;
+                    while ((temp = bre.readLine()) != null) {
+                        if (temp.startsWith("[m")) continue;
+                        System.out.println(command);
+                        System.out.println(temp);
+                    }
                     BufferedWriter bw = IOUtils.getTextWriter(indiVCFFileS);
                     String current = br.readLine();
                     List<String> currentList = null;
@@ -274,10 +462,12 @@ public class HapScannercp2 {
                                     else if (alts[j].startsWith("D") || alts[j].startsWith("<D")) {
                                         alleleC[j+1] = '-';
                                     }
-                                    alleleC[j+1] = alts[j].charAt(0);
+                                    else {
+                                        alleleC[j+1] = alts[j].charAt(0);
+                                    }
                                 }
                                 int[] cnts = new int[alts.length+1];
-                                sb = new StringBuilder();
+                                sb.setLength(0);
                                 for (int j = 0; j < bamPaths.size(); j++) {
                                     sb.append(currentList.get(4+j*3));
                                 }
@@ -299,7 +489,10 @@ public class HapScannercp2 {
                                 String s = sb.toString().toUpperCase();
                                 for (int j = 0; j < s.length(); j++) {
                                     char cChar = s.charAt(j);
-                                    if (cChar == '.' || cChar == ',') cnts[0]++;
+                                    if (cChar == '.' || cChar == ',') {
+                                        cnts[0]++;
+                                        continue;
+                                    }
                                     for (int k = 1; k < alleleC.length; k++) {
                                         if (cChar == alleleC[k]) cnts[k]++;
                                     }
@@ -311,7 +504,6 @@ public class HapScannercp2 {
                                 String vcf = this.getGenotype(cnts);
                                 bw.write(vcf);
                                 bw.newLine();
-
                                 current = br.readLine();
                                 if (current != null) {
                                     currentList = PStringUtils.fastSplit(current);
@@ -343,6 +535,9 @@ public class HapScannercp2 {
         }
     }
 
+    /**
+     * @deprecated
+     */
     public void scanIndiVCF () {
         this.creatFactorialMap();
         RowTable<String> t = new RowTable<> (posAlleleFileS);
@@ -358,7 +553,7 @@ public class HapScannercp2 {
         Set<String> taxaSet = taxaBamsMap.keySet();
         ArrayList<String> taxaList = new ArrayList(taxaSet);
         Collections.sort(taxaList);
-
+        
         int[][] indices = PArrayUtils.getSubsetsIndicesBySubsetSize(taxaList.size(), this.nThreads);
         LongAdder counter = new LongAdder();
         for (int u = 0; u < indices.length; u++) {
@@ -422,7 +617,6 @@ public class HapScannercp2 {
                                     else if (alts[j].startsWith("D") || alts[j].startsWith("<D")) {
                                         alleleC[j+1] = '-';
                                     }
-                                    alleleC[j+1] = alts[j].charAt(0);
                                 }
                                 int[] cnts = new int[alts.length+1];
                                 sb = new StringBuilder();
@@ -464,11 +658,11 @@ public class HapScannercp2 {
                                 if (current != null) {
                                     currentList = PStringUtils.fastSplit(current);
                                     currentPosition = Integer.parseInt(currentList.get(1));
-                                }
+                                } 
                             }
                             else if (positions[i] < currentPosition) {
                                 bw.write("./.");
-                                bw.newLine();
+                                bw.newLine();    
                             }
                             else {
                                 System.out.println("Current position is greater than pileup position. It should not happen. Program quits");
@@ -488,7 +682,7 @@ public class HapScannercp2 {
             });
         }
     }
-
+    
     private String getGenotype (int[] cnt) {
         int n = cnt.length*(cnt.length+1)/2;
         int[] likelihood = new int[n];
@@ -533,50 +727,34 @@ public class HapScannercp2 {
         sb.deleteCharAt(sb.length()-1);
         return sb.toString();
     }
-
+    
     private void creatFactorialMap () {
         this.factorialMap = HashIntDoubleMaps.getDefaultFactory().newMutableMap();
         for (int i = 0; i < this.maxFactorial+1; i++) {
             this.factorialMap.put(i, factorial(i));
         }
     }
-
+    
     public void mkDir () {
         for (int i = 0; i < subDirS.length; i++) {
             File f = new File(outputDirS, subDirS[i]);
             f.mkdir();
         }
     }
-
+    
     public void parseParameters (String infileS) {
-        List<String> pLineList = new ArrayList<>();
-        try {
-            BufferedReader br = IOUtils.getTextReader(infileS);
-            String temp = null;
-            boolean ifOut = false;
-            if (!(temp = br.readLine()).equals("@App:\tHapScanner")) ifOut = true;
-            if (!(temp = br.readLine()).equals("@Author:\tFei Lu")) ifOut = true;
-            if (!(temp = br.readLine()).equals("@Email:\tflu@genetics.ac.cn; dr.lufei@gmail.com")) ifOut = true;
-            if (!(temp = br.readLine()).equals("@Homepage:\thttps://plantgeneticslab.weebly.com/")) ifOut = true;
-            if (ifOut) {
-                System.out.println("Thanks for using HapScanner.");
-                System.out.println("Please keep the authorship in the parameter file. Program stops.");
-                System.exit(0);
-            }
-            while ((temp = br.readLine()) != null) {
-                if (temp.startsWith("#")) continue;
-                if (temp.isEmpty()) continue;
-                pLineList.add(temp);
-            }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
+        Dyad<List<String>, List<String>> d = AppUtils.getParameterList(infileS);
+        List<String> pLineList = d.getFirstElement();
         taxaRefBamFileS = pLineList.get(0);
         posAlleleFileS = pLineList.get(1);
         posFileS = pLineList.get(2);
-        chr = Integer.valueOf(pLineList.get(3));
+        String[] tem = pLineList.get(3).split(":");
+        chr = Integer.valueOf(tem[0]);
+        if (tem.length == 2) {
+            tem = tem[1].split(",");
+            this.regionStart = Integer.parseInt(tem[0]);
+            this.regionEnd = Integer.parseInt(tem[1])+1;
+        }
         this.combinedErrorRate = Double.parseDouble(pLineList.get(4));
         samtoolsPath = pLineList.get(5);
         this.nThreads = Integer.parseInt(pLineList.get(6));

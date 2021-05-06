@@ -1,16 +1,24 @@
-package xiaohan.eQTL;
+package xiaohan.eQTL.javapractice;
 
-import com.mitchellbosecke.pebble.extension.Test;
-import xiaohan.eQTL.SNPmapping;
-
-import java.util.Arrays;
+import xiaohan.eQTL.LeetCodePractice;
+import xiaohan.eQTL.SNPmappingInGene;
 
 
 public class javaPractice {
     public javaPractice(String...args){
 //        this.attributionForCollections();
 //        this.LeetCodePractice();
-        this.testSNPmaping();
+//        this.testSNPmaping();
+//        this.basicdatatype();
+        this.testforguava();
+    }
+
+    public void testforguava(){
+        new testforguava();
+    }
+
+    public void basicdatatype(){
+        new basicdatatype();
     }
 
     public void testSNPmaping(){

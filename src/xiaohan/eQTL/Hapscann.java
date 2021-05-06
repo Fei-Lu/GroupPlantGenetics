@@ -13,12 +13,14 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.*;
 
-public class HapscannerParameters {
+public class Hapscann {
 
     Options options = new Options();
 
-    String hapscanDir = "/data2/xiaohan/genotype/hapscanner";
+    //    String hapscanDir = "/data2/xiaohan/genotype/hapscanner";
+    String hapscanDir = null;
     String outputDir = null;
     String parameterDir = null;
     String taxaRefBAMDir = null;
@@ -27,7 +29,11 @@ public class HapscannerParameters {
 
     String genotypeDir = null;
     String BamDir = null;
-    String genotypesuffix = ".360.vcf.gz";
+    String genotypesuffix = null;
+    String bamsuffix = null;
+    String jarDir = null;
+    String samtools = null;
+    String faDir = null;
 
 
     String plate = null;
@@ -39,22 +45,53 @@ public class HapscannerParameters {
     //    boolean changeName = false;
     String overwrite = "no";
 
-    public HapscannerParameters(String[] args) throws IOException, InterruptedException {
+    public Hapscann(String[] args) throws IOException, InterruptedException {
         this.createOptions();
         this.parseparameter(args);
-//        this.parameter();
-//        this.taxaRefBAM();
+        this.parameter();
+        this.taxaRefBAM();
 //        this.Hapscanner(args);
 //        this.Hapscanner();
+        this.Hapscanner1();
 //
 //        this.getsubRNAgenotypeor();
 //        this.getIsec();
 //        this.getMergedVCF();
 //        this.getsortedVCF();
 //        this.changeRNAVCFname();
-        this.getIBdistane();
+//        this.getIBdistane();
 //        this.getDensityIBS();
-        this.filtersample();
+//        this.filtersample();
+    }
+
+    public void Hapscanner1(){
+        File[] fs = new File(this.parameterDir).listFiles();
+        fs = IOUtils.listFilesStartsWith(fs, plate + "_");
+        Arrays.sort(fs);
+        for (int i = 0; i < fs.length; i++) {
+            String infile = fs[i].getAbsolutePath();
+        }
+    }
+
+    static class Command implements Callable<Command> {
+        String command = null;
+        File dir = null;
+        public Command (String command, File dir){
+            this.command = command;
+            this.dir = dir;
+        }
+        @Override
+        public Command call() throws Exception {
+            try {
+                System.out.println(command);
+                String[] cmdarry1 = {"/bin/bash", "-c", command};
+                Process p1 = Runtime.getRuntime().exec(cmdarry1, null, dir);
+                p1.waitFor();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            return this;
+        }
     }
 
     public void filtersample() {
@@ -236,12 +273,16 @@ public class HapscannerParameters {
 
     public void createOptions() {
         options = new Options();
-        options.addOption("g", true, "genotype Dir");
+//        options.addOption("g", true, "genotype Dir");
         options.addOption("b", true, "sorted bam file Dir");
         options.addOption("o", true, "output File Dir");
         options.addOption("p", true, "plate");
-        options.addOption("pos", true, "Whether or not to overwrite pos and posAllele Dir");
+//        options.addOption("pos", true, "Whether or not to overwrite pos and posAllele Dir");
         options.addOption("t", true, "threads");
+        options.addOption("j", true, "jar dir");
+        options.addOption("bs", true, "bamsuffix");
+//        options.addOption("gs", true, "genotypesuffix");
+        options.addOption("samtools",true,"samtools path");
     }
 
     public void parseparameter(String[] args) {
@@ -249,16 +290,31 @@ public class HapscannerParameters {
         CommandLineParser parser = new DefaultParser();
         try {
             CommandLine line = parser.parse(options, args);
-            genotypeDir = line.getOptionValue("g");
+//            genotypeDir = line.getOptionValue("g");
             BamDir = line.getOptionValue("b");
             plate = line.getOptionValue("p");
-            outputDir = line.getOptionValue("o");
-            overwrite = line.getOptionValue("pos");
+            hapscanDir = line.getOptionValue("o");
+//            overwrite = line.getOptionValue("pos");
             threads = line.getOptionValue("t");
+            jarDir = line.getOptionValue("j");
+            bamsuffix = line.getOptionValue("bs");
+//            genotypesuffix = line.getOptionValue("gs");
+            samtools = line.getOptionValue("samtools");
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(0);
         }
+
+
+        bamsuffix = bamsuffix.replace(" ","");
+        genotypesuffix = genotypesuffix.replace(" ","");
+        System.out.println(bamsuffix);
+        System.out.println(genotypesuffix);
+
+
+        outputDir = hapscanDir + "/" + plate;
+
+//        hapscanDir = outputDir.replace(outputDir.split("/")[outputDir.split("/").length-1],"");
         if (genotypeDir == null) {
             System.out.println("Genotype Dir doesn't exist");
             this.printIntroductionAndUsage();
@@ -269,12 +325,18 @@ public class HapscannerParameters {
             this.printIntroductionAndUsage();
             System.exit(0);
         }
-        if (outputDir == null) {
-            System.out.println("Output Dir doesn't exist");
+        if (hapscanDir == null) {
+            System.out.println("output Dir doesn't exist");
             this.printIntroductionAndUsage();
             System.exit(0);
         }
+        if (outputDir == null) {
+            File f = new File(outputDir);
+            f.mkdir();
+        }
+
         System.out.println("Dealing plate " + plate);
+
 
         System.out.println("Start making dirs");
         taxaRefBAMDir = new File(hapscanDir, "taxaRefBAM").getAbsolutePath();
@@ -305,24 +367,24 @@ public class HapscannerParameters {
             }
         }
 
-        String RNAdir = new File(this.outputDir, "RNA").getAbsolutePath();
-        String Isecdir = new File(this.outputDir, "Isec").getAbsolutePath();
-        File f2 = new File(RNAdir);
-        if (!f2.exists()) {
-            f2.mkdir();
-        }
-        File f3 = new File(Isecdir);
-        if (!f3.exists()) {
-            f3.mkdir();
-        }
-        try {
-            if (!f2.exists() || !f3.exists()) {
-                System.out.println("Not complete mkdir ***");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+//        String RNAdir = new File(this.outputDir, "RNA").getAbsolutePath();
+//        String Isecdir = new File(this.outputDir, "Isec").getAbsolutePath();
+//        File f2 = new File(RNAdir);
+//        if (!f2.exists()) {
+//            f2.mkdir();
+//        }
+//        File f3 = new File(Isecdir);
+//        if (!f3.exists()) {
+//            f3.mkdir();
+//        }
+//        try {
+//            if (!f2.exists() || !f3.exists()) {
+//                System.out.println("Not complete mkdir ***");
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
     }
 
     public void printIntroductionAndUsage() {
@@ -860,15 +922,15 @@ public class HapscannerParameters {
                         "\n" +
                         "#Parameter 1: The taxaRefBam file containing information of taxon and its corresponding refernece genome and bam files. The bam file should have .bai file in the same folder\n" +
                         "#If one taxon has n bam files, please list them in n rows.\n");
-                bw.write("/data2/xiaohan/genotype/hapscanner/taxaRefBAM/" + plate + "_taxaRefBAM_chr" + chr + ".txt\n" +
+                bw.write(new File(hapscanDir, "taxaRefBAM/" + plate + "_taxaRefBAM_chr" + chr + ".txt\n").getAbsolutePath() +
                         "\n");
                 bw.write("#Parameter 2: The posAllele file (with header), the format is Chr\\tPos\\tRef\\tAlt (from VCF format). The positions come from genetic variation library. \n" +
                         "#A maximum of 2 alternative alleles are supported, which is seperated by \",\", e.g. A,C.\n" +
                         "#Deletion and insertion are supported, denoted as \"D\" and \"I\".\n");
-                bw.write("/data2/xiaohan/genotype/hapscanner/posAllele/posAllele_chr" + chr + ".txt\n" +
+                bw.write(new File(hapscanDir, "posAllele/posAllele_chr" + chr + ".txt\n").getAbsolutePath() +
                         "\n");
                 bw.write("#Parameter 3: The pos files (without header), the format is Chr\\tPos. The positions come from haplotype library, which is used in mpileup.\n");
-                bw.write("/data2/xiaohan/genotype/hapscanner/pos/pos_chr" + chr + ".txt\n" +
+                bw.write(new File(hapscanDir, "pos/pos_chr" + chr + ".txt\n").getAbsolutePath() +
                         "\n");
                 bw.write("#Parameter 4: The chromosome which will be scanned.\n" +
                         chr + "\n" +
@@ -877,7 +939,7 @@ public class HapscannerParameters {
                         "0.05\n" +
                         "\n" +
                         "#Parameter 6: The path of samtools\n" +
-                        "/usr/bin/samtools\n" +
+                        new File(samtools).getAbsolutePath()+"\n" +
                         "\n" +
                         "#Parameter 7: Number of threads\n" +
                         threads + "\n" +
@@ -906,7 +968,7 @@ public class HapscannerParameters {
     public void Hapscanner() {
         long startTime = System.currentTimeMillis();
         System.out.println("This is running hapscanner *****************************************************************");
-        String JarDir = "/data1/home/xiaohan/jar";
+        String JarDir = jarDir;
         BufferedWriter bw = IOUtils.getTextWriter("command_" + plate + ".txt");
         File[] fs = new File(this.parameterDir).listFiles();
         fs = IOUtils.listFilesStartsWith(fs, plate + "_");
@@ -934,25 +996,38 @@ public class HapscannerParameters {
         System.out.println("******* Hapscanner genotyping takes " + (endTime - startTime) + "ms");
     }
 
+    public List<String> listfile(String file) {
+        List<String> files = new ArrayList<>();
+        File[] fileDir = null;
+        if (new File(file).isDirectory()) {
+            fileDir = new File(file).listFiles();
+            for (int i = 0; i < fileDir.length; i++) {
+                if (fileDir[i].isDirectory()) {
+                    listfile(new File(String.valueOf(fileDir[i])).getAbsolutePath());
+                } else {
+                    files.add(fileDir[i].getAbsolutePath());
+                }
+            }
+        } else {
+            files.add(file);
+        }
+        return files;
+    }
+
     public void taxaRefBAM() {
         long startTime = System.currentTimeMillis();
         System.out.println("This is writing taxaRefBam files *************************************************************************");
-        String[] dirs = new File(this.BamDir).list();
         ArrayList<String> files = new ArrayList<>();
-        for (int i = 0; i < dirs.length; i++) {
-            if (!dirs[i].endsWith("DS_Store")) {
-                File[] fs1 = new File(BamDir, dirs[i] + "/sams").listFiles();
-                fs1 = IOUtils.listFilesEndsWith(fs1, "_Aligned.out.sorted.bam");
-                for (int j = 0; j < fs1.length; j++) {
-                    files.add(fs1[j].getAbsolutePath());
-                    System.out.println(fs1[j]);
-                }
-            }
+        File[] fs1 = new File(BamDir).listFiles();
+        fs1 = IOUtils.listFilesEndsWith(fs1, bamsuffix);
+        for (int j = 0; j < fs1.length; j++) {
+            System.out.println(fs1[j].getAbsolutePath());
+            files.add(fs1[j].getAbsolutePath());
+            System.out.println(fs1[j]);
         }
         HashSet<String> nameSet = new HashSet();
         for (int i = 0; i < files.size(); i++) {
             nameSet.add(files.get(i));
-//            System.out.println(files.get(i));
         }
         try {
             String[] namelist = nameSet.toArray(new String[nameSet.size()]);
@@ -962,9 +1037,10 @@ public class HapscannerParameters {
                 bw.write("Taxa\tReference\tBamPath\n");
                 for (int j = 0; j < namelist.length; j++) {
                     StringBuilder sb = new StringBuilder();
-                    int length = namelist[j].split("/").length;
-                    sb.append(namelist[j].split("/")[length - 1].replace("_Aligned.out.sorted.bam", "")).append("\t");
-                    sb.append("/data2/xiaohan/genotype/hapscanner/ref/chr" + chr + ".fa\t");
+//                    int length = namelist[j].split("/").length;
+//                    sb.append(namelist[j].split("/")[length - 1].replace(bamsuffix, "")).append("\t");
+                    sb.append(namelist[j].split("/")[namelist[j].split("/").length-1].replace(bamsuffix, "")).append("\t");
+                    sb.append("/data1/home/xiaohan/hapscanner/ref/chr" + chr + ".fa\t");
                     sb.append(new File(namelist[j]).getAbsolutePath());
                     bw.write(sb.toString());
                     bw.newLine();
@@ -977,7 +1053,6 @@ public class HapscannerParameters {
         }
         long endTime = System.currentTimeMillis(); //获取结束时间
         System.out.println("******* Writing taxaRefBam files takes " + (endTime - startTime) + "ms");
-
     }
 
     public void poswithAllele() {
@@ -985,7 +1060,7 @@ public class HapscannerParameters {
         System.out.println("This is writing pos file ****************************************************");
         HashSet<String> nameSet = new HashSet<>();
         File[] fs = new File(genotypeDir).listFiles();
-        fs = IOUtils.listFilesEndsWith(fs, "360.vcf.gz");
+        fs = IOUtils.listFilesEndsWith(fs, ".vcf.gz");
         for (int i = 0; i < fs.length; i++) {
             System.out.println(fs[i].getAbsolutePath());
             nameSet.add(fs[i].getName());
@@ -1024,6 +1099,6 @@ public class HapscannerParameters {
 
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        new HapscannerParameters(args);
+        new Hapscann(args);
     }
 }
