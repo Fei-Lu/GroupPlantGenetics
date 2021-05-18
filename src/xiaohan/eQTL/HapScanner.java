@@ -255,6 +255,7 @@ public class HapScanner {
         catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     class IndiVCF implements Callable<IndiVCF> {
@@ -274,6 +275,7 @@ public class HapScanner {
             this.bamPaths = bamPaths;
             this.counter = counter;
         }
+
 
         @Override
         public IndiVCF call() throws Exception {
@@ -742,7 +744,7 @@ public class HapScanner {
         }
     }
     
-    public void parseParameters (String infileS) {
+    public void parseParameters(String infileS) {
         Dyad<List<String>, List<String>> d = AppUtils.getParameterList(infileS);
         List<String> pLineList = d.getFirstElement();
         taxaRefBamFileS = pLineList.get(0);

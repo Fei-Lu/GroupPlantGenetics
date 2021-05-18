@@ -95,25 +95,45 @@ public class eQTL {
         heterozygosity
          */
         this.heterozygosity();
-
-
-        this.intergenicPattern();
-        this.intergenicPatternEnrichment();
-        this.intergenicPatternTransposon();
-        this.getTransposonLength();
-        this.getTransposonClass();
-        this.command();
-        this.depth();
+//
+//
+//        this.intergenicPattern();
+//        this.intergenicPatternEnrichment();
+//        this.intergenicPatternTransposon();
+//        this.getTransposonLength();
+//        this.getTransposonClass();
+//        this.command();
+//        this.depth();
 
         /*
         java with faster java practice
          */
-        this.javaPractice(args);
-        this.ERCCRoc();
-        this.ThreadPool(args[0],args[1]);
-        this.subextractGeneRegion(args[0], args[1]);
-        this.hetandMaf(args[0], args[1]);
+//        this.javaPractice(args);
+//        this.ERCCRoc();
+//        this.ThreadPool(args[0],args[1]);
+//        this.subextractGeneRegion(args[0], args[1]);
+//        this.hetandMaf(args[0], args[1]);
+//        this.testforfunctional();
+    }
 
+    public void testforfunctional() {
+        String vcf = new File("/Users/yxh/Documents/NAM_library/Lib_GBS/pipeOutput/rawGenotype/genotype/chr034.vcf").getAbsolutePath();
+        BufferedReader br = IOUtils.getTextReader(vcf);
+        String temp = null;
+        try {
+            temp = br.readLine();
+            while ((!temp.startsWith("#C"))) {
+                if (temp.startsWith("#C")) break;
+                temp = br.readLine();
+            }
+            System.out.println(temp);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        temp = "0,1,2,3,4,5,6,7,8,9,10,11,12";
+        String[] temps = temp.split(",");
+        String[] HBnames = Arrays.copyOfRange(temps,9,temps.length);
+        System.out.println(HBnames[HBnames.length-1]);
     }
 
     public void hetandMaf(String infileDir, String outfileDir) {
@@ -572,7 +592,7 @@ public class eQTL {
         });
     }
 
-    public void heterozygosity(){
+    public void heterozygosity() {
         new heterozygosity();
     }
 

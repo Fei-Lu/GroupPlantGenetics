@@ -19,15 +19,15 @@ import com.sun.image.codec.jpeg.JPEGImageEncoder;
 public class PictureUtil extends JFrame implements MouseListener {
 
     public PictureUtil() {
-        setSize(800, 600);// 根据要求调整大小
-        setLocation(100, 100);
+        setSize(1600, 1200);// 根据要求调整大小
+        setLocation(200, 100);
         setTitle("获得图片上任意点坐标");
         setResizable(false);
 
         Container con = getContentPane();
 
-        ImageIcon bgIcon = new ImageIcon("/Users/yxh/Desktop/test.png");// 注意图片的路径
-        ImagePanel backpicPanel = new ImagePanel(bgIcon);
+        ImageIcon bgIcon = new ImageIcon("/Users/yxh/Documents/eQTL/SiPAS/RIN/7.6.jpeg");// 注意图片的路径
+        ImagePanel backpicPanel = new ImagePanel(bgIcon,2);
         backpicPanel.addMouseListener(this);
         con.add(backpicPanel, BorderLayout.CENTER);
 
@@ -90,8 +90,10 @@ public class PictureUtil extends JFrame implements MouseListener {
 class ImagePanel extends JPanel {
     private Image img;
 
-    public ImagePanel(ImageIcon imageIcon) {
-        img = imageIcon.getImage();
+    public ImagePanel(ImageIcon imageIcon,double ratio) {
+        int width = (int)(imageIcon.getIconWidth()*ratio);
+        int height = (int)(imageIcon.getIconHeight()*ratio);
+        img = imageIcon.getImage().getScaledInstance(width, height, Image.SCALE_DEFAULT);
     }
 
     public void paintComponent(Graphics g) {
