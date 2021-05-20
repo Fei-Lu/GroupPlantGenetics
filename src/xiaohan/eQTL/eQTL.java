@@ -28,6 +28,9 @@ import java.util.concurrent.TimeUnit;
 public class eQTL {
 
     int score = 0;
+    String kinship = "/Users/yxh/Documents/NAM_library/20210515GBStest1/KinshipMap.txt";
+    Multimap<String, String> kinshipMap = ArrayListMultimap.create();
+    HashSet<String> HBSet = new HashSet<>();
 
     public eQTL(String[] args) throws IOException, InterruptedException {
          /*
@@ -110,10 +113,65 @@ public class eQTL {
          */
 //        this.javaPractice(args);
 //        this.ERCCRoc();
+//        this.getkinship();
+//        this.getquality();
 //        this.ThreadPool(args[0],args[1]);
 //        this.subextractGeneRegion(args[0], args[1]);
 //        this.hetandMaf(args[0], args[1]);
 //        this.testforfunctional();
+    }
+
+    private void getkinship() {
+        String infile = kinship;
+        BufferedReader br = IOUtils.getTextReader(infile);
+        try {
+            String temp = null;
+            String[] temps = null;
+            while ((temp = br.readLine()) != null) {
+                temps = temp.split("\t");
+                HBSet.add(temps[0]);
+                kinshipMap.put(temps[0], temps[1]);
+                kinshipMap.put(temps[0], temps[2]);
+            }
+            br.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void getquality() {
+        String ibsOutfileS = new File("/Users/yxh/Documents/NAM_library/test.txt").getAbsolutePath();
+        xiaohan.eQTL.RowTable<String> rt = new xiaohan.eQTL.RowTable<>(ibsOutfileS);
+        List<String> HBset = new ArrayList<>();
+        List<String> Pset = new ArrayList<>();
+        String[] header = rt.getHeader().toArray(new String[0]);
+        for (int i = 0; i < header.length; i++) {
+            if (header[i].startsWith("HB")) {
+                HBset.add(header[i]);
+            } else Pset.add(header[i]);
+        }
+        for (int i = 0; i < HBset.size(); i++) {
+            String HB = HBset.get(i);
+            Collection<String> P = kinshipMap.get(HB);
+            String[] pa = rt.getColumn(rt.getColumnIndex("Dxy")).toArray(new String[0]);
+            String[] subpa = Arrays.copyOfRange(pa, HBset.size(), header.length);
+            System.out.println(pa[0]);
+            System.out.println(subpa[0]);
+            double[] IBS = rt.getColumnAsDoubleArray(rt.getColumnIndex(HB));
+            double[] IBSsub = Arrays.copyOfRange(IBS, HBset.size(), header.length-1);
+            for (int j = 0; j < IBSsub.length; j++) {
+                System.out.println(IBSsub[j]);
+            }
+            double[] minMin = SNPmappingInGene.minMin(IBSsub);
+            System.out.println(HBset.size());
+            System.out.println(Pset.size());
+            System.out.println(IBSsub.length);
+            System.out.println(header.length);
+            System.out.println(minMin[2]);
+            String p1 = header[HBset.size() + (int) minMin[2] + 1];
+            String p2 = header[HBset.size() + (int) minMin[3] + 1];
+            System.out.println(HB + " of " + p1 + " & " + p2);
+        }
     }
 
     public void testforfunctional() {
@@ -132,8 +190,8 @@ public class eQTL {
         }
         temp = "0,1,2,3,4,5,6,7,8,9,10,11,12";
         String[] temps = temp.split(",");
-        String[] HBnames = Arrays.copyOfRange(temps,9,temps.length);
-        System.out.println(HBnames[HBnames.length-1]);
+        String[] HBnames = Arrays.copyOfRange(temps, 9, temps.length);
+        System.out.println(HBnames[HBnames.length - 1]);
     }
 
     public void hetandMaf(String infileDir, String outfileDir) {

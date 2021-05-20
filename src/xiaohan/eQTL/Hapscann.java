@@ -60,7 +60,7 @@ public class Hapscann {
     String taxaRefBAMDir = null;
     String posDir = null;
     String posAlleleDir = null;
-    String ref = null;
+    String ref = "/data1/home/xiaohan/hapscanner/ref";
 
     //input
     String genotypeDir = null;
@@ -988,6 +988,7 @@ public class Hapscann {
         options.addOption("bs", true, "bamsuffix");
         options.addOption("gs", true, "genotypesuffix");
         options.addOption("samtools",true,"samtools path");
+//        options.addOption("r",true,"refDir");
     }
 
     public void parseparameter(String[] args) {
@@ -996,6 +997,7 @@ public class Hapscann {
         try {
             CommandLine line = parser.parse(options, args);
             genotypeDir = line.getOptionValue("g");
+//            ref = line.getOptionValue("r");
             BamDir = line.getOptionValue("b");
             plate = line.getOptionValue("p");
             hapscanDir = line.getOptionValue("o");
@@ -1008,6 +1010,7 @@ public class Hapscann {
                 genotypesuffix = line.getOptionValue("gs");
             }
             samtools = line.getOptionValue("samtools");
+
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(0);
@@ -1030,7 +1033,7 @@ public class Hapscann {
             System.exit(0);
         }
 
-        outputDir = hapscanDir + "/output/" + plate;
+        outputDir = new File(hapscanDir, "/output/" + plate).getAbsolutePath();
 
         if (hapscanDir == null) {
             System.out.println("output Dir doesn't exist");
@@ -1175,6 +1178,7 @@ public class Hapscann {
                     sb.append(namelist[j].split("/")[namelist[j].split("/").length-1].replace(bamsuffix, "")).append("\t");
                     sb.append(new File(ref,"chr" + chr + ".fa\t").getAbsolutePath());
                     sb.append(new File(namelist[j]).getAbsolutePath());
+                    System.out.println(sb.toString());
                     bw.write(sb.toString());
                     bw.newLine();
                 }

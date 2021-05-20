@@ -360,8 +360,8 @@ public class testinfor {
     }
     public static void main(String[] args) {
         String [] st = new String [2];
-        st[0]="/data1/home/xiaohan/SiPASdata/20210118/barcode.txt";
-        st[1]="/data1/home/xiaohan/SiPASdata/20210118/";
+        st[0]="/Users/yxh/Documents/eQTL/expr/ratioTable/20210118SIPASRP2/barcode.txt";
+        st[1]="/Users/yxh/Documents/eQTL/expr/ratioTable/20210118SIPASRP2/";
         new testinfor(st);
     }
 
