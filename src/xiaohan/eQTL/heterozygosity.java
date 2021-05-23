@@ -22,21 +22,52 @@ import java.io.File;
 import java.util.*;
 
 public class heterozygosity {
-    int index = 1;
-    String barcodeFileS = "/data1/home/xiaohan/nam/20210515GBStest" + index + "/barcode_GBS" + index + ".txt";
-    String libraryFastqMapFileS = "/data1/home/xiaohan/nam/20210515GBStest" + index + "/libraryFastqMap_GBS" + index + ".txt";
+//    String index = "0";
+//    String barcodeFileS = "/data1/home/xiaohan/nam/20210515GBStest" + index + "/barcode_GBS" + index + ".txt";
+//    String libraryFastqMapFileS = "/data1/home/xiaohan/nam/20210515GBStest" + index + "/libraryFastqMap_GBS" + index + ".txt";
+////
+////    String barcodeFileS = "/Users/yxh/Documents/NAM_library/Lib_GBS/source/20180601_GBSLibrarybarcode.txt";
+////    String libraryFastqMapFileS = "/Users/yxh/Documents/NAM_library/Lib_GBS/source/LibraryFastqMap.txt";
+//
+//    String cutter1 = "GGATCC";
+//    String cutter2 = "CCGG";
+//    String workingDirS = "/data1/home/xiaohan/nam/20210515GBStest" + index + "/";
+////    String workingDirS = "/Users/yxh/Documents/NAM_library/Lib_GBS/source";
+//
+////    String[] subDir = {"subFastqs", "bam", "sortedbam", "IBS", "heter", "sum"};
+//    String[] subDir = null;
+//    String HapscannerDir = "/data1/home/xiaohan/hapscanner/";
+//    String kinship = "/data1/home/xiaohan/nam/20210515GBStest" + index + "/KinshipMap.txt";
+//    Multimap<String, String> kinshipMap = ArrayListMultimap.create();
+//    HashSet<String> HBSet = new HashSet<>();
+//
+//    String bwa = "/data1/home/xiaohan/miniconda3/bin/bwa";
+//    String bwalib = "/data1/publicData/wheat/reference/v1.0/ABD/bwaLib/abd_iwgscV1.fa.gz";
+//    String samtools = "/data1/home/xiaohan/miniconda3/bin/samtools";
+//
+//    String ref = "/data1/home/xiaohan/hapscanner/ref";
+//    String plate = "20210515GBStest" + index;
+//    String genotypeDir = "/data1/home/xiaohan/nam/Parent/VCF";
+//    String bamsuffix = ".sorted.bam";
+//    String genotypesuffix = ".vcf";
+//    String threads = "10";
+
+    //    String index = "0";
+    String barcodeFileS = "/data1/home/xiaohan/nam/20210515GBStest/barcode.txt";
+    String libraryFastqMapFileS = "/data1/home/xiaohan/nam/20210515GBStest/libraryFastqMap.txt";
 //
 //    String barcodeFileS = "/Users/yxh/Documents/NAM_library/Lib_GBS/source/20180601_GBSLibrarybarcode.txt";
 //    String libraryFastqMapFileS = "/Users/yxh/Documents/NAM_library/Lib_GBS/source/LibraryFastqMap.txt";
 
     String cutter1 = "GGATCC";
     String cutter2 = "CCGG";
-    String workingDirS = "/data1/home/xiaohan/nam/20210515GBStest" + index + "/";
+    String workingDirS = "/data1/home/xiaohan/nam/20210515GBStest/";
 //    String workingDirS = "/Users/yxh/Documents/NAM_library/Lib_GBS/source";
 
     String[] subDir = {"subFastqs", "bam", "sortedbam", "IBS", "heter", "sum"};
+    //    String[] subDir = null;
     String HapscannerDir = "/data1/home/xiaohan/hapscanner/";
-    String kinship = "/data1/home/xiaohan/nam/20210515GBStest" + index + "/KinshipMap.txt";
+    String kinship = "/data1/home/xiaohan/nam/20210515GBStest/KinshipMap.txt";
     Multimap<String, String> kinshipMap = ArrayListMultimap.create();
     HashSet<String> HBSet = new HashSet<>();
 
@@ -45,24 +76,55 @@ public class heterozygosity {
     String samtools = "/data1/home/xiaohan/miniconda3/bin/samtools";
 
     String ref = "/data1/home/xiaohan/hapscanner/ref";
-    String plate = "20210515GBStest" + index;
+    String plate = "20210515GBStest";
     String genotypeDir = "/data1/home/xiaohan/nam/Parent/VCF";
     String bamsuffix = ".sorted.bam";
     String genotypesuffix = ".vcf";
-    String threads = "10";
+    String threads = "32";
 
 
-    public heterozygosity(String... args) {
+    public heterozygosity(String[] args) {
+//        this.nameDir(args[0]);
         this.mkdir();
 //        this.trimmomatics();
 //        this.parsefastqs();
 //        this.bwa();
 //        this.sortbam();
-//        this.callsnp();
+        this.callsnp();
 //        this.interset();
         this.getkinship();
-//        this.getheterozygosity();
+        this.getheterozygosity();
         this.getIBS();
+    }
+
+    public void nameDir(String index1) {
+//        this.index = index1;
+//        this.barcodeFileS = "/data1/home/xiaohan/nam/20210515GBStest" + index + "/barcode_GBS" + index + ".txt";
+//        this.libraryFastqMapFileS = "/data1/home/xiaohan/nam/20210515GBStest" + index + "/libraryFastqMap_GBS" + index + ".txt";
+////
+////    String barcodeFileS = "/Users/yxh/Documents/NAM_library/Lib_GBS/source/20180601_GBSLibrarybarcode.txt";
+////    String libraryFastqMapFileS = "/Users/yxh/Documents/NAM_library/Lib_GBS/source/LibraryFastqMap.txt";
+//
+//        this.cutter1 = "GGATCC";
+//        this.cutter2 = "CCGG";
+//        this.workingDirS = "/data1/home/xiaohan/nam/20210515GBStest" + index + "/";
+////    String workingDirS = "/Users/yxh/Documents/NAM_library/Lib_GBS/source";
+//
+//        this.subDir = new String[]{"subFastqs", "bam", "sortedbam", "IBS", "heter", "sum"};
+//        this.HapscannerDir = "/data1/home/xiaohan/hapscanner/";
+//        this.kinship = "/data1/home/xiaohan/nam/20210515GBStest" + index + "/KinshipMap.txt";
+//        this.HBSet = new HashSet<>();
+//
+//        this.bwa = "/data1/home/xiaohan/miniconda3/bin/bwa";
+//        this.bwalib = "/data1/publicData/wheat/reference/v1.0/ABD/bwaLib/abd_iwgscV1.fa.gz";
+//        this.samtools = "/data1/home/xiaohan/miniconda3/bin/samtools";
+//
+//        this.ref = "/data1/home/xiaohan/hapscanner/ref";
+//        this.plate = "20210515GBStest" + index;
+//        this.genotypeDir = "/data1/home/xiaohan/nam/Parent/VCF";
+//        this.bamsuffix = ".sorted.bam";
+//        this.genotypesuffix = ".vcf";
+//        this.threads = "10";
     }
 
     public void mkdir() {
@@ -86,12 +148,12 @@ public class heterozygosity {
             try {
                 int dep1 = 0;
                 int dep2 = 0;
-                String vcf = new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, f) + ".vcf").getAbsolutePath();
-                String genovcf = new File(genotypeDir, "chr" + PStringUtils.getNDigitNumber(3, f) + ".vcf").getAbsolutePath();
+                String vcf = new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, f) + ".vcf.gz").getAbsolutePath();
+                String genovcf = new File(genotypeDir, "chr" + PStringUtils.getNDigitNumber(3, f) + ".vcf.gz").getAbsolutePath();
                 String outfile = new File(workingDirS, subDir[4] + "/chr" + PStringUtils.getNDigitNumber(3, f) + "_het.txt").getAbsolutePath();
                 String outfile1 = new File(workingDirS, subDir[4] + "/chr" + PStringUtils.getNDigitNumber(3, f) + "_plot.txt").getAbsolutePath();
-                BufferedReader br = IOUtils.getTextReader(vcf);
-                BufferedReader br1 = IOUtils.getTextReader(genovcf);
+                BufferedReader br = IOUtils.getTextGzipReader(vcf);
+                BufferedReader br1 = IOUtils.getTextGzipReader(genovcf);
                 BufferedWriter bw = IOUtils.getTextWriter(outfile);
                 BufferedWriter bw1 = IOUtils.getTextWriter(outfile1);
                 String temp = null;
@@ -102,12 +164,12 @@ public class heterozygosity {
                     if (temp.startsWith("#C")) break;
                     temp = br.readLine();
                 }
-                System.out.println(temp);
+//                System.out.println(temp);
                 while ((!temp1.startsWith("#C"))) {
                     if (temp1.startsWith("#C")) break;
                     temp1 = br1.readLine();
                 }
-                System.out.println(temp1);
+//                System.out.println(temp1);
                 HashMap<Integer, String> HBMap = new HashMap<>();
                 HashMap<String, Integer> PMap = new HashMap<>();
                 String[] temps = temp.split("\t");
@@ -151,7 +213,7 @@ public class heterozygosity {
                                 count[i - 9][2] += 1;
                                 het = -1;
                             } else {
-                                System.out.println(temps[i]);
+//                                System.out.println(temps[i]);
                                 dep1 = Integer.parseInt(temps[i].split(":")[1].split(",")[0]);
                                 dep2 = Integer.parseInt(temps[i].split(":")[1].split(",")[1]);
                                 if ((dep1 + dep2) >= 2) {
@@ -194,11 +256,11 @@ public class heterozygosity {
         }
         chrSet.stream().forEach(f -> {
             try {
-                String vcf1 = new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, f) + ".vcf").getAbsolutePath();
-                String vcf2 = new File(genotypeDir, "chr" + PStringUtils.getNDigitNumber(3, f) + ".vcf").getAbsolutePath();
-                String ibsOutfileS = new File(workingDirS,subDir[3]+"/check" + f + ".txt").getAbsolutePath();
-                GenotypeGrid g1 = new GenotypeGrid(vcf1, GenoIOFormat.VCF);
-                GenotypeGrid g2 = new GenotypeGrid(vcf2, GenoIOFormat.VCF);
+                String vcf1 = new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, f) + ".vcf.gz").getAbsolutePath();
+                String vcf2 = new File(genotypeDir, "chr" + PStringUtils.getNDigitNumber(3, f) + ".vcf.gz").getAbsolutePath();
+                String ibsOutfileS = new File(workingDirS, subDir[3] + "/check" + f + ".txt").getAbsolutePath();
+                GenotypeGrid g1 = new GenotypeGrid(vcf1, GenoIOFormat.VCF_GZ);
+                GenotypeGrid g2 = new GenotypeGrid(vcf2, GenoIOFormat.VCF_GZ);
                 GenotypeGrid g = GenotypeOperation.mergeGenotypesByTaxon(g1, g2);
                 SumTaxaDivergence std = new SumTaxaDivergence(g);
                 std.writeDxyMatrix(ibsOutfileS, IOFileFormat.Text);
@@ -206,8 +268,8 @@ public class heterozygosity {
                 RowTable<String> rt = new RowTable<>(ibsOutfileS);
                 for (int i = 0; i < rt.getRowNumber(); i++) {
                     for (int j = 0; j < rt.getColumnNumber(); j++) {
-                        if(rt.getCell(i,j).startsWith("N")){
-                            rt.setCell(i,j,"1");
+                        if (rt.getCell(i, j).startsWith("N")) {
+                            rt.setCell(i, j, "1");
                         }
                     }
                 }
@@ -226,14 +288,14 @@ public class heterozygosity {
                     String[] pa = rt.getColumn(rt.getColumnIndex("Dxy")).toArray(new String[0]);
                     System.out.println(pa[0]);
                     double[] IBS = rt.getColumnAsDoubleArray(rt.getColumnIndex(HB));
-                    double[] IBSsub = Arrays.copyOfRange(IBS, HBset.size(), header.length-1);
+                    double[] IBSsub = Arrays.copyOfRange(IBS, HBset.size(), header.length - 1);
                     double[] minMin = SNPmappingInGene.minMin(IBSsub);
                     System.out.println(HBset.size());
                     System.out.println(Pset.size());
                     System.out.println(IBSsub.length);
                     System.out.println(header.length);
-                    String p1 = header[HBset.size() + (int) minMin[2] +1];
-                    String p2 = header[HBset.size() + (int) minMin[3] +1];
+                    String p1 = header[HBset.size() + (int) minMin[2] + 1];
+                    String p2 = header[HBset.size() + (int) minMin[3] + 1];
                     System.out.println(HB + " of " + p1 + " & " + p2);
                     if (P.contains(p1) && P.contains(p2)) {
                         bw.write(HB + "\tcorrect\t" + p1 + "\t" + p2 + "\t" + minMin[0] + "\t" + minMin[1] + "\n");
@@ -371,7 +433,7 @@ public class heterozygosity {
             }
         }
         StringBuilder sb = new StringBuilder();
-        nameSet.parallelStream().forEach(f -> {
+        nameSet.stream().forEach(f -> {
             try {
                 sb.setLength(0);
                 String bam = new File(workingDirS, subDir[1] + "/" + f + ".bam").getAbsolutePath();
@@ -391,11 +453,11 @@ public class heterozygosity {
 
     private void bwa() {
         String inputDir = new File(workingDirS, subDir[0]).getAbsolutePath();
-        File[] fs = IOUtils.listFilesEndsWith(new File(inputDir).listFiles(), ".fq.gz");
+        File[] fs = IOUtils.listFilesEndsWith(new File(inputDir).listFiles(), "R1.fq.gz");
         HashSet<String> nameSet = new HashSet<>();
         for (int i = 0; i < fs.length; i++) {
             String name = fs[i].getName().replace("R1.fq.gz", "");
-            nameSet.add(name.replace("R1.fq.gz", ""));
+            nameSet.add(name);
         }
         StringBuilder sb = new StringBuilder();
         nameSet.stream().forEach(f -> {
@@ -443,7 +505,7 @@ public class heterozygosity {
             nameSet.add(Name);
             System.out.println(Name);
         }
-        nameSet.stream().forEach(f -> {
+        nameSet.parallelStream().forEach(f -> {
             try {
                 String r1FastqFileS = new File(tagBySampleDirS, f + ".R1.fq").getAbsolutePath();
                 String r2FastqFileS = new File(tagBySampleDirS, f + ".R2.fq").getAbsolutePath();
