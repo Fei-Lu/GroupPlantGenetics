@@ -91,6 +91,7 @@ public class eQTL {
         heterozygosity
          */
         this.heterozygosity(args);
+//        this.GBSsimulation(args);
 //
 //
 //        this.intergenicPattern();
@@ -573,6 +574,10 @@ public class eQTL {
 
     public void heterozygosity(String[] args) throws IOException, InterruptedException {
         new heterozygosity(args);
+    }
+
+    public void GBSsimulation(String[] args) throws IOException, InterruptedException {
+        new GBSsimulation(args);
     }
 
     public void command() {
