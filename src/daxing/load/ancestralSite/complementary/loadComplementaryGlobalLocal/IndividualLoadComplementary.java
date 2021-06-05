@@ -23,10 +23,12 @@ import java.util.stream.IntStream;
 public class IndividualLoadComplementary {
 
     public static void start(){
-        String triadInputDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/006_test_C1_C2_C11_C12/003_triad";
+//        String triadInputDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/006_test_C1_C2_C11_C12/003_triad";
+        String triadInputDir="/Users/xudaxing/Desktop/IndivComplementary2/001_triad";
         String pgfFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/001_vmap2.1Before20200525/002_analysis/014_deleterious/wheat_v1.1_Lulab_geneHC.pgf";
         String triadGeneFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/001_vmap2.1Before20200525/002_analysis/014_deleterious/triadGenes1.1_cdsLen_geneHC.txt";
-        String outDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/006_test_C1_C2_C11_C12/004_nonmalizedAndSlidingWindow";
+//        String outDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/002_derivedSift/006_test_C1_C2_C11_C12/004_nonmalizedAndSlidingWindow";
+        String outDir="/Users/xudaxing/Desktop/IndivComplementary2/002_normalizedAndSlidingWindow";
         String[] subDirs={"001_triad.pos","002_forSlidingWindow","003_slidingWindow","004_mergeIndividualDel"};
         String sub="A";
         File[] subDirFiles=new File[subDirs.length];
@@ -170,9 +172,15 @@ public class IndividualLoadComplementary {
                 heterNonNum=Integer.parseInt(temp.get(12));
                 derivedDelNum=Integer.parseInt(temp.get(14));
                 heterDelNum=Integer.parseInt(temp.get(15));
-                normalizedDerivedSyn=(derivedSynNum+heterSynNum*0.5)*10000/(ancestralNum*cdsLen);
-                normalizedDerivedNon=(derivedNonsynNum+heterNonNum*0.5)*10000/(ancestralNum*cdsLen);
-                normalizedDerivedDel=(derivedDelNum+heterDelNum*0.5)*10000/(ancestralNum*cdsLen);
+
+//                normalizedDerivedSyn=(derivedSynNum+heterSynNum*0.5)*10000/(ancestralNum*cdsLen);
+//                normalizedDerivedNon=(derivedNonsynNum+heterNonNum*0.5)*10000/(ancestralNum*cdsLen);
+//                normalizedDerivedDel=(derivedDelNum+heterDelNum*0.5)*10000/(ancestralNum*cdsLen);
+
+                normalizedDerivedSyn=(derivedSynNum);
+                normalizedDerivedNon=(derivedNonsynNum);
+                normalizedDerivedDel=(derivedDelNum);
+
                 if (ancestralNum==0){
                     sb.append("NaN").append("\t").append("NaN").append("\t").append("NaN").append("\t");
                 }else {
@@ -306,20 +314,35 @@ public class IndividualLoadComplementary {
     public static void mergeTaxonDel(String inputDir, String outFile){
         List<File> files=IOTool.getVisibleDir(inputDir);
         RowTableTool<String> table0=new RowTableTool<>(files.get(0).getAbsolutePath());
-        List<String> meanNormalizedDeleteriousLoad=table0.getColumn(6);
+        List<String> meanSynCount=table0.getColumn(4);
+        List<String> meanNonCount=table0.getColumn(5);
+        List<String> meanDelCount=table0.getColumn(6);
         table0.removeColumn("GeneNum");
         table0.removeColumn("Mean_NormalizedSynLoad");
         table0.removeColumn("Mean_NormalizedNonsynLoad");
         table0.removeColumn("Mean_NormalizedDeleteriousLoad");
         RowTableTool<String> table1;
         String taxonName=PStringUtils.fastSplit(files.get(0).getName(), ".").get(0);
-        String columnName=taxonName+".MeanNormalizedDeleteriousLoad";
-        table0.addColumn(columnName, meanNormalizedDeleteriousLoad);
+//        String columnName=taxonName+".MeanNormalizedDeleteriousLoad";
+
+        table0.addColumn(taxonName+".MeanSynDerivedCount", meanSynCount);
+        table0.addColumn(taxonName+".MeanNonDerivedCount", meanNonCount);
+        table0.addColumn(taxonName+".MeanDelDerivedCount", meanDelCount);
+
+//        for (int i = 1; i < files.size(); i++) {
+//            table1=new RowTableTool<>(files.get(i).getAbsolutePath());
+//            taxonName=PStringUtils.fastSplit(files.get(i).getName(), ".").get(0);
+//            table0.addColumn(taxonName+".MeanNormalizedDeleteriousLoad", table1.getColumn(6));
+//        }
+
         for (int i = 1; i < files.size(); i++) {
             table1=new RowTableTool<>(files.get(i).getAbsolutePath());
             taxonName=PStringUtils.fastSplit(files.get(i).getName(), ".").get(0);
-            table0.addColumn(taxonName+".MeanNormalizedDeleteriousLoad", table1.getColumn(6));
+            table0.addColumn(taxonName+".MeanSynDerivedCount", table1.getColumn(4));
+            table0.addColumn(taxonName+".MeanNonDerivedCount", table1.getColumn(5));
+            table0.addColumn(taxonName+".MeanDelDerivedCount", table1.getColumn(6));
         }
+
         table0.write(outFile, IOFileFormat.TextGzip);
     }
 

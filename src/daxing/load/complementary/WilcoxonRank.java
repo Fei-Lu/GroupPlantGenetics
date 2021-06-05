@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 /**
  * An modified implementation of the Wilcoxon signed-rank test.
- * It can perform Wilcoxon signed-rank test and Wilcoxon rank-sum test(also called Mann–Whitney–Wilcoxon) when sample
+ * It can perform Wilcoxon signed-rank test and Wilcxon rank-sum test(also called Mann–Whitney–Wilcoxon) when sample
  * size greater or equal than 20
  */
 public class WilcoxonRank {
