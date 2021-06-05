@@ -4,6 +4,7 @@ import daxing.common.IOTool;
 import gnu.trove.list.array.TIntArrayList;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.List;
 
 public class IndividualIntervalHeterozygosity {
@@ -76,14 +77,18 @@ public class IndividualIntervalHeterozygosity {
             double[] homoWindowValueArray, heteroWindowValueArray;
             int[] windowStart=this.getWindowStart();
             int[] windowEnd= this.getWindowEnd();
+            NumberFormat numberFormat = NumberFormat.getInstance();
+            numberFormat.setGroupingUsed(false);
+            numberFormat.setMaximumFractionDigits(5);
             for (int i = 0; i < this.getWindowNum(); i++) {
+                sb.setLength(0);
+                sb.append(chrID).append("\t").append(windowStart[i]).append("\t");
+                sb.append(windowEnd[i]).append("\t");
                 for (int j = 0; j < taxonList.size(); j++) {
                     homoWindowValueArray= this.getTaxonHomoHeteroCount()[j][0].getWindowValuesDouble();
                     heteroWindowValueArray= this.getTaxonHomoHeteroCount()[j][1].getWindowValuesDouble();
                     individualIntervalHeterozygosity = heteroWindowValueArray[i]/(heteroWindowValueArray[i]+homoWindowValueArray[i]);
-                    sb.setLength(0);
-                    sb.append(chrID).append("\t").append(windowStart[i]).append("\t");
-                    sb.append(windowEnd[i]).append("\t").append(individualIntervalHeterozygosity).append("\t");
+                    sb.append(numberFormat.format(individualIntervalHeterozygosity)).append("\t");
                 }
                 sb.deleteCharAt(sb.length()-1);
                 bw.write(sb.toString());

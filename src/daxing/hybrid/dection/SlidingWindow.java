@@ -13,9 +13,9 @@ public class SlidingWindow {
     //exclusive genomic position 1-based
     int[] ends = null;
     double[] windowValues = null;
-    int windowSize = Integer.MIN_VALUE;
-    int windowStep = Integer.MIN_VALUE;
-    int chrLength = Integer.MIN_VALUE;
+    int windowSize;
+    int windowStep;
+    int chrLength;
 
     public SlidingWindow (int chrLength, int windowSize, int windowStep) {
         this.chrLength = chrLength;
@@ -36,8 +36,8 @@ public class SlidingWindow {
      * @param positions
      */
     public void addPositionCount(int[] positions) {
-        for (int i = 0; i < positions.length; i++) {
-            this.addPositionCount(positions[i]);
+        for (int position : positions) {
+            this.addPositionCount(position);
         }
     }
 
@@ -46,11 +46,11 @@ public class SlidingWindow {
      * @param position
      */
     public void addPositionCount(int position) {
-        int firstIndex = -1;
-        int lastIndex = -1;
+        int firstIndex;
+        int lastIndex;
         firstIndex = this.getFirstWindowIndex(position);
         lastIndex = this.getLastWindowIndex(position);
-        for (int i = firstIndex; i < lastIndex+1; i++) {
+        for (int i = firstIndex; i < lastIndex; i++) {
             this.windowValues[i]++;
         }
     }
@@ -60,12 +60,12 @@ public class SlidingWindow {
      * @param values
      */
     public void addIntValues (int[] positions, int[] values) {
-        int firstIndex = -1;
-        int lastIndex = -1;
+        int firstIndex;
+        int lastIndex;
         for (int i = 0; i < positions.length; i++) {
             firstIndex = this.getFirstWindowIndex(positions[i]);
             lastIndex = this.getLastWindowIndex(positions[1]);
-            for (int j = firstIndex; j < lastIndex+1; j++) {
+            for (int j = firstIndex; j < lastIndex; j++) {
                 this.windowValues[j]+=values[i];
             }
         }
@@ -77,11 +77,11 @@ public class SlidingWindow {
      * @param value
      */
     public void addIntValue (int position, int value) {
-        int firstIndex = -1;
-        int lastIndex = -1;
+        int firstIndex;
+        int lastIndex;
         firstIndex = this.getFirstWindowIndex(position);
         lastIndex = this.getLastWindowIndex(position);
-        for (int i = firstIndex; i < lastIndex+1; i++) {
+        for (int i = firstIndex; i < lastIndex; i++) {
             this.windowValues[i]+=value;
         }
     }
@@ -92,12 +92,12 @@ public class SlidingWindow {
      * @param values
      */
     public void addFloatValues (int[] positions, float[] values) {
-        int firstIndex = -1;
-        int lastIndex = -1;
+        int firstIndex;
+        int lastIndex;
         for (int i = 0; i < positions.length; i++) {
             firstIndex = this.getFirstWindowIndex(positions[i]);
             lastIndex = this.getLastWindowIndex(positions[1]);
-            for (int j = firstIndex; j < lastIndex+1; j++) {
+            for (int j = firstIndex; j < lastIndex; j++) {
                 this.windowValues[j]+=values[i];
             }
         }
@@ -109,8 +109,8 @@ public class SlidingWindow {
      * @param value
      */
     public void addFloatValue (int position, float value) {
-        int firstIndex = -1;
-        int lastIndex = -1;
+        int firstIndex;
+        int lastIndex;
         firstIndex = this.getFirstWindowIndex(position);
         lastIndex = this.getLastWindowIndex(position);
         for (int i = firstIndex; i < lastIndex+1; i++) {
@@ -124,12 +124,12 @@ public class SlidingWindow {
      * @param values
      */
     public void addDoubleValues (int[] positions, double[] values) {
-        int firstIndex = -1;
-        int lastIndex = -1;
+        int firstIndex;
+        int lastIndex;
         for (int i = 0; i < positions.length; i++) {
             firstIndex = this.getFirstWindowIndex(positions[i]);
             lastIndex = this.getLastWindowIndex(positions[1]);
-            for (int j = firstIndex; j < lastIndex+1; j++) {
+            for (int j = firstIndex; j < lastIndex; j++) {
                 this.windowValues[j]+=values[i];
             }
         }
@@ -141,11 +141,11 @@ public class SlidingWindow {
      * @param value
      */
     public void addDoubleValue (int position, double value) {
-        int firstIndex = -1;
-        int lastIndex = -1;
+        int firstIndex;
+        int lastIndex;
         firstIndex = this.getFirstWindowIndex(position);
         lastIndex = this.getLastWindowIndex(position);
-        for (int i = firstIndex; i < lastIndex+1; i++) {
+        for (int i = firstIndex; i < lastIndex; i++) {
             this.windowValues[i]+=value;
         }
     }

@@ -1,5 +1,6 @@
 package daxing.hybrid.dection;
 
+import daxing.common.DateTime;
 import daxing.common.IOTool;
 import pgl.infra.dna.genot.GenoIOFormat;
 import pgl.infra.dna.genot.GenotypeGrid;
@@ -20,16 +21,19 @@ public class HybridDection {
         String[] subdirs={"001_depth","002_heterozygosity","003_IndividualIntervalHeterozygosity"};
         List<File> subdirFileList=new ArrayList<>();
         File file;
-        for (int i = 0; i < subdirs.length; i++) {
-            file=new File(outDir, subdirs[i]);
+        for (String subdir : subdirs) {
+            file = new File(outDir, subdir);
             subdirFileList.add(file);
             file.mkdir();
         }
-        String[] outFileName= fileList.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz", ".txt.gz")).toArray(String[]::new);
-        IntStream.range(0, fileList.size()).parallel().forEach(e->getDepth(fileList.get(e), new File(subdirFileList.get(0), outFileName[e])));
-        IntStream.range(0, fileList.size()).parallel().forEach(e->getHeterozygosity(fileList.get(e), new File(subdirFileList.get(1), outFileName[e])));
+        String[] outFileNameDepth= fileList.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz", ".depth.txt.gz")).toArray(String[]::new);
+        String[] outFileNameHeterozygosity= fileList.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz", ".heterozygosity.txt.gz")).toArray(String[]::new);
+        String[] outFileNameIndividualIntervalHeterozygosity= fileList.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz", ".IndividualIntervalHeterozygosity.txt.gz")).toArray(String[]::new);
+        System.out.println(DateTime.getDateTimeOfNow());
+        IntStream.range(0, fileList.size()).parallel().forEach(e->getDepth(fileList.get(e), new File(subdirFileList.get(0), outFileNameDepth[e])));
+        IntStream.range(0, fileList.size()).parallel().forEach(e->getHeterozygosity(fileList.get(e), new File(subdirFileList.get(1), outFileNameHeterozygosity[e])));
         IntStream.range(0, fileList.size()).parallel().forEach(e->getIndividualIntervalHeterozygosity(e+1, windowSize
-                ,stepSize, fileList.get(e), new File(subdirFileList.get(2), outFileName[e])));
+                ,stepSize, fileList.get(e), new File(subdirFileList.get(2), outFileNameIndividualIntervalHeterozygosity[e])));
     }
 
     private static void getDepth(File inputFile, File outFile){
@@ -39,7 +43,7 @@ public class HybridDection {
             List<String> taxaList;
             String line;
             int depth;
-            while ((line=br.readLine()).startsWith("##")) continue;
+            while ((line=br.readLine()).startsWith("##")) {}
             temp=PStringUtils.fastSplit(line);
             taxaList=temp.subList(9,temp.size());
             StringBuilder sb=new StringBuilder();
@@ -72,17 +76,6 @@ public class HybridDection {
 
     }
 
-//    public static void merge(String inputDir, String outFile){
-//        List<File> files= IOTool.getVisibleFileListInDir(inputDir);
-//        RowTableTool<String> table0=new RowTableTool<>(files.get(0).getAbsolutePath());
-//        RowTableTool<String> table;
-//        for (int i = 1; i < files.size(); i++) {
-//            table= new RowTableTool<>(files.get(i).getAbsolutePath());
-//            table0.add(table);
-//        }
-//        table0.write(outFile, IOFileFormat.TextGzip);
-//    }
-
     public static void getHeterozygosity(File inputFile, File outFile){
         GenotypeGrid genotypeGrid=new GenotypeGrid(inputFile.getAbsolutePath(), GenoIOFormat.VCF_GZ);
         int taxonNum=genotypeGrid.getTaxaNumber();
@@ -113,13 +106,13 @@ public class HybridDection {
         try (BufferedReader br = IOTool.getReader(inputFile)) {
             String line;
             List<String> temp, taxaList;
-            while ((line=br.readLine()).startsWith("##")) continue;
+            while ((line=br.readLine()).startsWith("##")) {}
             temp=PStringUtils.fastSplit(line);
             taxaList=temp.subList(9,temp.size());
             List<IndividualIntervalHeterozygosity.IndividualHomoHeteroPosition> individualIntervalHeterozygosityList=new ArrayList<>();
             IndividualIntervalHeterozygosity.IndividualHomoHeteroPosition individualHomoHeteroPosition;
-            for (int i = 0; i < taxaList.size(); i++) {
-                individualHomoHeteroPosition= new IndividualIntervalHeterozygosity.IndividualHomoHeteroPosition(taxaList.get(i));
+            for (String s : taxaList) {
+                individualHomoHeteroPosition = new IndividualIntervalHeterozygosity.IndividualHomoHeteroPosition(s);
                 individualIntervalHeterozygosityList.add(individualHomoHeteroPosition);
             }
             int position;
@@ -129,9 +122,9 @@ public class HybridDection {
                 for (int i = 9; i < temp.size(); i++) {
                     if (temp.get(i).startsWith("./.")) continue;
                     if (temp.get(i).startsWith("0/1")){
-                        individualIntervalHeterozygosityList.get(i).addHeteroPos(position);
+                        individualIntervalHeterozygosityList.get(i-9).addHeteroPos(position);
                     }else {
-                        individualIntervalHeterozygosityList.get(i).addHomoPos(position);
+                        individualIntervalHeterozygosityList.get(i-9).addHomoPos(position);
                     }
                 }
             }
