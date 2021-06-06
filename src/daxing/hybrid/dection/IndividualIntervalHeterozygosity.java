@@ -2,6 +2,7 @@ package daxing.hybrid.dection;
 
 import daxing.common.IOTool;
 import gnu.trove.list.array.TIntArrayList;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.text.NumberFormat;
@@ -88,7 +89,11 @@ public class IndividualIntervalHeterozygosity {
                     homoWindowValueArray= this.getTaxonHomoHeteroCount()[j][0].getWindowValuesDouble();
                     heteroWindowValueArray= this.getTaxonHomoHeteroCount()[j][1].getWindowValuesDouble();
                     individualIntervalHeterozygosity = heteroWindowValueArray[i]/(heteroWindowValueArray[i]+homoWindowValueArray[i]);
-                    sb.append(numberFormat.format(individualIntervalHeterozygosity)).append("\t");
+                    if (Double.isNaN(individualIntervalHeterozygosity)){
+                        sb.append("NA").append("\t");
+                    }else {
+                        sb.append(numberFormat.format(individualIntervalHeterozygosity)).append("\t");
+                    }
                 }
                 sb.deleteCharAt(sb.length()-1);
                 bw.write(sb.toString());
