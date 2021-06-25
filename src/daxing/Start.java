@@ -1,15 +1,14 @@
 package daxing;
 
-import daxing.hybrid.dection.HybridDection;
+import daxing.expression.Expression;
 
 public class Start {
 
     public static void main(String[] args) {
-        String inputDir="/Users/xudaxing/Desktop/test/001_vmap2";
-        String outDir_depth="/Users/xudaxing/Desktop/test/002_outDir";
-//        String outDir_Heterozygosity="/Users/xudaxing/Desktop/test/002_heter";
-////        String outFile="/Users/xudaxing/Desktop/depth.txt.gz";
-        HybridDection.getDepthHeterozygosity(inputDir, outDir_depth, 10_000_000, 5_000_000);
+        String inputFile=args[0];
+        double threshold=Double.parseDouble(args[1]);
+        String outFile=args[2];
+        Expression.calculateConnection(inputFile, threshold, outFile);
     }
 
 }

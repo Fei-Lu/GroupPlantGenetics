@@ -66,7 +66,7 @@ public class IndividualIntervalHeterozygosity {
         }
     }
 
-    public void write(String outFile, int chrID){
+    public void write(String outFile, String chr){
         try (BufferedWriter bw = IOTool.getWriter(outFile)) {
             StringBuilder sb = new StringBuilder();
             List<String> taxonList=this.getTaxonList();
@@ -83,7 +83,7 @@ public class IndividualIntervalHeterozygosity {
             numberFormat.setMaximumFractionDigits(5);
             for (int i = 0; i < this.getWindowNum(); i++) {
                 sb.setLength(0);
-                sb.append(chrID).append("\t").append(windowStart[i]).append("\t");
+                sb.append(chr).append("\t").append(windowStart[i]).append("\t");
                 sb.append(windowEnd[i]).append("\t");
                 for (int j = 0; j < taxonList.size(); j++) {
                     homoWindowValueArray= this.getTaxonHomoHeteroCount()[j][0].getWindowValuesDouble();
