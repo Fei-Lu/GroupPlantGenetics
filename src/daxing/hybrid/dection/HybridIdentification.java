@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.IntStream;
 
-public class HybridDection {
+public class HybridIdentification {
 
     public static void getDepthHeterozygosity(String inputDir, String outDir, int windowSize, int stepSize){
         List<File> fileList= IOTool.getVisibleFileListInDir(inputDir);

@@ -17,8 +17,8 @@ public class Expression {
 
     /**
      * Pearsons Correlation Matrix
-     * @param inputFile
-     * @param outFile
+     * @param inputFile  Azhurnaya Development_tpm.tsv.gz
+     * @param outFile matrix
      */
     public static void getPearsonsCorrelationMatrix(String inputFile, String outFile){
         long start=System.nanoTime();
@@ -107,12 +107,12 @@ public class Expression {
     }
 
     /**
-     * the connection degree of a gene
+     * the connection degree of a gene (The number of genes exceeding the threshold)
      * @param pearsonsCorrelationFile
      * @param threshold
      * @param outFile
      */
-    public static void calculateConnection(String pearsonsCorrelationFile, double threshold, String outFile){
+    public static void calculateConnectionDegree(String pearsonsCorrelationFile, double threshold, String outFile){
         try (BufferedReader br = IOTool.getReader(pearsonsCorrelationFile);
              BufferedWriter bw =IOTool.getWriter(outFile)) {
             String line;
@@ -141,6 +141,47 @@ public class Expression {
                 bw.newLine();
                 cnt=0;
                 cnt1=0;
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void calculateConnectionDegree(String pearsonsCorrelationFile, String outFile){
+        try (BufferedReader br = IOTool.getReader(pearsonsCorrelationFile);
+             BufferedWriter bw =IOTool.getWriter(outFile)) {
+            String line;
+            List<String> temp;
+            double r;
+            double totalNegativeR=0, totalPositiveR=0;
+            int countNegativeR=0, countPositiveR=0;
+            StringBuilder sb = new StringBuilder();
+            br.readLine();
+            bw.write("Gene\tPositiveRSum\tPositiveRCount\tNegativeRSum\tNegativeRCount");
+            bw.newLine();
+            while ((line=br.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                sb.setLength(0);
+                for (int i = 1; i < temp.size(); i++) {
+                    r = Double.parseDouble(temp.get(i));
+                    if (r < 0){
+                        totalNegativeR+=r;
+                        countNegativeR++;
+                    }else {
+                        totalPositiveR+=r;
+                        countPositiveR++;
+                    }
+                }
+                sb.append(temp.get(0)).append("\t");
+                sb.append(totalPositiveR).append("\t").append(countPositiveR).append("\t");
+                sb.append(totalNegativeR).append("\t").append(countNegativeR);
+                bw.write(sb.toString());
+                bw.newLine();
+                totalNegativeR=0;
+                totalPositiveR=0;
+                countNegativeR=0;
+                countPositiveR=0;
             }
             bw.flush();
         } catch (IOException e) {
