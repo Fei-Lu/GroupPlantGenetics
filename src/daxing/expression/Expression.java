@@ -7,10 +7,7 @@ import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 
 public class Expression {
@@ -113,58 +110,71 @@ public class Expression {
      * @param outFile
      */
     public static void calculateConnectionDegree(String pearsonsCorrelationFile, double threshold, String outFile){
+        long start= System.nanoTime();
         try (BufferedReader br = IOTool.getReader(pearsonsCorrelationFile);
              BufferedWriter bw =IOTool.getWriter(outFile)) {
             String line;
             List<String> temp;
             double r;
-            int cnt=0, cnt1=0;
+            int cntPositive=0, cnt1Negative=0;
             StringBuilder sb = new StringBuilder();
             br.readLine();
-            bw.write("Gene\tNegative\tPositive");
+            bw.write("Gene\tPositive\tNegative");
             bw.newLine();
+            int cnt=0;
             while ((line=br.readLine())!=null){
+                cnt++;
                 temp=PStringUtils.fastSplit(line);
                 sb.setLength(0);
                 for (int i = 1; i < temp.size(); i++) {
                     r = Double.parseDouble(temp.get(i));
+                    if (Double.isNaN(r)) continue;
                     if (Math.abs(r) < threshold) continue;
                     if (r < 0){
-                        cnt1++;
+                        cnt1Negative++;
                     }else {
-                        cnt++;
+                        cntPositive++;
                     }
                 }
                 sb.append(temp.get(0)).append("\t");
-                sb.append(cnt1).append("\t").append(cnt);
+                sb.append(cntPositive-1).append("\t").append(cnt1Negative);
                 bw.write(sb.toString());
                 bw.newLine();
-                cnt=0;
-                cnt1=0;
+                cntPositive=0;
+                cnt1Negative=0;
+                if (cnt % 1000 ==0){
+                    System.out.println("Writing "+ cnt +" genes to "+ new File(outFile).getName());
+                }
             }
             bw.flush();
+            System.out.println("total "+ cnt +" genes had been written to "+ new File(outFile).getName());
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("Connection degree based on threshold "+ threshold + " complicated in "+ Benchmark.getTimeSpanHours(start)+ " hours");
     }
 
-    public static void calculateConnectionDegree(String pearsonsCorrelationFile, String outFile){
+    public static void calculateConnectionDegreeSum(String pearsonsCorrelationFile, String outFile){
+        long start=System.nanoTime();
         try (BufferedReader br = IOTool.getReader(pearsonsCorrelationFile);
              BufferedWriter bw =IOTool.getWriter(outFile)) {
             String line;
-            List<String> temp;
+            List<String> temp, headerList;
             double r;
             double totalNegativeR=0, totalPositiveR=0;
             int countNegativeR=0, countPositiveR=0;
             StringBuilder sb = new StringBuilder();
-            br.readLine();
+            headerList=PStringUtils.fastSplit(br.readLine());
             bw.write("Gene\tPositiveRSum\tPositiveRCount\tNegativeRSum\tNegativeRCount");
             bw.newLine();
+            int cnt=0;
             while ((line=br.readLine())!=null){
+                cnt++;
                 temp=PStringUtils.fastSplit(line);
                 sb.setLength(0);
                 for (int i = 1; i < temp.size(); i++) {
                     r = Double.parseDouble(temp.get(i));
+                    if (Double.isNaN(r)) continue;
                     if (r < 0){
                         totalNegativeR+=r;
                         countNegativeR++;
@@ -174,7 +184,7 @@ public class Expression {
                     }
                 }
                 sb.append(temp.get(0)).append("\t");
-                sb.append(totalPositiveR).append("\t").append(countPositiveR).append("\t");
+                sb.append(totalPositiveR-1).append("\t").append(countPositiveR-1).append("\t");
                 sb.append(totalNegativeR).append("\t").append(countNegativeR);
                 bw.write(sb.toString());
                 bw.newLine();
@@ -182,10 +192,15 @@ public class Expression {
                 totalPositiveR=0;
                 countNegativeR=0;
                 countPositiveR=0;
+                if (cnt % 1000 ==0){
+                    System.out.println("Writing "+ cnt +" genes to "+ new File(outFile).getName());
+                }
             }
             bw.flush();
+            System.out.println("total "+ cnt +" genes had been written to "+ new File(outFile).getName());
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("Connection degree based on sum" + " complicated in "+ Benchmark.getTimeSpanHours(start)+ " hours");
     }
 }
