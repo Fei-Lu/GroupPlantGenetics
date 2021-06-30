@@ -104,7 +104,7 @@ public class ExonSNPAnno {
             }
             for (SNPAnnotation snpAnnotation1: derDafBinSnpList){
                 chrPos=snpAnnotation1.getChrPos();
-                chrPosCorrRatioTable.put((int)chrPos.getChromosome(), chrPos.getPosition(), corrRatio);
+                chrPosCorrRatioTable.put((int)chrPos.getChromosome(), chrPos.getPosition(), 1.0);
             }
         }
         return chrPosCorrRatioTable;

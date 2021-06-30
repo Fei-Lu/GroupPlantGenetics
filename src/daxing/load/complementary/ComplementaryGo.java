@@ -1,6 +1,5 @@
 package daxing.load.complementary;
 
-import com.google.common.collect.Table;
 import com.google.common.io.Files;
 import daxing.common.*;
 import daxing.individualIntrogression.P2;
@@ -51,13 +50,13 @@ public class ComplementaryGo {
         IntStream.range(0, exonVCFFiles.size()).forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
                 taxonOutDirMap, e+1, exonSNPAnnoDir));
         merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
-        syntheticPseudohexaploidHexaploid(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
-                new File(outDir, subdir[2]).getAbsolutePath());
-        calculateLoadInfo(triadFile, pgfFile, blockGeneNum, new File(outDir, subdir[2]).getAbsoluteFile(), new File(outDir,
-                subdir[3]));
-        mergeTriadsBlockBySubspecies(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
-//        mergeTriadsBlockWithEightModel(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
-        mergeAllIndividualTriadsBlock(new File(outDir, subdir[3]), pgfFile, new File(outDir, subdir[4]));
+//        syntheticPseudohexaploidHexaploid(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
+//                new File(outDir, subdir[2]).getAbsolutePath());
+//        calculateLoadInfo(triadFile, pgfFile, blockGeneNum, new File(outDir, subdir[2]).getAbsoluteFile(), new File(outDir,
+//                subdir[3]));
+//        mergeTriadsBlockBySubspecies(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
+////        mergeTriadsBlockWithEightModel(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
+//        mergeAllIndividualTriadsBlock(new File(outDir, subdir[3]), pgfFile, new File(outDir, subdir[4]));
     }
 
     private static void go(File exonSNPAnnoFile, File exonVCFFile,
@@ -81,8 +80,8 @@ public class ComplementaryGo {
             boolean isSyn, isNonsyn, isDeleterious;
             byte genotypeByte;
             byte[] indexGenotype; // syn nonsyn del
-            ExonSNPAnno exonSNPAnno=new ExonSNPAnno(exonSNPAnnoDir);
-            Table<Integer,Integer,Double> chrPosCorrRatioMap= exonSNPAnno.getCorrRatio();
+//            ExonSNPAnno exonSNPAnno=new ExonSNPAnno(exonSNPAnnoDir);
+//            Table<Integer,Integer,Double> chrPosCorrRatioMap= exonSNPAnno.getCorrRatio();
             while ((line=br.readLine())!=null){
                 temp=PStringUtils.fastSplit(line);
                 pos=Integer.parseInt(temp.get(1));
@@ -105,7 +104,7 @@ public class ComplementaryGo {
                     genotypeByte= GeneLoad.caculateGenotype(genotype, isRefAlleleAncestral);
                     indexGenotype=new byte[2];
                     indexGenotype[1]=genotypeByte;
-                    double corrRatio=chrPosCorrRatioMap.get(chr, pos);
+//                    double corrRatio=chrPosCorrRatioMap.get(chr, pos);
                     if (isSyn){
                         indexGenotype[0]=0;
                     }else if (isDeleterious){
@@ -113,7 +112,8 @@ public class ComplementaryGo {
                     } else {
                         indexGenotype[0]=1;
                     }
-                    taxonLoads[i].addGenotype(geneName, indexGenotype, corrRatio);
+//                    taxonLoads[i].addGenotype(geneName, indexGenotype, corrRatio);
+                    taxonLoads[i].addGenotype(geneName, indexGenotype);
                 }
             }
             File outDir;
