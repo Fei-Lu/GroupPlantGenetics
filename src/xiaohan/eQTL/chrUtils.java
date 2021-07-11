@@ -79,7 +79,7 @@ public class chrUtils {
      * output : 1,1,2,2,3,3
     * */
     public static int getChrIndextoChrABDIndex(int chrindex){
-        int chrABDindex = chrindex/2 + 1;
+        int chrABDindex = (chrindex -1 )/2 + 1;
         return chrABDindex;
     }
 
@@ -128,7 +128,11 @@ public class chrUtils {
     }
 
     public static String getNamechrABD(int chrABDindex){
-        int chrnumber = chrABDindex/3+1;
+        int chrnumber = -1;
+        if(chrABDindex%3 == 0){
+            chrnumber = chrABDindex/3;
+        }
+        else chrnumber = chrABDindex/3+1;
         String subgenome = "D";
         if(chrABDindex%3 == 1){
             subgenome = "A";

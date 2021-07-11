@@ -1,17 +1,81 @@
 package xiaohan.eQTL;
 
+import xiaohan.rareallele.GeneFeature;
 import xiaohan.rareallele.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
 public class vcf {
     public vcf(String[] args) {
 //        this.getFilteredVCF();
-        this.get360VCF();
+//        this.get360VCF();
+//        this.getTSSbed(args);
+        this.getgenesbed(args);
+    }
+
+    public void getTSSbed(String... args) {
+        String infile = args[0];
+        String outfile = args[1];
+        BufferedWriter bw = IOUtils.getTextWriter(outfile);
+        GeneFeature gf = new GeneFeature(infile);
+        StringBuilder sb = new StringBuilder();
+        int TSS = -1;
+        int chr = -1;
+        int start = -1;
+        String geneName = null;
+        try {
+            for (int i = 0; i < gf.getGeneNumber(); i++) {
+                sb.setLength(0);
+                if (gf.getGeneStrand(i) == 1) {
+                    TSS = gf.getGeneStart(i);
+                } else {
+                    TSS = gf.getGeneEnd(i);
+                }
+                chr = gf.getGeneChromosome(i);
+                start = TSS - 1;
+                geneName = gf.getGeneName(i);
+                sb.append("chr" + chr + "\t" + start + "\t" + TSS + "\t" + geneName);
+                bw.write(sb.toString().replaceAll("\\s+$", ""));
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void getgenesbed(String... args) {
+        String infile = args[0];
+        String outfile = args[1];
+        BufferedWriter bw = IOUtils.getTextWriter(outfile);
+        GeneFeature gf = new GeneFeature(infile);
+        StringBuilder sb = new StringBuilder();
+        int chr = -1;
+        int start = -1;
+        int end = -1;
+        String geneName = null;
+        try {
+            for (int i = 0; i < gf.getGeneNumber(); i++) {
+                sb.setLength(0);
+                start = gf.getGeneStart(i);
+                end = gf.getGeneEnd(i);
+                chr = gf.getGeneChromosome(i);
+                geneName = gf.getGeneName(i);
+                sb.append("chr" + chr + "\t" + start + "\t" + end + "\t" + geneName);
+                bw.write(sb.toString().replaceAll("\\s+$", ""));
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void get360VCF() {
@@ -25,8 +89,8 @@ public class vcf {
         nameSet.parallelStream().forEach(f -> {
             String chr = String.valueOf(f);
             try {
-                BufferedReader br = IOUtils.getTextGzipReader(new File(inputDir, chr+".346.B18.recode.vcf.gz").getAbsolutePath());
-                BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, chr+".360.B18.recode.vcf").getAbsolutePath());
+                BufferedReader br = IOUtils.getTextGzipReader(new File(inputDir, chr + ".346.B18.recode.vcf.gz").getAbsolutePath());
+                BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, chr + ".360.B18.recode.vcf").getAbsolutePath());
                 String temp = null;
                 String[] temps = null;
                 HashMap<String, Integer> NameIndexMap = new HashMap<>();
@@ -84,7 +148,7 @@ public class vcf {
                 bw.flush();
                 bw.close();
                 StringBuilder sb = new StringBuilder();
-                sb.append("bgzip "+chr+".360.B18.recode.vcf\"");
+                sb.append("bgzip " + chr + ".360.B18.recode.vcf\"");
                 String command = sb.toString();
                 System.out.println(command);
                 File dir = new File(new File(outputDir).getAbsolutePath());

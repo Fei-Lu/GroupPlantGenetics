@@ -17,6 +17,7 @@ public class VCFsplit {
     }
 
     public void splitgff3(){
+
         String positionFileS =
                         "1	0	471304005	chr1A	0	471304005\n" +
                         "3	0	438720154	chr1B	0	438720154\n" +

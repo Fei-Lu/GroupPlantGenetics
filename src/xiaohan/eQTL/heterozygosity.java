@@ -31,7 +31,7 @@ public class heterozygosity {
     String libraryFastqMapFileS = null;
     String cutter1 = null;
     String cutter2 = null;
-    String kinship = null;
+    String kinship = "/data1/home/xiaohan/nam/KinshipMap.txt";
     String workingDirS = null;
     String[] subDir = {"subFastqs", "bam", "sortedbam", "IBS", "heter", "sum"};
 
@@ -88,24 +88,169 @@ public class heterozygosity {
         this.parseparameters(args[0]);
         this.mkdir();
 //        this.parsefastqs();
-        this.bwa(args);
+//        this.bwa(args);
 //        this.sortbam(args);
 //        this.parameter();
 //        this.taxaRefBAM();
 //        this.callsnp();
-//        this.getkinship();
-//        this.getchrMap();
+        this.getkinship();
 //        this.getheterozygosity();
-//        this.getIBS();
+//        this.mergeFile();
+        this.getIBS();
+//        this.getsum();
+//        this.test1(args);
 //        this.test(args);
+
+    }
+
+    public void test1(String... args) {
+        String infile1 = args[0];
+        String infile2 = args[1];
+        String outfile = args[2];
+        GenotypeGrid g1 = new GenotypeGrid(infile1, GenoIOFormat.VCF_GZ);
+        GenotypeGrid g2 = new GenotypeGrid(infile2, GenoIOFormat.VCF_GZ);
+        GenotypeGrid g = GenotypeOperation.mergeGenotypesByTaxon(g1, g2);
+        SumTaxaDivergence std = new SumTaxaDivergence(g);
+        std.writeDxyMatrix(outfile, IOFileFormat.Text);
+        g.getIBSDistanceMatrix();
     }
 
     public void test(String[] args) {
 //        LibraryOfGRT li = new LibraryOfGRT(args[0],args[1],args[2],args[3]);
 //        li.splitBarcode(args[4]);
-        String a = chrUtils.getNamechrABD(17);
-        System.out.print(a);
-        ;
+//        int a = chrUtils.getChrIndextoChrABDIndex(17);
+//        for (int i = 1; i < 22; i++) {
+//            System.out.println(chrUtils.getNamechrABD(i));
+//        }
+//        System.out.print(a);
+        String infile = kinship;
+        BufferedReader br = IOUtils.getTextReader(infile);
+        try {
+            String temp = null;
+            String[] temps = null;
+            while ((temp = br.readLine()) != null) {
+                temps = temp.split("\t");
+                if (temp.startsWith("F2")) continue;
+                HBSet.add(temps[0]);
+                kinshipMap.put(temps[0], temps[1]);
+                kinshipMap.put(temps[0], temps[2]);
+            }
+            br.close();
+
+            RowTable<String> rt = new RowTable<>(args[2]);
+//        System.out.println(rt.getRowNumber());
+//        System.out.println(rt.getColumnNumber());
+//        System.out.println(rt.getHeader().toArray().length);
+
+            for (int i = 0; i < rt.getRowNumber(); i++) {
+                for (int j = 0; j < rt.getColumnNumber(); j++) {
+                    if (rt.getCell(i, j).startsWith("N")) {
+                        rt.setCell(i, j, "1");
+                    }
+                }
+            }
+
+            List<String> HBset = new ArrayList<>();
+            List<String> Pset = new ArrayList<>();
+            String[] header = rt.getHeader().toArray(new String[0]);
+            for (int i = 0; i < header.length; i++) {
+                if (header[i].startsWith("HB")) {
+                    HBset.add(header[i]);
+                } else if (!header[i].startsWith("Dxy")) {
+                    Pset.add(header[i]);
+                }
+            }
+
+
+            System.out.println(HBset.size());
+            System.out.println(Pset.size());
+
+            BufferedWriter bw = IOUtils.getTextWriter(args[3]);
+            for (int i = 0; i < HBset.size(); i++) {
+                String HB = HBset.get(i);
+                System.out.println(HB);
+                Collection<String> P = kinshipMap.get(HB);
+//            String[] pa = rt.getColumn(rt.getColumnIndex("Dxy")).toArray(new String[0]);
+//            System.out.println(pa[0]);
+                double[] IBS = rt.getColumnAsDoubleArray(rt.getColumnIndex(HB));
+                double[] IBSsub = Arrays.copyOfRange(IBS, HBset.size(), header.length - 1);
+                double[] minMin = SNPmappingInGene.minMin(IBSsub);
+//            System.out.println(HBset.size());
+//            System.out.println(Pset.size());
+                System.out.println(IBSsub.length);
+//            System.out.println(header.length);
+                String p1 = header[HBset.size() + (int) minMin[2] + 1];
+                String p2 = header[HBset.size() + (int) minMin[3] + 1];
+                String P1 = P.toArray(new String[0])[0];
+                String P2 = P.toArray(new String[0])[1];
+                int P1index = Pset.indexOf(P1);
+                int P2index = Pset.indexOf(P2);
+                int[] rank = getIncreaseRanksArray(IBSsub);
+
+//                System.out.println(rank[P1index]);
+//                System.out.println(rank[P2index]);
+//                System.out.println(rank[Pset.indexOf("Z19-H28")]);
+//                System.out.println(rank[P1index]);
+//                System.out.println(rank[P2index]);
+                System.out.println(HB + " of " + p1 + " & " + p2);
+                if (P.contains(p1) && P.contains(p2)) {
+                    bw.write(HB + "\tcorrect\t" + p1 + "\t" + p2 + "\t" + minMin[0] + "\t" + minMin[1] + "\t" + P1 + "\t" + P2 + "\t" + IBSsub[P1index] + "\t" + IBSsub[P2index] + "\t" + rank[P1index] + "\t" + rank[P2index] + "\n");
+                    continue;
+                } else {
+                    bw.write(HB + "\twrong\t" + p1 + "\t" + p2 + "\t" + minMin[0] + "\t" + minMin[1] + "\t" + P1 + "\t" + P2 + "\t" + IBSsub[P1index] + "\t" + IBSsub[P2index] + "\t" + rank[P1index] + "\t" + rank[P2index] + "\n");
+                    continue;
+                }
+            }
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static int[] getRanksArray(int[] array) {
+        int[] result = new int[array.length];
+
+        for (int i = 0; i < array.length; i++) {
+            int count = 0;
+            for (int j = 0; j < array.length; j++) {
+                if (array[j] > array[i]) {
+                    count++;
+                }
+            }
+            result[i] = count + 1;
+        }
+        return result;
+    }
+
+    public static int[] getDecreaseRanksArray(double[] array) {
+        int[] result = new int[array.length];
+
+        for (int i = 0; i < array.length; i++) {
+            int count = 0;
+            for (int j = 0; j < array.length; j++) {
+                if (array[j] > array[i]) {
+                    count++;
+                }
+            }
+            result[i] = count + 1;
+        }
+        return result;
+    }
+
+    public static int[] getIncreaseRanksArray(double[] array) {
+        int[] result = new int[array.length];
+
+        for (int i = 0; i < array.length; i++) {
+            int count = 0;
+            for (int j = 0; j < array.length; j++) {
+                if (array[j] < array[i]) {
+                    count++;
+                }
+            }
+            result[i] = count + 1;
+        }
+        return result;
     }
 
     public void parseparameters(String infileS) {
@@ -141,95 +286,159 @@ public class heterozygosity {
     private void getheterozygosity() {
         String inputDir = new File(HapscannerDir, "output/" + plate + "/VCF").getAbsolutePath();
         HashSet<Integer> chrSet = new HashSet<>();
-        for (int i = 0; i < 42; i++) {
-            chrSet.add(i + 1);
+        for (int i = 0; i < 21; i++) {
+            chrSet.add(i);
         }
-        int[][][] count = new int[HBSet.size()][4][21];
-        final String[][] titles = {new String[HBSet.size()]};
-        chrSet.parallelStream().forEach(f -> {
+        StringBuilder sb = new StringBuilder();
+        chrSet.parallelStream().forEach(m -> {
             try {
-                int dep1 = 0;
-                int dep2 = 0;
-                int chrABDindex = chrUtils.getChrIndextoChrABDIndex(f);
-                String vcf = new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, f) + ".vcf.gz").getAbsolutePath();
-                String genovcf = new File(genotypeDir, "chr" + PStringUtils.getNDigitNumber(3, f) + ".vcf.gz").getAbsolutePath();
-                BufferedReader br = IOUtils.getTextGzipReader(vcf);
-                BufferedReader br1 = IOUtils.getTextGzipReader(genovcf);
-                String temp = null;
-                String temp1 = null;
-                temp = br.readLine();
-                temp1 = br1.readLine();
-                while ((!temp.startsWith("#C"))) {
-                    if (temp.startsWith("#C")) break;
+                int[][] count = new int[HBSet.size()][3];
+                for (int i = 0; i < HBSet.size(); i++) {
+                    for (int j = 0; j < 3; j++) {
+                        count[i][j] = 0;
+                    }
+                }
+                for (int k = 1; k <= 2; k++) {
+                    int chr = m * 2 + k;
+                    int dep1 = 0;
+                    int dep2 = 0;
+                    int chrABDindex = chrUtils.getChrIndextoChrABDIndex(chr);
+                    System.out.println("This is reading " + chr + " which is in " + chrABDindex);
+                    String vcf = new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, chr) + ".vcf.gz").getAbsolutePath();
+                    String genovcf = new File(genotypeDir, "chr" + PStringUtils.getNDigitNumber(3, chr) + ".vcf.gz").getAbsolutePath();
+                    BufferedReader br = IOUtils.getTextGzipReader(vcf);
+                    BufferedReader br1 = IOUtils.getTextGzipReader(genovcf);
+                    String temp = null;
+                    String temp1 = null;
                     temp = br.readLine();
-                }
-                while ((!temp1.startsWith("#C"))) {
-                    if (temp1.startsWith("#C")) break;
                     temp1 = br1.readLine();
-                }
-                HashMap<Integer, String> HBMap = new HashMap<>();
-                HashMap<String, Integer> PMap = new HashMap<>();
-                String[] temps = temp.split("\t");
-                String[] temps1 = temp1.split("\t");
-                for (int i = 9; i < temps1.length; i++) {
-                    PMap.put(temps1[i], i);
-                }
-                String[] HBnames = Arrays.copyOfRange(temps, 9, temps.length);
-                if (f == 1) {
-                    titles[0] = HBnames;
-                }
-                while ((temp = br.readLine()) != null) {
-                    temp1 = br1.readLine();
-                    temps = temp.split("\t");
-                    temps1 = temp1.split("\t");
-                    for (int i = 9; i < temps.length; i++) {
-                        int het = -1;
-                        String[] P = kinshipMap.get(HBMap.get(i)).toArray(new String[0]);
-                        if (temps1[PMap.get(P[0])].startsWith("./.") || temps1[PMap.get(P[1])].startsWith("./.")) {
-                            continue;
-                        }
-                        if (temps1[PMap.get(P[0])].startsWith("0/1") || temps1[PMap.get(P[1])].startsWith("0/1")) {
-                            continue;
-                        }
-                        if (temps1[PMap.get(P[0])].split(":")[0].equals(temps1[PMap.get(P[1])].split(":")[0])) {
-                            continue;
-                        } else if (!temps1[PMap.get(P[0])].split(":")[0].equals(temps1[PMap.get(P[1])].split(":")[0])) {
-                            if (temps[i].startsWith("./.")) {
-                                count[i - 9][2][chrABDindex - 1] += 1;
-                                het = -1;
-                            } else {
-//                                System.out.println(temps[i]);
-                                dep1 = Integer.parseInt(temps[i].split(":")[1].split(",")[0]);
-                                dep2 = Integer.parseInt(temps[i].split(":")[1].split(",")[1]);
-                                if ((dep1 + dep2) >= 2) {
-                                    if (temps[i].startsWith("0/1")) {
-                                        count[i - 9][0][chrABDindex - 1] += 1;
-                                        het = 1;
-                                    } else {
-                                        count[i - 9][1][chrABDindex - 1] += 1;
-                                        het = 0;
-                                    }
-                                    continue;
-                                } else continue;
+                    while ((!temp.startsWith("#C"))) {
+                        if (temp.startsWith("#C")) break;
+                        temp = br.readLine();
+                    }
+                    while ((!temp1.startsWith("#C"))) {
+                        if (temp1.startsWith("#C")) break;
+                        temp1 = br1.readLine();
+                    }
+                    HashMap<Integer, String> HBMap = new HashMap<>();
+                    HashMap<String, Integer> PMap = new HashMap<>();
+                    String[] temps = temp.split("\t");
+                    String[] temps1 = temp1.split("\t");
+                    for (int i = 0; i < temps.length; i++) {
+                        HBMap.put(i, temps[i]);
+                    }
+                    for (int i = 9; i < temps1.length; i++) {
+                        PMap.put(temps1[i], i);
+                    }
+                    String[] HBnames = Arrays.copyOfRange(temps, 9, temps.length);
+                    while ((temp = br.readLine()) != null) {
+                        temp1 = br1.readLine();
+                        temps = temp.split("\t");
+                        temps1 = temp1.split("\t");
+                        for (int i = 9; i < temps.length; i++) {
+                            int het = -1;
+//                        System.out.println(temps[i]);
+                            String[] P = kinshipMap.get(HBMap.get(i)).toArray(new String[0]);
+                            if (temps1[PMap.get(P[0])].startsWith("./.") || temps1[PMap.get(P[1])].startsWith("./.")) {
+                                continue;
+                            }
+                            if (temps1[PMap.get(P[0])].startsWith("0/1") || temps1[PMap.get(P[1])].startsWith("0/1")) {
+                                continue;
+                            }
+                            if (temps1[PMap.get(P[0])].split(":")[0].equals(temps1[PMap.get(P[1])].split(":")[0])) {
+                                continue;
+                            } else if (!temps1[PMap.get(P[0])].split(":")[0].equals(temps1[PMap.get(P[1])].split(":")[0])) {
+                                if (temps[i].startsWith("./.")) {
+                                    count[i - 9][2] += 1;
+                                    het = -1;
+                                } else {
+                                    dep1 = Integer.parseInt(temps[i].split(":")[1].split(",")[0]);
+                                    dep2 = Integer.parseInt(temps[i].split(":")[1].split(",")[1]);
+                                    if ((dep1 + dep2) >= 2) {
+                                        if (temps[i].startsWith("0/1")) {
+                                            count[i - 9][0] += 1;
+                                            het = 1;
+                                        } else {
+                                            count[i - 9][1] += 1;
+                                            het = 0;
+                                        }
+                                        continue;
+                                    } else continue;
+                                }
                             }
                         }
                     }
+                    br.close();
+                    br1.close();
                 }
-                br.close();
-                br1.close();
+                String chrABDName = chrUtils.getNamechrABD(m + 1);
+                BufferedWriter bw = IOUtils.getTextWriter(new File(this.workingDirS, subDir[4] + "/" + chrABDName + ".txt").getAbsolutePath());
+                bw.write("Taxa\theterSite\tHomoSite\tMissingSite\n");
+                String[] names = HBSet.toArray(new String[0]);
+                for (int j = 0; j < HBSet.size(); j++) {
+                    bw.write(names[j] + "\t" + count[j][0] + "\t" + count[j][1] + "\t" + count[j][2]);
+                    bw.newLine();
+                }
+                bw.flush();
+                bw.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
+
+    }
+
+    private void getsum() {
         try {
-            for (int i = 0; i < 21; i++) {
-                int chrABDindex = i + 1;
-                String chrABDName = chrUtils.getNamechrABD(chrABDindex);
-                BufferedWriter bw = IOUtils.getTextWriter(new File(this.workingDirS, subDir[5] + "/" + chrABDName + ".txt").getAbsolutePath());
-                bw.write("Taxa\theterSite\tHomoSite\tMissingSite\n");
-                for (int j = 0; j < titles.length; i++) {
-                    bw.write(titles[i] + "\t" + count[i][0][chrABDindex - 1] + "\t" + count[i][1][chrABDindex - 1] + "\t" + count[i][2][chrABDindex - 1]);
-                    bw.newLine();
+            for (int m = 0; m < 21; m++) {
+                int chr1 = m * 2 + 1;
+                int chr2 = m * 2 + 2;
+                String chrABDName = chrUtils.getNamechrABD(m + 1);
+                String ibsOutfileS = new File(workingDirS, subDir[3] + "/check_" + chrABDName + ".txt").getAbsolutePath();
+                RowTable<String> rt = new RowTable<>(ibsOutfileS);
+                for (int i = 0; i < rt.getRowNumber(); i++) {
+                    for (int j = 0; j < rt.getColumnNumber(); j++) {
+                        if (rt.getCell(i, j).startsWith("N")) {
+                            rt.setCell(i, j, "1");
+                        }
+                    }
+                }
+
+                List<String> HBset = new ArrayList<>();
+                List<String> Pset = new ArrayList<>();
+                String[] header = rt.getHeader().toArray(new String[0]);
+                for (int i = 0; i < header.length; i++) {
+                    if (header[i].startsWith("HB")) {
+                        HBset.add(header[i]);
+                    } else if (!header[i].startsWith("Dxy")) {
+                        Pset.add(header[i]);
+                    }
+                }
+
+                BufferedWriter bw = IOUtils.getTextWriter(new File(workingDirS, subDir[subDir.length - 1] + "/sum" + chrABDName + ".txt").getAbsolutePath());
+                for (int i = 0; i < HBset.size(); i++) {
+                    String HB = HBset.get(i);
+                    Collection<String> P = kinshipMap.get(HB);
+                    double[] IBS = rt.getColumnAsDoubleArray(rt.getColumnIndex(HB));
+                    double[] IBSsub = Arrays.copyOfRange(IBS, HBset.size(), header.length - 1);
+                    double[] minMin = SNPmappingInGene.minMin(IBSsub);
+                    String p1 = header[HBset.size() + (int) minMin[2] + 1];
+                    String p2 = header[HBset.size() + (int) minMin[3] + 1];
+                    String P1 = P.toArray(new String[0])[0];
+                    String P2 = P.toArray(new String[0])[1];
+                    int P1index = Pset.indexOf(P1);
+                    int P2index = Pset.indexOf(P2);
+                    int[] rank = getIncreaseRanksArray(IBSsub);
+                    System.out.println(rank[P1index]);
+                    System.out.println(rank[P2index]);
+                    System.out.println(HB + " of " + p1 + " & " + p2);
+                    if (P.contains(p1) && P.contains(p2)) {
+                        bw.write(HB + "\tcorrect\t" + p1 + "\t" + p2 + "\t" + minMin[0] + "\t" + minMin[1] + "\t" + P1 + "\t" + P2 + "\t" + IBSsub[P1index] + "\t" + IBSsub[P2index] + "\t" + rank[P1index] + "\t" + rank[P2index] + "\n");
+                        continue;
+                    } else {
+                        bw.write(HB + "\twrong\t" + p1 + "\t" + p2 + "\t" + minMin[0] + "\t" + minMin[1] + "\t" + P1 + "\t" + P2 + "\t" + IBSsub[P1index] + "\t" + IBSsub[P2index] + "\t" + rank[P1index] + "\t" + rank[P2index] + "\n");
+                        continue;
+                    }
                 }
                 bw.flush();
                 bw.close();
@@ -239,30 +448,61 @@ public class heterozygosity {
         }
     }
 
-    private void getIBS() {
+    private void mergeFile(){
         String inputDir = new File(HapscannerDir, "output/" + plate + "/VCF").getAbsolutePath();
         HashSet<Integer> chrSet = new HashSet<>();
+        StringBuilder sb = new StringBuilder();
         try {
             for (int m = 0; m < 21; m++) {
                 int chr1 = m * 2 + 1;
                 int chr2 = m * 2 + 2;
                 String chrABDName = chrUtils.getNamechrABD(m + 1);
+                sb.setLength(0);
+                sb.append("bgzip " + new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, chr1) + ".vcf").getAbsolutePath() + "\n");
+                sb.append("bgzip " + new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, chr2) + ".vcf").getAbsolutePath() + "\n");
+                sb.append("vcf-concat " + new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, chr1) + ".vcf.gz").getAbsolutePath());
+                sb.append(" " + new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, chr2) + ".vcf.gz").getAbsolutePath());
+                sb.append(" > " + new File(inputDir,  chrABDName+".vcf").getAbsolutePath() + "\n");
+                sb.append("bgzip " + new File(inputDir, chrABDName+".vcf").getAbsolutePath() + "\n");
+//                sb.append("rm " + new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, chr1) + ".vcf.gz").getAbsolutePath() + "\n");
+//                sb.append("rm " + new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, chr2) + ".vcf.gz").getAbsolutePath() + "\n");
+                System.out.println(sb.toString());
+                File dir = new File(new File("/data1/home/xiaohan/jar").getAbsolutePath());
+                String[] cmdarry = {"/bin/bash", "-c", sb.toString()};
+                Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+                p.waitFor();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
-                String vcf1sub1 = new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, chr1) + ".vcf.gz").getAbsolutePath();
-                String vcf1sub2 = new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, chr2) + ".vcf.gz").getAbsolutePath();
-                String vcf2sub1 = new File(genotypeDir, "chr" + PStringUtils.getNDigitNumber(3, chr1) + ".vcf.gz").getAbsolutePath();
-                String vcf2sub2 = new File(genotypeDir, "chr" + PStringUtils.getNDigitNumber(3, chr2) + ".vcf.gz").getAbsolutePath();
+    private void getIBS() {
+        String inputDir = new File(HapscannerDir, "output/" + plate + "/VCF").getAbsolutePath();
+        HashSet<Integer> chrSet = new HashSet<>();
+        StringBuilder sb = new StringBuilder();
+        try {
+            for (int m = 0; m < 21; m++) {
+                int chr1 = m * 2 + 1;
+                int chr2 = m * 2 + 2;
+                String chrABDName = chrUtils.getNamechrABD(m + 1);
+//                sb.setLength(0);
+//                sb.append("bgzip " + new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, chr1) + ".vcf").getAbsolutePath() + "\n");
+//                sb.append("bgzip " + new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, chr2) + ".vcf").getAbsolutePath() + "\n");
+//                System.out.println(sb.toString());
+//                File dir = new File(new File("/data1/home/xiaohan/jar").getAbsolutePath());
+//                String[] cmdarry = {"/bin/bash", "-c", sb.toString()};
+//                Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+//                p.waitFor();
 
-                GenotypeGrid g1sub1 = new GenotypeGrid(vcf1sub1, GenoIOFormat.VCF_GZ);
-                GenotypeGrid g1sub2 = new GenotypeGrid(vcf1sub2, GenoIOFormat.VCF_GZ);
-                GenotypeGrid g1 = GenotypeOperation.mergeGenotypesBySite(g1sub1, g1sub2);
-
-                GenotypeGrid g2sub1 = new GenotypeGrid(vcf2sub1, GenoIOFormat.VCF_GZ);
-                GenotypeGrid g2sub2 = new GenotypeGrid(vcf2sub2, GenoIOFormat.VCF_GZ);
-                GenotypeGrid g2 = GenotypeOperation.mergeGenotypesBySite(g2sub1, g2sub2);
+                String vcf1 = new File(inputDir, chrABDName + ".vcf.gz").getAbsolutePath();
+                String vcf2 = new File(genotypeDir, chrABDName + ".vcf.gz").getAbsolutePath();
+//
+                GenotypeGrid g1 = new GenotypeGrid(vcf1, GenoIOFormat.VCF_GZ);
+                GenotypeGrid g2 = new GenotypeGrid(vcf2, GenoIOFormat.VCF_GZ);
 
                 String ibsOutfileS = new File(workingDirS, subDir[3] + "/check_" + chrABDName + ".txt").getAbsolutePath();
-
+//
                 GenotypeGrid g = GenotypeOperation.mergeGenotypesByTaxon(g1, g2);
                 SumTaxaDivergence std = new SumTaxaDivergence(g);
                 std.writeDxyMatrix(ibsOutfileS, IOFileFormat.Text);
@@ -282,30 +522,39 @@ public class heterozygosity {
                 for (int i = 0; i < header.length; i++) {
                     if (header[i].startsWith("HB")) {
                         HBset.add(header[i]);
-                    } else Pset.add(header[i]);
+                    } else if (!header[i].startsWith("Dxy")) {
+                        Pset.add(header[i]);
+                    }
                 }
 
                 BufferedWriter bw = IOUtils.getTextWriter(new File(workingDirS, subDir[subDir.length - 1] + "/sum" + chrABDName + ".txt").getAbsolutePath());
                 for (int i = 0; i < HBset.size(); i++) {
                     String HB = HBset.get(i);
-                    Collection<String> P = kinshipMap.get(HB);
-                    String[] pa = rt.getColumn(rt.getColumnIndex("Dxy")).toArray(new String[0]);
-                    System.out.println(pa[0]);
+                    String HBnickname = HB.substring(0,5);
+                    Collection<String> P = kinshipMap.get(HBnickname);
                     double[] IBS = rt.getColumnAsDoubleArray(rt.getColumnIndex(HB));
+                    System.out.println(IBS.length);
+                    System.out.println(HBset.size());
                     double[] IBSsub = Arrays.copyOfRange(IBS, HBset.size(), header.length - 1);
+                    System.out.println(IBSsub.length);
                     double[] minMin = SNPmappingInGene.minMin(IBSsub);
+                    System.out.println(minMin.length);
                     System.out.println(HBset.size());
                     System.out.println(Pset.size());
                     System.out.println(IBSsub.length);
                     System.out.println(header.length);
                     String p1 = header[HBset.size() + (int) minMin[2] + 1];
                     String p2 = header[HBset.size() + (int) minMin[3] + 1];
+                    String P1 = P.toArray(new String[0])[0];
+                    String P2 = P.toArray(new String[0])[1];
+                    int P1index = Pset.indexOf(P1);
+                    int P2index = Pset.indexOf(P2);
                     System.out.println(HB + " of " + p1 + " & " + p2);
                     if (P.contains(p1) && P.contains(p2)) {
-                        bw.write(HB + "\tcorrect\t" + p1 + "\t" + p2 + "\t" + minMin[0] + "\t" + minMin[1] + "\n");
+                        bw.write(HB + "\tcorrect\t" + p1 + "\t" + p2 + "\t" + minMin[0] + "\t" + minMin[1] + "\t" + P1 + "\t" + P2 + "\t" + IBSsub[P1index] + "\t" + IBSsub[P2index] + "\n");
                         continue;
                     } else {
-                        bw.write(HB + "\twrong\t" + p1 + "\t" + p2 + "\t" + minMin[0] + "\t" + minMin[1] + "\n");
+                        bw.write(HB + "\twrong\t" + p1 + "\t" + p2 + "\t" + minMin[0] + "\t" + minMin[1] + "\t" + P1 + "\t" + P2 + "\t" + IBSsub[P1index] + "\t" + IBSsub[P2index] + "\n");
                         continue;
                     }
                 }
@@ -314,15 +563,6 @@ public class heterozygosity {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    private void getchrMap() {
-        for (int i = 0; i < 42; i++) {
-            int chr = i + 1;
-            if (chr / 6 == 1 || chr / 6 == 2) {
-
-            }
         }
     }
 
@@ -353,6 +593,7 @@ public class heterozygosity {
         for (int i = 0; i < fs.length; i++) {
             System.out.println(fs[i].getAbsolutePath());
             this.parseParameters(fs[i].getAbsolutePath());
+
             this.mkDir();
             this.scanIndiVCFByThreadPool();
             this.mkFinalVCF();
@@ -409,8 +650,6 @@ public class heterozygosity {
         parameterDir = new File(HapscannerDir, "parameter").getAbsolutePath();
         File paradir = new File(parameterDir);
         if (!paradir.exists()) paradir.mkdir();
-        posDir = new File(HapscannerDir, "pos").getAbsolutePath();
-        posAlleleDir = new File(HapscannerDir, "posAllele").getAbsolutePath();
 
         File posdir = new File(new File(HapscannerDir, "pos").getAbsolutePath());
         File posAlleledir = new File(new File(HapscannerDir, "posAllele").getAbsolutePath());
@@ -419,6 +658,10 @@ public class heterozygosity {
             posAlleledir.mkdir();
             this.poswithAllele();
         }
+
+        posDir = new File(HapscannerDir, "pos").getAbsolutePath();
+        posAlleleDir = new File(HapscannerDir, "posAllele").getAbsolutePath();
+
         try {
             for (int i = 0; i < 42; i++) {
                 int chr = i + 1;
@@ -973,13 +1216,14 @@ public class heterozygosity {
             }
         }
         StringBuilder sb = new StringBuilder();
-        nameSet.stream().forEach(f -> {
+        nameSet.parallelStream().forEach(f -> {
             try {
                 sb.setLength(0);
                 String bam = new File(workingDirS, subDir[1] + "/" + f + ".bam").getAbsolutePath();
                 String sortedbam = new File(workingDirS, subDir[2] + "/" + f + ".sorted.bam").getAbsolutePath();
                 sb.append(samtools + " sort " + bam + " > " + sortedbam + "\n");
                 sb.append(samtools + " index " + sortedbam + "\n");
+                sb.append("rm " + bam + "\n");
                 String command = sb.toString();
                 File dir = new File(new File(workingDirS).getAbsolutePath());
                 String[] cmdarry = {"/bin/bash", "-c", command};
@@ -1015,6 +1259,7 @@ public class heterozygosity {
             System.out.println(title);
             sb.append(bwa + " mem -t " + threads + " -R " + "\'" + title + "\'" + " " + bwalib + " " + fq1 + " " + fq2 + " > " + sam + "\n");
             sb.append(samtools + " view -S -b " + sam + " > " + bam + "\n");
+            sb.append("rm " + sam + "\n");
             String command = sb.toString();
             System.out.println(command);
             try {
@@ -1066,9 +1311,42 @@ public class heterozygosity {
 //        });
 //    }
 
-    private void parsefastqs(){
-        LibraryOfGRT li = new LibraryOfGRT(barcodeFileS,libraryFastqMapFileS,cutter1,cutter2);
-        li.splitBarcode(new File(workingDirS,subDir[0]).getAbsolutePath());
+    private void parsefastqs() {
+        LibraryOfGRT li = new LibraryOfGRT(barcodeFileS, libraryFastqMapFileS, cutter1, cutter2);
+        li.splitBarcode(new File(workingDirS, subDir[0]).getAbsolutePath());
+        StringBuilder sb = new StringBuilder();
+        sb.append("rm NA*");
+        try {
+            String command = sb.toString();
+            File dir = new File(new File(workingDirS, subDir[0]).getAbsolutePath());
+            String[] cmdarry = {"/bin/bash", "-c", command};
+            Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+            p.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        File[] fs = new File(workingDirS, subDir[0]).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs, "fq");
+        HashSet<String> nameSet = new HashSet<>();
+        for (int i = 0; i < fs.length; i++) {
+            nameSet.add(new File(String.valueOf(fs[i])).getAbsolutePath());
+            System.out.println(new File(String.valueOf(fs[i])).getAbsolutePath());
+        }
+
+        nameSet.parallelStream().forEach(f -> {
+            try {
+                StringBuilder sb1 = new StringBuilder();
+                sb1.append("bgzip " + f);
+                File dir = new File(new File(workingDirS, subDir[0]).getAbsolutePath());
+                String[] cmdarry = {"/bin/bash", "-c", sb1.toString()};
+                System.out.println(sb1.toString());
+                Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+                p.waitFor();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
     }
 
     private String getChimericRemovedRead(String cutter1, String cutter2, String read, int barcodeLength) {

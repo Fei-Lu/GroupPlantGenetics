@@ -2,6 +2,10 @@ package xiaohan.eQTL;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.koloboke.collect.impl.hash.Hash;
+import com.koloboke.collect.impl.hash.MutableLHashDoubleSet;
+import com.koloboke.collect.set.DoubleSet;
+import daxing.common.MD5;
 import daxing.load.ancestralSite.Standardization;
 import pgl.infra.dna.genot.GenoIOFormat;
 import pgl.infra.dna.genot.GenotypeGrid;
@@ -16,10 +20,12 @@ import xiaohan.rareallele.IOUtils;
 import xiaohan.rareallele.VCFsplit;
 import xiaohan.rareallele.pheno;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -28,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 public class eQTL {
 
     int score = 0;
-    String kinship = "/Users/yxh/Documents/NAM_library/20210515GBStest1/KinshipMap.txt";
+    String kinship = "/data1/home/xiaohan/nam/KinshipMap.txt";
     Multimap<String, String> kinshipMap = ArrayListMultimap.create();
     HashSet<String> HBSet = new HashSet<>();
 
@@ -90,7 +96,7 @@ public class eQTL {
         /*
         heterozygosity
          */
-        this.heterozygosity(args);
+//        this.heterozygosity(args);
 //        this.GBSsimulation(args);
 //
 //
@@ -114,6 +120,766 @@ public class eQTL {
 //        this.subextractGeneRegion(args[0], args[1]);
 //        this.hetandMaf(args[0], args[1]);
 //        this.testforfunctional();
+//        this.temp(args);
+//        this.md5check();
+//        this.getkinship();
+//        this.getIBS();
+//        this.getmedZ();
+        this.testIBS(args);
+//        this.testdensity(args);
+//        this.filter(args);
+//        this.getmedZ();
+//        this.getsingleZ();
+//        this.print();
+    }
+
+    public void filter(String[] args) {
+        long startTime = System.currentTimeMillis();   //获取开始时间
+        System.out.println("This is filtering samples ******************************************************************");
+        String infile = new File(args[3]).getAbsolutePath();
+        String infor = new File(args[2]).getAbsolutePath();
+        HashSet<String> sampleSet = new HashSet<>();
+        HashSet<String> notsampleSet = new HashSet<>();
+        HashSet<String> addingsampleSet = new HashSet<>();
+        HashMap<String, String> RNADNAmap = new HashMap<>();
+        try {
+            String temp = null;
+            String[] temps = null;
+            BufferedReader br = IOUtils.getTextReader(infile);
+
+            while ((temp = br.readLine()) != null) {
+                if (temp.startsWith("RNA\t")) continue;
+                temps = temp.split("\t");
+                RNADNAmap.put(temps[0], temps[1]);
+                if (Double.parseDouble(temps[2]) < 0.1) {
+                    sampleSet.add(temps[0]);
+                } else {
+                    notsampleSet.add(temps[0]);
+                }
+            }
+            br.close();
+
+            System.out.println("original RNA samples");
+            String[] temp1 = sampleSet.toArray(new String[sampleSet.size()]);
+            for (int i = 0; i < temp1.length; i++) {
+                System.out.println(temp1[i]);
+            }
+
+            BufferedReader brinfo = IOUtils.getTextReader(infor);
+
+
+            xiaohan.eQTL.RowTable<String> t = new xiaohan.eQTL.RowTable<>(infor);
+            //index of RNA samples and DNA samples : 1,2,3,...,RNAsamplecount,...,total
+            HashMap<String, Integer> nameIndexMap = new HashMap<>();
+            int RNAsamplecount = 0;
+            int DNAsamplecount = 0;
+            List<String> header = t.getHeader();
+            String[] headers = header.toArray(new String[header.size()]);
+            for (int i = 0; i < headers.length; i++) {
+                if (headers[i].equals("Dxy")) continue;
+                nameIndexMap.put(headers[i], i);
+                if (headers[i].startsWith("RNA")) {
+                    RNAsamplecount++;
+                } else {
+                    DNAsamplecount++;
+                }
+            }
+
+            String[] notsamplelist = notsampleSet.toArray(new String[notsampleSet.size()]);
+
+            for (int i = 0; i < notsamplelist.length; i++) {
+                System.out.print("***This is dealing sample: " + notsamplelist[i] + " with original IBS : ");
+                System.out.println(t.getCell(nameIndexMap.get(notsamplelist[i]), nameIndexMap.get(RNADNAmap.get(notsamplelist[i])) - 1));
+                String sample = notsamplelist[i];
+                int index = nameIndexMap.get(sample);
+
+                double[] DNAIBS = new double[DNAsamplecount];
+                for (int j = 0; j < DNAsamplecount; j++) {
+                    DNAIBS[j] = Double.parseDouble(t.getCell(j + RNAsamplecount, index));
+                }
+
+                double min = Arrays.stream(DNAIBS).min().getAsDouble();
+
+                if (min > 0.1) {
+                    System.out.print("  Discard this sample: " + notsamplelist[i] + " with minimal IBS = ");
+                    System.out.println(min);
+                    continue;
+                }
+
+                System.out.print("  RNA sample has minimal IBS as ");
+                System.out.println(min);
+
+                HashSet<String> DNAcandidateSet = new HashSet<>();
+                for (int j = 0; j < DNAIBS.length; j++) {
+                    if (DNAIBS[j] == min) {
+                        DNAcandidateSet.add(t.getCell(j + RNAsamplecount, 0));
+                        System.out.println("    adding DNA candidate :" + t.getCell(j + RNAsamplecount, 0));
+                    }
+                }
+                String[] DNAlist = DNAcandidateSet.toArray(new String[DNAcandidateSet.size()]);
+
+                for (int j = 0; j < DNAlist.length; j++) {
+                    int DNAindex = j + 1;
+                    System.out.println("    " + DNAindex + ".This is examing DNA sample: " + DNAlist[j]);
+                    if (j == 0) {
+                        double[] RNAIBS = new double[RNAsamplecount];
+                        for (int k = 0; k < RNAIBS.length; k++) {
+                            RNAIBS[k] = Double.parseDouble(t.getCell(k, nameIndexMap.get(DNAlist[j])));
+                        }
+
+                        double min2 = Arrays.stream(RNAIBS).min().getAsDouble();
+                        System.out.println("    DNAsample No." + DNAindex + " : " + DNAlist[j] + " has min IBS " + min2);
+
+                        if (min == min2 && min < 0.1) {
+                            System.out.println("    Two mins equal : adding sample " + notsamplelist[i] + " and replace DNA sample " + RNADNAmap.get(notsamplelist[i]) + " as " + DNAlist[j]);
+                            sampleSet.add(notsamplelist[i]);
+                            addingsampleSet.add(notsamplelist[i]);
+                            RNADNAmap.put(notsamplelist[i], DNAlist[j]);
+                        }
+                        if (min != min2) {
+                            double residual = min - min2;
+                            double abs = Math.abs(residual);
+                            if (abs < 0.002) {
+                                System.out.println("    Two mins not equal but abs of residual < 0.002 adding sample " + notsamplelist[i] + " and replace DNA sample " + RNADNAmap.get(notsamplelist[i]) + " as " + DNAlist[j]);
+                                sampleSet.add(notsamplelist[i]);
+                                addingsampleSet.add(notsamplelist[i]);
+                                RNADNAmap.put(notsamplelist[i], DNAlist[j]);
+                            } else {
+                                System.out.println("    Discard DNA sample for better RNA sample with IBS " + min2);
+                            }
+                        }
+                        continue;
+                    }
+
+                    double IBStemp = t.getCellAsDouble(nameIndexMap.get(notsamplelist[i]), nameIndexMap.get(DNAlist[j]) - 1);
+                    double IBSbefore = t.getCellAsDouble(nameIndexMap.get(notsamplelist[i]), nameIndexMap.get(RNADNAmap.get(notsamplelist[i])) - 1);
+                    if (IBStemp == IBSbefore) {
+                        sampleSet.remove(notsamplelist[i]);
+                    } else if (IBSbefore < IBStemp) {
+                        continue;
+                    } else {
+                        double[] RNAIBS = new double[RNAsamplecount];
+                        for (int k = 0; k < RNAIBS.length; k++) {
+                            RNAIBS[k] = Double.parseDouble(t.getCell(k, nameIndexMap.get(DNAlist[j])));
+                        }
+
+                        double min2 = Arrays.stream(RNAIBS).min().getAsDouble();
+                        System.out.println("    DNAsample No." + DNAindex + " : " + DNAlist[j] + " has min IBS " + min2);
+
+                        if (min == min2 && min < 0.1) {
+                            System.out.println("    Two mins equal : adding sample " + notsamplelist[i] + " and replace DNA sample " + RNADNAmap.get(notsamplelist[i]) + " as " + DNAlist[j]);
+                            sampleSet.add(notsamplelist[i]);
+                            RNADNAmap.put(notsamplelist[i], DNAlist[j]);
+                        }
+                        if (min != min2) {
+                            double residual = min - min2;
+                            double abs = Math.abs(residual);
+                            if (abs < 0.002) {
+                                System.out.println("    Two mins not equal but abs < 0.002 adding sample " + notsamplelist[i] + " and replace DNA sample " + RNADNAmap.get(notsamplelist[i]) + " as " + DNAlist[j]);
+                                sampleSet.add(notsamplelist[i]);
+                                RNADNAmap.put(notsamplelist[i], DNAlist[j]);
+                            } else {
+                                System.out.println("    Discard DNA sample for better RNA sample with IBS " + min2);
+                            }
+                        }
+                    }
+                }
+            }
+
+            System.out.println("");
+            System.out.println("Eventually we changed sample ... to new DNA sampe");
+            for (String str : addingsampleSet) {
+                System.out.println(str + "\t" + RNADNAmap.get(str));
+            }
+
+
+            BufferedWriter bw = IOUtils.getTextWriter(new File(args[5]).getAbsolutePath());
+            String[] samplelist = sampleSet.toArray(new String[sampleSet.size()]);
+            for (int i = 0; i < samplelist.length; i++) {
+                bw.write(samplelist[i] + "\t" + RNADNAmap.get(samplelist[i]));
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        long endTime = System.currentTimeMillis(); //获取结束时间
+        System.out.println("******* Filtering samples takes " + (endTime - startTime) + "ms");
+        System.out.println("End of program.");
+
+    }
+
+    public void testdensity(String[] args) {
+        System.out.println("This is writing file of RNA and DNA IBS plot ***********************************************");
+        String infile = new File(args[2]).getAbsolutePath();
+        String outfile = new File(args[3]).getAbsolutePath();
+        String outfile1 = new File(args[4]).getAbsolutePath();
+        BufferedReader br = IOUtils.getTextReader(infile);
+        BufferedReader brinfo = IOUtils.getTextReader(infile);
+        BufferedWriter bw = IOUtils.getTextWriter(outfile);
+        BufferedWriter bw1 = IOUtils.getTextWriter(outfile1);
+        String temp = null;
+        String[] temps = null;
+        int countlines = 0;
+        try {
+            HashMap<String, Integer> nameIndexMap = new HashMap<>();
+            HashSet<String> samples = new HashSet<>();
+            while ((temp = brinfo.readLine()) != null) {
+                if (temp.startsWith("Dxy")) {
+                    temps = temp.split("\t");
+                    for (int i = 0; i < temps.length; i++) {
+                        nameIndexMap.put(temps[i], i);
+                        if (temps[i].startsWith("RNA")) {
+                            samples.add(temps[i]);
+                        }
+                    }
+                }
+            }
+            brinfo.close();
+            String[] samplelist = samples.toArray(new String[samples.size()]);
+
+            bw.write("RNA\tDNA\tIBSdistance\n");
+            xiaohan.eQTL.RowTable<String> t = new xiaohan.eQTL.RowTable<>(infile);
+            for (int i = 0; i < samplelist.length; i++) {
+                String RNA = samplelist[i];
+                String DNA = null;
+                if (RNA.contains("JM22")) {
+                    DNA = "E025";
+                } else {
+                    DNA = RNA.substring(3, 7);
+                }
+                int RNAindex = nameIndexMap.get(RNA);
+                int DNAindex = nameIndexMap.get(DNA) - 1;
+                bw.write(RNA + "\t" + DNA + "\t");
+                bw.write(t.getCell(DNAindex, RNAindex));
+                bw.write("\n");
+            }
+            bw.flush();
+            bw.close();
+
+            bw1.write("RNA\tDNA\tIBSdistance\n");
+            for (int i = 0; i < samplelist.length; i++) {
+                String RNA = samplelist[i];
+                for (int j = 0; j < samplelist.length; j++) {
+                    String RNAtemp = samplelist[j];
+                    String DNA = RNA.substring(3, 7);
+                    int RNAindex = nameIndexMap.get(RNA);
+                    int DNAindex = nameIndexMap.get(DNA) - 1;
+                    bw1.write(RNA + "\t" + DNA + "\t");
+                    bw1.write(t.getCell(DNAindex, RNAindex));
+                    bw1.write("\n");
+                }
+            }
+            bw1.flush();
+            bw1.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void print() {
+        int[] a = new int[]{42, 47, 57, 59, 69, 73, 74, 77, 79, 81};
+        for (int i = 0; i < a.length; i++) {
+            for (int j = 1; j < 3; j++) {
+//                System.out.println("nohup zcat PM-XS01KF2020120443-08遗传所19个外来文库测序过滤任务单-加测/ANNO_XS01KF2020120443_PM-XS01KF2020120443-08_BHV337DSXY_2021-03-02_22-22-47/Cleandata/20201228SIPASR" + a[i] + "/ 20201228SIPASR" + a[i] + "_R"+j+".fq.gz /data2/junxu/Data/ANNO_XS01KF2020120443_PM-XS01KF2020120443-11_AHVYTFDSXY_2021-04-11_21-30-57/Cleandata/20201228SIPASR"+a[i]+"/20201228SIPASR"+a[i]+"_R"+j+".fq.gz | gzip > /data2/xiaohan/MergedData/20201228SIPASR"+a[i]+"/20201228SIPASR"+a[i]+"_R"+j+".fq.gz &");
+                System.out.println(String.valueOf(a[i]));
+            }
+        }
+    }
+
+    public void testIBS(String[] args) {
+        String infile1 = args[0];
+        String infile2 = args[1];
+        String outfile = args[2];
+        String vcf1 = new File(infile1).getAbsolutePath();
+        String vcf2 = new File(infile2).getAbsolutePath();
+        GenotypeGrid g1 = null;
+        GenotypeGrid g2 = null;
+        if (infile1.endsWith("gz")) {
+            g1 = new GenotypeGrid(vcf1, GenoIOFormat.VCF_GZ);
+        } else g1 = new GenotypeGrid(vcf1, GenoIOFormat.VCF);
+        if (infile2.endsWith("gz")) {
+            g2 = new GenotypeGrid(vcf2, GenoIOFormat.VCF_GZ);
+        } else g2 = new GenotypeGrid(vcf2, GenoIOFormat.VCF);
+        String ibsOutfileS = new File(outfile).getAbsolutePath();
+        GenotypeGrid g = GenotypeOperation.mergeGenotypesByTaxon(g1, g2);
+        SumTaxaDivergence std = new SumTaxaDivergence(g);
+        std.writeDxyMatrix(ibsOutfileS, IOFileFormat.Text);
+        g.getIBSDistanceMatrix();
+    }
+
+    public void getsingleZ() {
+        String infile = "/data2/xiaohan/pheno/rareMutation/all_normalized_expression.txt";
+        BufferedReader br = IOUtils.getTextReader(infile);
+        BufferedReader br1 = IOUtils.getTextReader(infile);
+        String outfile = "/data2/xiaohan/pheno/rareMutation/outliers_medz_picked.txt";
+        String temp = null;
+        List<String> temps = null;
+        HashSet<String> tissueSet = new HashSet<>();
+        HashSet<String> geneSet = new HashSet<>();
+        StringBuilder sb = new StringBuilder();
+        int countline1 = 0;
+        int countline = 0;
+        int columnnumber = 0;
+        int index = -1;
+        String max = null;
+        String error = null;
+        try {
+            String[] header = null;
+            while ((temp = br.readLine()) != null) {
+                countline++;
+                if (countline % 5000 == 0) {
+                    System.out.println(countline);
+                }
+                temps = PStringUtils.fastSplit(temp);
+                if (temp.startsWith("Tissue")) {
+                    header = new String[temps.size() - 2];
+                    for (int i = 2; i < temps.size(); i++) {
+                        header[i - 2] = temps.get(i);
+                    }
+                    columnnumber = temps.size() - 2;
+                    System.out.println(columnnumber);
+                    continue;
+                }
+                tissueSet.add(temps.get(0));
+            }
+            br.close();
+            String[] tissues = tissueSet.toArray(new String[0]);
+            BufferedWriter[] bw = new BufferedWriter[tissues.length];
+            BufferedWriter[] bw1 = new BufferedWriter[tissues.length];
+            for (int i = 0; i < bw.length; i++) {
+                bw[i] = IOUtils.getTextWriter(new File("/data2/xiaohan/pheno/rareMutation/" + tissues[i] + "_outliers_singlez_picked.txt").getAbsolutePath());
+                bw1[i] = IOUtils.getTextWriter(new File("/data2/xiaohan/pheno/rareMutation/" + tissues[i] + "_outliers_counts.txt").getAbsolutePath());
+            }
+            while ((temp = br1.readLine()) != null) {
+                countline1++;
+                if (countline1 % 5 == 0) {
+                    System.out.println(countline1);
+                }
+                temps = PStringUtils.fastSplit(temp);
+                if (temp.startsWith("Tissue")) {
+                    sb.setLength(0);
+                    for (int i = 1; i < temps.size(); i++) {
+                        sb.append(temps.get(i) + "\t");
+                    }
+                    for (int i = 0; i < bw1.length; i++) {
+                        bw1[i].write(sb.toString());
+                        bw1[i].newLine();
+                    }
+                    continue;
+                }
+                index = Arrays.binarySearch(tissues, temps.get(0));
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void getmedZ() {
+        String infile = "/data2/xiaohan/rareMutation/pheno/all_normalized_expression.txt";
+//        String infile = "/Users/yxh/Documents/RareAllele/script/001pheno_processing/all_normalized_expression.txt";
+        BufferedReader br = IOUtils.getTextReader(infile);
+        BufferedReader br1 = IOUtils.getTextReader(infile);
+        String outfile = "/data2/xiaohan/rareMutation/pheno/outliers_medz_picked.txt";
+        String outfilecount = "/data2/xiaohan/rareMutation/pheno/outliers_medz_counts.txt";
+//        String outfile = "/Users/yxh/Documents/RareAllele/script/001pheno_processing/outliers_medz_picked.txt";
+        String temp = null;
+        List<String> temps = null;
+        HashSet<String> tissueSet = new HashSet<>();
+        HashSet<String> geneSet = new HashSet<>();
+        StringBuilder sb = new StringBuilder();
+        int countline1 = 0;
+        int countline = 0;
+        int columnnumber = 0;
+        String error = null;
+
+        //picked variables
+        String gene = null;
+        String name = null;
+        String tissue = null;
+        String max = null;
+        try {
+            String[] header = null;
+            String headers = null;
+            System.out.println("Starting initiation ----------------------------------");
+            while ((temp = br.readLine()) != null) {
+                countline++;
+                if (countline % 5000 == 0) {
+                    System.out.println(countline);
+                }
+                temps = PStringUtils.fastSplit(temp);
+                if (temp.startsWith("Tissue")) {
+                    header = new String[temps.size() - 2];
+                    for (int i = 2; i < temps.size(); i++) {
+                        header[i - 2] = temps.get(i);
+                    }
+                    sb.setLength(0);
+                    sb.append("GENE\t");
+                    for (int i = 0; i < header.length; i++) {
+                        sb.append(header[i] + "\t");
+                    }
+                    headers = sb.toString().replaceAll("\\s+$", "");
+                    columnnumber = temps.size() - 2;
+                    System.out.println(columnnumber);
+                    continue;
+                }
+                tissueSet.add(temps.get(0));
+                geneSet.add(temps.get(1));
+            }
+            br.close();
+            String[][][] expression = new String[geneSet.size()][columnnumber][tissueSet.size()];
+            String[] tissues = tissueSet.toArray(new String[0]);
+            String[] genes = geneSet.toArray(new String[0]);
+            HashMap<String, Integer> tissuesIndex = new HashMap<>();
+            HashMap<String, Integer> genesIndex = new HashMap<>();
+            for (int i = 0; i < tissues.length; i++) {
+                tissuesIndex.put(tissues[i], i);
+                for (int j = 0; j < genes.length; j++) {
+                    genesIndex.put(genes[j], j);
+                    for (int k = 0; k < columnnumber; k++) {
+                        expression[j][k][i] = "NA";
+                    }
+                }
+            }
+            System.out.println("Starting building expression file ----------------------------------");
+            while ((temp = br1.readLine()) != null) {
+                countline1++;
+                if (countline1 % 5 == 0) {
+//                    System.out.println(countline1);
+                }
+                temps = PStringUtils.fastSplit(temp);
+                if (temp.startsWith("Tissue")) continue;
+                for (int i = 0; i < columnnumber; i++) {
+                    expression[genesIndex.get(temps.get(1))][i][tissuesIndex.get(temps.get(0))] = temps.get(i + 2);
+                }
+            }
+            System.out.println("Finished building expression file !");
+            br1.close();
+            String[][] expressionmedian = new String[geneSet.size()][columnnumber];
+            String[][] expressionN = new String[geneSet.size()][columnnumber];
+            String[] array = new String[tissues.length];
+            int len = -1;
+            double median = -1;
+            System.out.println("Starting calculating n and median ----------------------------------");
+            for (int i = 0; i < genes.length; i++) {
+                for (int j = 0; j < columnnumber; j++) {
+                    array = expression[i][j];
+                    expressionN[i][j] = medn(array);
+//                    System.out.println(medn(array));
+                    expressionmedian[i][j] = String.valueOf(medmedian(array));
+                }
+            }
+            // writing medz picked file
+            BufferedWriter bw = IOUtils.getTextWriter(outfile);
+            System.out.println("Starting picking outliers ----------------------------------");
+            for (int i = 0; i < genes.length; i++) {
+                sb.setLength(0);
+                sb.append(genes[i] + "\t");
+                String[] outliers = pickoutlier(expressionmedian[i]);
+//                System.out.println(genes[i] + "_" + expressionmedian[i][0] +"_"+ outliers[0] +"_"+ outliers[1]);
+                sb.append(header[Integer.parseInt(outliers[1])] + "\t");
+                sb.append(expressionN[i][Integer.parseInt(outliers[1])] + "\t");
+                sb.append(outliers[0]);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+            bw.close();
+            // writing medz counts file
+            BufferedWriter bwcount = IOUtils.getTextWriter(outfilecount);
+            bwcount.write(headers+"\n");
+            for (int i = 0; i < genes.length; i++) {
+                sb.setLength(0);
+                sb.append(genes[i]+"\t");
+                for (int j = 0; j < columnnumber; j++) {
+                    sb.append(expressionN[i][j]+"\t");
+                }
+                bwcount.write(sb.toString().replaceAll("\\s+$","")+"\n");
+            }
+            bwcount.flush();
+            bwcount.close();
+            // writing single counts file and picked file
+            String[] array1 = new String[columnnumber];
+            String[] outliers = new String[2];
+            BufferedWriter[] bw1 = new BufferedWriter[tissues.length];
+            BufferedWriter[] bw2 = new BufferedWriter[tissues.length];
+            for (int i = 0; i < tissues.length; i++) {
+                bw1[i] = IOUtils.getTextWriter(new File("/data2/xiaohan/pheno/rareMutation/" + tissues[i] + "_outliers_counts.txt").getAbsolutePath());
+                bw2[i] = IOUtils.getTextWriter(new File("/data2/xiaohan/pheno/rareMutation/" + tissues[i] + "_outliers_singlez_picked.txt").getAbsolutePath());
+                bw1[i].write(headers + "\n");
+                bw2[i].write("GENE\tIND\tDFS\tZ\n");
+            }
+            for (int i = 0; i < genes.length; i++) {
+                for (int j = 0; j < tissues.length; j++) {
+                    gene = genes[i];
+                    sb.setLength(0);
+                    sb.append(gene+"\t");
+                    for (int k = 0; k < columnnumber; k++) {
+                        array1[k] = expression[i][k][j];
+                        if (array1[k].equals("NA")) {
+                            sb.append("0\t");
+                        } else {
+                            sb.append("1\t");
+                        }
+                    }
+                    outliers = pickoutlier(array1);
+                    if (outliers[0].equals("NA") && outliers[1].equals("NA")) continue;
+                    name = header[Integer.parseInt(outliers[1])];
+                    tissue = tissues[j];
+                    max = expression[i][Integer.parseInt(outliers[1])][j];
+                    bw1[j].write(sb.toString().replaceAll("\\s+$", "") + "\n");
+                    bw2[j].write(gene + "\t" + name + "\t" + tissue + "\t" + max + "\n");
+                }
+            }
+            for (int i = 0; i < tissues.length; i++) {
+                bw1[i].flush();
+                bw1[i].close();
+                bw2[i].flush();
+                bw2[i].close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+//            System.out.println(countline1);
+//            System.out.println(countline);
+//            System.out.println(columnnumber);
+            System.out.println(gene);
+        }
+    }
+
+    private String medn(String[] array) {
+        int len = 0;
+        for (int i = 0; i < array.length; i++) {
+            if (!array[i].equals("NA")) {
+                len++;
+            }
+        }
+        String length = String.valueOf(len);
+        return length;
+    }
+
+    private String medmedian(String[] array) {
+        HashSet<Double> DataSet = new HashSet<>();
+        String median = null;
+        for (int i = 0; i < array.length; i++) {
+            if (!array[i].equals("NA")) {
+                DataSet.add(Double.parseDouble(array[i]));
+            }
+        }
+        if (DataSet.isEmpty()) {
+            median = "NA";
+        } else {
+            Object[] data = DataSet.toArray();
+            if (data.length % 2 == 1) {
+                median = String.valueOf((double) data[data.length / 2]);
+            } else {
+                median = String.valueOf(((double) data[data.length / 2] + (double) data[data.length / 2 - 1]) / 2);
+            }
+        }
+        return median;
+    }
+
+    private String[] pickoutlier(String[] array) {
+        HashMap<String, Integer> IndexValues = new HashMap<>();
+        for (int i = 0; i < array.length; i++) {
+            IndexValues.put(array[i], i);
+        }
+        String max = null;
+        String rank = null;
+        HashSet<Double> DataSet = new HashSet<>();
+        for (int i = 0; i < array.length; i++) {
+            if (!array[i].equals("NA")) {
+                DataSet.add(Double.parseDouble(array[i]));
+            }
+        }
+        if (DataSet.isEmpty()) {
+            max = "NA";
+            rank = "NA";
+        } else {
+            Object[] data = DataSet.toArray();
+            double[] abs = new double[data.length];
+            for (int i = 0; i < data.length; i++) {
+                abs[i] = Math.abs((double) data[i]);
+            }
+            int indexmax = (int) getMaxIndex(abs)[1];
+            max = String.valueOf((double) data[indexmax]);
+            rank = String.valueOf(IndexValues.get(max));
+        }
+        String[] results = new String[]{max, rank};
+        return results;
+    }
+
+    public static double[] getMaxIndex(double[] arr) {
+        if (arr == null || arr.length == 0) {
+            return null;//如果数组为空 或者是长度为0 就返回null
+        }
+        int maxIndex = 0;//假设第一个元素为最大值 那么下标设为0
+        double[] arrnew = new double[2];//设置一个长度为2的数组用作记录，第一个元素存储最大值，第二个元素存储下标
+        for (int i = 0; i < arr.length - 1; i++) {
+            if (arr[maxIndex] < arr[i + 1]) {
+                maxIndex = i + 1;
+            }
+        }
+        arrnew[0] = arr[maxIndex];
+        arrnew[1] = maxIndex;
+        return arrnew;
+    }
+
+    private String expTissuNumber(String[] array) {
+        String max = null;
+        HashSet<Double> DataSet = new HashSet<>();
+        for (int i = 0; i < array.length; i++) {
+            if (!array[i].equals("NA")) {
+                DataSet.add(Double.parseDouble(array[i]));
+            }
+        }
+        if (DataSet.isEmpty()) {
+            max = "0";
+        } else {
+            max = String.valueOf(DataSet.size());
+        }
+        return max;
+    }
+
+    private void getkinship() {
+        String infile = kinship;
+        BufferedReader br = IOUtils.getTextReader(infile);
+        try {
+            String temp = null;
+            String[] temps = null;
+            while ((temp = br.readLine()) != null) {
+                temps = temp.split("\t");
+                HBSet.add(temps[0]);
+                kinshipMap.put(temps[0], temps[1]);
+                kinshipMap.put(temps[0], temps[2]);
+            }
+            br.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void getIBS() {
+        String inputDir = new File("/data1/home/xiaohan/hapscanner/output/test4-1/VCF").getAbsolutePath();
+        HashSet<Integer> chrSet = new HashSet<>();
+        StringBuilder sb = new StringBuilder();
+        try {
+            for (int m = 0; m < 21; m++) {
+                int chr1 = m * 2 + 1;
+                int chr2 = m * 2 + 2;
+                String chrABDName = chrUtils.getNamechrABD(m + 1);
+//                sb.setLength(0);
+//                sb.append("bgzip " + new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, chr1) + ".vcf").getAbsolutePath() + "\n");
+//                sb.append("bgzip " + new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, chr2) + ".vcf").getAbsolutePath() + "\n");
+//                System.out.println(sb.toString());
+//                File dir = new File(new File("/data1/home/xiaohan/jar").getAbsolutePath());
+//                String[] cmdarry = {"/bin/bash", "-c", sb.toString()};
+//                Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+//                p.waitFor();
+
+                String vcf1 = new File(inputDir, chrABDName + ".vcf.gz").getAbsolutePath();
+                String vcf2 = new File("/data1/home/xiaohan/hapscanner/output/Parent/VCF", chrABDName + ".vcf.gz").getAbsolutePath();
+
+                GenotypeGrid g1 = new GenotypeGrid(vcf1, GenoIOFormat.VCF_GZ);
+                GenotypeGrid g2 = new GenotypeGrid(vcf2, GenoIOFormat.VCF_GZ);
+
+                String ibsOutfileS = new File("/data1/home/xiaohan/nam/test4-1/IBS/check_" + chrABDName + ".txt").getAbsolutePath();
+
+                GenotypeGrid g = GenotypeOperation.mergeGenotypesByTaxon(g1, g2);
+                SumTaxaDivergence std = new SumTaxaDivergence(g);
+                std.writeDxyMatrix(ibsOutfileS, IOFileFormat.Text);
+                g.getIBSDistanceMatrix();
+                xiaohan.eQTL.RowTable<String> rt = new xiaohan.eQTL.RowTable<>(ibsOutfileS);
+                for (int i = 0; i < rt.getRowNumber(); i++) {
+                    for (int j = 0; j < rt.getColumnNumber(); j++) {
+                        if (rt.getCell(i, j).startsWith("N")) {
+                            rt.setCell(i, j, "1");
+                        }
+                    }
+                }
+
+                List<String> HBset = new ArrayList<>();
+                List<String> Pset = new ArrayList<>();
+                String[] header = rt.getHeader().toArray(new String[0]);
+                for (int i = 0; i < header.length; i++) {
+                    if (header[i].startsWith("HB")) {
+                        HBset.add(header[i]);
+                    } else if (!header[i].startsWith("Dxy")) {
+                        Pset.add(header[i]);
+                    }
+                }
+
+                BufferedWriter bw = IOUtils.getTextWriter(new File("/data1/home/xiaohan/nam/test4-1/sum/sum" + chrABDName + ".txt").getAbsolutePath());
+                for (int i = 0; i < HBset.size(); i++) {
+                    String HB = HBset.get(i);
+                    String HBnickname = HB.substring(0, 5);
+                    Collection<String> P = kinshipMap.get(HBnickname);
+                    double[] IBS = rt.getColumnAsDoubleArray(rt.getColumnIndex(HB));
+                    System.out.println(IBS.length);
+                    System.out.println(HBset.size());
+                    double[] IBSsub = Arrays.copyOfRange(IBS, HBset.size(), header.length - 1);
+                    System.out.println(IBSsub.length);
+                    double[] minMin = SNPmappingInGene.minMin(IBSsub);
+                    System.out.println(minMin.length);
+                    System.out.println(HBset.size());
+                    System.out.println(Pset.size());
+                    System.out.println(IBSsub.length);
+                    System.out.println(header.length);
+                    String p1 = header[HBset.size() + (int) minMin[2] + 1];
+                    String p2 = header[HBset.size() + (int) minMin[3] + 1];
+                    String P1 = P.toArray(new String[0])[0];
+                    String P2 = P.toArray(new String[0])[1];
+                    int P1index = Pset.indexOf(P1);
+                    int P2index = Pset.indexOf(P2);
+                    System.out.println(HB + " of " + p1 + " & " + p2);
+                    if (P.contains(p1) && P.contains(p2)) {
+                        bw.write(HB + "\tcorrect\t" + p1 + "\t" + p2 + "\t" + minMin[0] + "\t" + minMin[1] + "\t" + P1 + "\t" + P2 + "\t" + IBSsub[P1index] + "\t" + IBSsub[P2index] + "\n");
+                        continue;
+                    } else {
+                        bw.write(HB + "\twrong\t" + p1 + "\t" + p2 + "\t" + minMin[0] + "\t" + minMin[1] + "\t" + P1 + "\t" + P2 + "\t" + IBSsub[P1index] + "\t" + IBSsub[P2index] + "\n");
+                        continue;
+                    }
+                }
+                bw.flush();
+                bw.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void md5check() {
+        String inputFile = "/Volumes/Lulab4T_87/PM-XS01KF2020120443-13遗传所6个外来文库测序过滤任务单/ANNO_XS01KF2020120443_PM-XS01KF2020120443-13_BHW2JWDSXY_2021-03-30_14-05-46/md5.txt";
+        String inputDir = "/Volumes/Lulab4T_87/PM-XS01KF2020120443-13遗传所6个外来文库测序过滤任务单/ANNO_XS01KF2020120443_PM-XS01KF2020120443-13_BHW2JWDSXY_2021-03-30_14-05-46/";
+        BufferedReader br = pgl.infra.utils.IOUtils.getTextReader(inputFile);
+        try {
+            String temp = null;
+            String temp1 = null;
+            String file = null;
+            while ((temp = br.readLine()) != null) {
+                temp1 = temp.split(" ")[0];
+                file = new File(inputDir, temp.split(" ")[2]).getAbsolutePath();
+//                System.out.println(file);
+                if (MD5.checkMD5(file, temp1)) {
+                    System.out.println("True");
+                } else System.out.printf("False");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void temp(String[] args) {
+        String barcodeFileS = "/data1/home/xiaohan/nam/GBStest0630/barcode.txt";
+        String libraryFastqMapFileS = "/data1/home/xiaohan/nam/GBStest0630/" + args[0] + "libraryFastqMap.txt";
+        String cutter1 = "GCGGCCGC";
+        String cutter2 = "CCGG";
+        String outputDir = args[1];
+        LibraryOfGRTcopy li = new LibraryOfGRTcopy(barcodeFileS, libraryFastqMapFileS, cutter1, cutter2);
+        li.splitBarcode(new File(outputDir).getAbsolutePath());
+
     }
 
     public void hetandMaf(String infileDir, String outfileDir) {
@@ -704,8 +1470,8 @@ public class eQTL {
     }
 
     public void hapscanner(String[] args) throws IOException, InterruptedException {
-//        new HapscannerParameters(args);
-        new Hapscann(args);
+        new HapscannerParameters(args);
+//        new Hapscann(args);
     }
 
     public void getTransposonLength() {

@@ -75,6 +75,19 @@ public class SNPmappingInGene {
         return ints;
     }
 
+    public static double[] Min(double[] arr){
+        double min1 = arr[0];
+        int index1 = 0;
+        for (int i = 1; i < arr.length; i++) {
+            if(arr[i] < min1){
+                min1 = arr[i];
+                index1 = i;
+            }
+        }
+        double[] minMin = {min1,index1};
+        return minMin;
+    }
+
     public static double[] minMin(double[] arr){
         double min1 = arr[0], min2 = arr[1];
         int index1 = 0;
