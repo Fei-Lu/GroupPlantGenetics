@@ -4,11 +4,6 @@ public enum LoadType {
 
     Syn("SYNONYMOUS",0), Non("NONSYNONYMOUS",1), Del("DELETERIOUS",2);
 
-    public static final LoadType SYNONYMOUS= LoadType.Syn;
-    public static final LoadType NONSYNONYMOUS= LoadType.Non;
-    public static final LoadType DELETERIOUS= LoadType.Del;
-
-
     String loadType;
     int index;
     LoadType(String loadType, int index) {
@@ -27,11 +22,11 @@ public enum LoadType {
     public static LoadType newInstanceFrom(String loadType){
         switch (loadType.toUpperCase()) {
             case "SYNONYMOUS":
-                return SYNONYMOUS;
+                return LoadType.Syn;
             case "NONSYNONYMOUS":
-                return NONSYNONYMOUS;
+                return LoadType.Non;
             case "DELETERIOUS":
-                return DELETERIOUS;
+                return LoadType.Del;
             default:
                 System.out.println("please check your parameter: "+loadType);
         }
