@@ -6,11 +6,12 @@ import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.IntStream;
 
 /**
- * have column name, but header can be false;
+ * have row name, but column name can be false;
  * dxy, r2
  * 默认的数据类型为double, 可以以int类型输出
  * @author Daxing Xu
@@ -283,6 +284,25 @@ public class Matrix {
             }
             bw.flush();
         }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public void writePairWise(String outFile){
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
+            StringBuilder sb = new StringBuilder();
+            bw.write("Taxa1\tTaxa2\tIBS");
+            bw.newLine();
+            for (int i = 0; i < data.length; i++) {
+                for (int j = 0; j < i; j++) {
+                    sb.setLength(0);
+                    sb.append(id.get(i)).append("\t").append(id.get(j)).append("\t").append(data[i][j]);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+            }
+            bw.flush();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

@@ -87,6 +87,8 @@ public class SNPAnnotation extends BiSNP{
         if(this.getGerp().equals("NA")) return false;
         double gerp=Double.parseDouble(this.getGerp());
         return !(gerp < 1);
+//        if (this.getVariant_type().equals("STOP-GAIN") || this.getVariant_type().equals("START-LOST")) return true;
+//        return false;
     }
 
     public boolean isNonSyn(){

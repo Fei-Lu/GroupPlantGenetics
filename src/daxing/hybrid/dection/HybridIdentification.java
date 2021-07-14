@@ -34,10 +34,11 @@ public class HybridIdentification {
         String[] outFileNameIndividualIntervalHeterozygosity= fileList.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz", ".IndividualIntervalHeterozygosity.txt.gz")).toArray(String[]::new);
         System.out.println(DateTime.getDateTimeOfNow());
         String[] chrs=RefV1Utils.getChromosomes();
-        IntStream.range(0, fileList.size()).forEach(e->getDepth(fileList.get(e), new File(subdirFileList.get(0), outFileNameDepth[e])));
+        IntStream.range(0, fileList.size()).forEach(e->getDepth(fileList.get(e), new File(subdirFileList.get(0),
+                outFileNameDepth[e])));
 //        IntStream.range(0, fileList.size()).parallel().forEach(e->getHeterozygosity(fileList.get(e), new File(subdirFileList.get(1), outFileNameHeterozygosity[e])));
-        IntStream.range(0, fileList.size()).forEach(e->getIndividualIntervalHeterozygosity(chrs[e],
-                windowSize,stepSize, fileList.get(e), new File(subdirFileList.get(2), outFileNameIndividualIntervalHeterozygosity[e])));
+//        IntStream.range(0, fileList.size()).forEach(e->getIndividualIntervalHeterozygosity(chrs[e],
+//                windowSize,stepSize, fileList.get(e), new File(subdirFileList.get(2), outFileNameIndividualIntervalHeterozygosity[e])));
     }
 
     private static void getDepth(File inputFile, File outFile){

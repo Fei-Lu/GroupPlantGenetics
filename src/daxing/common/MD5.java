@@ -165,6 +165,7 @@ public class MD5 {
                     //System.out.println("True  "+path+": "+value);
                 }
             });
+            System.out.println(integerList.size()*(i+1)+" files had been checked");
         }
         System.out.println("completed in " + String.format("%.4f", Benchmark.getTimeSpanMinutes(start)) + " minutes");
     }
