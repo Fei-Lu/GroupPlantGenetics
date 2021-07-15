@@ -93,6 +93,7 @@ public class MD5 {
                         Path relPath=AbsolutePath.subpath(Paths.get(inputDir).getNameCount(), AbsolutePath.getNameCount());
                         md5PathValueMap.put(relPath.toString(), md5Value);
                     });
+            System.out.println(integerList.size()*(i+1)+" files had been calculated md5checksum");
         }
         try{
             bw=IOUtils.getTextWriter(inputDir+"/md5.txt");

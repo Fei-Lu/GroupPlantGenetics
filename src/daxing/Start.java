@@ -1,28 +1,17 @@
 package daxing;
 
-import daxing.common.MD5;
-import daxing.common.Matrix;
+import daxing.common.VCF;
 
 public class Start {
 
     public static void main(String[] args) {
-
-//        SNPEff.extractEffectAndImpact(args[0],args[1]);
-//        VEP.extractEffectAndImpact(args[0],args[1]);
-//        ComplementaryGo.start();
-//        MD5.checkMD5("/Volumes/LuLab3T-41/Wheat1700/wheat1700_remain.md5.txt");
-//        String inputFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/001_GermplasmDetermination/d_ibs.txt";
-//        String outFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000" +
-//                "/001_GermplasmDetermination/d_ibs.pairwise.txt";
-//        IBS(inputFile, outFile);
-        MD5.getMD5FromDir(args[0]);
+//        String chrSNPNumFile=args[0];
+//        String vcfInputDir=args[1];
+//        int variantsNum=Integer.parseInt(args[2]);
+//        String pgfFileGeneHC=args[3];
+//        String ancestraDir=args[4];
+//        String outDir=args[5];
+//        VcfSubsetUtils.go(chrSNPNumFile, vcfInputDir, variantsNum, pgfFileGeneHC, ancestraDir, outDir);
+        VCF.fastMergeVCFtoLineage(args[0],args[1]);
     }
-
-    public static void IBS(String ibsFile, String outFile){
-        Matrix m = new Matrix(ibsFile, false);
-        m.writePairWise(outFile);
-
-    }
-
-
 }
