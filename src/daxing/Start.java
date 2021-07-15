@@ -1,17 +1,14 @@
 package daxing;
 
-import daxing.common.VCF;
+import daxing.vmapII_1000.variantsAnnotation.VcfSubsetUtils;
 
 public class Start {
 
     public static void main(String[] args) {
-//        String chrSNPNumFile=args[0];
-//        String vcfInputDir=args[1];
-//        int variantsNum=Integer.parseInt(args[2]);
-//        String pgfFileGeneHC=args[3];
-//        String ancestraDir=args[4];
-//        String outDir=args[5];
-//        VcfSubsetUtils.go(chrSNPNumFile, vcfInputDir, variantsNum, pgfFileGeneHC, ancestraDir, outDir);
-        VCF.fastMergeVCFtoLineage(args[0],args[1]);
+        String ancestralDir=args[0];
+        String vcfDir=args[1];
+        String outDir=args[2];
+        String variantsNumSummaryFile=args[3];
+        VcfSubsetUtils.extractVariantsWithAncestralState(ancestralDir, vcfDir, outDir, variantsNumSummaryFile);
     }
 }
