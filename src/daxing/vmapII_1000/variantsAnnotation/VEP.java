@@ -14,7 +14,8 @@ public class VEP {
 
     public static void extractEffectAndImpact(String inputDir, String outDir){
         List<File> files = IOTool.getFileListInDirEndsWith(inputDir, ".effect.txt.gz");
-        String[] outNames= files.stream().map(File::getName).map(s->s.replaceAll(".variant",".ann.variant")).toArray(String[]::new);
+        String[] outNames=
+                files.stream().map(File::getName).map(s->s.replaceAll(".variant",".vepAnn.variant")).toArray(String[]::new);
         IntStream.range(0, files.size()).parallel().forEach(e->extractConsequenceAndImpact(files.get(e), new File(outDir,
                 outNames[e])));
     }
@@ -30,7 +31,7 @@ public class VEP {
             String line;
             List<String> temp, tem, te;
             StringBuilder sb= new StringBuilder();
-            bw.write("Chr\tPos\tConsequence\tImpact");
+            bw.write("Chr\tPos\tGene\tTranscript\tConsequence\tImpact");
             bw.newLine();
             while ((line = br.readLine()).startsWith("##")) continue;
             while ((line = br.readLine())!=null){
@@ -42,6 +43,7 @@ public class VEP {
                 tem = PStringUtils.fastSplit(temp.get(1), ":");
                 sb.setLength(0);
                 sb.append(String.join("\t", tem)).append("\t");
+                sb.append(temp.get(3)).append("\t").append(temp.get(4)).append("\t");
                 sb.append(temp.get(6)).append("\t");
                 tem= PStringUtils.fastSplit(temp.get(13), ";");
                 te= PStringUtils.fastSplit(tem.get(0), "=");
