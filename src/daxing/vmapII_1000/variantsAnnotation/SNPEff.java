@@ -17,7 +17,7 @@ public class SNPEff {
 
     public static void extractEffectAndImpact(String inputDir, String outDir){
         List<File> fileList = IOTool.getVisibleFileListInDir(inputDir);
-        String[] outNames= fileList.stream().map(File::getName).map(s->s.replaceAll(".ann.txt.gz",".ann.effect.txt" +
+        String[] outNames= fileList.stream().map(File::getName).map(s->s.replaceAll(".ann.vcf.gz",".ann.effect.txt" +
                 ".gz")).toArray(String[]::new);
         IntStream.range(0, fileList.size()).parallel().forEach(e->extractEffectAndImpact(fileList.get(e), new File(outDir,
                 outNames[e])));
@@ -31,10 +31,19 @@ public class SNPEff {
             StringBuilder sb=new StringBuilder();
             bw.write("Chr\tPos\tEffect\tImpact");
             bw.newLine();
+            while ((line=br.readLine()).startsWith("#")) continue;
+            temp= PStringUtils.fastSplit(line);
+            tem= PStringUtils.fastSplit(temp.get(7), ";");
+            te= PStringUtils.fastSplit(tem.get(7), "|");
+            sb.setLength(0);
+            sb.append(temp.get(0)).append("\t").append(temp.get(2)).append("\t");
+            sb.append(te.get(1)).append("\t").append(te.get(2));
+            bw.write(sb.toString());
+            bw.newLine();
             while ((line=br.readLine())!=null){
                 temp= PStringUtils.fastSplit(line);
-                tem= PStringUtils.fastSplit(temp.get(5), ";");
-                te= PStringUtils.fastSplit(tem.get(9), "|");
+                tem= PStringUtils.fastSplit(temp.get(7), ";");
+                te= PStringUtils.fastSplit(tem.get(7), "|");
                 sb.setLength(0);
                 sb.append(temp.get(0)).append("\t").append(temp.get(2)).append("\t");
                 sb.append(te.get(1)).append("\t").append(te.get(2));

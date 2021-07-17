@@ -13,7 +13,7 @@ import java.util.stream.IntStream;
 public class VEP {
 
     public static void extractEffectAndImpact(String inputDir, String outDir){
-        List<File> files = IOTool.getFileListInDirEndsWith(inputDir, ".effect.txt");
+        List<File> files = IOTool.getFileListInDirEndsWith(inputDir, ".effect.txt.gz");
         String[] outNames= files.stream().map(File::getName).map(s->s.replaceAll(".variant",".ann.variant")).toArray(String[]::new);
         IntStream.range(0, files.size()).parallel().forEach(e->extractConsequenceAndImpact(files.get(e), new File(outDir,
                 outNames[e])));

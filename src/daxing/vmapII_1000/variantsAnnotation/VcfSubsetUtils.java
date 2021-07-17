@@ -3,17 +3,18 @@ package daxing.vmapII_1000.variantsAnnotation;
 import com.google.common.collect.Table;
 import daxing.common.ArrayTool;
 import daxing.common.IOTool;
+import daxing.common.PGF;
 import daxing.common.RowTableTool;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 /**
@@ -71,7 +72,8 @@ public class VcfSubsetUtils {
                     bw.newLine();
                 }
                 bw.flush();
-                chrSnpNumMap.put(e+1, cnt);
+                int chrID = Integer.parseInt(fileList.get(e).getName().substring(3,6));
+                chrSnpNumMap.put(chrID, cnt);
                 System.out.println(outNames[e]+" complicated in "+ Benchmark.getTimeSpanMinutes(start)+ " minutes");
             } catch (IOException ioException) {
                 ioException.printStackTrace();
@@ -104,56 +106,70 @@ public class VcfSubsetUtils {
         System.out.println("writing variants number summary file complicated in "+ Benchmark.getTimeSpanSeconds(start)+ " seconds");
     }
 
-//    /**
-//     * Extract the variants in gene region
-//     * @param pgfFileGeneHC
-//     * @param vcfInputDir
-//     * @param outDir
-//     */
-//    public static void extractVariantsInGene(String pgfFileGeneHC, String vcfInputDir, String outDir,
-//                                             String variantsNumSummaryFile){
-//        System.out.println("start extract variants in gene region ...");
-//        long start0 = System.nanoTime();
-//        List<File> files = IOTool.getFileListInDirEndsWith(vcfInputDir, ".vcf.gz");
-//        String[] outNames= files.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz",".gene.vcf.gz")).toArray(String[]::new);
-//        PGF pgf = new PGF(pgfFileGeneHC);
-//        pgf.sortGeneByGeneRange();
-//        ConcurrentHashMap<Integer, Integer> chrSnpNumMap = new ConcurrentHashMap<>();
-//        IntStream.range(0, files.size()).parallel().forEach(e->{
-//            long start= System.nanoTime();
-//            try (BufferedReader br = IOTool.getReader(files.get(e));
-//                 BufferedWriter bw = IOTool.getWriter(new File(outDir, outNames[e]))) {
-//                String line, subLine;
-//                List<String> temp;
-//                int chrID, pos;
-//                while ((line=br.readLine()).startsWith("##")){
-//                    bw.write(line);
-//                    bw.newLine();
-//                }
-//                bw.write(line);
-//                bw.newLine();
-//                int cnt=0;
-//                while((line=br.readLine())!=null){
-//                    subLine = line.substring(0,20);
-//                    temp = PStringUtils.fastSplit(subLine);
-//                    chrID = Integer.parseInt(temp.get(0));
-//                    pos = Integer.parseInt(temp.get(1));
-//                    int geneIndex = pgf.getGeneIndex(chrID, pos);
-//                    if (geneIndex < 0) continue;
-//                    cnt++;
-//                    bw.write(line);
-//                    bw.newLine();
-//                }
-//                bw.flush();
-//                chrSnpNumMap.put(e+1, cnt);
-//                System.out.println(outNames[e]+" complicated in "+ Benchmark.getTimeSpanMinutes(start)+ " minutes");
-//            } catch (IOException ioException) {
-//                ioException.printStackTrace();
-//            }
-//        });
-//        writeVariantsNum(variantsNumSummaryFile, chrSnpNumMap);
-//        System.out.println("extract variants in gene region complicated in "+ Benchmark.getTimeSpanHours(start0)+ " hours");
-//    }
+    /**
+     * Extract the variants in gene region
+     * @param pgfFile
+     * @parm nonoverlapFile
+     * Gene	Is_Overlapped_gene(1,0)	Number_Overlapped_gene	Is_Unique_gene(1,0)	Longest_transcript
+     * TraesCSU02G000100	0	0	1	TraesCSU02G000100.1
+     * TraesCSU02G000200	0	0	1	TraesCSU02G000200.1
+     * TraesCSU02G000300	0	0	1	TraesCSU02G000300.1
+     * TraesCSU02G000400	0	0	1	TraesCSU02G000400.1
+     * @param vcfInputDir
+     * @param outDir
+     * @param variantsNumSummaryFile
+     */
+    public static void extractVariantsInGene(String pgfFile, String nonoverlapFile, String vcfInputDir,
+                                             String outDir,
+                                             String variantsNumSummaryFile){
+        System.out.println("start extract variants in gene region ...");
+        long start0 = System.nanoTime();
+        List<File> files = IOTool.getFileListInDirEndsWith(vcfInputDir, ".vcf.gz");
+        String[] outNames= files.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz",".gene.vcf.gz")).toArray(String[]::new);
+        RowTableTool<String> table=new RowTableTool<>(nonoverlapFile);
+        Predicate<List<String>> duplicatedGeneP = l -> l.get(3).equals("0");
+        table.removeIf(duplicatedGeneP);
+        List<String> uniqueGeneList=table.getColumn(0);
+        PGF pgf = new PGF(pgfFile);
+        Predicate<PGF.Gene> uniqueGeneP = gene -> uniqueGeneList.contains(gene.getGeneName());
+        pgf.removeIf(uniqueGeneP.negate());
+        pgf.sortGeneByGeneRange();
+        ConcurrentHashMap<Integer, Integer> chrSnpNumMap = new ConcurrentHashMap<>();
+        IntStream.range(0, files.size()).parallel().forEach(e->{
+            long start= System.nanoTime();
+            try (BufferedReader br = IOTool.getReader(files.get(e));
+                 BufferedWriter bw = IOTool.getWriter(new File(outDir, outNames[e]))) {
+                String line, subLine;
+                List<String> temp;
+                int chrID = -1, pos;
+                while ((line=br.readLine()).startsWith("##")){
+                    bw.write(line);
+                    bw.newLine();
+                }
+                bw.write(line);
+                bw.newLine();
+                int cnt=0;
+                while((line=br.readLine())!=null){
+                    subLine = line.substring(0,20);
+                    temp = PStringUtils.fastSplit(subLine);
+                    chrID = Integer.parseInt(temp.get(0));
+                    pos = Integer.parseInt(temp.get(1));
+                    int geneIndex = pgf.getGeneIndex(chrID, pos);
+                    if (geneIndex < 0) continue;
+                    cnt++;
+                    bw.write(line);
+                    bw.newLine();
+                }
+                bw.flush();
+                chrSnpNumMap.put(chrID, cnt);
+                System.out.println(outNames[e]+" complicated in "+ Benchmark.getTimeSpanMinutes(start)+ " minutes");
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        });
+        writeVariantsNum(variantsNumSummaryFile, chrSnpNumMap);
+        System.out.println("extract variants in gene region complicated in "+ Benchmark.getTimeSpanHours(start0)+ " hours");
+    }
 
     public static void extractVariantsWithAncestralState(String ancestralDir, String vcfDir, String outDir, String variantsNumSummaryFile){
         System.out.println("start extract variants with ancestral state ...");
@@ -163,7 +179,7 @@ public class VcfSubsetUtils {
         String[] outNames =
                 vcfFiles.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz",".ancestral.vcf.gz")).toArray(String[]::new);
         Map<Integer, Integer> chrSnpNumMap = new HashMap<>();
-        for (int i = 0; i < vcfDir.length(); i++) {
+        for (int i = 0; i < vcfFiles.size(); i++) {
             long start= System.nanoTime();
             Table<String, String, String> table = RowTableTool.getTable(ancestralFiles.get(i).toString(), 2);
             try (BufferedReader br = IOTool.getReader(vcfFiles.get(i));
@@ -186,7 +202,8 @@ public class VcfSubsetUtils {
                     bw.newLine();
                 }
                 bw.flush();
-                chrSnpNumMap.put(i+1, cnt);
+                int chrID = Integer.parseInt(vcfFiles.get(i).getName().substring(3,6));
+                chrSnpNumMap.put(chrID, cnt);
                 System.out.println(outNames[i]+" complicated in "+ Benchmark.getTimeSpanMinutes(start)+ " minutes");
             } catch (IOException ioException) {
                 ioException.printStackTrace();
@@ -226,19 +243,22 @@ public class VcfSubsetUtils {
         System.out.println("extract variants with ancestral state complicated in "+ Benchmark.getTimeSpanHours(start0)+ " hours");
     }
 
-//    public static void go(String chrSNPNumFile, String vcfInputDir, int variantsNum, String pgfFileGeneHC,
-//                          String ancestraDir, String outDir){
-//        String[] subDirArray={"001_vmap2_"+variantsNum/1000+"k","002_vmap2_gene","003_vmap2_ancestral"};
-//        String[] snpNumSummaryFileArray = {subDirArray[0]+".summary.txt", subDirArray[1]+".summary.txt",
-//                subDirArray[2]+".summary.txt"};
-//        for (String str: subDirArray){
-//            new File(outDir, str).mkdirs();
-//        }
-//        VcfSubsetUtils.sampleFixedNumVariants(chrSNPNumFile, vcfInputDir, variantsNum, new File(outDir, subDirArray[0]).getAbsolutePath(),
-//                new File(outDir, snpNumSummaryFileArray[0]).getAbsolutePath());
-//        VcfSubsetUtils.extractVariantsInGene(pgfFileGeneHC, vcfInputDir, new File(outDir, subDirArray[1]).getAbsolutePath(),
-//                new File(outDir, snpNumSummaryFileArray[1]).getAbsolutePath());
-//        VcfSubsetUtils.extractVariantsWithAncestralState(ancestraDir, vcfInputDir, new File(outDir, subDirArray[2]).getAbsolutePath(),
-//                new File(outDir, snpNumSummaryFileArray[2]).getAbsolutePath());
-//    }
+    public static void go(String chrSNPNumFile, String vcfInputDir, int variantsNum, String pgfFile,
+                          String nonoverlapFile, String ancestraDir, String outDir){
+        String[] subDirArray={"001_vmap2_"+variantsNum/1000+"k",
+                "002_vmap2_gene",
+                "003_vmap2_ancestral"};
+        String[] snpNumSummaryFileArray = {subDirArray[0]+".summary.txt", subDirArray[1]+".summary.txt",
+                subDirArray[2]+".summary.txt"};
+        for (String str: subDirArray){
+            new File(outDir, str).mkdirs();
+        }
+        VcfSubsetUtils.sampleFixedNumVariants(chrSNPNumFile, vcfInputDir, variantsNum, new File(outDir, subDirArray[0]).getAbsolutePath(),
+                new File(outDir, snpNumSummaryFileArray[0]).getAbsolutePath());
+        VcfSubsetUtils.extractVariantsInGene(pgfFile, nonoverlapFile, vcfInputDir, new File(outDir,
+                        subDirArray[1]).getAbsolutePath(),
+                new File(outDir, snpNumSummaryFileArray[1]).getAbsolutePath());
+        VcfSubsetUtils.extractVariantsWithAncestralState(ancestraDir, vcfInputDir, new File(outDir, subDirArray[2]).getAbsolutePath(),
+                new File(outDir, snpNumSummaryFileArray[2]).getAbsolutePath());
+    }
 }
