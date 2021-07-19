@@ -40,7 +40,7 @@ public class SNPEff {
                 t= PStringUtils.fastSplit(te.get(i), "|");
                 sb.setLength(0);
                 sb.append(temp.get(0)).append("\t").append(temp.get(1)).append("\t");
-                sb.append("\t").append(t.get(4)).append("\t").append(t.get(6)).append("\t");
+                sb.append(t.get(4)).append("\t").append(t.get(6)).append("\t");
                 sb.append(t.get(1)).append("\t").append(t.get(2)).append("\t");
                 sb.append(t.get(8));
                 bw.write(sb.toString());
@@ -54,7 +54,7 @@ public class SNPEff {
                     t= PStringUtils.fastSplit(te.get(i), "|");
                     sb.setLength(0);
                     sb.append(temp.get(0)).append("\t").append(temp.get(1)).append("\t");
-                    sb.append("\t").append(t.get(4)).append("\t").append(t.get(6)).append("\t");
+                    sb.append(t.get(4)).append("\t").append(t.get(6)).append("\t");
                     sb.append(t.get(1)).append("\t").append(t.get(2)).append("\t");
                     sb.append(t.get(8));
                     bw.write(sb.toString());

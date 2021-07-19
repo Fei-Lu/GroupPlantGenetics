@@ -6,6 +6,7 @@ import daxing.common.IOTool;
 import daxing.common.PGF;
 import daxing.common.RowTableTool;
 import gnu.trove.list.array.TIntArrayList;
+import pgl.infra.range.Range;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
@@ -149,6 +150,7 @@ public class VcfSubsetUtils {
                 bw.write(line);
                 bw.newLine();
                 int cnt=0;
+                Range range;
                 while((line=br.readLine())!=null){
                     subLine = line.substring(0,20);
                     temp = PStringUtils.fastSplit(subLine);
@@ -156,6 +158,9 @@ public class VcfSubsetUtils {
                     pos = Integer.parseInt(temp.get(1));
                     int geneIndex = pgf.getGeneIndex(chrID, pos);
                     if (geneIndex < 0) continue;
+                    int longestTranscriptIndex = pgf.getLongestTranscriptIndex(geneIndex);
+                    range = pgf.getTranscriptRange(geneIndex, longestTranscriptIndex);
+                    if (!range.isContain(chrID, pos)) continue;
                     cnt++;
                     bw.write(line);
                     bw.newLine();

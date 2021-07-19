@@ -44,6 +44,11 @@ public class IndividualChrLoad{
         geneLoads[geneIndex].addGenotype(siteGenotype, corrRatio);
     }
 
+    public void addGenotype(String geneName, byte[] siteGenotype, SNPAnnotation.MethodCallDeleterious methodCallDeleterious){
+        int geneIndex=getGeneIndex(geneName);
+        geneLoads[geneIndex].addGenotype(siteGenotype, methodCallDeleterious);
+    }
+
     public String[] getGeneNames() {
         String[] geneName=new String[this.geneLoads.length];
         for (int i = 0; i < this.geneLoads.length; i++) {

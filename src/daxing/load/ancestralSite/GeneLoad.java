@@ -58,6 +58,29 @@ public class GeneLoad implements Comparable<GeneLoad>{
         }
     }
 
+    public void addGenotype(byte[] indexGenotype, SNPAnnotation.MethodCallDeleterious methodCallDeleterious){
+        String method = methodCallDeleterious.toString();
+        if (method.equals("SIFT_GERP") || method.equals("SIFT") ||method.equals("GERP")){
+            if (indexGenotype[0]==0){
+                this.synGenotype.add(indexGenotype[1]);
+            }else if(indexGenotype[0]==2){
+                this.hgDeleteriousGenop.add(indexGenotype[1]);
+                this.nonsynGenotype.add(indexGenotype[1]);
+            }else if (indexGenotype[0]==1){
+                this.nonsynGenotype.add(indexGenotype[1]);
+            }
+        }else {
+            if (indexGenotype[0]==0){
+                this.synGenotype.add(indexGenotype[1]);
+            }else if(indexGenotype[0]==2){
+                this.hgDeleteriousGenop.add(indexGenotype[1]);
+//                this.nonsynGenotype.add(indexGenotype[1]);
+            }else if (indexGenotype[0]==1){
+                this.nonsynGenotype.add(indexGenotype[1]);
+            }
+        }
+    }
+
     public void addGenotype(byte[] indexGenotype, double corrRatio){
         if (indexGenotype[0]==0){
             this.synGenotype.add(indexGenotype[1]);

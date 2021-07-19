@@ -7,6 +7,7 @@ import daxing.individualIntrogression.P3;
 import daxing.load.ancestralSite.ChrSNPAnnoDB;
 import daxing.load.ancestralSite.GeneLoad;
 import daxing.load.ancestralSite.IndividualChrLoad;
+import daxing.load.ancestralSite.SNPAnnotation;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.range.Range;
 import pgl.infra.table.RowTable;
@@ -14,10 +15,7 @@ import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -26,23 +24,26 @@ import java.util.stream.IntStream;
 public class ComplementaryGo {
 
     public static void start(){
-        String exonSNPAnnoDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/002_exon/002_exonVCFAnno/002_exonAnnotationByDerivedSift/001_exonSNPAnnotation";
+        String exonSNPAnnoDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/003_Gene_Variant_genotype/002_variantsAnnotation/004_GeneSiteAnno/001_byChrID";
 //        String exonSNPAnnoDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/002_exon/002_exonVCFAnno/003_exonAnnotationByDerivedSiftTriadsGene/001_exonSNP_anno_triadsGene";
-        String exonVCFDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/002_exon/001_exonVCF";
-        String taxa_InfoDB="/Users/xudaxing/Documents/deleteriousMutation/002_vmapII_taxaGroup/taxa_InfoDB.txt";
+        String exonVCFDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/003_Gene_Variant_genotype/001_longestTranscriptVCF";
+        String taxa_InfoDB="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/001_GermplasmDetermination/TaxaInfo/GermplasmInfo.txt";
         String triadFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/triadGenes1.1.txt";
         String pgfFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/wheat_v1.1_Lulab.pgf";
 //        String outDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftLoadComplementary";
-        String outDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/008_SIFT_GERP";
+        String outDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/004_BurdenPerGene/003_GERP";
         int blockGeneNum=20;
-        go(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, triadFile, blockGeneNum, pgfFile, outDir);
+        SNPAnnotation.MethodCallDeleterious methodCallDeleterious = SNPAnnotation.MethodCallDeleterious.GERP;
+        go(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, triadFile, blockGeneNum, pgfFile, outDir,methodCallDeleterious);
     }
 
     public static void go(String exonSNPAnnoDir, String exonVCFDir, String taxa_InfoDBFile, String triadFile,
-                          int blockGeneNum, String pgfFile, String outDir){
+                          int blockGeneNum, String pgfFile, String outDir,
+                          SNPAnnotation.MethodCallDeleterious methodCallDeleterious){
         System.out.println(DateTime.getDateTimeOfNow());
-        String[] subdir={"001_count","002_countMerge","003_hexaploidPseudohexaploid","004_triadsBlock",
-                "005_mergeTriadsBlock","006_staticsValue"};
+//        String[] subdir={"001_count","002_countMerge","003_hexaploidPseudohexaploid","004_triadsBlock",
+//                "005_mergeTriadsBlock","006_staticsValue"};
+        String[] subdir={"001_count","002_countMerge"};
         for (String s : subdir) {
             new File(outDir, s).mkdir();
         }
@@ -50,7 +51,7 @@ public class ComplementaryGo {
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
         Map<String, File> taxonOutDirMap=getTaxonOutDirMap(taxa_InfoDBFile, new File(outDir, subdir[0]).getAbsolutePath());
         IntStream.range(0, exonVCFFiles.size()).forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
-                taxonOutDirMap, e+1, exonSNPAnnoDir));
+                taxonOutDirMap, e+1, exonSNPAnnoDir, methodCallDeleterious));
         merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
 //        syntheticPseudohexaploidHexaploid(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
 //                new File(outDir, subdir[2]).getAbsolutePath());
@@ -62,7 +63,8 @@ public class ComplementaryGo {
     }
 
     private static void go(File exonSNPAnnoFile, File exonVCFFile,
-                           Map<String, File> taxonOutDirMap, int chr, String exonSNPAnnoDir){
+                           Map<String, File> taxonOutDirMap, int chr, String exonSNPAnnoDir,
+                           SNPAnnotation.MethodCallDeleterious methodCallDeleterious){
         try (BufferedReader br = IOTool.getReader(exonVCFFile)) {
             String line;
             List<String> temp;
@@ -76,7 +78,7 @@ public class ComplementaryGo {
                 taxonLoads[i]=new IndividualChrLoad(taxonNames.get(i), geneNames, chr);
             }
             int pos, depth;
-            String geneName, genotype;
+            String geneName, genotype, subLine;
             List<String> genotypeList, depthList;
             boolean isRefAlleleAncestral;
             boolean isSyn, isNonsyn, isDeleterious;
@@ -85,16 +87,18 @@ public class ComplementaryGo {
 //            ExonSNPAnno exonSNPAnno=new ExonSNPAnno(exonSNPAnnoDir);
 //            Table<Integer,Integer,Double> chrPosCorrRatioMap= exonSNPAnno.getCorrRatio();
             while ((line=br.readLine())!=null){
-                temp=PStringUtils.fastSplit(line);
+                subLine= line.substring(0,20);
+                temp=PStringUtils.fastSplit(subLine);
                 pos=Integer.parseInt(temp.get(1));
                 if (!transcriptDB.contain(chr, pos)) continue;
                 if (!transcriptDB.hasAncestral(chr, pos)) continue;
                 isSyn=transcriptDB.isSyn(chr, pos);
                 isNonsyn=transcriptDB.isNonsyn(chr, pos);
-                if (!(isSyn || isNonsyn)) continue;
-                isDeleterious=transcriptDB.isDeleterious(chr, pos);
+                isDeleterious=transcriptDB.isDeleterious(chr, pos, methodCallDeleterious);
+                if (!(isSyn || isNonsyn || isDeleterious)) continue;
                 isRefAlleleAncestral=transcriptDB.isRefAlleleAncestral(chr, pos);
                 geneName=transcriptDB.getGeneName(chr, pos);
+                temp = PStringUtils.fastSplit(line);
                 for (int i = 0; i < taxonNames.size(); i++) {
                     genotypeList=PStringUtils.fastSplit(temp.get(i+9), ":");
                     genotype=genotypeList.get(0);
@@ -115,7 +119,7 @@ public class ComplementaryGo {
                         indexGenotype[0]=1;
                     }
 //                    taxonLoads[i].addGenotype(geneName, indexGenotype, corrRatio);
-                    taxonLoads[i].addGenotype(geneName, indexGenotype);
+                    taxonLoads[i].addGenotype(geneName, indexGenotype, methodCallDeleterious);
                 }
             }
             File outDir;

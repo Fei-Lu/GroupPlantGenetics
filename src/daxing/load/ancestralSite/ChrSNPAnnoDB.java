@@ -1,12 +1,11 @@
 package daxing.load.ancestralSite;
 
 import daxing.common.IOTool;
+import daxing.common.RowTableTool;
 import pgl.infra.pos.ChrPos;
 import pgl.infra.utils.PStringUtils;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
+
+import java.io.*;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -34,6 +33,11 @@ public class ChrSNPAnnoDB {
         return geneAnno;
     }
 
+    /**
+     * for vmap2 643
+     * @param line
+     * @return
+     */
     private SNPAnnotation getSNPAnnotation(String line){
         List<String> temp= PStringUtils.fastSplit(line);
         short chr=Short.parseShort(temp.get(1));
@@ -57,7 +61,42 @@ public class ChrSNPAnnoDB {
         String gerp=temp.get(20);
         String recombinationRate=null;
         return new SNPAnnotation(chr, pos, refBase, altBase, geneName, majorBase, ancestral, maf
-                , aaf, daf, dafs, region, variant_type, derived_SIFT, gerp, recombinationRate);
+                , aaf, daf, dafs, region, variant_type, derived_SIFT, gerp, recombinationRate,
+                null, null, null, null);
+    }
+
+    /**
+     * for vmap2 1061
+     * @param line
+     * @return
+     */
+    private SNPAnnotation getSNPAnnotation2(String line){
+        List<String> temp= PStringUtils.fastSplit(line);
+        short chr=Short.parseShort(temp.get(1));
+        int pos=Integer.parseInt(temp.get(2));
+        char refBase=temp.get(3).charAt(0);
+        char altBase=temp.get(4).charAt(0);
+        char majorBase=temp.get(5).charAt(0);
+        double maf=Double.parseDouble(temp.get(7));
+//        aaf[0]=Double.parseDouble(temp.get(8));
+//        aaf[1]=Double.parseDouble(temp.get(9));
+        String geneName=temp.get(8).substring(0,18);
+        String ancestral=temp.get(9);
+        String daf=temp.get(10);
+        String gerp=temp.get(11);
+        SNPAnnotation.Region region=SNPAnnotation.Region.valueOf(temp.get(12));
+        String variant_type=temp.get(13);
+        String derived_SIFT=temp.get(16);
+        String recombinationRate=null;
+        double[] aaf = null;
+        String[] dafs = null;
+        String effect_snpEff=temp.get(19);
+        String impact_snpEff=temp.get(20);
+        String effect_vep=temp.get(17);
+        String impact_vep=temp.get(18);
+        return new SNPAnnotation(chr, pos, refBase, altBase, geneName, majorBase, ancestral, maf
+                , aaf, daf, dafs, region, variant_type, derived_SIFT, gerp, recombinationRate,
+                effect_snpEff, impact_snpEff, effect_vep, impact_vep);
     }
 
     public int getSize(){
@@ -140,8 +179,18 @@ public class ChrSNPAnnoDB {
         return this.getSNP(chr, pos).isNonSyn();
     }
 
+    /**
+     * for SIFT && GERP
+     * @param chr
+     * @param pos
+     * @return
+     */
     public boolean isDeleterious(int chr, int pos){
         return this.getSNP(chr, pos).isDeleterious();
+    }
+
+    public boolean isDeleterious(int chr, int pos, SNPAnnotation.MethodCallDeleterious methodCallDeleterious){
+        return this.getSNP(chr, pos).isDeleterious(methodCallDeleterious);
     }
 
     public int getDelNum(){
@@ -177,5 +226,43 @@ public class ChrSNPAnnoDB {
             e.printStackTrace();
         }
 
+    }
+
+    /**
+     * split DB by chr
+     * @param snpAnnpDBFile
+     * @param outDir
+     */
+    public static void splitSNPAnnoDB(String snpAnnpDBFile, String outDir){
+        Set<String> set= RowTableTool.getColumnSet(snpAnnpDBFile, 1);
+        List<String> chrList= new ArrayList<>(set);
+        Collections.sort(chrList);
+        BufferedWriter[] bws = new BufferedWriter[chrList.size()];
+        String file;
+        for (int i = 0; i < chrList.size(); i++) {
+            file = "chr"+PStringUtils.getNDigitNumber(3, Integer.parseInt(chrList.get(i)))+"_"+new File(snpAnnpDBFile).getName();
+            bws[i] = IOTool.getWriter(new File(outDir, file));
+        }
+        try (BufferedReader br = IOTool.getReader(snpAnnpDBFile)) {
+            String line, header;
+            List<String> temp;
+            header = br.readLine();
+            for (int i = 0; i < bws.length; i++) {
+                bws[i].write(header);
+                bws[i].newLine();
+            }
+            while ((line=br.readLine())!=null){
+                temp =PStringUtils.fastSplit(line);
+                int index = Collections.binarySearch(chrList, temp.get(1));
+                bws[index].write(line);
+                bws[index].newLine();
+            }
+            for (int i = 0; i < bws.length; i++) {
+                bws[i].flush();
+                bws[i].close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

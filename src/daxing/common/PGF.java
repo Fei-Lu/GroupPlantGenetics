@@ -54,6 +54,10 @@ public class PGF {
         return this.getGenes()[geneIndex];
     }
 
+    public Range getTranscriptRange(int geneIndex, int transcriptIndex){
+        return this.getGene(geneIndex).getTs().get(transcriptIndex).getTranscriptRange();
+    }
+
     /**
      * Read from pgf file of gene annotation
      * @param infileS
@@ -1295,6 +1299,10 @@ public class PGF {
 
         public byte getStrand() {
             return strand;
+        }
+
+        public Range getTranscriptRange() {
+            return transcriptRange;
         }
 
         public void sortCDSByPosition () {
