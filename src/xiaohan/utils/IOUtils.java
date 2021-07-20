@@ -1,4 +1,4 @@
-package xiaohan.rareallele;
+package xiaohan.utils;
 
 import java.io.*;
 import java.nio.ByteBuffer;

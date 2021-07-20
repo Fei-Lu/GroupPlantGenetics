@@ -1,8 +1,8 @@
-package xiaohan.eQTL;
+package xiaohan.eQTL.pipline;
 
 import pgl.infra.range.Range;
 import xiaohan.rareallele.GeneFeature;
-import xiaohan.rareallele.IOUtils;
+import xiaohan.utils.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

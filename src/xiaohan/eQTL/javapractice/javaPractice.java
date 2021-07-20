@@ -1,6 +1,6 @@
 package xiaohan.eQTL.javapractice;
 
-import xiaohan.eQTL.SNPmappingInGene;
+import xiaohan.utils.SNPmappingInGene;
 
 
 public class javaPractice {

@@ -13,9 +13,9 @@ import pgl.infra.dna.genot.summa.SumTaxaDivergence;
 import pgl.infra.utils.Dyad;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.PStringUtils;
-import xiaohan.eQTL.RowTable;
-import xiaohan.eQTL.SNPmappingInGene;
-import xiaohan.rareallele.IOUtils;
+import xiaohan.utils.RowTable;
+import xiaohan.utils.SNPmappingInGene;
+import xiaohan.utils.IOUtils;
 
 import java.io.*;
 import java.text.SimpleDateFormat;

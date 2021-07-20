@@ -1,4 +1,4 @@
-package xiaohan.eQTL;
+package xiaohan.eQTL.SiPAS;
 
 /*
  * To change this license header, choose License Headers in Project Properties.

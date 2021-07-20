@@ -11,8 +11,9 @@ import pgl.infra.dna.genot.summa.SumTaxaDivergence;
 import pgl.infra.utils.Dyad;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.PStringUtils;
-import xiaohan.eQTL.SNPmappingInGene;
-import xiaohan.rareallele.IOUtils;
+import xiaohan.utils.RowTable;
+import xiaohan.utils.SNPmappingInGene;
+import xiaohan.utils.IOUtils;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -137,7 +138,7 @@ public class HapscannerParameters {
             BufferedReader brinfo = IOUtils.getTextReader(infor);
 
 
-            xiaohan.eQTL.RowTable<String> t = new xiaohan.eQTL.RowTable<>(infor);
+            RowTable<String> t = new RowTable<>(infor);
             //index of RNA samples and DNA samples : 1,2,3,...,RNAsamplecount,...,total
             String[] header = t.getHeader().toArray(new String[0]);
             List<String> RNASet = new ArrayList<>();
@@ -905,7 +906,7 @@ public class HapscannerParameters {
             String[] samplelist = samples.toArray(new String[samples.size()]);
 
             bw.write("RNA\tDNA\tIBSdistance\n");
-            xiaohan.eQTL.RowTable<String> t = new xiaohan.eQTL.RowTable<>(infile);
+            RowTable<String> t = new RowTable<>(infile);
             for (int i = 0; i < samplelist.length; i++) {
                 String RNA = samplelist[i];
                 String DNA = null;

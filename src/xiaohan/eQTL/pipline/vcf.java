@@ -1,12 +1,11 @@
-package xiaohan.eQTL;
+package xiaohan.eQTL.pipline;
 
 import xiaohan.rareallele.GeneFeature;
-import xiaohan.rareallele.IOUtils;
+import xiaohan.utils.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 

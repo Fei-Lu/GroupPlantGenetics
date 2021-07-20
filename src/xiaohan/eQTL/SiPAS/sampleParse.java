@@ -1,4 +1,4 @@
-
+package xiaohan.eQTL.SiPAS;
 
 
 import java.io.BufferedReader;
@@ -216,7 +216,7 @@ public class sampleParse {
             if (!(temp = br.readLine()).equals("Email: liuzhongxujun@163.com; flu@genetics.ac.cn")) ifOut = true;
             if (!(temp = br.readLine()).equals("Homepage: http://plantgeneticslab.weebly.com/")) ifOut = true;
             if (ifOut) {
-                System.out.println("Thanks for using sampleParse.");
+                System.out.println("Thanks for using xiaohan.eQTL.SiPAS.sampleParse.");
                 System.out.println("Please keep the authorship in the parameter file. Program stops.");
                 System.exit(0);
             }

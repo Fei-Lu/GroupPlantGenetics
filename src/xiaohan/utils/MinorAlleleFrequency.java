@@ -1,7 +1,5 @@
 package xiaohan.utils;
 
-import xiaohan.rareallele.IOUtils;
-
 import java.io.BufferedReader;
 import java.util.HashMap;
 

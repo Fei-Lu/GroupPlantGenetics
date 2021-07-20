@@ -1,5 +1,7 @@
 package xiaohan.rareallele;
 
+import xiaohan.utils.IOUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -356,7 +358,7 @@ public class VCFsplit {
         }
         try {
             String infile = "/Users/yxh/Documents/RareAllele/004test/test/genotype20200115.txt";
-            BufferedReader br = xiaohan.rareallele.IOUtils.getTextReader(infile);
+            BufferedReader br = IOUtils.getTextReader(infile);
             BufferedWriter bw;
             bw = IOUtils.getTextWriter("/Users/yxh/Documents/RareAllele/004test/test/genotype-2.txt");
             String temp1 = null;

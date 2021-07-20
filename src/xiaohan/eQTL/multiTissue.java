@@ -1,13 +1,11 @@
 package xiaohan.eQTL;
 
-import htsjdk.samtools.util.CollectionUtil;
-import xiaohan.rareallele.IOUtils;
+import xiaohan.utils.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 

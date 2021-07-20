@@ -1,14 +1,14 @@
-package xiaohan.rareallele;
+package xiaohan.eQTL.pipline;
 
-import pgl.infra.utils.IOFileFormat;
-import xiaohan.eQTL.MathUtils;
-import xiaohan.eQTL.RowTable;
+import xiaohan.utils.MathUtils;
+import xiaohan.utils.RowTable;
+import xiaohan.rareallele.GeneFeature;
+import xiaohan.utils.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.ForkJoinPool;
 
 public class pheno {
 

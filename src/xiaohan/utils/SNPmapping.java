@@ -1,4 +1,4 @@
-package xiaohan.eQTL;
+package xiaohan.utils;
 
 import xujun.analysis.rnaseq.GeneFeature;
 

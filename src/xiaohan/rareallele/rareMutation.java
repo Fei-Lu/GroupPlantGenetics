@@ -1,6 +1,6 @@
-package xiaohan.eQTL;
+package xiaohan.rareallele;
 
-import xiaohan.rareallele.IOUtils;
+import xiaohan.utils.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

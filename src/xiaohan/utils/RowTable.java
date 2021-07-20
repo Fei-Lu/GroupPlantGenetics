@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package xiaohan.eQTL;
+package xiaohan.utils;
 
 import cern.colt.GenericSorting;
 import cern.colt.Swapper;

@@ -1,11 +1,6 @@
 package xiaohan.utils;
 
-import xiaohan.rareallele.IOUtils;
-import zhouyao.analysis.wheatHapMap.Het;
-
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.util.HashMap;
 import java.util.HashSet;
 
 public class getHomoGene {

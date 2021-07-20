@@ -1,3 +1,4 @@
+package xiaohan.eQTL.Picture;
 
 import java.awt.image.BufferedImage;
 import java.io.File;

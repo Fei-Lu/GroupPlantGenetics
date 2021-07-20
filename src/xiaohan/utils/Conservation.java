@@ -1,7 +1,6 @@
 package xiaohan.utils;
 
 import pgl.infra.utils.PStringUtils;
-import xiaohan.rareallele.IOUtils;
 
 import java.io.BufferedReader;
 import java.util.ArrayList;

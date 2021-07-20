@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Main-Class: xiaohan.eQTL.testinfor
+Main-Class: xiaohan.eQTL.SiPAS.testinfor
 Class-Path: lib/koloboke-impl-jdk8-1.0.0.jar lib/guava-23.0.jar lib/bioj
  ava-alignment-4.2.0.jar lib/biojava-core-4.2.0.jar lib/jackson-core-2.1
  0.1.jar lib/jackson-annotations-2.10.1.jar lib/commons-cli-1.4.jar lib/

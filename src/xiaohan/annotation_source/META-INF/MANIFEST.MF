@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Main-Class: xiaohan.eQTL.annotation
+Main-Class: xiaohan.eQTL.pipline.annotation
 Class-Path: colt.jar guava-22.0.jar guava-23.0.jar icu4j-65.1.jar RCalle
  r-2.5.jar trove-3.0.3.jar jsoup-1.13.1.jar pebble-3.1.1.jar htsjdk-2.21
  .0.jar fastutil-8.3.0.jar commons-cli-1.4.jar commons-io-2.8.0.jar slf4

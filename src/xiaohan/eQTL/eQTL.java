@@ -10,10 +10,12 @@ import pgl.infra.utils.PStringUtils;
 import xiaohan.GBS.GBSsimulation;
 import xiaohan.GBS.heterozygosity;
 import xiaohan.eQTL.HapscanIdentifier.HapscannerParameters;
+import xiaohan.eQTL.pipline.*;
 import xiaohan.eQTL.simulation.simulationData;
 import xiaohan.rareallele.GeneFeature;
-import xiaohan.rareallele.IOUtils;
-import xiaohan.rareallele.pheno;
+import xiaohan.utils.IOUtils;
+import xiaohan.rareallele.rareMutation;
+import xiaohan.utils.SNPmappingInGene;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -37,68 +39,56 @@ public class eQTL {
         /*
         effect size
          */
-//        this.effectsize(args);
+        this.effectsize(args);
 
         /*
         triads
          */
-//        this.getTraidsPattern();
-//        this.patternIdentify();
+        this.getTraidsPattern();
+        this.patternIdentify();
 
         /*
         VCF
          */
-//        this.vcf(args);
+        this.vcf(args);
 
         /*
         pheno
          */
-//        this.pheno(args);
-//        this.covaraties(args);
+        this.pheno(args);
+        this.covaraties(args);
 
         /*
         annotation
          */
-//        this.annotation(args);
-//        this.getExpressionWithaFC(args[0], args[1]);
+        this.annotation(args);
+        this.getExpressionWithaFC(args[0], args[1]);
 
         /*
         meta-tissue analysis
          */
-//        this.multiTissue(args);
+        this.multiTissue(args);
 //
-        /*
-        hetero
-         */
-//        this.getheterogeneity(args[0],args[1]);
-
         /*
         heterozygosity
          */
-//        this.heterozygosity(args);
-//        this.GBSsimulation(args);
+        this.heterozygosity(args);
+        this.GBSsimulation(args);
 //
-//
-//        this.intergenicPattern();
-//        this.intergenicPatternEnrichment();
-//        this.intergenicPatternTransposon();
-//        this.getTransposonLength();
-//        this.getTransposonClass();
-//        this.command();
-//        this.depth();
-//        this.getsigcis();
+        this.intergenicPattern();
+        this.intergenicPatternEnrichment();
+        this.intergenicPatternTransposon();
+        this.getTransposonLength();
+        this.getTransposonClass();
 
-        /*
-        java with faster java practice
-         */
-//        this.ERCCRoc();
-//        this.ThreadPool(args[0],args[1]);
-//        this.subextractGeneRegion(args[0], args[1]);
-//        this.hetandMaf(args[0], args[1]);
-//        this.md5check();
-//        this.rareMutation(args);
-//        this.getsequencingDepth(args);
-//        this.getvariants(args);
+        this.ERCCRoc();
+        this.ThreadPool(args[0],args[1]);
+        this.subextractGeneRegion(args[0], args[1]);
+        this.hetandMaf(args[0], args[1]);
+        this.md5check();
+        this.rareMutation(args);
+        this.getsequencingDepth(args);
+        this.getvariants(args);
 
     }
 
@@ -470,71 +460,6 @@ public class eQTL {
         }
     }
 
-
-    public void getheterogeneity(String infile, String outfile) {
-        BufferedReader br = null;
-        BufferedReader br1 = null;
-        if (infile.endsWith("gz")) {
-            br = IOUtils.getTextGzipReader(infile);
-            br1 = IOUtils.getTextGzipReader(infile);
-        } else {
-            br = IOUtils.getTextReader(infile);
-            br1 = IOUtils.getTextReader(infile);
-        }
-        BufferedWriter bw = IOUtils.getTextWriter(outfile);
-        String temp = null;
-        String[] temps = null;
-        Multimap<String, String> eQTLeGeneMap = ArrayListMultimap.create();
-        Multimap<String, String> eGeneeQTLMap = ArrayListMultimap.create();
-        try {
-            int index = 0;
-            int pindex = 0;
-            while ((temp = br.readLine()) != null) {
-                if (temp.startsWith("p") || temp.startsWith("In")) {
-                    temps = temp.split("\t");
-                    for (int i = 0; i < temps.length; i++) {
-                        if (temps[i].equals("variant_id")) {
-                            index = i;
-//                            System.out.println(index);
-                        }
-                        if (temps[i].equals("phenotype_id")) {
-                            pindex = i;
-                        }
-                    }
-                    bw.write("phenotype_id\tvariant_id\teQTLs/pereGene\teGenes/pereQTL");
-                    bw.newLine();
-                    continue;
-                }
-                temps = temp.split("\t");
-                String gene = temps[pindex];
-                String variant = temps[index];
-                eGeneeQTLMap.put(gene, variant);
-                eQTLeGeneMap.put(variant, gene);
-//                System.out.println(gene);
-//                System.out.println(variant);
-            }
-            br.close();
-            StringBuilder sb = new StringBuilder();
-            while ((temp = br1.readLine()) != null) {
-                if (temp.startsWith("p") || temp.startsWith("In")) continue;
-                temps = temp.split("\t");
-                String[] eQTLs = eGeneeQTLMap.get(temps[pindex]).toArray(new String[0]);
-                String[] eGenes = eQTLeGeneMap.get(temps[index]).toArray(new String[0]);
-                sb.setLength(0);
-                sb.append(temps[pindex] + "\t" + temps[index] + "\t");
-                sb.append(eQTLs.length + "\t");
-                sb.append(eGenes.length);
-                bw.write(sb.toString());
-                bw.newLine();
-            }
-            bw.flush();
-            bw.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
     public void ThreadPool(String infile, String thread) {
         BufferedReader br = IOUtils.getTextReader(infile);
         String temp = null;
@@ -642,153 +567,12 @@ public class eQTL {
         new multiTissue(args);
     }
 
-    public void depth() {
-        String infileDir = "/data1/home/xiaohan/hapscanner/testforerror/VCF";
-        String outfile = "/data1/home/xiaohan/nam/subsample/";
-        HashSet<Integer> nameSet = new HashSet<>();
-        for (int i = 0; i < 42; i++) {
-            int chr = i + 1;
-            nameSet.add(chr);
-        }
-        nameSet.stream().forEach(f -> {
-            try {
-                BufferedReader br = IOUtils.getTextReader(new File(infileDir, "chr" + PStringUtils.getNDigitNumber(3, f) + ".vcf").getAbsolutePath());
-                BufferedWriter bw = IOUtils.getTextWriter(new File(outfile, "chr" + PStringUtils.getNDigitNumber(3, f) + ".depth").getAbsolutePath());
-                StringBuilder sb = new StringBuilder();
-                String temp = null;
-                String[] temps = null;
-                String tems = null;
-                int depth = 0;
-                while ((temp = br.readLine()) != null) {
-                    sb.setLength(0);
-                    if (temp.startsWith("##")) continue;
-                    if (temp.startsWith("#C")) {
-                        temps = temp.split("\t");
-                        sb.append(temps[0] + "\t" + temps[1] + "\t");
-                        for (int i = 9; i < temps.length; i++) {
-                            sb.append(temps[i] + "\t");
-                        }
-                        bw.write(sb.toString().replaceAll("\\s+$", ""));
-                        bw.newLine();
-                        continue;
-                    }
-                    temps = temp.split("\t");
-                    sb.append(temps[0] + "\t" + temps[1] + "\t");
-                    for (int i = 9; i < temps.length; i++) {
-                        tems = temps[i].split(":")[1];
-                        if (tems.equals(".")) {
-                            depth = 0;
-                        } else {
-                            depth = Integer.parseInt(tems.split(",")[0]) + Integer.parseInt(tems.split(",")[1]);
-                        }
-                        sb.append(depth + "\t");
-                    }
-                    bw.write(sb.toString().replaceAll("\\s+$", ""));
-                    bw.newLine();
-                }
-                bw.flush();
-                bw.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
     public void heterozygosity(String[] args) throws IOException, InterruptedException {
         new heterozygosity(args);
     }
 
     public void GBSsimulation(String[] args) throws IOException, InterruptedException {
         new GBSsimulation(args);
-    }
-
-    public void command() {
-        String infileDir = "/data1/home/xiaohan/hapscanner/testforerror/VCF";
-        String infor = "/data1/home/xiaohan/nam/subsample/basename.txt";
-        String outfileDir = "/data1/home/xiaohan/nam/subsample/";
-        HashSet<String> chrSet = new HashSet<>();
-        for (int m = 0; m < 42; m++) {
-            int chr = m + 1;
-            chrSet.add(String.valueOf(chr));
-        }
-        BufferedWriter bw = IOUtils.getTextWriter(new File(outfileDir, "sum.txt").getAbsolutePath());
-        chrSet.stream().forEach(f -> {
-            try {
-
-                BufferedReader brinfor = IOUtils.getTextReader(infor);
-                String temp = null;
-                String[] temps = null;
-                HashSet<String> nameSet = new HashSet<>();
-                while ((temp = brinfor.readLine()) != null) {
-                    temps = temp.split("-");
-                    String name = temp.replace("-" + temps[temps.length - 1], "");
-                    if (!nameSet.contains(name)) {
-                        nameSet.add(name);
-                    }
-                }
-                brinfor.close();
-                String[] namelist = nameSet.toArray(new String[0]);
-                Arrays.sort(namelist);
-                int[][] count = new int[namelist.length][4];
-                for (int i = 0; i < namelist.length; i++) {
-                    for (int j = 0; j < 4; j++) {
-                        count[i][j] = 0;
-                    }
-                }
-
-                BufferedReader br = IOUtils.getTextReader(new File(infileDir, "chr" + PStringUtils.getNDigitNumber(3, Integer.parseInt(f)) + ".vcf").getAbsolutePath());
-                HashMap<String, Integer> nameMap = new HashMap<>();
-                int countline = 0;
-                while ((temp = br.readLine()) != null) {
-                    countline++;
-                    if (countline % 5000 == 0) {
-                        System.out.println(f + ": " + countline);
-                    }
-                    if (temp.startsWith("##")) continue;
-                    if (temp.startsWith("#C")) {
-                        temps = temp.split("\t");
-                        for (int i = 9; i < temps.length; i++) {
-                            nameMap.put(temps[i], i);
-                        }
-                        continue;
-                    }
-                    temps = temp.split("\t");
-                    for (int i = 0; i < namelist.length; i++) {
-//                        System.out.println(namelist[i]);
-                        if (!temps[nameMap.get(namelist[i] + "-low")].split(":")[0].equals("./.")) {
-                            count[i][0] += 1;
-                        }
-                        if (!temps[nameMap.get(namelist[i] + "-high")].split(":")[0].equals("./.")) {
-                            count[i][1] += 1;
-                        }
-                        if (!temps[nameMap.get(namelist[i] + "-low")].split(":")[0].equals("./.") && !temps[nameMap.get(namelist[i] + "-high")].split(":")[0].equals("./.")) {
-                            count[i][2] += 1;
-                            if (!temps[nameMap.get(namelist[i] + "-low")].split(":")[0].equals(temps[nameMap.get(namelist[i] + "-high")].split(":")[0])) {
-                                count[i][3] += 1;
-                            }
-                        }
-                    }
-                }
-                br.close();
-                bw.write("chr\ttaxa\tlow\thigh\tcomman\terror\n");
-                for (int i = 0; i < namelist.length; i++) {
-                    bw.write(f + "\t");
-                    bw.write(namelist[i] + "\t");
-                    for (int j = 0; j < 4; j++) {
-                        bw.write(count[i][j] + "\t");
-                    }
-                    bw.newLine();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-        try {
-            bw.flush();
-            bw.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public void getTransposonClass() {
