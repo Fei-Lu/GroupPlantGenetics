@@ -1,4 +1,4 @@
-package xiaohan.eQTL;
+package xiaohan.GBS;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -6,9 +6,6 @@ import com.koloboke.collect.map.IntDoubleMap;
 import com.koloboke.collect.map.hash.HashIntDoubleMaps;
 import daxing.common.LibraryOfGRT;
 import pgl.AppUtils;
-import pgl.app.grt.LibraryInfo;
-import pgl.app.grt.TagAnnotations;
-import pgl.app.grt.TagParser;
 import pgl.infra.dna.genot.GenoIOFormat;
 import pgl.infra.dna.genot.GenotypeGrid;
 import pgl.infra.dna.genot.GenotypeOperation;
@@ -16,6 +13,8 @@ import pgl.infra.dna.genot.summa.SumTaxaDivergence;
 import pgl.infra.utils.Dyad;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.PStringUtils;
+import xiaohan.eQTL.RowTable;
+import xiaohan.eQTL.SNPmappingInGene;
 import xiaohan.rareallele.IOUtils;
 
 import java.io.*;
@@ -302,7 +301,7 @@ public class heterozygosity {
                     int chr = m * 2 + k;
                     int dep1 = 0;
                     int dep2 = 0;
-                    int chrABDindex = chrUtils.getChrIndextoChrABDIndex(chr);
+                    int chrABDindex = xiaohan.utils.chrUtils.getChrIndextoChrABDIndex(chr);
                     System.out.println("This is reading " + chr + " which is in " + chrABDindex);
                     String vcf = new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, chr) + ".vcf.gz").getAbsolutePath();
                     String genovcf = new File(genotypeDir, "chr" + PStringUtils.getNDigitNumber(3, chr) + ".vcf.gz").getAbsolutePath();
@@ -371,7 +370,7 @@ public class heterozygosity {
                     br.close();
                     br1.close();
                 }
-                String chrABDName = chrUtils.getNamechrABD(m + 1);
+                String chrABDName = xiaohan.utils.chrUtils.getNamechrABD(m + 1);
                 BufferedWriter bw = IOUtils.getTextWriter(new File(this.workingDirS, subDir[4] + "/" + chrABDName + ".txt").getAbsolutePath());
                 bw.write("Taxa\theterSite\tHomoSite\tMissingSite\n");
                 String[] names = HBSet.toArray(new String[0]);
@@ -393,7 +392,7 @@ public class heterozygosity {
             for (int m = 0; m < 21; m++) {
                 int chr1 = m * 2 + 1;
                 int chr2 = m * 2 + 2;
-                String chrABDName = chrUtils.getNamechrABD(m + 1);
+                String chrABDName = xiaohan.utils.chrUtils.getNamechrABD(m + 1);
                 String ibsOutfileS = new File(workingDirS, subDir[3] + "/check_" + chrABDName + ".txt").getAbsolutePath();
                 RowTable<String> rt = new RowTable<>(ibsOutfileS);
                 for (int i = 0; i < rt.getRowNumber(); i++) {
@@ -456,7 +455,7 @@ public class heterozygosity {
             for (int m = 0; m < 21; m++) {
                 int chr1 = m * 2 + 1;
                 int chr2 = m * 2 + 2;
-                String chrABDName = chrUtils.getNamechrABD(m + 1);
+                String chrABDName = xiaohan.utils.chrUtils.getNamechrABD(m + 1);
                 sb.setLength(0);
                 sb.append("bgzip " + new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, chr1) + ".vcf").getAbsolutePath() + "\n");
                 sb.append("bgzip " + new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, chr2) + ".vcf").getAbsolutePath() + "\n");
@@ -485,7 +484,7 @@ public class heterozygosity {
             for (int m = 0; m < 21; m++) {
                 int chr1 = m * 2 + 1;
                 int chr2 = m * 2 + 2;
-                String chrABDName = chrUtils.getNamechrABD(m + 1);
+                String chrABDName = xiaohan.utils.chrUtils.getNamechrABD(m + 1);
 //                sb.setLength(0);
 //                sb.append("bgzip " + new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, chr1) + ".vcf").getAbsolutePath() + "\n");
 //                sb.append("bgzip " + new File(inputDir, "chr" + PStringUtils.getNDigitNumber(3, chr2) + ".vcf").getAbsolutePath() + "\n");

@@ -1,4 +1,4 @@
-package xiaohan.eQTL;
+package xiaohan.eQTL.simulation;
 
 import xiaohan.rareallele.IOUtils;
 

@@ -1,6 +1,5 @@
 package xiaohan.eQTL.javapractice;
 
-import xiaohan.eQTL.LeetCodePractice;
 import xiaohan.eQTL.SNPmappingInGene;
 
 
@@ -11,6 +10,11 @@ public class javaPractice {
 //        this.testSNPmaping();
 //        this.basicdatatype();
         this.testforguava();
+        this.sortingAlgorithm();
+    }
+
+    public void sortingAlgorithm(){
+        new Sorting();
     }
 
     public void testforguava(){

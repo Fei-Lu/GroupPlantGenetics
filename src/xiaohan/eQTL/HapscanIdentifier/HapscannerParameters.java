@@ -1,4 +1,4 @@
-package xiaohan.eQTL;
+package xiaohan.eQTL.HapscanIdentifier;
 
 import com.koloboke.collect.map.IntDoubleMap;
 import com.koloboke.collect.map.hash.HashIntDoubleMaps;
@@ -10,8 +10,8 @@ import pgl.infra.dna.genot.GenotypeOperation;
 import pgl.infra.dna.genot.summa.SumTaxaDivergence;
 import pgl.infra.utils.Dyad;
 import pgl.infra.utils.IOFileFormat;
-import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;
+import xiaohan.eQTL.SNPmappingInGene;
 import xiaohan.rareallele.IOUtils;
 
 import java.io.*;
@@ -83,7 +83,8 @@ public class HapscannerParameters {
 //        this.createOptions();
 //        this.parseparameter(args);
         this.parseparameters(args[0]);
-        this.mkdir();
+        chrNumber = Integer.parseInt(args[1]);
+//        this.mkdir(args);
         this.parameter();
         this.taxaRefBAM();
         this.Hapscanner();
@@ -150,7 +151,11 @@ public class HapscannerParameters {
             }
 
             HashMap<String, Integer> nameIndexMap = new HashMap<>();
-            BufferedWriter bw = IOUtils.getTextWriter(new File(outfileDir, "phenolist.txt").getAbsolutePath());
+            BufferedWriter bw = IOUtils.getTextWriter(new File(outfileDir, "correction.txt").getAbsolutePath());
+            BufferedWriter bw1 = IOUtils.getTextWriter(new File(outfileDir, "list1.txt").getAbsolutePath());
+            BufferedWriter bw2 = IOUtils.getTextWriter(new File(outfileDir, "list2.txt").getAbsolutePath());
+            BufferedWriter bw3 = IOUtils.getTextWriter(new File(outfileDir, "list3.txt").getAbsolutePath());
+
 
             for (int i = 0; i < RNASet.size(); i++) {
                 String RNA = RNASet.get(i);
@@ -162,6 +167,7 @@ public class HapscannerParameters {
                 } else {
                     DNA = RNA.substring(3, 7);
                 }
+
                 double[] IBS = t.getColumnAsDoubleArray(t.getColumnIndex(RNA));
                 double[] subIBS = Arrays.copyOfRange(IBS, RNASet.size(), header.length - 1);
                 // 对应值
@@ -173,22 +179,36 @@ public class HapscannerParameters {
                 // 最小的IBS
                 double IBSDNAvalue = Min[0];
 
-                if (IBSvalue < 0.1) {
-                    bw.write(RNA + "\t" + DNA + "\n");
-                } else if (DNA.equals(DNATrue)) {
-                    bw.write(RNA + "\t" + DNA + "\t" + IBSDNAvalue + "\n");
+                bw.write(RNA + "\t" + DNA + "\t" + IBSvalue + "\t" + DNATrue + "\t" + IBSDNAvalue + "\t");
+
+                if (DNA.equals(DNATrue)) {
+                    bw.write("TRUE" + "\n");
+                    bw1.write(RNA + "\t" + DNA + "\n");
                 } else {
-                    double[] IBSDNA = t.getColumnAsDoubleArray(t.getColumnIndex(DNA));
-                    double[] subIBSDNA = Arrays.copyOfRange(IBS, 0, RNASet.size());
-                    double[] Min2 = SNPmappingInGene.Min(subIBSDNA);
-                    // 最小的DNA对应的最小的RNA
-                    String RNATrue = header[RNASet.size() + (int) Min[1] + 1];
-                    // 最小的IBS
-                    double IBSRNAvalue = Min[0];
-                    if (RNA.equals(RNATrue)) {
-                        bw.write(RNA + "\t" + DNATrue + "\n");
+                    bw.write("False" + "\n");
+                    if (Math.abs(IBSDNAvalue - IBSvalue) < 0.01) {
+                        bw2.write(RNA + "\t" + DNA + "\n");
+                    } else if (IBSDNAvalue < 0.1) {
+                        bw3.write(RNA + "\t" + DNATrue + "\n");
                     }
                 }
+
+//                if (IBSvalue < 0.1) {
+//                    bw.write(RNA + "\t" + DNA + "\n");
+//                } else if (DNA.equals(DNATrue)) {
+//                    bw.write(RNA + "\t" + DNA + "\t" + IBSDNAvalue + "\n");
+//                } else {
+//                    double[] IBSDNA = t.getColumnAsDoubleArray(t.getColumnIndex(DNA));
+//                    double[] subIBSDNA = Arrays.copyOfRange(IBS, 0, RNASet.size());
+//                    double[] Min2 = SNPmappingInGene.Min(subIBSDNA);
+//                    // 最小的DNA对应的最小的RNA
+//                    String RNATrue = header[RNASet.size() + (int) Min[1] + 1];
+//                    // 最小的IBS
+//                    double IBSRNAvalue = Min[0];
+//                    if (RNA.equals(RNATrue)) {
+//                        bw.write(RNA + "\t" + DNATrue + "\n");
+//                    }
+//                }
             }
 //            int RNAsamplecount = 0;
 //            int DNAsamplecount = 0;
@@ -319,6 +339,12 @@ public class HapscannerParameters {
 //            }
             bw.flush();
             bw.close();
+            bw1.flush();
+            bw1.close();
+            bw2.flush();
+            bw2.close();
+            bw3.flush();
+            bw3.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -528,48 +554,88 @@ public class HapscannerParameters {
     public void getMerge() {
         String infileDirRNA = new File(outputDir, "RNA").getAbsolutePath();
         String infileDirDNA = new File(outputDir, "Isec").getAbsolutePath();
-        HashSet<String> RNAnameSet = new HashSet<>();
-        HashSet<String> DNAnameSet = new HashSet<>();
-
-        File[] fs = new File(infileDirRNA).listFiles();
-        fs = IOUtils.listFilesEndsWith(fs, ".vcf");
-        for (int i = 0; i < fs.length; i++) {
-            RNAnameSet.add(fs[i].getName());
-        }
-
-        File[] fs1 = new File(infileDirDNA).listFiles();
-        fs1 = IOUtils.listFilesEndsWith(fs1, ".vcf");
-        for (int i = 0; i < fs1.length; i++) {
-            DNAnameSet.add(fs1[i].getName());
-        }
-
-        StringBuilder sb = new StringBuilder();
-        StringBuilder sb1 = new StringBuilder();
-
-        sb.append("vcf-concat ");
-        for (int i = 0; i < chrNumber; i++) {
-            int chr = i + 1;
-            sb.append(new File(infileDirRNA, "RNA_chr" + PStringUtils.getNDigitNumber(3, chr)).getAbsolutePath() + " ");
-        }
-        sb.append(" > " + new File(infileDirRNA, "RNAall.vcf").getAbsolutePath() +"\n");
-
-
-        sb.append("vcf-concat ");
-        for (int i = 0; i < chrNumber; i++) {
-            int chr = i + 1;
-            sb.append(new File(infileDirDNA, "DNA_chr" + PStringUtils.getNDigitNumber(3, chr)).getAbsolutePath() + " ");
-        }
-        sb.append(" > " + new File(infileDirDNA, "DNAall.vcf").getAbsolutePath() +"\n");
+        BufferedWriter bwRNA = IOUtils.getTextWriter(new File(infileDirRNA, "RNAall.vcf").getAbsolutePath());
+        BufferedWriter bwDNA = IOUtils.getTextWriter(new File(infileDirDNA, "DNAall.vcf").getAbsolutePath());
+        String temp = null;
         try {
-            String command = sb.toString();
-                System.out.println(command);
-                File dir = new File(new File(outputDir).getAbsolutePath());
-                String[] cmdarry = {"/bin/bash", "-c", command};
-                Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
-                p.waitFor();
+            for (int i = 0; i < chrNumber; i++) {
+                int chr = i + 1;
+                BufferedReader br = IOUtils.getTextReader(new File(infileDirRNA, "RNA_chr" + PStringUtils.getNDigitNumber(3, chr) + ".vcf").getAbsolutePath());
+                while ((temp = br.readLine()) != null) {
+                    if (chr != 1 && temp.startsWith("#")) {
+                        continue;
+                    } else {
+                        bwRNA.write(temp + "\n");
+                    }
+                }
+                br.close();
+            }
+            bwRNA.flush();
+            bwRNA.close();
+            for (int i = 0; i < chrNumber; i++) {
+                int chr = i + 1;
+                BufferedReader br = IOUtils.getTextReader(new File(infileDirDNA, "DNA_chr" + PStringUtils.getNDigitNumber(3, chr) + ".vcf").getAbsolutePath());
+                while ((temp = br.readLine()) != null) {
+                    if (chr != 1 && temp.startsWith("#")) {
+                        continue;
+                    } else {
+                        bwDNA.write(temp + "\n");
+                    }
+                }
+                br.close();
+            }
+            bwDNA.flush();
+            bwDNA.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
+//        HashSet<String> RNAnameSet = new HashSet<>();
+//        HashSet<String> DNAnameSet = new HashSet<>();
+
+//        File[] fs = new File(infileDirRNA).listFiles();
+//        fs = IOUtils.listFilesEndsWith(fs, ".vcf");
+//        for (int i = 0; i < fs.length; i++) {
+//            RNAnameSet.add(fs[i].getName());
+//        }
+//
+//        File[] fs1 = new File(infileDirDNA).listFiles();
+//        fs1 = IOUtils.listFilesEndsWith(fs1, ".vcf");
+//        for (int i = 0; i < fs1.length; i++) {
+//            DNAnameSet.add(fs1[i].getName());
+//        }
+
+//        StringBuilder sb = new StringBuilder();
+//        StringBuilder sb1 = new StringBuilder();
+//
+//        sb.append("vcf-concat ");
+////        for (int i = 0; i < chrNumber; i++) {
+////            int chr = i + 1;
+////            sb.append(new File(infileDirRNA, "RNA_chr" + PStringUtils.getNDigitNumber(3, chr) + ".vcf").getAbsolutePath() + " ");
+////        }
+//        sb.append(infileDirRNA);
+//        sb.append("/*.vcf ");
+//        sb.append(" > " + new File(infileDirRNA, "RNAall.vcf").getAbsolutePath() + "\n");
+//
+//
+//        sb.append("vcf-concat ");
+////        for (int i = 0; i < chrNumber; i++) {
+////            int chr = i + 1;
+////            sb.append(new File(infileDirDNA, "DNA_chr" + PStringUtils.getNDigitNumber(3, chr) + ".vcf").getAbsolutePath() + " ");
+////        }
+//        sb.append(infileDirDNA);
+//        sb.append("/*.vcf ");
+//        sb.append(" > " + new File(infileDirDNA, "DNAall.vcf").getAbsolutePath() + "\n");
+//
+//        try {
+//            String command = sb.toString();
+//            System.out.println(command);
+//            File dir = new File(new File(outputDir).getAbsolutePath());
+//            String[] cmdarry = {"/bin/bash", "-c", command};
+//            Process p = Runtime.getRuntime().exec(cmdarry, null, dir);
+//            p.waitFor();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 
     public void getIsec1() {
@@ -733,7 +799,7 @@ public class HapscannerParameters {
         String infileDir = new File(outputDir, "Isec").getAbsolutePath();
         try {
             StringBuilder sb1 = new StringBuilder();
-            sb1.append("cat " + plate + "_RNA.vcf | awk '$1 ~ /^#/ {print $0;next} {print $0 | \"sort -k1,1 -k2,2n\"}' > " + plate + "_RNA.sortedtemp.vcf");
+            sb1.append("cat " + new File(outputDir, "RNA/RNAall.vcf").getAbsolutePath() + " | awk '$1 ~ /^#/ {print $0;next} {print $0 | \"sort -k1,1 -k2,2n\"}' > " + new File(outputDir, "RNA/RNAall.sorted.vcf").getAbsolutePath());
             String command = sb1.toString();
             System.out.println(command);
             File dir = new File(infileDir).getAbsoluteFile();
@@ -742,7 +808,7 @@ public class HapscannerParameters {
             p.waitFor();
 
             StringBuilder sb2 = new StringBuilder();
-            sb2.append("cat " + plate + "_DNA.vcf | awk '$1 ~ /^#/ {print $0;next} {print $0 | \"sort -k1,1 -k2,2n\"}' > " + plate + "_DNA.sorted.vcf");
+            sb2.append("cat " + new File(outputDir, "Isec/DNAall.vcf").getAbsolutePath() + " | awk '$1 ~ /^#/ {print $0;next} {print $0 | \"sort -k1,1 -k2,2n\"}' > " + new File(outputDir, "RNA/RNAall.sorted.vcf").getAbsolutePath());
             command = sb2.toString();
             System.out.println(command);
             String[] cmdarry1 = {"/bin/bash", "-c", command};
@@ -794,8 +860,8 @@ public class HapscannerParameters {
     public void getIBdistane() {
         System.out.println("This is getting IBS matrix *****************************************************************");
         String infileDir = new File(outputDir).getAbsolutePath();
-        String infileS1 = new File(infileDir, "RNA/RNA_chr001.vcf").getAbsolutePath();
-        String infileS2 = new File(infileDir, "Isec/DNA_chr001.vcf").getAbsolutePath();
+        String infileS1 = new File(infileDir, "RNA/RNAall.vcf").getAbsolutePath();
+        String infileS2 = new File(infileDir, "Isec/DNAall.vcf").getAbsolutePath();
 //        String infileS1 = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/DNA.all.sort.vcf";
 //        String infileS2 = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/RNA.all.sort.vcf";
         String ibsOutfileS = new File(infileDir, "Isec/check.txt").getAbsolutePath();
@@ -1299,11 +1365,20 @@ public class HapscannerParameters {
     }
 
     public void Hapscanner() {
-        File[] fs = new File(this.parameterDir).listFiles();
-        fs = IOUtils.listFilesStartsWith(fs, plate + "_");
-        Arrays.sort(fs);
-        for (int i = 0; i < fs.length; i++) {
-            this.parseParametersHapscan(fs[i].getAbsolutePath());
+//        File[] fs = new File(this.parameterDir).listFiles();
+//        fs = IOUtils.listFilesStartsWith(fs, plate + "_");
+//        Arrays.sort(fs);
+//
+//        for (int i = 0; i < fs.length; i++) {
+//            this.parseParametersHapscan(fs[i].getAbsolutePath());
+//            this.mkDirHapscan();
+//            this.scanIndiVCFByThreadPool();
+//            this.mkFinalVCF();
+//        }
+        for (int i = 0; i < chrNumber; i++) {
+            int chr = i + 1;
+            File fs = new File(new File(parameterDir, plate + "_parameter_chr" + chr + ".txt").getAbsolutePath());
+            this.parseParametersHapscan(fs.getAbsolutePath());
             this.mkDirHapscan();
             this.scanIndiVCFByThreadPool();
             this.mkFinalVCF();
@@ -1357,18 +1432,37 @@ public class HapscannerParameters {
         System.out.println("This is writing taxaRefBam files *************************************************************************");
         String[] dirs = new File(this.BamDir).list();
         ArrayList<String> files = new ArrayList<>();
-        for (int i = 0; i < dirs.length; i++) {
-            if (!dirs[i].endsWith("DS_Store")) {
-                File[] fs1 = new File(BamDir, dirs[i] + "/sams").listFiles();
-                fs1 = IOUtils.listFilesEndsWith(fs1, "_Aligned.out.sorted.bam");
-                for (int j = 0; j < fs1.length; j++) {
-                    files.add(fs1[j].getAbsolutePath());
-                    System.out.println(fs1[j]);
+        if (plate.equals("S4leaf")) {
+            for (int i = 0; i < dirs.length; i++) {
+                String name = dirs[i].toString();
+                String name1 = name.substring(name.length() - 2, name.length());
+                if (Integer.parseInt(name1) > 70) {
+                    if (!dirs[i].endsWith("DS_Store") && !dirs[i].startsWith("countTable")) {
+                        File[] fs1 = new File(BamDir, dirs[i] + "/sams").listFiles();
+                        fs1 = IOUtils.listFilesEndsWith(fs1, "_Aligned.out.sorted.bam");
+                        for (int j = 0; j < fs1.length; j++) {
+                            files.add(fs1[j].getAbsolutePath());
+                            System.out.println(fs1[j]);
+                        }
+                    }
+                }
+            }
+        } else {
+            for (int i = 0; i < dirs.length; i++) {
+                if (!dirs[i].endsWith("DS_Store") && !dirs[i].startsWith("countTable")) {
+                    File[] fs1 = new File(BamDir, dirs[i] + "/sams").listFiles();
+                    fs1 = IOUtils.listFilesEndsWith(fs1, "_Aligned.out.sorted.bam");
+                    for (int j = 0; j < fs1.length; j++) {
+                        files.add(fs1[j].getAbsolutePath());
+                        System.out.println(fs1[j]);
+                    }
                 }
             }
         }
+
         HashSet<String> nameSet = new HashSet();
-        for (int i = 0; i < files.size(); i++) {
+        for (
+                int i = 0; i < files.size(); i++) {
             nameSet.add(files.get(i));
 //            System.out.println(files.get(i));
         }
@@ -1381,7 +1475,7 @@ public class HapscannerParameters {
                 for (int j = 0; j < namelist.length; j++) {
                     StringBuilder sb = new StringBuilder();
                     int length = namelist[j].split("/").length;
-                    sb.append(namelist[j].split("/")[length - 1].replace("_Aligned.out.sorted.bam", "")).append("\t");
+                    sb.append(namelist[j].split("/")[length - 1].replace("_Aligned.out.sorted.bam", "").replace("B18-", "")).append("\t");
                     sb.append(new File(referenceDir, "chr" + chr + ".fa").getAbsolutePath() + "\t");
                     sb.append(new File(namelist[j]).getAbsolutePath());
                     bw.write(sb.toString());
@@ -1390,9 +1484,11 @@ public class HapscannerParameters {
                 bw.flush();
                 bw.close();
             }
-        } catch (Exception e) {
+        } catch (
+                Exception e) {
             e.printStackTrace();
         }
+
         long endTime = System.currentTimeMillis(); //获取结束时间
         System.out.println("******* Writing taxaRefBam files takes " + (endTime - startTime) + "ms");
 
@@ -1451,8 +1547,8 @@ public class HapscannerParameters {
         System.out.println("******* Writing parameter files takes " + (endTime - startTime) + "ms");
     }
 
-    public void mkdir() {
-
+    public void mkdir(String... args) {
+        chrNumber = Integer.parseInt(args[1]);
     }
 
 
@@ -1473,7 +1569,7 @@ public class HapscannerParameters {
 
         samtoolsPath = pLineList.get(9);
         threads = pLineList.get(10);
-        chrNumber = Integer.parseInt(pLineList.get(11));
+//        chrNumber = Integer.parseInt(pLineList.get(11));
 
 
         File posdir = new File(new File(posDir).getAbsolutePath());

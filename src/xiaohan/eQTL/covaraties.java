@@ -1,45 +1,69 @@
 package xiaohan.eQTL;
 
-import pgl.app.hapScanner.HapScanner;
 import xiaohan.rareallele.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.concurrent.*;
 
 public class covaraties {
 
-    String number = "121120,35910,101373,72401,29060,2985,100575,74985,87007,81719,27649,8135,30143,71034,129106,102720,16228,7672,110193,36881,46901,51821,12885,2631,52736,57920,89566,61332,13361,7748,66198,27386,108871,86517,18530,2914,96461,73097,114553,66978,17611,9836";
-    String[] numbers = number.split(",");
+//    String number = "121120,35910,101373,72401,29060,2985,100575,74985,87007,81719,27649,8135,30143,71034,129106,102720,16228,7672,110193,36881,46901,51821,12885,2631,52736,57920,89566,61332,13361,7748,66198,27386,108871,86517,18530,2914,96461,73097,114553,66978,17611,9836";
+//    String[] numbers = number.split(",");
     String phenolist = null;
     String phenodir = null;
     String plate = null;
+    int pcaNumber = -1;
+    int peerNumber = -1;
+    String pcafile = null;
+    String peerfile = null;
+    String outputfile = null;
+    String covfile = null;
 
     public covaraties(String[] args) {
         this.parseparameter(args);
-        this.PCA();
-        this.peer();
+//        this.PCA();
+//        this.peer();
         this.cov();
     }
 
     public void parseparameter(String[] args) {
-        if (!args.equals(3)) {
-            System.out.println("args1 : phenolist");
-            System.out.println("args2 : phenodir ");
-            System.out.println("args3 : plate");
+        if (args.length==5) {
+            System.out.println("args1 : pcafile");
+            System.out.println("args2 : peerfile");
+            System.out.println("args3 : outputfile");
+            System.out.println("args4 : pcaNumber");
+            System.out.println("args5 : peerNumber");
+
+            pcafile = args[0];
+            peerfile = args[1];
+            outputfile = args[2];
+            pcaNumber = Integer.parseInt(args[3]);
+            peerNumber = Integer.parseInt(args[4]);
+        }else if (args.length == 7){
+            System.out.println("args1 : pcafile");
+            System.out.println("args2 : peerfile");
+            System.out.println("args3 : covfile");
+            System.out.println("args4 : outputfile");
+            System.out.println("args5 : pcaNumber");
+            System.out.println("args6 : peerNumber");
+
+
+            pcafile = args[0];
+            peerfile = args[1];
+            covfile = args[2];
+            outputfile = args[3];
+            pcaNumber = Integer.parseInt(args[4]);
+            peerNumber = Integer.parseInt(args[5]);
+            plate = args[6];
         }
-        phenolist = args[0];
-        phenodir = args[1];
-        plate = args[2];
     }
 
 
     public void PCA() {
         this.getsamplelist();
-        this.getVCF();
+//        this.getVCF();
         this.getheader();
         this.mergeVCF();
         this.calPCA();
@@ -66,50 +90,6 @@ public class covaraties {
         }
     }
 
-    private void getVCF() {
-        ExecutorService pool = Executors.newFixedThreadPool(10);
-        for (int i = 0; i < 42; i++) {
-            int chr = i + 1;
-            StringBuilder sb = new StringBuilder();
-            sb.append("bcftools view -S ").append(new File(phenodir, "geno/samplelist.txt").getAbsolutePath());
-            sb.append(" /data2/junxu/genotypeMaf005/" + chr + ".360.vcf.gz | grep -v \"#\"  | shuf -n ");
-//            sb.append(numbers[Integer.parseInt(chr)-1]);
-            sb.append(numbers[i]);
-            sb.append("| sort -k1,1n -k2,2n > ").append(new File(phenodir, "geno/chr" + chr + ".vcf").getAbsolutePath());
-            File dir = new File(new File(phenodir).getAbsolutePath());
-            String command = sb.toString();
-            Command com = new Command(command,dir);
-            Future<Command> chrom = pool.submit(com);
-        }
-        try {
-            pool.shutdown();
-            pool.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    static class Command implements Callable<Command> {
-        String command = null;
-        File dir = null;
-        public Command (String command, File dir){
-            this.command = command;
-            this.dir = dir;
-        }
-        @Override
-        public Command call() throws Exception {
-            try {
-                System.out.println(command);
-                String[] cmdarry1 = {"/bin/bash", "-c", command};
-                Process p1 = Runtime.getRuntime().exec(cmdarry1, null, dir);
-                p1.waitFor();
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-            return this;
-        }
-    }
 
     private void getheader() {
         StringBuilder sb = new StringBuilder();
@@ -198,9 +178,12 @@ public class covaraties {
     public void cov() {
         String prefix = plate;
 //        String title = "/data2/xiaohan/genotype/hapscanner/output/S4/spike/Isec/phenolist.txt";
-        String PCA = new File(phenodir, "geno/" + prefix + ".eigenvec").getAbsolutePath();
-        String peer = new File(phenodir, "factors5.txt").getAbsolutePath();
-        String output = new File(phenodir, prefix + "_cov.txt").getAbsolutePath();
+        String PCA = new File(pcafile).getAbsolutePath();
+        String peer = new File(peerfile).getAbsolutePath();
+        if(covfile != null){
+            String cov = new File(covfile).getAbsolutePath();
+        }
+        String output = new File(outputfile).getAbsolutePath();
         BufferedReader brPCA = IOUtils.getTextReader(PCA);
         BufferedReader brpeer = IOUtils.getTextReader(peer);
         BufferedWriter bw = IOUtils.getTextWriter(output);
@@ -212,7 +195,7 @@ public class covaraties {
                 if (temp.startsWith("E")) {
                     temps = temp.split("\t");
                     StringBuilder sb = new StringBuilder();
-                    for (int i = 0; i < 3; i++) {
+                    for (int i = 0; i < pcaNumber; i++) {
                         sb.append(temps[i + 1] + "\t");
                     }
                     PCAmap.put(temps[0], sb.toString());
@@ -220,22 +203,24 @@ public class covaraties {
             }
             brPCA.close();
 
-            LinkedHashSet<String> nameSet = new LinkedHashSet<>();
+            StringBuilder name = new StringBuilder();
             HashMap<String, String> PEERmap = new HashMap();
             while ((temp = brpeer.readLine()) != null) {
                 if (temp.startsWith("E")) {
                     temps = temp.split("\t");
-                    nameSet.add(temps[0].replace(".", "-"));
+                    name.append(temps[0].replace(".", "-")).append("_");
                     StringBuilder sb = new StringBuilder();
-                    for (int i = 0; i < 5; i++) {
-                        sb.append(temps[i + 2] + "\t");
+                    for (int i = 0; i < peerNumber; i++) {
+                        sb.append(temps[i + 1] + "\t");
                     }
                     PEERmap.put(temps[0].replace(".", "-"), sb.toString());
                 }
             }
             brpeer.close();
 
-            String[] namelist = nameSet.toArray(new String[nameSet.size()]);
+
+
+            String[] namelist = name.toString().split("_");
             StringBuilder sb = new StringBuilder();
             sb.append("ID\t");
             for (int i = 0; i < namelist.length; i++) {
@@ -245,7 +230,7 @@ public class covaraties {
             bw.newLine();
             sb.setLength(0);
 
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < pcaNumber; i++) {
                 int index = i + 1;
                 sb.append("PC" + index + "\t");
                 for (int j = 0; j < namelist.length; j++) {
@@ -257,7 +242,7 @@ public class covaraties {
                 sb.setLength(0);
             }
 
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < peerNumber; i++) {
                 int index = i + 1;
                 sb.append("V" + index + "\t");
                 for (int j = 0; j < namelist.length; j++) {
@@ -276,6 +261,6 @@ public class covaraties {
     }
 
     public static void main(String[] args) {
-
+        new covaraties(args);
     }
 }

@@ -1,6 +1,7 @@
 package xiaohan.rareallele;
 
 import pgl.infra.utils.IOFileFormat;
+import xiaohan.eQTL.MathUtils;
 import xiaohan.eQTL.RowTable;
 
 import java.io.BufferedReader;
@@ -15,8 +16,7 @@ public class pheno {
     String TissueDir = null;
     ///data2/xiaohan/genotype/hapscanner/output/S3/leaf
     String replacesample = null;
-    String stage = null;
-    String tissue = null;
+    String plate = null;
     String outputDir = null;
     String JarDir = "/data1/home/xiaohan/jar";
 
@@ -36,36 +36,51 @@ public class pheno {
 
     public void parseparameter(String[] args) {
         System.out.println("*********Parsing paramter ******************************************************************");
-        if(!args.equals(2)){
-            System.out.println("args1 : countTable tissue dir");
-            System.out.println("args2 : phenolist tissue dir ");
-        }
-        this.TissueDir = args[0];
+//        if (!args.equals(2)) {
+//            System.out.println("args1 : countTable tissue dir");
+//            System.out.println("args2 : phenolist tissue dir ");
+//        }
+        this.plate = args[0];
         this.replacesample = args[1];
-        String[] tabs = new File(TissueDir).getAbsolutePath().split("/");
-        this.stage = tabs[tabs.length - 2];
-        this.tissue = tabs[tabs.length - 1];
-//        this.outputDir = replacesample.replace(tissue, "");
-        this.outputDir = new File("/data2/xiaohan/pheno/", stage + tissue).getAbsolutePath();
+        HashSet<String> tissues = new HashSet<>();
+        this.TissueDir = args[2];
+//        this.TissueDir[1] = args[3];
+        this.outputDir = new File("/data2/xiaohan/pheno/", plate).getAbsolutePath();
+        File out = new File(outputDir);
+        out.mkdir();
     }
 
     public void getMergedCountTable() {
         System.out.println("*********Merging Tables ********************************************************************");
         //get merged countTable
 //        this.TissueDir = args[0];
-        String[] dirs = new File(TissueDir).list();
         ArrayList<String> files = new ArrayList<>();
-        for (int i = 0; i < dirs.length; i++) {
-            if (!dirs[i].endsWith("DS_Store")) {
-                String file = new File(TissueDir, dirs[i] + "/countTable/" + dirs[i] + "_countResult.txt").getAbsolutePath();
-                files.add(file);
+        String[] dirs = new File(TissueDir).list();
+        if (plate.equals("S4leaf")) {
+            for (int i = 0; i < dirs.length; i++) {
+                String name = dirs[i].toString();
+                String name1 = name.substring(name.length() - 2, name.length());
+                System.out.println(name1);
+                if (Integer.parseInt(name1) > 70) {
+                    if (!dirs[i].endsWith("DS_Store") && !dirs[i].startsWith("countTable")) {
+                        String file = new File(TissueDir, dirs[i] + "/countTable/" + dirs[i] + "_countResult.txt").getAbsolutePath();
+                        files.add(file);
+                    }
+                } else continue;
+            }
+        } else {
+            for (int i = 0; i < dirs.length; i++) {
+                if (!dirs[i].endsWith("DS_Store") && !dirs[i].startsWith("countTable")) {
+                    String file = new File(TissueDir, dirs[i] + "/countTable/" + dirs[i] + "_countResult.txt").getAbsolutePath();
+                    files.add(file);
+                }
             }
         }
         RowTable<String>[] ts = new RowTable[files.size()];
         for (int i = 0; i < files.size(); i++) {
             ts[i] = new RowTable<String>(files.get(i));
         }
-        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, stage + tissue + "countResult.txt").getAbsolutePath());
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, plate + "countResult.txt").getAbsolutePath());
         try {
             StringBuilder sb = new StringBuilder();
             sb.append("Gene\t");
@@ -100,12 +115,12 @@ public class pheno {
 
     public void DESeqnormalization() {
         System.out.println("*********Deseq normalization ***************************************************************");
-        String infile = new File(this.outputDir, stage + tissue + "countResult.txt").getAbsolutePath();
-        String tempfile = new File(this.outputDir, stage + tissue + "expressiontemp.txt").getAbsolutePath();
+        String infile = new File(this.outputDir, plate + "countResult.txt").getAbsolutePath();
+        String tempfile = new File(this.outputDir, plate + "expressiontemp.txt").getAbsolutePath();
         try {
             File f = new File(tempfile);
             StringBuilder sb = new StringBuilder();
-            sb.append("Rscript DEseq_Normalization.R " + infile + " " + tempfile);
+            sb.append("Rscript /data2/xiaohan/tensorQTL/scripts/DEseq_Normalization.R " + infile + " " + tempfile);
             String command = sb.toString();
             System.out.println(command);
             File dir = new File(new File(JarDir).getAbsolutePath());
@@ -119,8 +134,8 @@ public class pheno {
 
     public void fixation() {
         System.out.println("*********Fixation **************************************************************************");
-        String tempfile = new File(this.outputDir, stage + tissue + "expressiontemp.txt").getAbsolutePath();
-        String exprfile = new File(this.outputDir, stage + tissue + "expression.txt").getAbsolutePath();
+        String tempfile = new File(this.outputDir, plate + "expressiontemp.txt").getAbsolutePath();
+        String exprfile = new File(this.outputDir, plate + "expression.txt").getAbsolutePath();
         try {
             BufferedReader br = IOUtils.getTextReader(tempfile);
             BufferedWriter bw = IOUtils.getTextWriter(exprfile);
@@ -146,7 +161,7 @@ public class pheno {
 
     public void filtersampe() {
         System.out.println("*********Filtering samples *****************************************************************");
-        String file = new File(replacesample, "/Isec/phenolist.txt").getAbsolutePath();
+        String file = new File(replacesample).getAbsolutePath();
         HashMap<String, String> RNAtoDNAmap = new HashMap<>();
         HashSet<String> RNASet = new HashSet<>();
         BufferedReader br = IOUtils.getTextReader(new File(file).getAbsolutePath());
@@ -160,8 +175,8 @@ public class pheno {
             }
             br.close();
 
-            BufferedReader br1 = IOUtils.getTextReader(new File(outputDir, stage + tissue + "expression.txt").getAbsolutePath());
-            BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, stage + tissue + "expression_hapscanner.txt").getAbsolutePath());
+            BufferedReader br1 = IOUtils.getTextReader(new File(outputDir, plate + "expression.txt").getAbsolutePath());
+            BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, plate + "expression_hapscanner.txt").getAbsolutePath());
 
             HashSet<Integer> indexSet = new HashSet<>();
             indexSet.add(0);
@@ -171,29 +186,46 @@ public class pheno {
             if (temp.startsWith("Gene")) {
                 sb.append("Gene\t");
                 for (int i = 0; i < temps.length; i++) {
-                    String name = "RNA" + temps[i].replace(".", "-");
+                    String name = null;
+                    if (plate.equals("S6grain") && temps[i].equals("E039")) {
+                        continue;
+                    } else if (plate.equals("S6grain") && temps[i].equals("E338")) {
+                        continue;
+                    } else if (plate.equals("S7leaf") && temps[i].equals("E098")) {
+                        continue;
+                    } else if (plate.equals("S7leaf") && temps[i].equals("E100")) {
+                        continue;
+                    } else if (plate.equals("S7leaf") && temps[i].equals("E107")) {
+                        continue;
+                    } else if (plate.equals("S7leaf") && temps[i].equals("E113")) {
+                        continue;
+                    } else if (temps[i].startsWith("B18")) {
+                        name = "RNA" + temps[i].replace("B18.", "").replace(".", "-");
+                    } else {
+                        name = "RNA" + temps[i].replace(".", "-");
+                    }
                     if (RNASet.contains(name)) {
                         indexSet.add(i);
-                        if(temps[i].endsWith(".2")){
-                            sb.append(RNAtoDNAmap.get(name)+"-2"+"\t");
-                        }else {
+                        if (temps[i].endsWith(".2")) {
+                            sb.append(RNAtoDNAmap.get(name) + "\t");
+                        } else {
                             sb.append(RNAtoDNAmap.get(name) + "\t");
                         }
                     }
                 }
-                bw.write(sb.toString().replaceAll("\\s+$","")+"\n");
+                bw.write(sb.toString().replaceAll("\\s+$", "") + "\n");
             }
             while ((temp = br1.readLine()) != null) {
                 sb.setLength(0);
                 temps = temp.split("\t");
                 for (int i = 0; i < temps.length; i++) {
-                    if(indexSet.contains(i)){
-                        sb.append(temps[i]+"\t");
+                    if (indexSet.contains(i)) {
+                        sb.append(temps[i] + "\t");
                     }
                 }
-                bw.write(sb.toString().replaceAll("\\s+$","")+"\n");
+                bw.write(sb.toString().replaceAll("\\s+$", "") + "\n");
             }
-//            RowTable<String> t = new RowTable<>(new File(outputDir, stage + tissue + "expression.txt").getAbsolutePath());
+//            RowTable<String> t = new RowTable<>(new File(outputDir, plate + "expression.txt").getAbsolutePath());
 //            HashSet<String> newheader = new HashSet<>();
 //            for (int i = 1; i < t.getHeader().size(); i++) {
 //                String name = "RNA" + t.getColumnName(i).replace(".", "-");
@@ -209,7 +241,7 @@ public class pheno {
 //                System.out.println(t.getColumnName(i));
 //            }
 
-//            t.writeTextTable(new File(outputDir, stage + tissue + "expression_hapscannertemp.txt").getAbsolutePath(),IOFileFormat.Text);
+//            t.writeTextTable(new File(outputDir, plate + "expression_hapscannertemp.txt").getAbsolutePath(),IOFileFormat.Text);
 
             bw.flush();
             bw.close();
@@ -219,9 +251,9 @@ public class pheno {
     }
 
     public void changeName() {
-        String infile = new File(outputDir, stage + tissue + "expression_hapscannertemp.txt").getAbsolutePath();
-        String outfile = new File(outputDir, stage + tissue + "expression_hapscanner.txt").getAbsolutePath();
-        String infor = new File(replacesample, "/Isec/phenolist.txt").getAbsolutePath();
+        String infile = new File(outputDir, plate + "expression_hapscannertemp.txt").getAbsolutePath();
+        String outfile = new File(outputDir, plate + "expression_hapscanner.txt").getAbsolutePath();
+        String infor = new File(replacesample).getAbsolutePath();
         String temp = null;
         String[] temps = null;
         HashMap<String, String> RNAtoDNAmap = new HashMap<>();
@@ -245,6 +277,7 @@ public class pheno {
                         String name = "RNA" + temps[i].replace(".", "-");
                         System.out.println(name);
                         sb.append(RNAtoDNAmap.get(name) + "\t");
+                        System.out.println(RNAtoDNAmap.get(name));
                     }
                     bw.write(sb.toString().replaceAll("\\s+$", ""));
                     bw.newLine();
@@ -263,9 +296,9 @@ public class pheno {
 
     public void countExpDonor02() {
         System.out.println("*********phenotype making ******************************************************************");
-        String infileS = new File(outputDir, stage + tissue + "expression_hapscanner.txt").getAbsolutePath();
-        String outfileS = new File(outputDir, stage + tissue + "expression_hapscanner_donor02.txt").getAbsolutePath();
-        String outfileS1 = new File(outputDir, stage + tissue + "expression_hapscanner_donor02_log2.txt").getAbsolutePath();
+        String infileS = new File(outputDir, plate + "expression_hapscanner.txt").getAbsolutePath();
+        String outfileS = new File(outputDir, plate + "expression_hapscanner_donor02.txt").getAbsolutePath();
+        String outfileS1 = new File(outputDir, plate + "expression_hapscanner_donor02_zscore.txt").getAbsolutePath();
         GeneFeature gf = new GeneFeature("/data1/home/xiaohan/reference/wheat_v1.1_Lulab.gff3");
         try {
             String temp = null;
@@ -275,10 +308,10 @@ public class pheno {
             BufferedWriter bw1 = IOUtils.getTextWriter(outfileS1);
             while ((temp = br.readLine()) != null) {
                 if (temp.startsWith("Gene")) {
-                    bw.write("#Chr\tstart\tend\tID\t");
+                    bw.write("Chr\tstart\tend\tID\t");
                     bw.write(temp.replace("Gene\t", ""));
                     bw.newLine();
-                    bw1.write("#Chr\tstart\tend\tID\t");
+                    bw1.write("Chr\tstart\tend\tID\t");
                     bw1.write(temp.replace("Gene\t", ""));
                     bw1.newLine();
                     continue;
@@ -296,17 +329,26 @@ public class pheno {
                     String geneName = temps[0];
                     int index = gf.getGeneIndex(geneName);
                     int chr = gf.getGeneChromosome(index);
-                    int start = gf.getGeneStart(index);
-                    int end = gf.getGeneEnd(index);
+                    int start = -1;
+                    if (gf.getGeneStrand(index) == 1) {
+                        start = gf.getGeneStart(index);
+                    } else {
+                        start = gf.getGeneEnd(index);
+                    }
+                    int end = start + 1;
                     StringBuilder sb = new StringBuilder();
                     StringBuilder sb1 = new StringBuilder();
                     sb.append(chr + "\t" + start + "\t" + end + "\t" + geneName + "\t");
                     sb1.append(chr + "\t" + start + "\t" + end + "\t" + geneName + "\t");
-                    for (int i = 0; i < temps.length - 1; i++) {
-                        double exp = Double.parseDouble(temps[i + 1]);
-                        double log2exp = Math.log10(exp + 1) / Math.log10(2);
-                        sb.append(exp + "\t");
-                        sb1.append(log2exp + "\t");
+                    double[] exp = new double[temps.length - 1];
+                    double[] zscore = new double[temps.length - 1];
+                    for (int i = 1; i < temps.length; i++) {
+                        exp[i - 1] = Double.parseDouble(temps[i]);
+                        sb.append(exp[i - 1] + "\t");
+                    }
+                    zscore = MathUtils.getzscore(exp);
+                    for (int i = 0; i < zscore.length; i++) {
+                        sb1.append(zscore[i] + "\t");
                     }
                     bw.write(sb.toString().replaceAll("\\s+$", ""));
                     bw1.write(sb1.toString().replaceAll("\\s+$", ""));
@@ -326,7 +368,7 @@ public class pheno {
 
     public void SplitPhenoBychr() {
         System.out.println("*********Split by chr **********************************************************************");
-        String infileS1 = new File(outputDir, stage + tissue + "expression_hapscanner_donor02_log2.txt").getAbsolutePath();
+        String infileS1 = new File(outputDir, plate + "expression_hapscanner_donor02_zscore.txt").getAbsolutePath();
         String output = new File(outputDir, "DE_log2_bed").getAbsolutePath();
         File f = new File(output);
         f.mkdir();
@@ -335,12 +377,12 @@ public class pheno {
             BufferedWriter[] bw = new BufferedWriter[43];
             BufferedWriter bw1 = pgl.infra.utils.IOUtils.getTextWriter(new File(output, "header.txt").getAbsolutePath());
             for (int i = 0; i < 43; i++) {
-                bw[i] = pgl.infra.utils.IOUtils.getTextWriter(new File(output, stage + tissue + "pheno" + i + ".bed").getAbsolutePath());
+                bw[i] = pgl.infra.utils.IOUtils.getTextWriter(new File(output, plate + "pheno" + i + ".bed").getAbsolutePath());
             }
             String temp = null;
             String[] temps = null;
             temp = br.readLine();
-            bw1.write(temp);
+            bw1.write("#"+temp);
             bw1.newLine();
             bw1.flush();
             bw1.close();
@@ -371,14 +413,14 @@ public class pheno {
         nameSet.parallelStream().forEach(f -> {
             try {
                 StringBuilder sb = new StringBuilder();
-                sb.append("sort -k1,1n -k2,2n " + stage + tissue + "pheno" + f + ".bed");
-                sb.append(" > ").append(stage + tissue + "pheno" + f + ".tempbed\n");
-                sb.append("cat header.txt " + stage + tissue + "pheno" + f + ".tempbed");
-                sb.append(" > ").append(stage + tissue + "pheno" + f + ".sorted.bed\n");
-//                sb.append("rm " + stage + tissue + "pheno" + f + ".tempbed\n");
-//                sb.append("rm " + stage + tissue + "pheno" + f + ".bed\n");
-                sb.append("bgzip " + stage + tissue + "pheno" + f + ".sorted.bed\n");
-                sb.append("tabix -p bed " + stage + tissue + "pheno" + f + ".sorted.bed.gz\n");
+                sb.append("sort -k1,1n -k2,2n " + plate + "pheno" + f + ".bed");
+                sb.append(" > ").append(plate + "pheno" + f + ".tempbed\n");
+                sb.append("cat header.txt " + plate + "pheno" + f + ".tempbed");
+                sb.append(" > ").append(plate + "pheno" + f + ".sorted.bed\n");
+//                sb.append("rm " + plate + "pheno" + f + ".tempbed\n");
+//                sb.append("rm " + plate + "pheno" + f + ".bed\n");
+                sb.append("bgzip " + plate + "pheno" + f + ".sorted.bed\n");
+                sb.append("tabix -p bed " + plate + "pheno" + f + ".sorted.bed.gz\n");
                 String command = sb.toString();
                 System.out.println(command);
                 File dir = new File(new File(input).getAbsolutePath());
