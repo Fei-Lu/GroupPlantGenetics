@@ -1,5 +1,6 @@
 package daxing.load.ancestralSite;
 
+import com.sun.org.apache.regexp.internal.RE;
 import pgl.infra.dna.allele.AlleleType;
 import pgl.infra.dna.snp.BiSNP;
 
@@ -31,7 +32,8 @@ public class SNPAnnotation extends BiSNP{
     }
 
     public enum MethodCallDeleterious{
-        SIFT, GERP, SIFT_GERP, STOPGAIN_STARTLOST_SIFT, STOPGAIN_STARTLOST_VEP, STOPGAIN_STARTLOST_SNPEFF;
+        SIFT, GERP, SIFT_GERP, STOPGAIN_STARTLOST_SIFT, STOPGAIN_STARTLOST_VEP, STOPGAIN_STARTLOST_SNPEFF, HIGH_VEP,
+        HIGH_SNPEFF;
 
         // SIFT < 0.05
         // GERP > 1
@@ -104,15 +106,23 @@ public class SNPAnnotation extends BiSNP{
         return effect_vep;
     }
 
+    public String getImpact_snpEff() {
+        return impact_snpEff;
+    }
+
+    public String getImpact_vep() {
+        return impact_vep;
+    }
+
     public boolean isDeleterious(){
         if(!isNonSyn()) return false;
         if (!hasAncestral()) return false;
         if(this.getDerived_SIFT().equals("NA")) return false;
         double sift=Double.parseDouble(this.getDerived_SIFT());
-        if (sift > 0.05) return false;
+        if (sift >= 0.05) return false;
         if(this.getGerp().equals("NA")) return false;
         double gerp=Double.parseDouble(this.getGerp());
-        return !(gerp < 1);
+        return !(gerp <= 1);
 //        if (this.getVariant_type().equals("STOP-GAIN") || this.getVariant_type().equals("START-LOST")) return true;
 //        return false;
     }
@@ -125,21 +135,21 @@ public class SNPAnnotation extends BiSNP{
                 if(!isNonSyn()) return false;
                 if(this.getDerived_SIFT().equals("NA")) return false;
                 sift=Double.parseDouble(this.getDerived_SIFT());
-                if (sift > 0.05) return false;
+                if (sift >= 0.05) return false;
                 return true;
             case GERP:
                 if(!isNonSyn()) return false;
                 if(this.getGerp().equals("NA")) return false;
                 gerp=Double.parseDouble(this.getGerp());
-                return !(gerp < 1);
+                return !(gerp <= 1);
             case SIFT_GERP:
                 if(!isNonSyn()) return false;
                 if(this.getDerived_SIFT().equals("NA")) return false;
                 sift=Double.parseDouble(this.getDerived_SIFT());
-                if (sift > 0.05) return false;
+                if (sift >= 0.05) return false;
                 if(this.getGerp().equals("NA")) return false;
                 gerp=Double.parseDouble(this.getGerp());
-                return !(gerp < 1);
+                return !(gerp <= 1);
             case STOPGAIN_STARTLOST_SIFT:
                 if (this.getVariant_type().equals("STOP-GAIN") || this.getVariant_type().equals("START-LOST")) return true;
                 return false;
@@ -149,6 +159,7 @@ public class SNPAnnotation extends BiSNP{
             case STOPGAIN_STARTLOST_SNPEFF:
                 if (this.getEffect_snpEff().equals("stop_gained") || this.getEffect_snpEff().equals("start_lost")) return true;
                 return false;
+
         }
         return false;
     }

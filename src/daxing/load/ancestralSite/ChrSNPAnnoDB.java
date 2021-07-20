@@ -25,7 +25,7 @@ public class ChrSNPAnnoDB {
             br.readLine();
             String line;
             while ((line=br.readLine())!=null){
-                geneAnno.add(getSNPAnnotation(line));
+                geneAnno.add(getSNPAnnotation2(line));
             }
         } catch (IOException e) {
             e.printStackTrace();
