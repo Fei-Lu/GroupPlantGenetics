@@ -37,6 +37,29 @@ public class ComplementaryGo {
         go(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, triadFile, blockGeneNum, pgfFile, outDir,methodCallDeleterious);
     }
 
+    /**
+     *
+     */
+    public static void start2(){
+        String exonSNPAnnoDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/003_Gene_Variant_genotype/002_variantsAnnotation/004_GeneSiteAnno/001_byChrID";
+        String exonVCFDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/003_Gene_Variant_genotype/001_longestTranscriptVCF";
+        String taxa_InfoDB="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/001_GermplasmDetermination/TaxaInfo/GermplasmInfo.txt";
+        String triadFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/triadGenes1.1.txt";
+        String pgfFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/wheat_v1.1_Lulab.pgf";
+        String outDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/004_BurdenPerGene/001_deleteriousCountPerGene/007_HIGH_VEP";
+        int blockGeneNum=20;
+        File subDir ;
+//        for (int i = 0; i < SNPAnnotation.MethodCallDeleterious.values().length; i++) {
+//            subDir= new File(outDir, PStringUtils.getNDigitNumber(3, i+1)+"_"+SNPAnnotation.MethodCallDeleterious.values()[i]);
+//            subDir.mkdir();
+//            ComplementaryGo.go(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, triadFile, blockGeneNum, pgfFile,
+//                    subDir.getAbsolutePath(),
+//                    SNPAnnotation.MethodCallDeleterious.values()[i]);
+//        }
+        ComplementaryGo.go(exonSNPAnnoDir, exonVCFDir,taxa_InfoDB, triadFile, 20, pgfFile, outDir,
+                SNPAnnotation.MethodCallDeleterious.HIGH_VEP);
+    }
+
     public static void go(String exonSNPAnnoDir, String exonVCFDir, String taxa_InfoDBFile, String triadFile,
                           int blockGeneNum, String pgfFile, String outDir,
                           SNPAnnotation.MethodCallDeleterious methodCallDeleterious){

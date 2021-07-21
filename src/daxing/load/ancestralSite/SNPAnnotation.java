@@ -1,6 +1,5 @@
 package daxing.load.ancestralSite;
 
-import com.sun.org.apache.regexp.internal.RE;
 import pgl.infra.dna.allele.AlleleType;
 import pgl.infra.dna.snp.BiSNP;
 
@@ -159,7 +158,10 @@ public class SNPAnnotation extends BiSNP{
             case STOPGAIN_STARTLOST_SNPEFF:
                 if (this.getEffect_snpEff().equals("stop_gained") || this.getEffect_snpEff().equals("start_lost")) return true;
                 return false;
-
+            case HIGH_VEP:
+                return this.getImpact_vep().equals("HIGH");
+            case HIGH_SNPEFF:
+                return this.getImpact_snpEff().equals("HIGH");
         }
         return false;
     }
