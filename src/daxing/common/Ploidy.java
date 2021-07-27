@@ -42,6 +42,16 @@ public enum Ploidy {
         return subSingleChr;
     }
 
+    public String[] getSubgenomeArray(){
+        String subSingleChr= this.subSingleChr;
+        char[] temp= subSingleChr.toCharArray();
+        String[] res=new String[temp.length];
+        for (int i = 0; i < res.length; i++) {
+            res[i]=String.valueOf(temp[i]);
+        }
+        return res;
+    }
+
     public static Ploidy newInstanceFromPloidy(String ploidy){
         switch (ploidy.toLowerCase()) {
             case "hexaploid":

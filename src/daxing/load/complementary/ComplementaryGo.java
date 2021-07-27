@@ -14,8 +14,10 @@ import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -40,23 +42,21 @@ public class ComplementaryGo {
     /**
      *
      */
-    public static void start2(){
-        String exonSNPAnnoDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/003_Gene_Variant_genotype/002_variantsAnnotation/004_GeneSiteAnno/001_byChrID";
-        String exonVCFDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/003_Gene_Variant_genotype/001_longestTranscriptVCF";
-        String taxa_InfoDB="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/001_GermplasmDetermination/TaxaInfo/GermplasmInfo.txt";
-        String triadFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/triadGenes1.1.txt";
-        String pgfFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/wheat_v1.1_Lulab.pgf";
-        String outDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/004_BurdenPerGene/001_deleteriousCountPerGene/007_HIGH_VEP";
-        int blockGeneNum=20;
-        File subDir ;
+    public static void start2(String exonSNPAnnoDir, String exonVCFDir, String taxa_InfoDB, String syntenicGeneFile, String outDir){
+//        String exonSNPAnnoDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/003_Gene_Variant_genotype/002_variantsAnnotation/004_GeneSiteAnno/001_byChrID";
+//        String exonVCFDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/003_Gene_Variant_genotype/001_longestTranscriptVCF";
+//        String taxa_InfoDB="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/001_GermplasmDetermination/TaxaInfo/GermplasmInfo.txt";
+//        String syntenicGeneFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/002_syntenicGene/syntenic_genes.txt";
+//        String outDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/004_BurdenPerGene/001_deleteriousCountPerGene";
+//        File subDir ;
 //        for (int i = 0; i < SNPAnnotation.MethodCallDeleterious.values().length; i++) {
 //            subDir= new File(outDir, PStringUtils.getNDigitNumber(3, i+1)+"_"+SNPAnnotation.MethodCallDeleterious.values()[i]);
 //            subDir.mkdir();
-//            ComplementaryGo.go(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, triadFile, blockGeneNum, pgfFile,
+//            ComplementaryGo.go2(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, syntenicGeneFile,
 //                    subDir.getAbsolutePath(),
 //                    SNPAnnotation.MethodCallDeleterious.values()[i]);
 //        }
-        ComplementaryGo.go(exonSNPAnnoDir, exonVCFDir,taxa_InfoDB, triadFile, 20, pgfFile, outDir,
+        ComplementaryGo.go2(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, syntenicGeneFile, outDir,
                 SNPAnnotation.MethodCallDeleterious.HIGH_VEP);
     }
 
@@ -64,9 +64,8 @@ public class ComplementaryGo {
                           int blockGeneNum, String pgfFile, String outDir,
                           SNPAnnotation.MethodCallDeleterious methodCallDeleterious){
         System.out.println(DateTime.getDateTimeOfNow());
-//        String[] subdir={"001_count","002_countMerge","003_hexaploidPseudohexaploid","004_triadsBlock",
-//                "005_mergeTriadsBlock","006_staticsValue"};
-        String[] subdir={"001_count","002_countMerge"};
+        String[] subdir={"001_count","002_countMerge","003_hexaploidPseudohexaploid","004_triadsBlock",
+                "005_mergeTriadsBlock","006_staticsValue"};
         for (String s : subdir) {
             new File(outDir, s).mkdir();
         }
@@ -83,6 +82,24 @@ public class ComplementaryGo {
 //        mergeTriadsBlockBySubspecies(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
 ////        mergeTriadsBlockWithEightModel(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
 //        mergeAllIndividualTriadsBlock(new File(outDir, subdir[3]), pgfFile, new File(outDir, subdir[4]));
+    }
+
+    public static void go2(String exonSNPAnnoDir, String exonVCFDir, String taxa_InfoDBFile, String syntenicGeneFile,
+                           String outDir,
+                          SNPAnnotation.MethodCallDeleterious methodCallDeleterious) {
+        System.out.println(DateTime.getDateTimeOfNow());
+        String[] subdir = {"001_count", "002_countMerge", "003_individualBurden"};
+        for (String s : subdir) {
+            new File(outDir, s).mkdir();
+        }
+        List<File> exonAnnoFiles = IOUtils.getVisibleFileListInDir(exonSNPAnnoDir);
+        List<File> exonVCFFiles = IOUtils.getVisibleFileListInDir(exonVCFDir);
+        Map<String, File> taxonOutDirMap = getTaxonOutDirMap(taxa_InfoDBFile, new File(outDir, subdir[0]).getAbsolutePath());
+        IntStream.range(0, exonVCFFiles.size()).forEach(e -> go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
+                taxonOutDirMap, e + 1, exonSNPAnnoDir, methodCallDeleterious));
+        merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
+        mergeSubgenomeIndividualBurden(new File(outDir, subdir[1]).getAbsolutePath(), syntenicGeneFile,
+                new File(outDir, subdir[2]).getAbsolutePath());
     }
 
     private static void go(File exonSNPAnnoFile, File exonVCFFile,
@@ -628,5 +645,90 @@ public class ComplementaryGo {
             e.printStackTrace();
         }
         return triadsBlockGeneListMap;
+    }
+
+    public static void mergeSubgenomeIndividualBurden(String mergeDir, String syntenicGeneFile, String outDir){
+
+        mergeSubgenomeIndividualBurden(new File(mergeDir), new File(syntenicGeneFile), false, new File(outDir,
+                "uniqueGene.txt.gz"));
+        mergeSubgenomeIndividualBurden(new File(mergeDir), new File(syntenicGeneFile), true, new File(outDir,
+                "syntenicGene.txt.gz"));
+    }
+
+    private static void mergeSubgenomeIndividualBurden(File mergeDir, File syntenicGeneFile,
+                                                      boolean ifSyntenic, File outFile){
+        List<File> files = IOTool.getFileListInDirEndsWith(mergeDir.getAbsolutePath(), ".txt.gz");
+        Set<String> syntenicGeneSet=RowTableTool.getColumnSet(syntenicGeneFile.getAbsolutePath(), 0);
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
+            BufferedReader br;
+            String line;
+            List<String> temp;
+            bw.write("Taxa\tSub\tnumSyn\tnumDerivedInSyn\tnumHeterInSyn\tnumNonsyn\tnumDerivedInNonsyn" +
+                    "\tnumHeterInNonsyn\tnumHGDeleterious\tnumDerivedInHGDeleterious\tnumHeterInHGDeleterious");
+            bw.newLine();
+            String[] subs;
+            int[] numSyn, numDerivedInSyn, numHeterInSyn;
+            int[] numNonsyn, numDerivedInNonsyn, numHeterInNonsyn;
+            int[] numHGDeleterious, numDerivedInHGDeleterious, numHeterInHGDeleterious;
+            String taxa;
+            Ploidy ploidy;
+            StringBuilder sb= new StringBuilder();
+            for (int i = 0; i < files.size(); i++) {
+                taxa = PStringUtils.fastSplit(files.get(i).getName(), ".").get(0);
+                ploidy = Ploidy.newInstanceFromSubSingleChar(PStringUtils.fastSplit(files.get(i).getName(), "_").get(0));
+                subs = ploidy.getSubgenomeArray();
+                numSyn = new int[ploidy.getSubgenomewNum()];
+                numDerivedInSyn= new int[ploidy.getSubgenomewNum()];
+                numHeterInSyn = new int[ploidy.getSubgenomewNum()];
+                numNonsyn = new int[ploidy.getSubgenomewNum()];
+                numDerivedInNonsyn = new int[ploidy.getSubgenomewNum()];
+                numHeterInNonsyn = new int[ploidy.getSubgenomewNum()];
+                numHGDeleterious = new int[ploidy.getSubgenomewNum()];
+                numDerivedInHGDeleterious = new int[ploidy.getSubgenomewNum()];
+                numHeterInHGDeleterious = new int[ploidy.getSubgenomewNum()];
+                br = IOTool.getReader(files.get(i));
+                br.readLine();
+                while ((line=br.readLine())!=null){
+                    temp =PStringUtils.fastSplit(line);
+                    if (ifSyntenic){
+                        if (!syntenicGeneSet.contains(temp.get(0))) continue;
+                        int subIndex = Arrays.binarySearch(subs, temp.get(0).substring(8,9));
+                        numSyn[subIndex]+=Integer.parseInt(temp.get(1));
+                        numDerivedInSyn[subIndex]+=Integer.parseInt(temp.get(2));
+                        numHeterInSyn[subIndex]+=Integer.parseInt(temp.get(3));
+                        numNonsyn[subIndex]+=Integer.parseInt(temp.get(4));
+                        numDerivedInNonsyn[subIndex]+=Integer.parseInt(temp.get(5));
+                        numHeterInNonsyn[subIndex]+=Integer.parseInt(temp.get(6));
+                        numHGDeleterious[subIndex]+=Integer.parseInt(temp.get(7));
+                        numDerivedInHGDeleterious[subIndex]+=Integer.parseInt(temp.get(8));
+                        numHeterInHGDeleterious[subIndex]+=Integer.parseInt(temp.get(9));
+                    }else {
+                        int subIndex = Arrays.binarySearch(subs, temp.get(0).substring(8,9));
+                        numSyn[subIndex]+=Integer.parseInt(temp.get(1));
+                        numDerivedInSyn[subIndex]+=Integer.parseInt(temp.get(2));
+                        numHeterInSyn[subIndex]+=Integer.parseInt(temp.get(3));
+                        numNonsyn[subIndex]+=Integer.parseInt(temp.get(4));
+                        numDerivedInNonsyn[subIndex]+=Integer.parseInt(temp.get(5));
+                        numHeterInNonsyn[subIndex]+=Integer.parseInt(temp.get(6));
+                        numHGDeleterious[subIndex]+=Integer.parseInt(temp.get(7));
+                        numDerivedInHGDeleterious[subIndex]+=Integer.parseInt(temp.get(8));
+                        numHeterInHGDeleterious[subIndex]+=Integer.parseInt(temp.get(9));
+                    }
+                }
+                br.close();
+                for (int j = 0; j < subs.length; j++) {
+                    sb.setLength(0);
+                    sb.append(taxa).append("\t").append(subs[j]).append("\t");
+                    sb.append(numSyn[j]).append("\t").append(numDerivedInSyn[j]).append("\t").append(numHeterInSyn[j]).append("\t");
+                    sb.append(numNonsyn[j]).append("\t").append(numDerivedInNonsyn[j]).append("\t").append(numHeterInNonsyn[j]).append("\t");
+                    sb.append(numHGDeleterious[j]).append("\t").append(numDerivedInHGDeleterious[j]).append("\t").append(numHeterInHGDeleterious[j]);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

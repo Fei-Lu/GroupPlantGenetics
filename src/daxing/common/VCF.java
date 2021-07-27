@@ -235,30 +235,48 @@ public class VCF {
         System.out.println(DateTime.getDateTimeOfNow()+" end");
     }
 
-    public static void fastMergeVCFtoAB(String a_lineageVCF, String b_lineageVCF, String out_AB_lineageFile){
-        try (BufferedReader bufferedReader= IOUtils.getTextReader(a_lineageVCF);
-             BufferedReader bufferedReader1=IOUtils.getTextReader(b_lineageVCF);
-             BufferedWriter bufferedWriter=IOUtils.getTextWriter(out_AB_lineageFile)) {
+    public static void fastMergeVCFtoAB(String inputVcfDir, String outDir){
+        List<File> files = IOTool.getFileListInDirEndsWith(inputVcfDir, "vcf.gz");
+        int[] abChrID = WheatLineage.ablineage();
+        int[] chrIDArray=
+                files.stream().map(File::getName).map(s -> s.substring(3,6)).mapToInt(Integer::parseInt).toArray();
+        BufferedReader br;
+        BufferedWriter bw ;
+        try {
+            bw = IOTool.getWriter(new File(outDir, "chrAB.vcf.gz"));
             String line;
-            while ((line=bufferedReader.readLine()).startsWith("##")){
-                bufferedWriter.write(line);
-                bufferedWriter.newLine();
+            boolean first=true;
+            for (int i = 0; i < chrIDArray.length; i++) {
+                int index = Arrays.binarySearch(abChrID, chrIDArray[i]);
+                if (index < 0) continue;
+                br = IOTool.getReader(files.get(i));
+                if (first){
+                    while ((line = br.readLine()).startsWith("##")){
+                        bw.write(line);
+                        bw.newLine();
+                    }
+                    bw.write(line);
+                    bw.newLine();
+                    while ((line=br.readLine())!=null){
+                        bw.write(line);
+                        bw.newLine();
+                    }
+                    first = false;
+                }else {
+                    while ((line = br.readLine()).startsWith("##")) continue;
+                    while ((line=br.readLine())!=null){
+                        bw.write(line);
+                        bw.newLine();
+                    }
+                }
+                br.close();
             }
-            bufferedWriter.write(line);
-            bufferedWriter.newLine();
-            while ((line=bufferedReader.readLine())!=null){
-                bufferedWriter.write(line);
-                bufferedWriter.newLine();
-            }
-            while ((line=bufferedReader1.readLine()).startsWith("##")){}
-            while ((line=bufferedReader1.readLine())!=null){
-                bufferedWriter.write(line);
-                bufferedWriter.newLine();
-            }
-            bufferedWriter.flush();
-        } catch (IOException e) {
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     /**
