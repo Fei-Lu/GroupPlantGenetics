@@ -1,5 +1,6 @@
 package xiaohan.rareallele;
 
+import xiaohan.eQTL.GeneFeature;
 import xiaohan.utils.IOUtils;
 
 import java.io.BufferedReader;
@@ -392,9 +393,10 @@ public class RareAlleleCount {
                     //2.创建一个基因list
                     GeneFeature gf = new GeneFeature(this.annotationfile);
                     HashSet<String> geneName = new HashSet<>();
-                    for (int i = 0; i < gf.genes.length; i++) {
-                        String name = gf.genes[i].geneName;
-                        int chr = gf.genes[i].geneRange.chr;
+
+                    for (int i = 0; i < gf.getGeneNumber(); i++) {
+                        String name = gf.getGeneName(i);
+                        int chr = gf.getChromosomeOfGene(i);
                         if (chr == chrNumber) {
                             geneName.add(name);
                         }

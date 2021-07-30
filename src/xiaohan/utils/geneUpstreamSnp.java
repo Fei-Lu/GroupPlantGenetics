@@ -53,7 +53,7 @@ public class geneUpstreamSnp {
         BufferedReader br = IOUtils.getTextGzipReader(infile);
 //        BufferedReader br = null;
 //        if (infile.endsWith("gz")) {
-//            br = IOUtils.getTextGzipReader(infile);
+            br = IOUtils.getTextGzipReader(infile);
 //        }
 //        br = IOUtils.getTextReader(infile);
         HashSet<String> geneSet = new HashSet<>();

@@ -2,8 +2,14 @@ package xiaohan.eQTL;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Range;
+import com.koloboke.collect.impl.hash.Hash;
 import daxing.common.MD5;
+import daxing.common.PGF;
 import daxing.load.ancestralSite.Standardization;
+import pgl.infra.table.ColumnTable;
+import xiaohan.eQTL.GeneFeature;
+import pgl.infra.pos.ChrPos;
 import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.PStringUtils;
@@ -12,9 +18,9 @@ import xiaohan.GBS.heterozygosity;
 import xiaohan.eQTL.HapscanIdentifier.HapscannerParameters;
 import xiaohan.eQTL.pipline.*;
 import xiaohan.eQTL.simulation.simulationData;
-import xiaohan.rareallele.GeneFeature;
-import xiaohan.utils.IOUtils;
 import xiaohan.rareallele.rareMutation;
+import xiaohan.utils.FastqUtils;
+import xiaohan.utils.IOUtils;
 import xiaohan.utils.SNPmappingInGene;
 
 import java.io.BufferedReader;
@@ -36,62 +42,237 @@ public class eQTL {
     HashSet<String> HBSet = new HashSet<>();
 
     public eQTL(String[] args) throws IOException, InterruptedException {
-        /*
-        effect size
-         */
-        this.effectsize(args);
-
-        /*
-        triads
-         */
-        this.getTraidsPattern();
-        this.patternIdentify();
-
-        /*
-        VCF
-         */
-        this.vcf(args);
-
-        /*
-        pheno
-         */
-        this.pheno(args);
-        this.covaraties(args);
-
-        /*
-        annotation
-         */
-        this.annotation(args);
-        this.getExpressionWithaFC(args[0], args[1]);
-
-        /*
-        meta-tissue analysis
-         */
-        this.multiTissue(args);
+//        this.get5();
+//        this.getTraidsPattern();
+//        this.patternIdentify();
 //
-        /*
-        heterozygosity
-         */
-        this.heterozygosity(args);
-        this.GBSsimulation(args);
+//        this.getExpressionWithaFC(args[0], args[1]);
 //
-        this.intergenicPattern();
-        this.intergenicPatternEnrichment();
-        this.intergenicPatternTransposon();
-        this.getTransposonLength();
-        this.getTransposonClass();
+//        this.intergenicPattern();
+//        this.intergenicPatternEnrichment();
+//        this.intergenicPatternTransposon();
+//        this.getTransposonLength();
+//        this.getTransposonClass();
+//
+//        this.ThreadPool(args[0],args[1]);
+//        this.subextractGeneRegion(args[0], args[1]);
+//        this.md5check();
+//        this.getsequencingDepth(args);
+//        this.getvariants(args);
 
-        this.ERCCRoc();
-        this.ThreadPool(args[0],args[1]);
-        this.subextractGeneRegion(args[0], args[1]);
-        this.hetandMaf(args[0], args[1]);
-        this.md5check();
-        this.rareMutation(args);
-        this.getsequencingDepth(args);
-        this.getvariants(args);
+//        this.getsubsample(args);
+//        this.getsubtable(args);
+        this.temp();
+//        this.subquality(args);
+//        this.cov(args);
+    }
+
+    public void cov(String[] args){
+        new covaraties(args);
+    }
+
+    public void subquality(String[] args){
+        String inputdir = args[0];
+        File[] fs = new File(inputdir).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs,"R1.fq.gz");
+        HashSet<String> nameSet = new HashSet<>();
+        for (int i = 0; i < fs.length; i++) {
+            nameSet.add(fs[i].getName().replace("_R1.fq.gz",""));
+        }
+        String[] names = nameSet.toArray(new String[0]);
+        Arrays.sort(names);
+        HashMap<String,Integer> nameMap = new HashMap<>();
+        for (int i = 0; i < names.length; i++) {
+            nameMap.put(names[i],i);
+        }
+        double[][] Q_R1 = new double[150][nameSet.size()];
+        double[][] Q_R2 = new double[150][nameSet.size()];
+        nameSet.parallelStream().forEach(f ->{
+            System.out.println(f);
+            BufferedReader br1 = IOUtils.getTextGzipReader(new File(inputdir,f+"_R1.fq.gz").getAbsolutePath());
+            BufferedReader br2 = IOUtils.getTextGzipReader(new File(inputdir,f+"_R2.fq.gz").getAbsolutePath());
+            String header = null;
+            String seq = null;
+            String temp = null;
+            String quality = null;
+            int countline = 0;
+            double[] Q = new double[150];
+            try {
+                for (int i = 0; i < 150; i++) {
+                    Q[i] = 0;
+                }
+                while ((header = br1.readLine()) != null) {
+                    countline ++;
+//                    if(countline % 5000 == 0){
+//                        System.out.println(countline);
+//                    }
+                    seq = br1.readLine();
+                    temp = br1.readLine();
+                    quality = br1.readLine();
+                    for (int i = 0; i < quality.length(); i++) {
+                        Q[i] += FastqUtils.getscore(quality.substring(i,i+1));
+//                        System.out.println(Q[i]);
+                    }
+                }
+                br1.close();
+                int reads = 5000;
+                for (int i = 0; i < 150; i++) {
+                    Q_R1[i][nameMap.get(f)] = (double) Q[i]/reads;
+                }
+                for (int i = 0; i < 150; i++) {
+                    Q[i] = 0;
+                }
+                while ((header = br2.readLine()) != null) {
+                    seq = br2.readLine();
+                    temp = br2.readLine();
+                    quality = br2.readLine();
+                    for (int i = 0; i < quality.length(); i++) {
+                        Q[i] += FastqUtils.getscore(quality.substring(i,i+1));
+                    }
+                }
+                br2.close();
+                for (int i = 0; i < 150; i++) {
+                    Q_R2[i][nameMap.get(f)] = (double) Q[i]/reads;
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        });
+        BufferedWriter bw1 = IOUtils.getTextWriter(new File(inputdir,"Quality_R1.txt").getAbsolutePath());
+        BufferedWriter bw2 = IOUtils.getTextWriter(new File(inputdir,"Quality_R2.txt").getAbsolutePath());
+        try{
+            DecimalFormat defor = new DecimalFormat("0.000");
+            bw1.write("Position\t");
+            bw2.write("Position\t");
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < names.length; i++) {
+                sb.append(names[i]+"\t");
+            }
+            bw1.write(sb.toString().replaceAll("\\s+$","")+"\n");
+            bw2.write(sb.toString().replaceAll("\\s+$","")+"\n");
+            for (int i = 1; i <= 150; i++) {
+                sb.setLength(0);
+                for (int j = 0; j < names.length; j++) {
+                    sb.append(defor.format(Q_R1[i-1][j])+"\t");
+                }
+                bw1.write(i+"\t");
+                bw1.write(sb.toString().replaceAll("\\s+$","")+"\n");
+
+                sb.setLength(0);
+                for (int j = 0; j < names.length; j++) {
+                    sb.append(defor.format(Q_R2[i-1][j])+"\t");
+                }
+                bw2.write(i+"\t");
+                bw2.write(sb.toString().replaceAll("\\s+$","")+"\n");
+            }
+            bw1.flush();
+            bw2.flush();
+            bw1.close();
+            bw2.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public void temp(){
+        String name = "S1coleoptile,S1root,S2leaf,S2root,S3leaf,S4leaf,S4Awn,S4spike,S4stem,S5leaf,S5Anthers,S6leaf,S6grain,S7leaf,S7grain,S8leaf,S8grain,S9grain";
+        String[] names = name.split(",");
+        System.out.println(names.length);
+        for (int i = 0; i < names.length; i++) {
+//            System.out.println("cat 203/"+names[i]+"_203.txt <(tail -n+2 ./204/"+names[i]+"_204.txt ) > "+names[i]+".txt");
+//            System.out.println("sort "+names[i]+".txt > "+names[i]+"_new.txt");
+//            System.out.println("wc -l "+names[i]+".txt");
+            System.out.println("cat <(cut -f1,2,5 ./203/"+names[i]+".txt) <(cut -f1,2,5 ./204/"+names[i]+".txt) > "+names[i]+"_corr.txt");
+//            System.out.println("nohup zcat "+names[i]+"/*R1.fq.gz | gzip > "+names[i]+"/"+names[i]+"_r1.fq.gz &");
+//            System.out.println("nohup zcat "+names[i]+"/*R2.fq.gz | gzip > "+names[i]+"/"+names[i]+"_r2.fq.gz &");
+//            System.out.println(names[i]+" <- read.table(\"/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/Quality/"+names[i]+"_Quality_R1.txt\",sep = \"\\t\",header = T)\n" +
+//                    names[i]+"_Q1<-melt("+names[i]+",id.vars=c(\"Position\"),variable.name=\"Sample\",value.name=\"Q\")\n" +
+//                    names[i]+"_Q1$group <- \""+names[i]+"\"\n" +
+//                    "\n" +
+//                    names[i]+" <- read.table(\"/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/Quality/"+names[i]+"_Quality_R2.txt\",sep = \"\\t\",header = T)\n" +
+//                    names[i]+"_Q2<-melt("+names[i]+",id.vars=c(\"Position\"),variable.name=\"Sample\",value.name=\"Q\")\n" +
+//                    names[i]+"_Q2$group <- \""+names[i]+"\"\n");
+//            System.out.print(names[i]+"_Q2,");
+//            System.out.println(names[i]+"_dens <-read.table(\"/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/correction/"+names[i]+".txt\",header = F,sep = \"\\t\")");
+//            System.out.println("colnames("+names[i]+"_dens) <- c(\"RNA\",\"DNA\",\"IBSdistance\")");
+//            System.out.println(names[i]+"_dens$group <- \""+names[i]+"\"");
+        }
 
     }
 
+    public void getsubtable(String[] args){
+        String indir = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/IBSdensity/";
+        String outdir = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/IBSdensity/204/";
+        File[] fs = new File(indir).listFiles();
+        fs = IOUtils.listFilesEndsWith(fs,".txt");
+        HashSet<String> nameSet= new HashSet<>();
+        for (int i = 0; i < fs.length; i++) {
+            nameSet.add(fs[i].getName());
+        }
+        nameSet.parallelStream().forEach(f ->{
+            String infile = new File(indir,f).getAbsolutePath();
+            String outfile = new File(outdir,f).getAbsolutePath();
+            RowTable<String> rt = new RowTable<>(infile);
+            List<String> header = rt.getHeader();
+            HashSet<String> RNA = new HashSet<>();
+            HashSet<String> DNA = new HashSet<>();
+            for (int i = 0; i < header.size(); i++) {
+                String name= header.get(i);
+                if(name.startsWith("RNA")){
+                    RNA.add(name);
+                }
+                if (name.startsWith("E")){
+                    DNA.add(name);
+                }
+            }
+            for (int i = 0; i < rt.getColumnNumber(); i++) {
+                if(RNA.contains(rt.getColumnName(1))) {
+                    rt.removeColumn(1);
+                }
+            }
+            for (int i = 0; i < DNA.size(); i++) {
+                System.out.println(rt.getCell(RNA.size(),0));
+                if(DNA.contains(rt.getCell(RNA.size(),0))){
+                    rt.removeRow(RNA.size());
+                }
+            }
+            rt.writeTextTable(outfile,IOFileFormat.Text);
+        });
+
+    }
+
+    public void getsubsample(String[] args) {
+        String inputDir = args[0];
+        String outputDir = args[1];
+        String[] dirs = new File(inputDir).list();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < dirs.length; i++) {
+            if (!dirs[i].endsWith("DS_Store")) {
+                File[] fs1 = new File(inputDir, dirs[i] + "/subFastqs").listFiles();
+                fs1 = IOUtils.listFilesEndsWith(fs1, ".fq.gz");
+                for (int j = 0; j < fs1.length; j++) {
+                    sb.append("seqtk sample -s100 "+new File(inputDir,dirs[i]+"/subFastqs/"+fs1[j].getName()).getAbsolutePath() + " 5000 | gzip > "+new File(outputDir,fs1[j].getName()).getAbsolutePath()+"\n");
+                }
+            }
+        }
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir,"command.txt").getAbsolutePath());
+        try {
+            bw.write(sb.toString());
+            bw.flush();
+            bw.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public void get5() {
+        GeneFeature gf = new GeneFeature("/Users/yxh/Documents/RareAllele/data/SiPASpipeline/refer/wheat_v1.1_Lulab.gff3");
+        for (int i = 0; i < gf.getGeneNumber(); i++) {
+            if (gf.getTSSOfGene(i) == null) {
+                System.out.println(gf.getGeneName(i));
+            }
+        }
+    }
 
     public void getvariants(String[] args) {
         String inputDir = args[0];
@@ -164,19 +345,19 @@ public class eQTL {
             for (int i = 0; i < names.length; i++) {
                 sb.append(names[i] + "\t");
             }
-            bw.write(sb.toString().replaceAll("\\s+$", "")+"\n");
+            bw.write(sb.toString().replaceAll("\\s+$", "") + "\n");
 
             sb.setLength(0);
             for (int i = 0; i < count.length; i++) {
                 sb.append(count[i] + "\t");
             }
-            bw.write(sb.toString().replaceAll("\\s+$", "")+"\n");
+            bw.write(sb.toString().replaceAll("\\s+$", "") + "\n");
 
             sb.setLength(0);
             for (int i = 0; i < depths.length; i++) {
                 sb.append(depths[i] + "\t");
             }
-            bw.write(sb.toString().replaceAll("\\s+$", "")+"\n");
+            bw.write(sb.toString().replaceAll("\\s+$", "") + "\n");
 
             DecimalFormat dec = new DecimalFormat("0.000");
 
@@ -184,34 +365,13 @@ public class eQTL {
             for (int i = 0; i < avergeDepth.length; i++) {
                 sb.append(dec.format(avergeDepth[i]) + "\t");
             }
-            bw.write(sb.toString().replaceAll("\\s+$", "")+"\n");
+            bw.write(sb.toString().replaceAll("\\s+$", "") + "\n");
 
             bw.flush();
             bw.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public void rareMutation(String[] args) {
-        new rareMutation(args);
-    }
-
-
-    private String expTissuNumber(String[] array) {
-        String max = null;
-        HashSet<Double> DataSet = new HashSet<>();
-        for (int i = 0; i < array.length; i++) {
-            if (!array[i].equals("NA")) {
-                DataSet.add(Double.parseDouble(array[i]));
-            }
-        }
-        if (DataSet.isEmpty()) {
-            max = "0";
-        } else {
-            max = String.valueOf(DataSet.size());
-        }
-        return max;
     }
 
     public void md5check() {
@@ -235,43 +395,6 @@ public class eQTL {
         }
     }
 
-    public void hetandMaf(String infileDir, String outfileDir) {
-        HashSet<Integer> nameSet = new HashSet<>();
-        for (int i = 0; i < 42; i++) {
-            int chr = i + 1;
-            nameSet.add(chr);
-        }
-        nameSet.parallelStream().forEach(f -> {
-            try {
-                String infile = new File(infileDir, "chr" + PStringUtils.getNDigitNumber(3, f) + ".vcf").getAbsolutePath();
-                String outfile = new File(outfileDir, "chr" + PStringUtils.getNDigitNumber(3, f) + ".txt").getAbsolutePath();
-                BufferedReader br = IOUtils.getTextReader(infile);
-                BufferedWriter bw = IOUtils.getTextWriter(outfile);
-                String temp = null;
-                String[] temps = null;
-                bw.write("chr\tpos\thet\tmaf\tdepth\n");
-                while ((temp = br.readLine()) != null) {
-                    if (temp.startsWith("#")) {
-                        continue;
-                    }
-                    temps = PStringUtils.fastSplit(temp).toArray(new String[0]);
-                    String info = temps[7];
-                    String[] infos = info.split(";");
-                    String het = infos[5].split("=")[1];
-                    String maf = infos[6].split("=")[1];
-                    String depth = infos[2].split("=")[1];
-                    bw.write(temps[0] + "\t" + temps[1] + "\t" + het + "\t" + maf + "\t" + depth + "\n");
-                }
-                br.close();
-                bw.flush();
-                bw.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
-
     public void subextractGeneRegion(String infileDir, String outfileDir) {
         String annotationfile = "/data1/home/xiaohan/reference/wheat_v1.1_Lulab.gff3";
         HashSet<Integer> nameSet = new HashSet<>();
@@ -290,7 +413,7 @@ public class eQTL {
                 GeneFeature gf = new GeneFeature(annotationfile);
                 HashSet<String> geneSet = new HashSet<>();
                 for (int i = 0; i < gf.getGeneNumber(); i++) {
-                    if (gf.getGeneChromosome(i) == f) {
+                    if (gf.getChromosomeOfGene(i) == f) {
                         geneSet.add(gf.getGeneName(i));
                     }
                 }
@@ -300,7 +423,7 @@ public class eQTL {
 
                 int[][] geneRange = new int[genelist.length][3];
                 for (int i = 0; i < genelist.length; i++) {
-                    geneRange[i][0] = gf.getGeneChromosome(gf.getGeneIndex(genelist[i]));
+                    geneRange[i][0] = gf.getChromosomeOfGene(gf.getGeneIndex(genelist[i]));
                     geneRange[i][1] = gf.getGeneStart(gf.getGeneIndex(genelist[i]));
                     geneRange[i][2] = gf.getGeneEnd(gf.getGeneIndex(genelist[i]));
                 }
@@ -478,103 +601,6 @@ public class eQTL {
         }
     }
 
-    public void covaraties(String[] args) {
-        new covaraties(args);
-    }
-
-    public void ERCCRoc() {
-        String prefix = "Truseq";
-        int sample = 3;
-        BufferedWriter bw = IOUtils.getTextWriter("/Users/yxh/Documents/eQTL/SiPAS/ERCC/20210318/5M/" + prefix + "/" + prefix + "PR.txt");
-        RowTable<String> rt = new RowTable<>("/Users/yxh/Documents/eQTL/SiPAS/ERCC/20210318/5M/" + prefix + "/" + prefix + "Roc.txt");
-        try {
-            bw.write("Gene\tMix1_C\tMix1_precision\tMix1_recall\tMix2_C\tMix2_precision\tMix2_recall\n");
-            for (int i = 0; i < rt.getRowNumber(); i++) {
-                double[] TP = new double[sample * 2];
-                double[] FP = new double[sample * 2];
-                double[] FN = new double[sample * 2];
-                for (int j = 1; j <= 2; j++) {
-                    for (int k = 1; k <= sample; k++) {
-                        String index = j + "_" + k;
-                        String observed = rt.getCell(i, rt.getColumnIndex("log2mix" + index));
-                        String expected = rt.getCell(i, rt.getColumnIndex("predictmix" + index));
-                        double[] TPFPFN = simulationData.getPrecisionandRecall(expected, observed);
-                        int ix = (j - 1) * sample + k - 1;
-                        TP[ix] = TPFPFN[0];
-                        FP[ix] = TPFPFN[1];
-                        FN[ix] = TPFPFN[2];
-                    }
-                }
-                StringBuilder sb = new StringBuilder();
-                sb.append(rt.getCell(i, rt.getColumnIndex("Gene")) + "\t");
-                sb.append(rt.getCell(i, rt.getColumnIndex("Mix1_C")) + "\t");
-                DecimalFormat decfor = new DecimalFormat("0.00000000");
-                double precision1 = 0.00000000;
-                double recall1 = 0.00000000;
-                double precision2 = 0.00000000;
-                double recall2 = 0.00000000;
-                double TP1 = 0.00000000;
-                double TP2 = 0.00000000;
-                double FP1 = 0.00000000;
-                double FP2 = 0.00000000;
-                double FN1 = 0.00000000;
-                double FN2 = 0.00000000;
-                for (int j = 0; j < sample; j++) {
-                    TP1 += TP[j];
-                    FP1 += FP[j];
-                    FN1 += FN[j];
-                }
-                for (int j = sample; j < sample * 2; j++) {
-                    TP2 += TP[j];
-                    FP2 += FP[j];
-                    FN2 += FN[j];
-                }
-                precision1 = (double) TP1 / (TP1 + FP1);
-                recall1 = (double) TP1 / (TP1 + FN1);
-                precision2 = (double) TP2 / (TP2 + FP2);
-                recall2 = (double) TP2 / (TP2 + FN2);
-                sb.append(precision1 + "\t" + recall1 + "\t");
-                sb.append(rt.getCell(i, rt.getColumnIndex("Mix2_C")) + "\t");
-                sb.append(precision2 + "\t" + recall2);
-                bw.write(sb.toString());
-                bw.newLine();
-            }
-            bw.flush();
-            bw.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    public void pheno(String[] args) {
-        new pheno(args);
-    }
-
-    public void annotation(String[] args) {
-        new annotation(args);
-    }
-
-    public void vcf(String[] args) {
-        new vcf(args);
-    }
-
-    public void effectsize(String[] args) {
-        new effectsize(args);
-    }
-
-    public void multiTissue(String[] args) {
-        new multiTissue(args);
-    }
-
-    public void heterozygosity(String[] args) throws IOException, InterruptedException {
-        new heterozygosity(args);
-    }
-
-    public void GBSsimulation(String[] args) throws IOException, InterruptedException {
-        new GBSsimulation(args);
-    }
-
     public void getTransposonClass() {
         String gff3 = "/data1/home/xiaohan/Transposon/chr";
         String temp = null;
@@ -599,11 +625,6 @@ public class eQTL {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public void hapscanner(String[] args) throws IOException, InterruptedException {
-        new HapscannerParameters(args);
-//        new Hapscann(args);
     }
 
     public void getTransposonLength() {
@@ -831,26 +852,28 @@ public class eQTL {
         }
     }
 
+    private int[] getnumber(String gene, int snppos, GeneFeature gf) {
+        int[] result = new int[]{0, 0, 0};
+        int start = gf.getGeneStart(gf.getGeneIndex(gene));
+        int end = gf.getGeneEnd(gf.getGeneIndex(gene));
+        if (start <= snppos && snppos <= end) {
+            result[1]++;
+        } else if (gf.getGeneStrand(gf.getGeneIndex(gene)) == 1 && snppos < start) {
+            result[0]++;
+        } else if (gf.getGeneStrand(gf.getGeneIndex(gene)) == 0 && snppos > end) {
+            result[0]++;
+        } else if (gf.getGeneStrand(gf.getGeneIndex(gene)) == 1 && snppos > end) {
+            result[2]++;
+        } else if (gf.getGeneStrand(gf.getGeneIndex(gene)) == 0 && snppos < start) {
+            result[2]++;
+        }
+        return result;
+    }
 
     public void intergenicPattern() {
-//        String inputFileS="/data1/home/junxu/eQTL/FastQTL2/vst/5nominalsThred/result/nominals.txt.gz";
-//        String outputFileS="/data1/home/junxu/eQTL/FastQTL2/vst/nominals.distributation.txt";
-//        GeneFeature gf = new GeneFeature("/data1/home/junxu/wheat_v1.1_Lulab.gff3");
         int subGenome = -1;
-//        String pattern = null;
         String mode = null;
-//        pattern = "ABD";
-//        subGenome = 0;
-//        mode = pattern + "/" + subGenome;
         mode = "5M/all";
-//        String homogenefile = "/data1/home/xiaohan/rareallele/rankcorrelation/infor/TheABD.txt";
-//        String inputFileS = "/data2/xiaohan/tensorQTL/6.txt";
-//        String outputFileUp = "/data2/xiaohan/tensorQTL/summary/countSig/" + mode + ".up.distribution.txt";
-//        String outputFileDown = "/data2/xiaohan/tensorQTL/summary/countSig/" + mode + ".down.distribution.txt";
-//        String outputFileInter = "/data2/xiaohan/tensorQTL/summary/countSig/" + mode + ".inter.distribution.txt";
-//        String outputFileUpEf = "/data2/xiaohan/tensorQTL/summary/countSig/" + mode + ".up.ef.txt";
-//        String outputFileDownEf = "/data2/xiaohan/tensorQTL/summary/countSig/" + mode + ".down.ef.txt";
-//        String outputFileInterEf = "/data2/xiaohan/tensorQTL/summary/countSig/" + mode + ".inter.ef.txt";
         String homogenefile = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/data/TheABD.txt";
         String inputFileS = "/Users/yxh/Documents/eQTL/data_explain/5M/all.shuf.cis_qtl_pairs_sig.txt";
         String outputFileUp = "/Users/yxh/Documents/eQTL/data_explain/" + mode + ".up.distribution.txt";

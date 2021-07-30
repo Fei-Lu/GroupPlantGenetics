@@ -1,6 +1,6 @@
 package xiaohan.utils;
 
-import xujun.analysis.rnaseq.GeneFeature;
+import xiaohan.eQTL.GeneFeature;
 
 import java.io.*;
 import java.net.HttpURLConnection;

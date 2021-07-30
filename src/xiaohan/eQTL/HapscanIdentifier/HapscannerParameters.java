@@ -86,8 +86,8 @@ public class HapscannerParameters {
         this.parseparameters(args[0]);
         chrNumber = Integer.parseInt(args[1]);
 //        this.mkdir(args);
-        this.parameter();
-        this.taxaRefBAM();
+//        this.parameter();
+//        this.taxaRefBAM();
         this.Hapscanner();
 
         this.getsubRNAgenotypeor1();
@@ -891,6 +891,7 @@ public class HapscannerParameters {
         try {
             HashMap<String, Integer> nameIndexMap = new HashMap<>();
             LinkedHashSet<String> samples = new LinkedHashSet<>();
+            LinkedHashSet<String> DNAsamples = new LinkedHashSet<>();
             while ((temp = brinfo.readLine()) != null) {
                 if (temp.startsWith("Dxy")) {
                     temps = temp.split("\t");
@@ -899,11 +900,15 @@ public class HapscannerParameters {
                         if (temps[i].startsWith("RNA")) {
                             samples.add(temps[i]);
                         }
+                        else if(temps[i].startsWith("E")){
+                            DNAsamples.add(temps[i]);
+                        }
                     }
                 }
             }
             brinfo.close();
             String[] samplelist = samples.toArray(new String[samples.size()]);
+            String[] DNAsamplelist = DNAsamples.toArray(new String[DNAsamples.size()]);
 
             bw.write("RNA\tDNA\tIBSdistance\n");
             RowTable<String> t = new RowTable<>(infile);
@@ -926,12 +931,26 @@ public class HapscannerParameters {
             bw.flush();
             bw.close();
 
+//            bw1.write("RNA\tDNA\tIBSdistance\n");
+//            for (int i = 0; i < samplelist.length; i++) {
+//                String RNA = samplelist[i];
+//                for (int j = 0; j < samplelist.length; j++) {
+//                    String RNAtemp = samplelist[j];
+//                    String DNA = RNA.substring(3, 7);
+//                    int RNAindex = nameIndexMap.get(RNA);
+//                    int DNAindex = nameIndexMap.get(DNA) - 1;
+//                    bw1.write(RNA + "\t" + DNA + "\t");
+//                    bw1.write(t.getCell(DNAindex, RNAindex));
+//                    bw1.write("\n");
+//                }
+//            }
+
             bw1.write("RNA\tDNA\tIBSdistance\n");
             for (int i = 0; i < samplelist.length; i++) {
+                System.out.println(samplelist[i]);
                 String RNA = samplelist[i];
-                for (int j = 0; j < samplelist.length; j++) {
-                    String RNAtemp = samplelist[j];
-                    String DNA = RNA.substring(3, 7);
+                for (int j = 0; j < DNAsamplelist.length; j++) {
+                    String DNA = DNAsamplelist[j];
                     int RNAindex = nameIndexMap.get(RNA);
                     int DNAindex = nameIndexMap.get(DNA) - 1;
                     bw1.write(RNA + "\t" + DNA + "\t");
@@ -1448,7 +1467,67 @@ public class HapscannerParameters {
                     }
                 }
             }
-        } else {
+        }
+        if (plate.equals("S7grain")) {
+            for (int i = 0; i < dirs.length; i++) {
+                String name = dirs[i].toString();
+                String name1 = name.substring(name.length() - 2, name.length());
+                if (Integer.parseInt(name1) > 70) {
+                    if (!dirs[i].endsWith("DS_Store") && !dirs[i].startsWith("countTable")) {
+                        File[] fs1 = new File(BamDir, dirs[i] + "/sams").listFiles();
+                        fs1 = IOUtils.listFilesEndsWith(fs1, "_Aligned.out.sorted.bam");
+                        for (int j = 0; j < fs1.length; j++) {
+                            if(fs1[j].getName()=="E359")continue;
+                            if(fs1[j].getName().contains("E342") || fs1[j].getName().contains("E247") || fs1[j].getName().contains("E253")){
+                                if(dirs[i]=="P1")continue;
+                            }
+                            files.add(fs1[j].getAbsolutePath());
+                            System.out.println(fs1[j]);
+                        }
+                    }
+                }
+            }
+        }
+        if (plate.equals("S6grain")) {
+            for (int i = 0; i < dirs.length; i++) {
+                String name = dirs[i].toString();
+                String name1 = name.substring(name.length() - 2, name.length());
+                if (Integer.parseInt(name1) > 70) {
+                    if (!dirs[i].endsWith("DS_Store") && !dirs[i].startsWith("countTable")) {
+                        File[] fs1 = new File(BamDir, dirs[i] + "/sams").listFiles();
+                        fs1 = IOUtils.listFilesEndsWith(fs1, "_Aligned.out.sorted.bam");
+                        for (int j = 0; j < fs1.length; j++) {
+                            if(fs1[j].getName().contains("E035") || fs1[j].getName().contains("E039") || fs1[j].getName().contains("E064-2")){
+                                if(dirs[i]=="45")continue;
+                            }
+                            files.add(fs1[j].getAbsolutePath());
+                            System.out.println(fs1[j]);
+                        }
+                    }
+                }
+            }
+        }
+        if (plate.equals("S7leaf")) {
+            for (int i = 0; i < dirs.length; i++) {
+                String name = dirs[i].toString();
+                String name1 = name.substring(name.length() - 2, name.length());
+                if (Integer.parseInt(name1) > 70) {
+                    if (!dirs[i].endsWith("DS_Store") && !dirs[i].startsWith("countTable")) {
+                        File[] fs1 = new File(BamDir, dirs[i] + "/sams").listFiles();
+                        fs1 = IOUtils.listFilesEndsWith(fs1, "_Aligned.out.sorted.bam");
+                        for (int j = 0; j < fs1.length; j++) {
+                            if(fs1[j].getName().contains("E098") || fs1[j].getName().contains("E100") || fs1[j].getName().contains("E106") ||
+                                    fs1[j].getName().contains("E107") || fs1[j].getName().contains("E109") || fs1[j].getName().contains("E113") ){
+                                if(dirs[i]=="50")continue;
+                            }
+                            files.add(fs1[j].getAbsolutePath());
+                            System.out.println(fs1[j]);
+                        }
+                    }
+                }
+            }
+        }
+        else {
             for (int i = 0; i < dirs.length; i++) {
                 if (!dirs[i].endsWith("DS_Store") && !dirs[i].startsWith("countTable")) {
                     File[] fs1 = new File(BamDir, dirs[i] + "/sams").listFiles();

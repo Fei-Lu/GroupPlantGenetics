@@ -1,7 +1,7 @@
 package xiaohan.eQTL.pipline;
 
+import xiaohan.eQTL.GeneFeature;
 import pgl.infra.range.Range;
-import xiaohan.rareallele.GeneFeature;
 import xiaohan.utils.IOUtils;
 
 import java.io.BufferedReader;

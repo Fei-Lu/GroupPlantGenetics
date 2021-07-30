@@ -1,6 +1,6 @@
 package xiaohan.eQTL.pipline;
 
-import xiaohan.rareallele.GeneFeature;
+import xiaohan.eQTL.GeneFeature;
 import xiaohan.utils.IOUtils;
 
 import java.io.BufferedReader;
@@ -35,7 +35,7 @@ public class vcf {
                 } else {
                     TSS = gf.getGeneEnd(i);
                 }
-                chr = gf.getGeneChromosome(i);
+                chr = gf.getChromosomeOfGene(i);
                 start = TSS - 1;
                 geneName = gf.getGeneName(i);
                 sb.append("chr" + chr + "\t" + start + "\t" + TSS + "\t" + geneName);
@@ -64,7 +64,7 @@ public class vcf {
                 sb.setLength(0);
                 start = gf.getGeneStart(i);
                 end = gf.getGeneEnd(i);
-                chr = gf.getGeneChromosome(i);
+                chr = gf.getChromosomeOfGene(i);
                 geneName = gf.getGeneName(i);
                 sb.append("chr" + chr + "\t" + start + "\t" + end + "\t" + geneName);
                 bw.write(sb.toString().replaceAll("\\s+$", ""));

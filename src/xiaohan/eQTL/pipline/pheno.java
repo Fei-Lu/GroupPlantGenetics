@@ -1,14 +1,16 @@
 package xiaohan.eQTL.pipline;
 
+import xiaohan.eQTL.GeneFeature;
+import xiaohan.utils.IOUtils;
 import xiaohan.utils.MathUtils;
 import xiaohan.utils.RowTable;
-import xiaohan.rareallele.GeneFeature;
-import xiaohan.utils.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 public class pheno {
 
@@ -328,7 +330,7 @@ public class pheno {
                 if (Expcount > threshold) {
                     String geneName = temps[0];
                     int index = gf.getGeneIndex(geneName);
-                    int chr = gf.getGeneChromosome(index);
+                    int chr = gf.getChromosomeOfGene(index);
                     int start = -1;
                     if (gf.getGeneStrand(index) == 1) {
                         start = gf.getGeneStart(index);

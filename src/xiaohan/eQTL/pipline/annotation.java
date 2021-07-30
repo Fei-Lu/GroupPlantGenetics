@@ -2,7 +2,7 @@ package xiaohan.eQTL.pipline;
 
 import com.koloboke.collect.map.hash.HashIntIntMaps;
 import pgl.infra.range.Range;
-import xiaohan.rareallele.GeneFeature;
+import xiaohan.eQTL.GeneFeature;
 import xiaohan.utils.IOUtils;
 import xiaohan.utils.SNPmappingInGene;
 
@@ -63,7 +63,7 @@ public class annotation {
 
                 HashSet<String> geneSet = new HashSet<>();
                 for (int i = 0; i < gf.getGeneNumber(); i++) {
-                    if (gf.getGeneChromosome(i) == chr) {
+                    if (gf.getChromosomeOfGene(i) == chr) {
                         geneSet.add(gf.getGeneName(i));
                     }
                 }
@@ -73,7 +73,7 @@ public class annotation {
 
                 int[][] geneRange = new int[genelist.length][3];
                 for (int i = 0; i < genelist.length; i++) {
-                    geneRange[i][0] = gf.getGeneChromosome(gf.getGeneIndex(genelist[i]));
+                    geneRange[i][0] = gf.getChromosomeOfGene(gf.getGeneIndex(genelist[i]));
                     geneRange[i][1] = gf.getGeneStart(gf.getGeneIndex(genelist[i]));
                     geneRange[i][2] = gf.getGeneEnd(gf.getGeneIndex(genelist[i]));
                 }
@@ -209,7 +209,7 @@ public class annotation {
             GeneFeature gf = new GeneFeature(annotationfile);
             HashSet<String> geneSet = new HashSet<>();
             for (int i = 0; i < gf.getGeneNumber(); i++) {
-                if (gf.getGeneChromosome(i) == Integer.parseInt(chr)) {
+                if (gf.getChromosomeOfGene(i) == Integer.parseInt(chr)) {
                     geneSet.add(gf.getGeneName(i));
                 }
             }
@@ -219,7 +219,7 @@ public class annotation {
             int[][] geneRange = new int[genelist.length][3];
 
             for (int i = 0; i < genelist.length; i++) {
-                geneRange[i][0] = gf.getGeneChromosome(gf.getGeneIndex(genelist[i]));
+                geneRange[i][0] = gf.getChromosomeOfGene(gf.getGeneIndex(genelist[i]));
                 geneRange[i][1] = gf.getGeneStart(gf.getGeneIndex(genelist[i]));
                 geneRange[i][2] = gf.getGeneEnd(gf.getGeneIndex(genelist[i]));
             }
@@ -501,7 +501,7 @@ public class annotation {
             try {
                 HashSet<String> geneSet = new HashSet<>();
                 for (int i = 0; i < gf.getGeneNumber(); i++) {
-                    if (gf.getGeneChromosome(i) == Integer.parseInt(f)) {
+                    if (gf.getChromosomeOfGene(i) == Integer.parseInt(f)) {
                         geneSet.add(gf.getGeneName(i));
                     }
                 }
@@ -511,7 +511,7 @@ public class annotation {
                 int[][] geneRange = new int[genelist.length][3];
 
                 for (int i = 0; i < genelist.length; i++) {
-                    geneRange[i][0] = gf.getGeneChromosome(gf.getGeneIndex(genelist[i]));
+                    geneRange[i][0] = gf.getChromosomeOfGene(gf.getGeneIndex(genelist[i]));
                     geneRange[i][1] = gf.getGeneStart(gf.getGeneIndex(genelist[i]));
                     geneRange[i][2] = gf.getGeneEnd(gf.getGeneIndex(genelist[i]));
                 }
