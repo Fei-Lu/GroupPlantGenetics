@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Main-Class: xiaohan.eQTL.simulation.simulationData
+Class-Path: colt.jar guava-22.0.jar trove-3.0.3.jar RCaller-3.1-SNAPSHOT
+ -jar-with-dependencies.jar guava-22.0.jar jxl-2.6.12.jar jsoup-1.12.1.j
+ ar pdfbox-2.0.23.jar colt.jar guava-22.0.jar guava-23.0.jar icu4j-65.1.
+ jar RCaller-2.5.jar trove-3.0.3.jar jsoup-1.13.1.jar pebble-3.1.1.jar h
+ tsjdk-2.21.0.jar fastutil-8.3.0.jar commons-cli-1.4.jar commons-io-2.8.
+ 0.jar slf4j-api-1.7.26.jar smile-core-2.0.0.jar smile-data-2.0.0.jar sm
+ ile-math-2.0.0.jar smile-plot-2.0.0.jar classgraph-4.8.54.jar snappy-ja
+ va-1.1.4.jar biojava-core-4.2.0.jar smile-netlib-2.0.0.jar sqlite-jdbc-
+ 3.23.1.jar annotations-3.0.1u2.jar biojava-phylo-4.2.0.jar commons-math
+ 3-3.6.1.jar jackson-core-2.10.1.jar slf4j-simple-1.7.26.jar tablesaw-sa
+ w-0.36.0.jar biojava-genome-4.2.0.jar RoaringBitmap-0.8.11.jar tablesaw
+ -core-0.36.0.jar tablesaw-html-0.36.0.jar tablesaw-json-0.36.0.jar tabl
+ esaw-excel-0.36.0.jar itext5-itextpdf-5.5.11.jar tablesaw-jsplot-0.36.0
+ .jar biojava-alignment-4.2.0.jar jackson-databind-2.10.1.jar koloboke-a
+ pi-jdk8-1.0.0.jar log4j-over-slf4j-1.7.26.jar tablesaw-beakerx-0.36.0.j
+ ar unbescape-1.1.6.RELEASE.jar univocity-parsers-2.8.3.jar koloboke-imp
+ l-jdk8-1.0.0.jar jackson-annotations-2.10.1.jar mysql-connector-java-8.
+ 0.12.jar koloboke-impl-common-jdk8-1.0.0.jar RCaller-3.1-SNAPSHOT-jar-w
+ ith-dependencies.jar
+

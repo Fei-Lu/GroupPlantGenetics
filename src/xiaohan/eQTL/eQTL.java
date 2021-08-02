@@ -2,23 +2,13 @@ package xiaohan.eQTL;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Range;
-import com.koloboke.collect.impl.hash.Hash;
 import daxing.common.MD5;
-import daxing.common.PGF;
 import daxing.load.ancestralSite.Standardization;
-import pgl.infra.table.ColumnTable;
-import xiaohan.eQTL.GeneFeature;
-import pgl.infra.pos.ChrPos;
 import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.PStringUtils;
-import xiaohan.GBS.GBSsimulation;
-import xiaohan.GBS.heterozygosity;
-import xiaohan.eQTL.HapscanIdentifier.HapscannerParameters;
 import xiaohan.eQTL.pipline.*;
 import xiaohan.eQTL.simulation.simulationData;
-import xiaohan.rareallele.rareMutation;
 import xiaohan.utils.FastqUtils;
 import xiaohan.utils.IOUtils;
 import xiaohan.utils.SNPmappingInGene;
@@ -62,35 +52,171 @@ public class eQTL {
 
 //        this.getsubsample(args);
 //        this.getsubtable(args);
-        this.temp();
+//        this.temp();
 //        this.subquality(args);
+//        this.subFastq(args);
 //        this.cov(args);
+//        this.getdepth(args);
+//        this.get(args);
+//        this.extractQuality(args);
+        this.simulation(args);
     }
 
-    public void cov(String[] args){
+    public void subFastq(String[] args) {
+        String inDir = args[0];
+        String outDir = args[1];
+        System.out.println(inDir);
+        System.out.println(outDir);
+        String[] fs = new File(inDir).list();
+        System.out.println(fs[0]);
+        for (int i = 0; i < fs.length; i++) {
+            if (!fs[i].endsWith("DS_Store") && !fs[i].startsWith("countTable")) {
+                File[] fs1 = new File(inDir, fs[i] + "/subFastqs").listFiles();
+                fs1 = IOUtils.listFilesEndsWith(fs1, ".fq.gz");
+                try {
+                    for (int j = 0; j < fs1.length; j++) {
+                        String[] names = fs1[j].getAbsolutePath().split("/");
+                        String plate = names[names.length - 3];
+                        String name = names[names.length - 1];
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("seqtk sample -s100 " + fs1[j].getAbsolutePath() + " 5000 | gzip > ").append(new File(outDir,plate+"/"+name).getAbsolutePath());
+                        String command = sb.toString();
+                        System.out.println(command);
+                        File dir = new File(new File(inDir).getAbsolutePath());
+                        String[] cmdarry2 = {"/bin/bash", "-c", command};
+                        Process p = Runtime.getRuntime().exec(cmdarry2, null, dir);
+                        p.waitFor();
+                        continue;
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void simulation(String[] args) {
+        new simulationData(args);
+    }
+
+
+    public void extractQuality(String[] args) {
+        String inputFile = args[0];
+        String outputFile = args[1];
+        BufferedReader br1 = IOUtils.getTextGzipReader(new File(inputFile).getAbsolutePath());
+        String header = null;
+        String seq = null;
+        String temp = null;
+        String quality = null;
+        int countline = 0;
+        double[] Q = new double[150];
+        try {
+            for (int i = 0; i < 150; i++) {
+                Q[i] = 0;
+            }
+            while ((header = br1.readLine()) != null) {
+                countline++;
+                seq = br1.readLine();
+                temp = br1.readLine();
+                quality = br1.readLine();
+                for (int i = 0; i < quality.length(); i++) {
+                    Q[i] += FastqUtils.getscore(quality.substring(i, i + 1));
+                }
+            }
+            br1.close();
+            int reads = countline / 4;
+            for (int i = 0; i < Q.length; i++) {
+                Q[i] = (double) Q[i] / reads;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        BufferedWriter bw1 = IOUtils.getTextWriter(new File(outputFile).getAbsolutePath());
+        try {
+            DecimalFormat defor = new DecimalFormat("0.000");
+            for (int i = 1; i <= 150; i++) {
+                bw1.write(i + "\t" + Q[i - 1] + "\n");
+            }
+            bw1.flush();
+            bw1.close();
+        } catch (
+                Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void get(String[] args) {
+        String[] names = new String[]{"S2_leaf_9", "S2_leaf_10", "S2root_13", "S4_stem_31", "S4_leaf_34"};
+        String Dir = args[0];
+        String[] dirs = new File(Dir).list();
+        ArrayList<String> files = new ArrayList<>();
+        for (int i = 0; i < dirs.length; i++) {
+            String name = dirs[i].toString();
+            String name1 = name.substring(name.length() - 2, name.length());
+        }
+    }
+
+    public void getdepth(String[] args) {
+        String infile = args[0];
+        String outfile = args[1];
+        BufferedReader br = IOUtils.getTextReader(infile);
+        BufferedWriter bw = IOUtils.getTextWriter(outfile);
+        String temp = null;
+        String[] temps = null;
+        String[] tems = null;
+        try {
+            while ((temp = br.readLine()) != null) {
+                if (temp.startsWith("#")) continue;
+                temps = temp.split("\t");
+                int number = 0;
+                int reads = 0;
+                for (int i = 9; i < temps.length; i++) {
+                    if (!temps[i].startsWith("./.")) {
+                        number++;
+                        tems = temps[i].split(":")[1].split(",");
+                        reads += Integer.parseInt(tems[0]) + Integer.parseInt(tems[1]);
+                    }
+                }
+                if (number == 0) {
+                    bw.write(temps[0] + "\t" + temps[1] + "\t" + 0 + "\n");
+                } else {
+                    double depth = (double) reads / number;
+                    bw.write(temps[0] + "\t" + temps[1] + "\t" + depth + "\n");
+                }
+            }
+            br.close();
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void cov(String[] args) {
         new covaraties(args);
     }
 
-    public void subquality(String[] args){
+    public void subquality(String[] args) {
         String inputdir = args[0];
         File[] fs = new File(inputdir).listFiles();
-        fs = IOUtils.listFilesEndsWith(fs,"R1.fq.gz");
+        fs = IOUtils.listFilesEndsWith(fs, "R1.fq.gz");
         HashSet<String> nameSet = new HashSet<>();
         for (int i = 0; i < fs.length; i++) {
-            nameSet.add(fs[i].getName().replace("_R1.fq.gz",""));
+            nameSet.add(fs[i].getName().replace("_R1.fq.gz", ""));
         }
         String[] names = nameSet.toArray(new String[0]);
         Arrays.sort(names);
-        HashMap<String,Integer> nameMap = new HashMap<>();
+        HashMap<String, Integer> nameMap = new HashMap<>();
         for (int i = 0; i < names.length; i++) {
-            nameMap.put(names[i],i);
+            nameMap.put(names[i], i);
         }
         double[][] Q_R1 = new double[150][nameSet.size()];
         double[][] Q_R2 = new double[150][nameSet.size()];
-        nameSet.parallelStream().forEach(f ->{
+        nameSet.parallelStream().forEach(f -> {
             System.out.println(f);
-            BufferedReader br1 = IOUtils.getTextGzipReader(new File(inputdir,f+"_R1.fq.gz").getAbsolutePath());
-            BufferedReader br2 = IOUtils.getTextGzipReader(new File(inputdir,f+"_R2.fq.gz").getAbsolutePath());
+            BufferedReader br1 = IOUtils.getTextGzipReader(new File(inputdir, f + "_R1.fq.gz").getAbsolutePath());
+            BufferedReader br2 = IOUtils.getTextGzipReader(new File(inputdir, f + "_R2.fq.gz").getAbsolutePath());
             String header = null;
             String seq = null;
             String temp = null;
@@ -102,7 +228,7 @@ public class eQTL {
                     Q[i] = 0;
                 }
                 while ((header = br1.readLine()) != null) {
-                    countline ++;
+                    countline++;
 //                    if(countline % 5000 == 0){
 //                        System.out.println(countline);
 //                    }
@@ -110,14 +236,14 @@ public class eQTL {
                     temp = br1.readLine();
                     quality = br1.readLine();
                     for (int i = 0; i < quality.length(); i++) {
-                        Q[i] += FastqUtils.getscore(quality.substring(i,i+1));
+                        Q[i] += FastqUtils.getscore(quality.substring(i, i + 1));
 //                        System.out.println(Q[i]);
                     }
                 }
                 br1.close();
                 int reads = 5000;
                 for (int i = 0; i < 150; i++) {
-                    Q_R1[i][nameMap.get(f)] = (double) Q[i]/reads;
+                    Q_R1[i][nameMap.get(f)] = (double) Q[i] / reads;
                 }
                 for (int i = 0; i < 150; i++) {
                     Q[i] = 0;
@@ -127,62 +253,63 @@ public class eQTL {
                     temp = br2.readLine();
                     quality = br2.readLine();
                     for (int i = 0; i < quality.length(); i++) {
-                        Q[i] += FastqUtils.getscore(quality.substring(i,i+1));
+                        Q[i] += FastqUtils.getscore(quality.substring(i, i + 1));
                     }
                 }
                 br2.close();
                 for (int i = 0; i < 150; i++) {
-                    Q_R2[i][nameMap.get(f)] = (double) Q[i]/reads;
+                    Q_R2[i][nameMap.get(f)] = (double) Q[i] / reads;
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         });
-        BufferedWriter bw1 = IOUtils.getTextWriter(new File(inputdir,"Quality_R1.txt").getAbsolutePath());
-        BufferedWriter bw2 = IOUtils.getTextWriter(new File(inputdir,"Quality_R2.txt").getAbsolutePath());
-        try{
+        BufferedWriter bw1 = IOUtils.getTextWriter(new File(inputdir, "Quality_R1.txt").getAbsolutePath());
+        BufferedWriter bw2 = IOUtils.getTextWriter(new File(inputdir, "Quality_R2.txt").getAbsolutePath());
+        try {
             DecimalFormat defor = new DecimalFormat("0.000");
             bw1.write("Position\t");
             bw2.write("Position\t");
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < names.length; i++) {
-                sb.append(names[i]+"\t");
+                sb.append(names[i] + "\t");
             }
-            bw1.write(sb.toString().replaceAll("\\s+$","")+"\n");
-            bw2.write(sb.toString().replaceAll("\\s+$","")+"\n");
+            bw1.write(sb.toString().replaceAll("\\s+$", "") + "\n");
+            bw2.write(sb.toString().replaceAll("\\s+$", "") + "\n");
             for (int i = 1; i <= 150; i++) {
                 sb.setLength(0);
                 for (int j = 0; j < names.length; j++) {
-                    sb.append(defor.format(Q_R1[i-1][j])+"\t");
+                    sb.append(defor.format(Q_R1[i - 1][j]) + "\t");
                 }
-                bw1.write(i+"\t");
-                bw1.write(sb.toString().replaceAll("\\s+$","")+"\n");
+                bw1.write(i + "\t");
+                bw1.write(sb.toString().replaceAll("\\s+$", "") + "\n");
 
                 sb.setLength(0);
                 for (int j = 0; j < names.length; j++) {
-                    sb.append(defor.format(Q_R2[i-1][j])+"\t");
+                    sb.append(defor.format(Q_R2[i - 1][j]) + "\t");
                 }
-                bw2.write(i+"\t");
-                bw2.write(sb.toString().replaceAll("\\s+$","")+"\n");
+                bw2.write(i + "\t");
+                bw2.write(sb.toString().replaceAll("\\s+$", "") + "\n");
             }
             bw1.flush();
             bw2.flush();
             bw1.close();
             bw2.close();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void temp(){
+    public void temp() {
         String name = "S1coleoptile,S1root,S2leaf,S2root,S3leaf,S4leaf,S4Awn,S4spike,S4stem,S5leaf,S5Anthers,S6leaf,S6grain,S7leaf,S7grain,S8leaf,S8grain,S9grain";
         String[] names = name.split(",");
         System.out.println(names.length);
-        for (int i = 0; i < names.length; i++) {
+//        System.out.print("paste ");
+        for (int i = 1; i < 43; i++) {
 //            System.out.println("cat 203/"+names[i]+"_203.txt <(tail -n+2 ./204/"+names[i]+"_204.txt ) > "+names[i]+".txt");
 //            System.out.println("sort "+names[i]+".txt > "+names[i]+"_new.txt");
 //            System.out.println("wc -l "+names[i]+".txt");
-            System.out.println("cat <(cut -f1,2,5 ./203/"+names[i]+".txt) <(cut -f1,2,5 ./204/"+names[i]+".txt) > "+names[i]+"_corr.txt");
+//            System.out.println("cat <(cut -f1,2,5 ./203/"+names[i]+".txt) <(cut -f1,2,5 ./204/"+names[i]+".txt) > "+names[i]+"_corr.txt");
 //            System.out.println("nohup zcat "+names[i]+"/*R1.fq.gz | gzip > "+names[i]+"/"+names[i]+"_r1.fq.gz &");
 //            System.out.println("nohup zcat "+names[i]+"/*R2.fq.gz | gzip > "+names[i]+"/"+names[i]+"_r2.fq.gz &");
 //            System.out.println(names[i]+" <- read.table(\"/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/Quality/"+names[i]+"_Quality_R1.txt\",sep = \"\\t\",header = T)\n" +
@@ -196,47 +323,50 @@ public class eQTL {
 //            System.out.println(names[i]+"_dens <-read.table(\"/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/correction/"+names[i]+".txt\",header = F,sep = \"\\t\")");
 //            System.out.println("colnames("+names[i]+"_dens) <- c(\"RNA\",\"DNA\",\"IBSdistance\")");
 //            System.out.println(names[i]+"_dens$group <- \""+names[i]+"\"");
+//            System.out.print("<(tail -n+2 chr"+PStringUtils.getNDigitNumber(3,i)+".het.het | awk '{print $4}') ");
+            System.out.print("$" + i + "+");
         }
 
+//        System.out.print("> nsite.txt" );
     }
 
-    public void getsubtable(String[] args){
+    public void getsubtable(String[] args) {
         String indir = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/IBSdensity/";
         String outdir = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/IBSdensity/204/";
         File[] fs = new File(indir).listFiles();
-        fs = IOUtils.listFilesEndsWith(fs,".txt");
-        HashSet<String> nameSet= new HashSet<>();
+        fs = IOUtils.listFilesEndsWith(fs, ".txt");
+        HashSet<String> nameSet = new HashSet<>();
         for (int i = 0; i < fs.length; i++) {
             nameSet.add(fs[i].getName());
         }
-        nameSet.parallelStream().forEach(f ->{
-            String infile = new File(indir,f).getAbsolutePath();
-            String outfile = new File(outdir,f).getAbsolutePath();
+        nameSet.parallelStream().forEach(f -> {
+            String infile = new File(indir, f).getAbsolutePath();
+            String outfile = new File(outdir, f).getAbsolutePath();
             RowTable<String> rt = new RowTable<>(infile);
             List<String> header = rt.getHeader();
             HashSet<String> RNA = new HashSet<>();
             HashSet<String> DNA = new HashSet<>();
             for (int i = 0; i < header.size(); i++) {
-                String name= header.get(i);
-                if(name.startsWith("RNA")){
+                String name = header.get(i);
+                if (name.startsWith("RNA")) {
                     RNA.add(name);
                 }
-                if (name.startsWith("E")){
+                if (name.startsWith("E")) {
                     DNA.add(name);
                 }
             }
             for (int i = 0; i < rt.getColumnNumber(); i++) {
-                if(RNA.contains(rt.getColumnName(1))) {
+                if (RNA.contains(rt.getColumnName(1))) {
                     rt.removeColumn(1);
                 }
             }
             for (int i = 0; i < DNA.size(); i++) {
-                System.out.println(rt.getCell(RNA.size(),0));
-                if(DNA.contains(rt.getCell(RNA.size(),0))){
+                System.out.println(rt.getCell(RNA.size(), 0));
+                if (DNA.contains(rt.getCell(RNA.size(), 0))) {
                     rt.removeRow(RNA.size());
                 }
             }
-            rt.writeTextTable(outfile,IOFileFormat.Text);
+            rt.writeTextTable(outfile, IOFileFormat.Text);
         });
 
     }
@@ -251,16 +381,16 @@ public class eQTL {
                 File[] fs1 = new File(inputDir, dirs[i] + "/subFastqs").listFiles();
                 fs1 = IOUtils.listFilesEndsWith(fs1, ".fq.gz");
                 for (int j = 0; j < fs1.length; j++) {
-                    sb.append("seqtk sample -s100 "+new File(inputDir,dirs[i]+"/subFastqs/"+fs1[j].getName()).getAbsolutePath() + " 5000 | gzip > "+new File(outputDir,fs1[j].getName()).getAbsolutePath()+"\n");
+                    sb.append("seqtk sample -s100 " + new File(inputDir, dirs[i] + "/subFastqs/" + fs1[j].getName()).getAbsolutePath() + " 5000 | gzip > " + new File(outputDir, fs1[j].getName()).getAbsolutePath() + "\n");
                 }
             }
         }
-        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir,"command.txt").getAbsolutePath());
+        BufferedWriter bw = IOUtils.getTextWriter(new File(outputDir, "command.txt").getAbsolutePath());
         try {
             bw.write(sb.toString());
             bw.flush();
             bw.close();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

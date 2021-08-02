@@ -5,7 +5,7 @@
  */
 package xujun.analysis.rnaseq;
 
-import pgl.infra.anno.gene.GeneFeature;
+import xiaohan.eQTL.GeneFeature;
 import pgl.infra.table.RowTable;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

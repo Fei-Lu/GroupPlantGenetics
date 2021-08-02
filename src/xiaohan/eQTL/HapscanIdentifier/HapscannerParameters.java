@@ -85,9 +85,8 @@ public class HapscannerParameters {
 //        this.parseparameter(args);
         this.parseparameters(args[0]);
         chrNumber = Integer.parseInt(args[1]);
-//        this.mkdir(args);
-//        this.parameter();
-//        this.taxaRefBAM();
+        this.parameter();
+        this.taxaRefBAM();
         this.Hapscanner();
 
         this.getsubRNAgenotypeor1();
@@ -899,8 +898,7 @@ public class HapscannerParameters {
                         nameIndexMap.put(temps[i], i);
                         if (temps[i].startsWith("RNA")) {
                             samples.add(temps[i]);
-                        }
-                        else if(temps[i].startsWith("E")){
+                        } else if (temps[i].startsWith("E")) {
                             DNAsamples.add(temps[i]);
                         }
                     }
@@ -1472,18 +1470,16 @@ public class HapscannerParameters {
             for (int i = 0; i < dirs.length; i++) {
                 String name = dirs[i].toString();
                 String name1 = name.substring(name.length() - 2, name.length());
-                if (Integer.parseInt(name1) > 70) {
-                    if (!dirs[i].endsWith("DS_Store") && !dirs[i].startsWith("countTable")) {
-                        File[] fs1 = new File(BamDir, dirs[i] + "/sams").listFiles();
-                        fs1 = IOUtils.listFilesEndsWith(fs1, "_Aligned.out.sorted.bam");
-                        for (int j = 0; j < fs1.length; j++) {
-                            if(fs1[j].getName()=="E359")continue;
-                            if(fs1[j].getName().contains("E342") || fs1[j].getName().contains("E247") || fs1[j].getName().contains("E253")){
-                                if(dirs[i]=="P1")continue;
-                            }
-                            files.add(fs1[j].getAbsolutePath());
-                            System.out.println(fs1[j]);
+                if (!dirs[i].endsWith("DS_Store") && !dirs[i].startsWith("countTable")) {
+                    File[] fs1 = new File(BamDir, dirs[i] + "/sams").listFiles();
+                    fs1 = IOUtils.listFilesEndsWith(fs1, "_Aligned.out.sorted.bam");
+                    for (int j = 0; j < fs1.length; j++) {
+                        if (fs1[j].getName() == "E359") continue;
+                        if (fs1[j].getName().contains("E342") || fs1[j].getName().contains("E247") || fs1[j].getName().contains("E253")) {
+                            if (dirs[i] == "P1") continue;
                         }
+                        files.add(fs1[j].getAbsolutePath());
+                        System.out.println(fs1[j]);
                     }
                 }
             }
@@ -1492,17 +1488,15 @@ public class HapscannerParameters {
             for (int i = 0; i < dirs.length; i++) {
                 String name = dirs[i].toString();
                 String name1 = name.substring(name.length() - 2, name.length());
-                if (Integer.parseInt(name1) > 70) {
-                    if (!dirs[i].endsWith("DS_Store") && !dirs[i].startsWith("countTable")) {
-                        File[] fs1 = new File(BamDir, dirs[i] + "/sams").listFiles();
-                        fs1 = IOUtils.listFilesEndsWith(fs1, "_Aligned.out.sorted.bam");
-                        for (int j = 0; j < fs1.length; j++) {
-                            if(fs1[j].getName().contains("E035") || fs1[j].getName().contains("E039") || fs1[j].getName().contains("E064-2")){
-                                if(dirs[i]=="45")continue;
-                            }
-                            files.add(fs1[j].getAbsolutePath());
-                            System.out.println(fs1[j]);
+                if (!dirs[i].endsWith("DS_Store") && !dirs[i].startsWith("countTable")) {
+                    File[] fs1 = new File(BamDir, dirs[i] + "/sams").listFiles();
+                    fs1 = IOUtils.listFilesEndsWith(fs1, "_Aligned.out.sorted.bam");
+                    for (int j = 0; j < fs1.length; j++) {
+                        if (fs1[j].getName().contains("E035") || fs1[j].getName().contains("E039") || fs1[j].getName().contains("E064-2")) {
+                            if (dirs[i] == "45") continue;
                         }
+                        files.add(fs1[j].getAbsolutePath());
+                        System.out.println(fs1[j]);
                     }
                 }
             }
@@ -1516,9 +1510,9 @@ public class HapscannerParameters {
                         File[] fs1 = new File(BamDir, dirs[i] + "/sams").listFiles();
                         fs1 = IOUtils.listFilesEndsWith(fs1, "_Aligned.out.sorted.bam");
                         for (int j = 0; j < fs1.length; j++) {
-                            if(fs1[j].getName().contains("E098") || fs1[j].getName().contains("E100") || fs1[j].getName().contains("E106") ||
-                                    fs1[j].getName().contains("E107") || fs1[j].getName().contains("E109") || fs1[j].getName().contains("E113") ){
-                                if(dirs[i]=="50")continue;
+                            if (fs1[j].getName().contains("E098") || fs1[j].getName().contains("E100") || fs1[j].getName().contains("E106") ||
+                                    fs1[j].getName().contains("E107") || fs1[j].getName().contains("E109") || fs1[j].getName().contains("E113")) {
+                                if (dirs[i] == "50") continue;
                             }
                             files.add(fs1[j].getAbsolutePath());
                             System.out.println(fs1[j]);
@@ -1526,8 +1520,7 @@ public class HapscannerParameters {
                     }
                 }
             }
-        }
-        else {
+        } else {
             for (int i = 0; i < dirs.length; i++) {
                 if (!dirs[i].endsWith("DS_Store") && !dirs[i].startsWith("countTable")) {
                     File[] fs1 = new File(BamDir, dirs[i] + "/sams").listFiles();
@@ -1627,9 +1620,6 @@ public class HapscannerParameters {
         System.out.println("******* Writing parameter files takes " + (endTime - startTime) + "ms");
     }
 
-    public void mkdir(String... args) {
-        chrNumber = Integer.parseInt(args[1]);
-    }
 
 
     public void parseparameters(String infileS) {

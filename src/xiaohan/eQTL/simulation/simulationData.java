@@ -13,18 +13,18 @@ import java.util.Random;
 
 public class simulationData {
     public simulationData(String[] args) {
-        this.generateFastq(args);
-        this.generateReads(args[0]);
-        this.getTrueSet();
-        this.getReadslength(args[0]);
-        this.getalignment(args[0]);
-        this.getCount(args[0]);
-        this.getRealCount(args[0]);
+//        this.generateFastq(args);
+//        this.generateReads(args[0]);
+//        this.getTrueSet(args[0]);
+//        this.getReadslength(args[0]);
+//        this.getalignment(args[0]);
+//        this.getCount(args[0]);
+//        this.getRealCount(args[0]);
         this.getSummary(args[0]);
         this.getShuf(args[0]);
         this.getPrecisionRecall(args[0]);
         this.getPrecisionPlot(args[0]);
-        this.getPrecisionandRecall(args[0],args[1]);
+//        this.getPrecisionandRecall(args[0],args[1]);
     }
 
     public static double[] getPrecisionandRecall(String tru, String obs) {
@@ -118,11 +118,11 @@ public class simulationData {
         for (int i = 50; i < 151; i++) {
             String command = null;
             StringBuilder sb4 = new StringBuilder();
-            sb4.append("cp SE/SE3724-" + i + "_Count.txt SE/SE3724-" + i + "_forcalu.txt\n");
-            sb4.append("sed -i -e '/__/d' SE/SE3724-" + i + "_forcalu.txt\n");
-            sb4.append("cut -f 2 SE/SE3724-" + i + "_forcalu.txt > SE/SE3724-" + i + "_forcalu_2.txt\n");
-            sb4.append("paste TrueSet.txt SE/SE3724-" + i + "_forcalu_2.txt > SE/SE3724-" + i + ".simu\n");
-            sb4.append("cat SE/SE3724-" + i + ".simu | awk -F '\\t' '$2!=0||$3!=0{print $0}' > SE/SE3724-" + i + ".s\n");
+            sb4.append("cp ./SE/SE3724-" + i + "_Count.txt ./SE/SE3724-" + i + "_forcalu.txt\n");
+            sb4.append("sed -i -e '/__/d' ./SE/SE3724-" + i + "_forcalu.txt\n");
+            sb4.append("cut -f 2 ./SE/SE3724-" + i + "_forcalu.txt > ./SE/SE3724-" + i + "_forcalu_2.txt\n");
+            sb4.append("paste /data1/home/xiaohan/SiPASsimu/20210802simulation/TrueSet.txt ./SE/SE3724-" + i + "_forcalu_2.txt > ./SE/SE3724-" + i + ".simu\n");
+            sb4.append("cat ./SE/SE3724-" + i + ".simu | awk -F '\\t' '$2!=0||$3!=0{print $0}' > ./SE/SE3724-" + i + ".s\n");
             command = sb4.toString();
             System.out.println(command);
             try {
@@ -138,11 +138,11 @@ public class simulationData {
         for (int i = 50; i < 151; i++) {
             String command = null;
             StringBuilder sb4 = new StringBuilder();
-            sb4.append("cp PE/SE3724-" + i + "_Count.txt PE/SE3724-" + i + "_forcalu.txt\n");
-            sb4.append("sed -i -e '/__/d' PE/SE3724-" + i + "_forcalu.txt\n");
-            sb4.append("cut -f 2 PE/SE3724-" + i + "_forcalu.txt > PE/SE3724-" + i + "_forcalu_2.txt\n");
-            sb4.append("paste TrueSet.txt PE/SE3724-" + i + "_forcalu_2.txt > PE/SE3724-" + i + ".simu\n");
-            sb4.append("cat PE/SE3724-" + i + ".simu | awk -F '\\t' '$2!=0||$3!=0{print $0}' > PE/SE3724-" + i + ".s\n");
+            sb4.append("cp ./PE/SE3724-" + i + "_Count.txt ./PE/SE3724-" + i + "_forcalu.txt\n");
+            sb4.append("sed -i -e '/__/d' ./PE/SE3724-" + i + "_forcalu.txt\n");
+            sb4.append("cut -f 2 ./PE/SE3724-" + i + "_forcalu.txt > ./PE/SE3724-" + i + "_forcalu_2.txt\n");
+            sb4.append("paste /data1/home/xiaohan/SiPASsimu/20210802simulation/TrueSet.txt ./PE/SE3724-" + i + "_forcalu_2.txt > ./PE/SE3724-" + i + ".simu\n");
+            sb4.append("cat ./PE/SE3724-" + i + ".simu | awk -F '\\t' '$2!=0||$3!=0{print $0}' > ./PE/SE3724-" + i + ".s\n");
             command = sb4.toString();
             System.out.println(command);
             try {
@@ -379,7 +379,7 @@ public class simulationData {
     public void getReadslength(String arg) {
         for (int i = 50; i < 150; i++) {
             StringBuilder sb = new StringBuilder();
-            sb.append("zcat SE3724-150_R2.fq.gz | cut -c1-" + i + " > SE3724-" + i + "_R2.fq && bgzip SE3724-" + i + "_R2.fq");
+            sb.append("zcat ./subFastqs/SE3724-150_R2.fq.gz | cut -c1-" + i + " > ./subFastqs/SE3724-" + i + "_R2.fq && bgzip ./subFastqs/SE3724-" + i + "_R2.fq");
             String command = sb.toString();
             System.out.println(command);
             try {
@@ -394,7 +394,7 @@ public class simulationData {
         System.out.println("Finished readslength");
         for (int i = 50; i < 150; i++) {
             StringBuilder sb = new StringBuilder();
-            sb.append("zcat SE3724-150_R1.fq.gz | cut -c1-" + i + " > SE3724-" + i + "_R1.fq && bgzip SE3724-" + i + "_R1.fq");
+            sb.append("zcat ./subFastqs/SE3724-150_R1.fq.gz | cut -c1-" + i + " > ./subFastqs/SE3724-" + i + "_R1.fq && bgzip ./subFastqs/SE3724-" + i + "_R1.fq");
             String command = sb.toString();
             System.out.println(command);
             try {
@@ -409,10 +409,10 @@ public class simulationData {
         System.out.println("Finished readslength");
     }
 
-    public void getTrueSet() {
-        String infile = "/Users/yxh/Documents/eQTL/SiPAS/simu/0219/gene.txt";
-        String infile1 = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/SE3724-150_Count.txt";
-        String outfile = "/Users/yxh/Documents/eQTL/SiPAS/simu/0219/JunTrue.txt";
+    public void getTrueSet(String args) {
+        String infile = new File(args,"SE3724-98_Count.txt").getAbsolutePath();
+        String infile1 = new File(args,"/subFastqs/SE3724-150_R1.fq.gz").getAbsolutePath();
+        String outfile =  new File(args,"TrueSet.txt").getAbsolutePath();
         BufferedReader br = IOUtils.getTextReader(infile);
         BufferedWriter bw = IOUtils.getTextWriter(outfile);
         String temp = null;
@@ -422,23 +422,29 @@ public class simulationData {
             HashMap<String, Integer> geneNumbermap = new HashMap<>();
             while ((temp = br.readLine()) != null) {
                 temps = temp.split("\t");
-                String geneName = temps[1];
+                String geneName = temps[0];
                 geneSet.add(geneName);
-                geneNumbermap.put(temps[1], Integer.parseInt(temps[0]));
             }
             br.close();
             String[] genelist = geneSet.toArray(new String[geneSet.size()]);
-            int[] number = new int[genelist.length];
-            BufferedReader br2 = IOUtils.getTextReader(infile1);
+            Arrays.sort(genelist);
+            int[] Number = new int[genelist.length];
+            for (int i = 0; i < genelist.length; i++) {
+                geneNumbermap.put(genelist[i],i);
+                Number[i] = 0;
+            }
+            BufferedReader br2 = IOUtils.getTextGzipReader(infile1);
             while ((temp = br2.readLine()) != null) {
-                String geneName = temp.split("\t")[0];
-                if (geneNumbermap.get(geneName) == null) {
-                    bw.write(geneName + "\t0\n");
-                } else {
-                    bw.write(geneName + "\t" + geneNumbermap.get(geneName) + "\n");
-                }
+                String geneName = temp.split("@")[1];
+                br2.readLine();
+                br2.readLine();
+                br2.readLine();
+                Number[geneNumbermap.get(geneName)]++;
             }
             br2.close();
+            for (int i = 0; i < genelist.length; i++) {
+                bw.write(genelist[i]+"\t"+Number[i]+"\n");
+            }
             bw.flush();
             bw.close();
         } catch (Exception e) {
@@ -447,10 +453,11 @@ public class simulationData {
     }
 
     public void generateReads(String arg) {
+//        arg = "/Users/yxh/Documents/RareAllele/data/SiPASpipeline/refer/exons.fq";
         String infile = new File(arg, "exons.fq").getAbsolutePath();
-        String outfile1 = new File(arg, "SE3724-150_R1.fq").getAbsolutePath();
-        String outfile2 = new File(arg, "SE3724-150_R2.fq").getAbsolutePath();
-        String outfile = new File(arg, "SE3724-350.fq").getAbsolutePath();
+        String outfile1 = new File(arg, "/subFastqs/SE3724-150_R1.fq").getAbsolutePath();
+        String outfile2 = new File(arg, "/subFastqs/SE3724-150_R2.fq").getAbsolutePath();
+        String outfile = new File(arg, "/subFastqs/SE3724-350.fq").getAbsolutePath();
         BufferedReader br = IOUtils.getTextReader(infile);
         BufferedWriter bw = IOUtils.getTextWriter(outfile);
         BufferedWriter bw1 = IOUtils.getTextWriter(outfile1);
@@ -582,9 +589,9 @@ public class simulationData {
             bw2.close();
 
             StringBuilder sb = new StringBuilder();
-            sb.append("bgzip SE3724-150_R1.fq\n");
-            sb.append("bgzip SE3724-150_R2.fq\n");
-            sb.append("bgzip SE3724-350.fq\n");
+            sb.append("bgzip ./subFastqs/SE3724-150_R1.fq\n");
+            sb.append("bgzip ./subFastqs/SE3724-150_R2.fq\n");
+            sb.append("bgzip ./subFastqs/SE3724-350.fq\n");
             String command = sb.toString();
             System.out.println(command);
             try {

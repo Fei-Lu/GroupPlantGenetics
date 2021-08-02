@@ -76,6 +76,7 @@ public class MathUtils {
      * get median form an array
      * @return
      */
+
     public static double getmedian(double[] array) {
         double median = 0;
         Arrays.sort(array);
