@@ -118,4 +118,46 @@ public class GeneSiteAnnoDB {
             }
         });
     }
+
+    /**
+     * this class use to add gerp sift et al.
+     * Gerp Region	Variant_type	Alt_SIFT	Ref_SIFT	Derived_SIFT
+     * @param aoyueGeneSiteAnnoDB
+     * @param outDir
+     */
+    public static void leftJoinAoyueGeneSiteAnnoDB(String aoyueGeneSiteAnnoDB, String inputDir, String outDir,
+                                                   int start, int end){
+        List<File> aoyueFiles = IOTool.getFileListInDirEndsWith(aoyueGeneSiteAnnoDB, ".txt.gz");
+        List<File> geneSiteFiles = IOTool.getFileListInDirEndsWith(inputDir, ".txt.gz");
+        String[] outNames = aoyueFiles.stream().map(File::getName).toArray(String[]::new);
+        IntStream.range(0, aoyueFiles.size()).parallel().forEach(e->{
+            String line, lineAoyue, ID, header;
+            List<String> temp, tempAoyue;
+            StringBuilder sb = new StringBuilder();
+            try (BufferedReader brAoyue = IOTool.getReader(aoyueFiles.get(e));
+                 BufferedReader br = IOTool.getReader(geneSiteFiles.get(e));
+                 BufferedWriter bw = IOTool.getWriter(new File(outDir, outNames[e]))) {
+                brAoyue.readLine();
+                header = br.readLine();
+                bw.write(header+"\tGerp\tRegion\tVariant_type\tAlt_SIFT\tRef_SIFT\tDerived_SIFT");
+                bw.newLine();
+                while ((line= br.readLine())!=null){
+                    lineAoyue = brAoyue.readLine();
+                    temp = PStringUtils.fastSplit(line);
+                    tempAoyue = PStringUtils.fastSplit(lineAoyue);
+                    if (!temp.get(0).equals(tempAoyue.get(0))){
+                        System.out.println("not equal!");
+                        System.exit(1);
+                    }
+                    sb.setLength(0);
+                    sb.append(String.join("\t", temp)).append("\t").append(String.join("\t", tempAoyue.subList(start, end)));
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+                bw.flush();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        });
+    }
 }
