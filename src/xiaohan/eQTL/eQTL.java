@@ -63,11 +63,11 @@ public class eQTL {
 //        this.get(args);
 //        this.extractQuality(args);
 //        this.simulation(args);
-//        this.getmedianQuality();
+        this.getmedianQuality();
 //        this.merge();
 //        this.GBS();
 
-        this.test();
+//        this.test();
     }
 
     public void test(){
@@ -155,17 +155,17 @@ public class eQTL {
     }
 
     public void getmedianQuality() {
-        String inDir = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/qualityCorrection/203_Q2";
+        String inDir = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/qualityCorrection/204_Q1";
         String[] dirs = new File(inDir).list();
         DecimalFormat dec = new DecimalFormat("0.000");
         for (int m = 0; m < dirs.length; m++) {
             System.out.println(dirs[m]);
-            if (dirs[m].contains("S4leaf")) {
+            if (dirs[m].contains("S") && !dirs[m].equals(".DS_Store")) {
                 HashMap<String, String> nameQMap = new HashMap<>();
                 File[] fs = new File(inDir, dirs[m]).listFiles();
                 fs = IOUtils.listFilesEndsWith(fs, ".txt");
                 try {
-                    BufferedWriter bw = IOUtils.getTextWriter(new File(inDir, dirs[m] + "_Q.txt").getAbsolutePath());
+                    BufferedWriter bw = IOUtils.getTextWriter(new File(inDir, "mean/"+dirs[m] + "_Q.txt").getAbsolutePath());
                     for (int i = 0; i < fs.length; i++) {
                         System.out.println(fs[i].getName());
                         String plate = fs[i].getName().split("_")[0];
@@ -174,7 +174,11 @@ public class eQTL {
                         for (int j = 0; j < rt.getColumnNumber(); j++) {
                             if (rt.getColumnName(j).equals("Position")) continue;
                             double[] Quality = rt.getColumnAsDoubleArray(j);
-                            double Q = MathUtils.getmedian(Quality);
+//                            double Q = MathUtils.getmedian(Quality);
+                            double Q = MathUtils.getmean(Quality);
+                            if(Q > 50){
+                                Q = Q/4;
+                            }
                             bw.write(dirs[m] + "\t" + plate + "\t" + rt.getColumnName(j) + "\t" + dec.format(Q) + "\n");
                         }
                     }
