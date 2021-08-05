@@ -2,6 +2,7 @@ package xiaohan.eQTL;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import daxing.common.LibraryOfGRT;
 import daxing.common.MD5;
 import daxing.load.ancestralSite.Standardization;
 import pgl.infra.table.RowTable;
@@ -11,12 +12,14 @@ import xiaohan.eQTL.pipline.*;
 import xiaohan.eQTL.simulation.simulationData;
 import xiaohan.utils.FastqUtils;
 import xiaohan.utils.IOUtils;
+import xiaohan.utils.MathUtils;
 import xiaohan.utils.SNPmappingInGene;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -59,7 +62,129 @@ public class eQTL {
 //        this.getdepth(args);
 //        this.get(args);
 //        this.extractQuality(args);
-        this.simulation(args);
+//        this.simulation(args);
+//        this.getmedianQuality();
+//        this.merge();
+//        this.GBS();
+
+        this.test();
+    }
+
+    public void test(){
+        String a = "$";
+        System.out.println(FastqUtils.getscore(a));
+    }
+
+    public void GBS() {
+        long startTimePoint = System.nanoTime();
+        String barcodeFileS = "/Users/yxh/Documents/eQTL/SiPAS-tools/GBS/barcode_20210601GBS1-1.txt";
+        String libraryFastqMapFileS = "/Users/yxh/Documents/eQTL/SiPAS-tools/GBS/libraryFastqMap_1-1.txt";
+        String output = "/Users/yxh/Documents/eQTL/SiPAS-tools/GBS/output";
+        String cutter1 = "GGATCC";
+        String cutter2 = "CCGG";
+        LibraryOfGRT li = new LibraryOfGRT(barcodeFileS, libraryFastqMapFileS, cutter1, cutter2);
+        li.splitBarcode(new File(output).getAbsolutePath());
+        long endTimePoint = System.nanoTime();
+        System.out.println("Times:" + (endTimePoint - startTimePoint));
+    }
+
+    public void merge() {
+        String name = "S1coleoptile,S1root,S2leaf,S2root,S3leaf,S4leaf,S4Awn,S4spike,S4stem,S5leaf,S5Anthers,S6leaf,S6grain,S7leaf,S7grain,S8leaf,S8grain,S9grain";
+        String[] names = name.split(",");
+        for (int m = 0; m < names.length; m++) {
+            String corretion = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/qualityCorrection/correction/"+names[m]+"_correction.txt";
+            String Quality1 = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/qualityCorrection/Q1/"+names[m]+"_Q.txt.txt";
+            String Quality2 = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/qualityCorrection/Q2/"+names[m]+"_Q.txt.txt";
+            String hetero = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/qualityCorrection/heter/all/"+names[m]+"_sumall.txt";
+            String output = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/qualityCorrection/output/" + names[m] + ".txt";
+            HashMap<String, String> IBSMap = new HashMap<>();
+            HashMap<String, String> IBSsmallMap = new HashMap<>();
+            HashMap<String, String> HeteroMap = new HashMap<>();
+            HashMap<String, String> Quality1Map = new HashMap<>();
+            HashMap<String, String> Quality2Map = new HashMap<>();
+            BufferedReader brcor = IOUtils.getTextReader(corretion);
+            BufferedReader brQ1 = IOUtils.getTextReader(Quality1);
+            BufferedReader brQ2 = IOUtils.getTextReader(Quality2);
+            BufferedReader brheter = IOUtils.getTextReader(hetero);
+            BufferedWriter bw = IOUtils.getTextWriter(output);
+            HashSet<String> nameSet = new HashSet<>();
+            try {
+                String temp = null;
+                String[] temps = null;
+                while ((temp = brcor.readLine()) != null) {
+                    temps = temp.split("\t");
+//                    System.out.println(temps[0]);
+                    IBSMap.put(temps[0], temps[2]);
+                    IBSsmallMap.put(temps[0], temps[4]);
+                    nameSet.add(temps[0]);
+                }
+                brcor.close();
+                while ((temp = brheter.readLine()) != null) {
+                    temps = temp.split("\t");
+//                    System.out.println(temps[0]);
+                    HeteroMap.put(temps[0], temps[3]);
+                }
+                brheter.close();
+                while ((temp = brQ1.readLine()) != null) {
+                    temps = temp.split("\t");
+//                    System.out.println(temps[2]);
+                    Quality1Map.put(temps[2], temps[0] + "\t" + temps[1] + "\t" + temps[3]);
+                }
+                brQ1.close();
+                while ((temp = brQ2.readLine()) != null) {
+                    temps = temp.split("\t");
+                    Quality2Map.put(temps[2], temps[0] + "\t" + temps[1] + "\t" + temps[3]);
+                }
+                brQ2.close();
+                String[] namelist = nameSet.toArray(new String[0]);
+                for (int i = 0; i < namelist.length; i++) {
+                    System.out.println(namelist[i]);
+                    String name1 = namelist[i];
+                    String name2 = name1.replace("RNA", "");
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(name2 + "\t" + IBSMap.get(name1) + "\t" + IBSsmallMap.get(name1) + "\t" + Quality1Map.get(name2) + "\t" + Quality2Map.get(name2) + "\t" + HeteroMap.get(name2));
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+                bw.flush();
+                bw.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void getmedianQuality() {
+        String inDir = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/qualityCorrection/203_Q2";
+        String[] dirs = new File(inDir).list();
+        DecimalFormat dec = new DecimalFormat("0.000");
+        for (int m = 0; m < dirs.length; m++) {
+            System.out.println(dirs[m]);
+            if (dirs[m].contains("S4leaf")) {
+                HashMap<String, String> nameQMap = new HashMap<>();
+                File[] fs = new File(inDir, dirs[m]).listFiles();
+                fs = IOUtils.listFilesEndsWith(fs, ".txt");
+                try {
+                    BufferedWriter bw = IOUtils.getTextWriter(new File(inDir, dirs[m] + "_Q.txt").getAbsolutePath());
+                    for (int i = 0; i < fs.length; i++) {
+                        System.out.println(fs[i].getName());
+                        String plate = fs[i].getName().split("_")[0];
+                        String inputfile = new File(inDir, dirs[m] + "/" + fs[i].getName()).getAbsolutePath();
+                        RowTable<String> rt = new RowTable<>(inputfile);
+                        for (int j = 0; j < rt.getColumnNumber(); j++) {
+                            if (rt.getColumnName(j).equals("Position")) continue;
+                            double[] Quality = rt.getColumnAsDoubleArray(j);
+                            double Q = MathUtils.getmedian(Quality);
+                            bw.write(dirs[m] + "\t" + plate + "\t" + rt.getColumnName(j) + "\t" + dec.format(Q) + "\n");
+                        }
+                    }
+                    bw.flush();
+                    bw.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     public void subFastq(String[] args) {
@@ -71,25 +196,26 @@ public class eQTL {
         System.out.println(fs[0]);
         for (int i = 0; i < fs.length; i++) {
             if (!fs[i].endsWith("DS_Store") && !fs[i].startsWith("countTable")) {
-                File[] fs1 = new File(inDir, fs[i] + "/subFastqs").listFiles();
-                fs1 = IOUtils.listFilesEndsWith(fs1, ".fq.gz");
-                try {
+                if (new File(inDir, fs[i] + "/subFastqs").exists()) {
+                    File[] fs1 = new File(inDir, fs[i] + "/subFastqs").listFiles();
+                    fs1 = IOUtils.listFilesEndsWith(fs1, ".fq.gz");
                     for (int j = 0; j < fs1.length; j++) {
                         String[] names = fs1[j].getAbsolutePath().split("/");
                         String plate = names[names.length - 3];
                         String name = names[names.length - 1];
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("seqtk sample -s100 " + fs1[j].getAbsolutePath() + " 5000 | gzip > ").append(new File(outDir,plate+"/"+name).getAbsolutePath());
-                        String command = sb.toString();
-                        System.out.println(command);
-                        File dir = new File(new File(inDir).getAbsolutePath());
-                        String[] cmdarry2 = {"/bin/bash", "-c", command};
-                        Process p = Runtime.getRuntime().exec(cmdarry2, null, dir);
-                        p.waitFor();
-                        continue;
+                        try {
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("seqtk sample -s100 " + fs1[j].getAbsolutePath() + " 5000 | gzip > ").append(new File(outDir, plate + "/" + name).getAbsolutePath());
+                            String command = sb.toString();
+                            System.out.println(command);
+                            File dir = new File(new File(inDir).getAbsolutePath());
+                            String[] cmdarry2 = {"/bin/bash", "-c", command};
+                            Process p = Runtime.getRuntime().exec(cmdarry2, null, dir);
+                            p.waitFor();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
-                }catch (Exception e){
-                    e.printStackTrace();
                 }
             }
         }
@@ -198,105 +324,109 @@ public class eQTL {
     }
 
     public void subquality(String[] args) {
-        String inputdir = args[0];
-        File[] fs = new File(inputdir).listFiles();
-        fs = IOUtils.listFilesEndsWith(fs, "R1.fq.gz");
-        HashSet<String> nameSet = new HashSet<>();
-        for (int i = 0; i < fs.length; i++) {
-            nameSet.add(fs[i].getName().replace("_R1.fq.gz", ""));
-        }
-        String[] names = nameSet.toArray(new String[0]);
-        Arrays.sort(names);
-        HashMap<String, Integer> nameMap = new HashMap<>();
-        for (int i = 0; i < names.length; i++) {
-            nameMap.put(names[i], i);
-        }
-        double[][] Q_R1 = new double[150][nameSet.size()];
-        double[][] Q_R2 = new double[150][nameSet.size()];
-        nameSet.parallelStream().forEach(f -> {
-            System.out.println(f);
-            BufferedReader br1 = IOUtils.getTextGzipReader(new File(inputdir, f + "_R1.fq.gz").getAbsolutePath());
-            BufferedReader br2 = IOUtils.getTextGzipReader(new File(inputdir, f + "_R2.fq.gz").getAbsolutePath());
-            String header = null;
-            String seq = null;
-            String temp = null;
-            String quality = null;
-            int countline = 0;
-            double[] Q = new double[150];
-            try {
-                for (int i = 0; i < 150; i++) {
-                    Q[i] = 0;
-                }
-                while ((header = br1.readLine()) != null) {
-                    countline++;
+        String inputDir = args[0];
+        String[] dirs = new File(inputDir).list();
+        for (int m = 0; m < dirs.length; m++) {
+            String inputdir = new File(inputDir, dirs[m]).getAbsolutePath();
+            File[] fs = new File(inputdir).listFiles();
+            fs = IOUtils.listFilesEndsWith(fs, "R1.fq.gz");
+            HashSet<String> nameSet = new HashSet<>();
+            for (int i = 0; i < fs.length; i++) {
+                nameSet.add(fs[i].getName().replace("_R1.fq.gz", ""));
+            }
+            String[] names = nameSet.toArray(new String[0]);
+            Arrays.sort(names);
+            HashMap<String, Integer> nameMap = new HashMap<>();
+            for (int i = 0; i < names.length; i++) {
+                nameMap.put(names[i], i);
+            }
+            double[][] Q_R1 = new double[150][nameSet.size()];
+            double[][] Q_R2 = new double[150][nameSet.size()];
+            nameSet.parallelStream().forEach(f -> {
+                System.out.println(f);
+                BufferedReader br1 = IOUtils.getTextGzipReader(new File(inputdir, f + "_R1.fq.gz").getAbsolutePath());
+                BufferedReader br2 = IOUtils.getTextGzipReader(new File(inputdir, f + "_R2.fq.gz").getAbsolutePath());
+                String header = null;
+                String seq = null;
+                String temp = null;
+                String quality = null;
+                int countline = 0;
+                double[] Q = new double[150];
+                try {
+                    for (int i = 0; i < 150; i++) {
+                        Q[i] = 0;
+                    }
+                    while ((header = br1.readLine()) != null) {
+                        countline++;
 //                    if(countline % 5000 == 0){
 //                        System.out.println(countline);
 //                    }
-                    seq = br1.readLine();
-                    temp = br1.readLine();
-                    quality = br1.readLine();
-                    for (int i = 0; i < quality.length(); i++) {
-                        Q[i] += FastqUtils.getscore(quality.substring(i, i + 1));
+                        seq = br1.readLine();
+                        temp = br1.readLine();
+                        quality = br1.readLine();
+                        for (int i = 0; i < quality.length(); i++) {
+                            Q[i] += FastqUtils.getscore(quality.substring(i, i + 1));
 //                        System.out.println(Q[i]);
+                        }
                     }
-                }
-                br1.close();
-                int reads = 5000;
-                for (int i = 0; i < 150; i++) {
-                    Q_R1[i][nameMap.get(f)] = (double) Q[i] / reads;
-                }
-                for (int i = 0; i < 150; i++) {
-                    Q[i] = 0;
-                }
-                while ((header = br2.readLine()) != null) {
-                    seq = br2.readLine();
-                    temp = br2.readLine();
-                    quality = br2.readLine();
-                    for (int i = 0; i < quality.length(); i++) {
-                        Q[i] += FastqUtils.getscore(quality.substring(i, i + 1));
+                    br1.close();
+                    int reads = countline;
+                    for (int i = 0; i < 150; i++) {
+                        Q_R1[i][nameMap.get(f)] = (double) Q[i] / reads;
                     }
+                    for (int i = 0; i < 150; i++) {
+                        Q[i] = 0;
+                    }
+                    while ((header = br2.readLine()) != null) {
+                        seq = br2.readLine();
+                        temp = br2.readLine();
+                        quality = br2.readLine();
+                        for (int i = 0; i < quality.length(); i++) {
+                            Q[i] += FastqUtils.getscore(quality.substring(i, i + 1));
+                        }
+                    }
+                    br2.close();
+                    for (int i = 0; i < 150; i++) {
+                        Q_R2[i][nameMap.get(f)] = (double) Q[i] / reads;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                br2.close();
-                for (int i = 0; i < 150; i++) {
-                    Q_R2[i][nameMap.get(f)] = (double) Q[i] / reads;
+            });
+            BufferedWriter bw1 = IOUtils.getTextWriter(new File(inputdir, "Quality_R1.txt").getAbsolutePath());
+            BufferedWriter bw2 = IOUtils.getTextWriter(new File(inputdir, "Quality_R2.txt").getAbsolutePath());
+            try {
+                DecimalFormat defor = new DecimalFormat("0.000");
+                bw1.write("Position\t");
+                bw2.write("Position\t");
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < names.length; i++) {
+                    sb.append(names[i] + "\t");
                 }
+                bw1.write(sb.toString().replaceAll("\\s+$", "") + "\n");
+                bw2.write(sb.toString().replaceAll("\\s+$", "") + "\n");
+                for (int i = 1; i <= 150; i++) {
+                    sb.setLength(0);
+                    for (int j = 0; j < names.length; j++) {
+                        sb.append(defor.format(Q_R1[i - 1][j]) + "\t");
+                    }
+                    bw1.write(i + "\t");
+                    bw1.write(sb.toString().replaceAll("\\s+$", "") + "\n");
+
+                    sb.setLength(0);
+                    for (int j = 0; j < names.length; j++) {
+                        sb.append(defor.format(Q_R2[i - 1][j]) + "\t");
+                    }
+                    bw2.write(i + "\t");
+                    bw2.write(sb.toString().replaceAll("\\s+$", "") + "\n");
+                }
+                bw1.flush();
+                bw2.flush();
+                bw1.close();
+                bw2.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        });
-        BufferedWriter bw1 = IOUtils.getTextWriter(new File(inputdir, "Quality_R1.txt").getAbsolutePath());
-        BufferedWriter bw2 = IOUtils.getTextWriter(new File(inputdir, "Quality_R2.txt").getAbsolutePath());
-        try {
-            DecimalFormat defor = new DecimalFormat("0.000");
-            bw1.write("Position\t");
-            bw2.write("Position\t");
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < names.length; i++) {
-                sb.append(names[i] + "\t");
-            }
-            bw1.write(sb.toString().replaceAll("\\s+$", "") + "\n");
-            bw2.write(sb.toString().replaceAll("\\s+$", "") + "\n");
-            for (int i = 1; i <= 150; i++) {
-                sb.setLength(0);
-                for (int j = 0; j < names.length; j++) {
-                    sb.append(defor.format(Q_R1[i - 1][j]) + "\t");
-                }
-                bw1.write(i + "\t");
-                bw1.write(sb.toString().replaceAll("\\s+$", "") + "\n");
-
-                sb.setLength(0);
-                for (int j = 0; j < names.length; j++) {
-                    sb.append(defor.format(Q_R2[i - 1][j]) + "\t");
-                }
-                bw2.write(i + "\t");
-                bw2.write(sb.toString().replaceAll("\\s+$", "") + "\n");
-            }
-            bw1.flush();
-            bw2.flush();
-            bw1.close();
-            bw2.close();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -305,7 +435,7 @@ public class eQTL {
         String[] names = name.split(",");
         System.out.println(names.length);
 //        System.out.print("paste ");
-        for (int i = 1; i < 43; i++) {
+        for (int i = 0; i < names.length; i++) {
 //            System.out.println("cat 203/"+names[i]+"_203.txt <(tail -n+2 ./204/"+names[i]+"_204.txt ) > "+names[i]+".txt");
 //            System.out.println("sort "+names[i]+".txt > "+names[i]+"_new.txt");
 //            System.out.println("wc -l "+names[i]+".txt");
@@ -324,7 +454,8 @@ public class eQTL {
 //            System.out.println("colnames("+names[i]+"_dens) <- c(\"RNA\",\"DNA\",\"IBSdistance\")");
 //            System.out.println(names[i]+"_dens$group <- \""+names[i]+"\"");
 //            System.out.print("<(tail -n+2 chr"+PStringUtils.getNDigitNumber(3,i)+".het.het | awk '{print $4}') ");
-            System.out.print("$" + i + "+");
+//            System.out.print("$" + i + "+");
+            System.out.println(names[i]+"$sampleID <- paste0("+names[i]+"$sample,\"_\","+names[i]+"$tissue1)");
         }
 
 //        System.out.print("> nsite.txt" );
