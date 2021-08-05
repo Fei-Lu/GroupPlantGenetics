@@ -5,15 +5,13 @@ import com.google.common.collect.Multimap;
 import daxing.common.LibraryOfGRT;
 import daxing.common.MD5;
 import daxing.load.ancestralSite.Standardization;
+import pgl.infra.dna.genot.VCFUtils;
 import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.PStringUtils;
 import xiaohan.eQTL.pipline.*;
 import xiaohan.eQTL.simulation.simulationData;
-import xiaohan.utils.FastqUtils;
-import xiaohan.utils.IOUtils;
-import xiaohan.utils.MathUtils;
-import xiaohan.utils.SNPmappingInGene;
+import xiaohan.utils.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -63,16 +61,19 @@ public class eQTL {
 //        this.get(args);
 //        this.extractQuality(args);
 //        this.simulation(args);
-        this.getmedianQuality();
+//        this.getmedianQuality();
 //        this.merge();
 //        this.GBS();
 
-//        this.test();
+        this.test();
+
     }
 
     public void test(){
-        String a = "$";
-        System.out.println(FastqUtils.getscore(a));
+        String input = "/Users/yxh/Documents/eQTL/001reference/genotyping/niu/DNA_tree.vcf.gz";
+        String output = "/Users/yxh/Documents/eQTL/001reference/genotyping/niu/test.txt";
+        VCFutils vc = new VCFutils();
+        vc.getHeter(input,output);
     }
 
     public void GBS() {
