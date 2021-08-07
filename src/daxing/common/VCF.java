@@ -1253,4 +1253,29 @@ public class VCF {
             e.printStackTrace();
         }
     }
+
+    public static void filterMaf(String inputDir, String outDir, double maf){
+        List<File> files = IOTool.getFileListInDirEndsWith(inputDir, ".vcf.gz");
+        String[] outNames= files.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz",".maf0.1.vcf.gz")).toArray(String[]::new);
+        IntStream.range(0, files.size()).parallel().forEach(e -> {
+            try (BufferedReader br = IOTool.getReader(files.get(e));
+                 BufferedWriter bw =IOTool.getWriter(new File(outDir, outNames[e]))) {
+                String line;
+                while ((line=br.readLine()).startsWith("##")){
+                    bw.write(line);
+                    bw.newLine();
+                }
+                bw.write(line);
+                bw.newLine();
+                while ((line=br.readLine())!=null){
+                    if (Double.parseDouble(VCF.calculateMaf(line)) < maf) continue;
+                    bw.write(line);
+                    bw.newLine();
+                }
+                bw.flush();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        });
+    }
 }

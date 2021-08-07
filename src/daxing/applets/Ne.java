@@ -216,7 +216,7 @@ public class Ne {
         List<File> ancestralFiles=IOUtils.getVisibleFileListInDir(ancestralDir);
         String[] outNames=vcfFiles.stream().map(File::getName).map(s->s.replaceAll("\\.vcf.gz",".RefToAncestral" +
                 ".vcf")).toArray(String[]::new);
-        IntStream.range(0, ancestralFiles.size()).parallel().forEach(e->transformRefToAncestral(vcfFiles.get(e),
+        IntStream.range(0, ancestralFiles.size()).forEach(e->transformRefToAncestral(vcfFiles.get(e),
                 ancestralFiles.get(e), new File(outDir, outNames[e])));
         System.out.println(DateTime.getDateTimeOfNow());
     }

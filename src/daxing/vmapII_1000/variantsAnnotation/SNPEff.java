@@ -17,8 +17,8 @@ public class SNPEff {
 
     public static void extractEffectAndImpact(String inputDir, String outDir){
         List<File> fileList = IOTool.getVisibleFileListInDir(inputDir);
-        String[] outNames= fileList.stream().map(File::getName).map(s->s.replaceAll(".snpeffAnn.vcf.gz",".snpeffAnn" +
-                ".effect.txt.gz")).toArray(String[]::new);
+        String[] outNames= fileList.stream().map(File::getName).map(s->s.replaceAll("vcf.gz",
+                "effect.txt.gz")).toArray(String[]::new);
         IntStream.range(0, fileList.size()).parallel().forEach(e->extractEffectAndImpact(fileList.get(e), new File(outDir,
                 outNames[e])));
     }

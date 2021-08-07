@@ -48,16 +48,16 @@ public class ComplementaryGo {
 //        String taxa_InfoDB="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/001_GermplasmDetermination/TaxaInfo/GermplasmInfo.txt";
 //        String syntenicGeneFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/002_syntenicGene/syntenic_genes.txt";
 //        String outDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/004_BurdenPerGene/001_deleteriousCountPerGene";
-//        File subDir ;
-//        for (int i = 0; i < SNPAnnotation.MethodCallDeleterious.values().length; i++) {
-//            subDir= new File(outDir, PStringUtils.getNDigitNumber(3, i+1)+"_"+SNPAnnotation.MethodCallDeleterious.values()[i]);
-//            subDir.mkdir();
-//            ComplementaryGo.go2(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, syntenicGeneFile,
-//                    subDir.getAbsolutePath(),
-//                    SNPAnnotation.MethodCallDeleterious.values()[i]);
-//        }
-        ComplementaryGo.go2(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, syntenicGeneFile, outDir,
-                SNPAnnotation.MethodCallDeleterious.HIGH_VEP);
+        File subDir ;
+        for (int i = 0; i < SNPAnnotation.MethodCallDeleterious.values().length; i++) {
+            subDir= new File(outDir, PStringUtils.getNDigitNumber(3, i+1)+"_"+SNPAnnotation.MethodCallDeleterious.values()[i]);
+            subDir.mkdir();
+            ComplementaryGo.go2(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, syntenicGeneFile,
+                    subDir.getAbsolutePath(),
+                    SNPAnnotation.MethodCallDeleterious.values()[i]);
+        }
+//        ComplementaryGo.go2(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, syntenicGeneFile, outDir,
+//                SNPAnnotation.MethodCallDeleterious.HIGH_VEP);
     }
 
     public static void go(String exonSNPAnnoDir, String exonVCFDir, String taxa_InfoDBFile, String triadFile,
@@ -99,7 +99,7 @@ public class ComplementaryGo {
                 taxonOutDirMap, e + 1, exonSNPAnnoDir, methodCallDeleterious));
         merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
         mergeSubgenomeIndividualBurden(new File(outDir, subdir[1]).getAbsolutePath(), syntenicGeneFile,
-                new File(outDir, subdir[2]).getAbsolutePath());
+                new File(outDir, subdir[2]).getAbsolutePath(), methodCallDeleterious);
     }
 
     private static void go(File exonSNPAnnoFile, File exonVCFFile,
@@ -647,12 +647,13 @@ public class ComplementaryGo {
         return triadsBlockGeneListMap;
     }
 
-    public static void mergeSubgenomeIndividualBurden(String mergeDir, String syntenicGeneFile, String outDir){
+    public static void mergeSubgenomeIndividualBurden(String mergeDir, String syntenicGeneFile, String outDir,
+                                                      SNPAnnotation.MethodCallDeleterious methodCallDeleterious){
 
         mergeSubgenomeIndividualBurden(new File(mergeDir), new File(syntenicGeneFile), false, new File(outDir,
-                "uniqueGene.txt.gz"));
+                methodCallDeleterious.name()+"_uniqueGene.txt.gz"));
         mergeSubgenomeIndividualBurden(new File(mergeDir), new File(syntenicGeneFile), true, new File(outDir,
-                "syntenicGene.txt.gz"));
+                methodCallDeleterious.name()+"_syntenicGene.txt.gz"));
     }
 
     private static void mergeSubgenomeIndividualBurden(File mergeDir, File syntenicGeneFile,
