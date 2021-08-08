@@ -1,10 +1,16 @@
 package xiaohan.utils;
 
+import pgl.infra.dna.genot.GenoIOFormat;
+import pgl.infra.dna.genot.GenotypeGrid;
+import pgl.infra.dna.genot.GenotypeOperation;
+import pgl.infra.dna.genot.summa.SumTaxaDivergence;
+import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -93,4 +99,14 @@ public class VCFutils {
         }
     }
 
+    public void getIBS(String VCF1,String VCF2,String outputfile){
+        String vcf1 = new File(VCF1).getAbsolutePath();
+        String vcf2 = new File(VCF2).getAbsolutePath();
+        String out = new File(outputfile).getAbsolutePath();
+        GenotypeGrid g1 = new GenotypeGrid(vcf1, GenoIOFormat.VCF);
+        GenotypeGrid g2 = new GenotypeGrid(vcf2, GenoIOFormat.VCF);
+        GenotypeGrid g = GenotypeOperation.mergeGenotypesByTaxon(g1, g2);
+        SumTaxaDivergence std = new SumTaxaDivergence(g);
+        std.writeDxyMatrix(out, IOFileFormat.Text);
+    }
 }

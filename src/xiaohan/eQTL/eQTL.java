@@ -9,6 +9,7 @@ import pgl.infra.dna.genot.VCFUtils;
 import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.PStringUtils;
+import pgl.infra.utils.wheat.RefV1Utils;
 import xiaohan.eQTL.pipline.*;
 import xiaohan.eQTL.simulation.simulationData;
 import xiaohan.utils.*;
@@ -55,25 +56,31 @@ public class eQTL {
 //        this.getsubtable(args);
 //        this.temp();
 //        this.subquality(args);
+//        this.subquality1(args);
 //        this.subFastq(args);
+//        this.subFastq1(args);
 //        this.cov(args);
 //        this.getdepth(args);
 //        this.get(args);
 //        this.extractQuality(args);
-//        this.simulation(args);
+        this.simulation(args);
 //        this.getmedianQuality();
 //        this.merge();
 //        this.GBS();
 
-        this.test();
+//        this.test();
 
     }
 
-    public void test(){
-        String input = "/Users/yxh/Documents/eQTL/001reference/genotyping/niu/DNA_tree.vcf.gz";
-        String output = "/Users/yxh/Documents/eQTL/001reference/genotyping/niu/test.txt";
-        VCFutils vc = new VCFutils();
-        vc.getHeter(input,output);
+    public void test() {
+//        String input1 = "/Users/yxh/Documents/eQTL/005analysis/DNA_sorted.vcf";
+//        String input2 = "/Users/yxh/Documents/eQTL/005analysis/RNA_sorted.vcf";
+//        String output = "/Users/yxh/Documents/eQTL/005analysis/test.txt";
+//        VCFutils vc = new VCFutils();
+//        vc.getIBS(input1, input2, output);
+//        if(FastqFeature.)
+        System.out.println(FastqFeature.getscore("F"));
+//        System.out.println(RefV1Utils.getCentromereEnd("1"));
     }
 
     public void GBS() {
@@ -93,10 +100,10 @@ public class eQTL {
         String name = "S1coleoptile,S1root,S2leaf,S2root,S3leaf,S4leaf,S4Awn,S4spike,S4stem,S5leaf,S5Anthers,S6leaf,S6grain,S7leaf,S7grain,S8leaf,S8grain,S9grain";
         String[] names = name.split(",");
         for (int m = 0; m < names.length; m++) {
-            String corretion = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/qualityCorrection/correction/"+names[m]+"_correction.txt";
-            String Quality1 = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/qualityCorrection/Q1/"+names[m]+"_Q.txt.txt";
-            String Quality2 = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/qualityCorrection/Q2/"+names[m]+"_Q.txt.txt";
-            String hetero = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/qualityCorrection/heter/all/"+names[m]+"_sumall.txt";
+            String corretion = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/qualityCorrection/correction/" + names[m] + "_correction.txt";
+            String Quality1 = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/qualityCorrection/Q1/" + names[m] + "_Q.txt.txt";
+            String Quality2 = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/qualityCorrection/Q2/" + names[m] + "_Q.txt.txt";
+            String hetero = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/qualityCorrection/heter/all/" + names[m] + "_sumall.txt";
             String output = "/Users/yxh/Documents/eQTL/005analysis/HapscannerFilter/qualityCorrection/output/" + names[m] + ".txt";
             HashMap<String, String> IBSMap = new HashMap<>();
             HashMap<String, String> IBSsmallMap = new HashMap<>();
@@ -166,7 +173,7 @@ public class eQTL {
                 File[] fs = new File(inDir, dirs[m]).listFiles();
                 fs = IOUtils.listFilesEndsWith(fs, ".txt");
                 try {
-                    BufferedWriter bw = IOUtils.getTextWriter(new File(inDir, "mean/"+dirs[m] + "_Q.txt").getAbsolutePath());
+                    BufferedWriter bw = IOUtils.getTextWriter(new File(inDir, "mean/" + dirs[m] + "_Q.txt").getAbsolutePath());
                     for (int i = 0; i < fs.length; i++) {
                         System.out.println(fs[i].getName());
                         String plate = fs[i].getName().split("_")[0];
@@ -177,8 +184,8 @@ public class eQTL {
                             double[] Quality = rt.getColumnAsDoubleArray(j);
 //                            double Q = MathUtils.getmedian(Quality);
                             double Q = MathUtils.getmean(Quality);
-                            if(Q > 50){
-                                Q = Q/4;
+                            if (Q > 50) {
+                                Q = Q / 4;
                             }
                             bw.write(dirs[m] + "\t" + plate + "\t" + rt.getColumnName(j) + "\t" + dec.format(Q) + "\n");
                         }
@@ -188,6 +195,28 @@ public class eQTL {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            }
+        }
+    }
+
+    public void subFastq1(String[] args) {
+        String inDir = args[0];
+        String outDir = args[1];
+        File[] fs = new File(inDir).listFiles();
+        fs = pgl.infra.utils.IOUtils.listFilesEndsWith(fs, "fq.gz");
+        System.out.println(fs[0]);
+        for (int i = 0; i < fs.length; i++) {
+            try {
+                StringBuilder sb = new StringBuilder();
+                sb.append("seqtk sample -s100 " + fs[i].getAbsolutePath() + " 5000 | gzip > ").append(new File(outDir, fs[i].getName()).getAbsolutePath());
+                String command = sb.toString();
+                System.out.println(command);
+                File dir = new File(new File(inDir).getAbsolutePath());
+                String[] cmdarry2 = {"/bin/bash", "-c", command};
+                Process p = Runtime.getRuntime().exec(cmdarry2, null, dir);
+                p.waitFor();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
@@ -460,7 +489,7 @@ public class eQTL {
 //            System.out.println(names[i]+"_dens$group <- \""+names[i]+"\"");
 //            System.out.print("<(tail -n+2 chr"+PStringUtils.getNDigitNumber(3,i)+".het.het | awk '{print $4}') ");
 //            System.out.print("$" + i + "+");
-            System.out.println(names[i]+"$sampleID <- paste0("+names[i]+"$sample,\"_\","+names[i]+"$tissue1)");
+            System.out.println(names[i] + "$sampleID <- paste0(" + names[i] + "$sample,\"_\"," + names[i] + "$tissue1)");
         }
 
 //        System.out.print("> nsite.txt" );

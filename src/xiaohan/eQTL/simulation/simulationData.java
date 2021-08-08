@@ -20,8 +20,8 @@ public class simulationData {
 //        this.getalignment(args[0]);
 //        this.getCount(args[0]);
 //        this.getRealCount(args[0]);
-        this.getSummary(args[0]);
-        this.getShuf(args[0]);
+//        this.getSummary(args[0]);
+//        this.getShuf(args[0]);
         this.getPrecisionRecall(args[0]);
         this.getPrecisionPlot(args[0]);
 //        this.getPrecisionandRecall(args[0],args[1]);
@@ -61,6 +61,7 @@ public class simulationData {
 
     public void getPrecisionPlot(String infileDir) {
         String[] dir = {"SE", "PE"};
+        int size = 111;
         for (int m = 0; m < dir.length; m++) {
             String infile = new File(infileDir, dir[m] + "boot/simulation.txt").getAbsolutePath();
             String outfile = new File(infileDir, dir[m] + "boot/simulationforplot.txt").getAbsolutePath();
@@ -69,8 +70,8 @@ public class simulationData {
             String[] temps = null;
             try {
                 int countline = 0;
-                double[][] precision = new double[101][100];
-                double[][] recall = new double[101][100];
+                double[][] precision = new double[size][100];
+                double[][] recall = new double[size][100];
                 while ((temp = br.readLine()) != null) {
                     temps = temp.split("\t");
                     if (temp.startsWith("FileName")) continue;
@@ -79,13 +80,13 @@ public class simulationData {
                     countline++;
                 }
                 br.close();
-                double[] precisionsum = new double[101];
-                double[] precisionave = new double[101];
-                double[] precisionsd = new double[101];
-                double[] recallsum = new double[101];
-                double[] recallave = new double[101];
-                double[] recallsd = new double[101];
-                for (int i = 0; i < 101; i++) {
+                double[] precisionsum = new double[size];
+                double[] precisionave = new double[size];
+                double[] precisionsd = new double[size];
+                double[] recallsum = new double[size];
+                double[] recallave = new double[size];
+                double[] recallsd = new double[size];
+                for (int i = 0; i < size; i++) {
                     for (int j = 0; j < 100; j++) {
                         precisionsum[i] += precision[i][j];
                         recallsum[i] += recall[i][j];
@@ -102,8 +103,8 @@ public class simulationData {
                 BufferedWriter bw = IOUtils.getTextWriter(outfile);
                 DecimalFormat decfor = new DecimalFormat("0.00000000");
                 bw.write("size\tprecision\tsd1\trecall\tsd2\n");
-                for (int i = 0; i < 101; i++) {
-                    int index = 50 + i;
+                for (int i = 0; i < size; i++) {
+                    int index = 40 + i;
                     bw.write(index + "\t" + decfor.format(precisionave[i]) + "\t" + decfor.format(precisionsd[i]) + "\t" + decfor.format(recallave[i]) + "\t" + decfor.format(recallsd[i]) + "\n");
                 }
                 bw.flush();
@@ -115,13 +116,13 @@ public class simulationData {
     }
 
     public void getSummary(String arg) {
-        for (int i = 50; i < 151; i++) {
+        for (int i = 40; i < 151; i++) {
             String command = null;
             StringBuilder sb4 = new StringBuilder();
             sb4.append("cp ./SE/SE3724-" + i + "_Count.txt ./SE/SE3724-" + i + "_forcalu.txt\n");
             sb4.append("sed -i -e '/__/d' ./SE/SE3724-" + i + "_forcalu.txt\n");
             sb4.append("cut -f 2 ./SE/SE3724-" + i + "_forcalu.txt > ./SE/SE3724-" + i + "_forcalu_2.txt\n");
-            sb4.append("paste /data1/home/xiaohan/SiPASsimu/20210802simulation/TrueSet.txt ./SE/SE3724-" + i + "_forcalu_2.txt > ./SE/SE3724-" + i + ".simu\n");
+            sb4.append("paste ./TrueSet.txt ./SE/SE3724-" + i + "_forcalu_2.txt > ./SE/SE3724-" + i + ".simu\n");
             sb4.append("cat ./SE/SE3724-" + i + ".simu | awk -F '\\t' '$2!=0||$3!=0{print $0}' > ./SE/SE3724-" + i + ".s\n");
             command = sb4.toString();
             System.out.println(command);
@@ -135,13 +136,13 @@ public class simulationData {
             }
         }
         System.out.println("Finished summary");
-        for (int i = 50; i < 151; i++) {
+        for (int i = 40; i < 151; i++) {
             String command = null;
             StringBuilder sb4 = new StringBuilder();
             sb4.append("cp ./PE/SE3724-" + i + "_Count.txt ./PE/SE3724-" + i + "_forcalu.txt\n");
             sb4.append("sed -i -e '/__/d' ./PE/SE3724-" + i + "_forcalu.txt\n");
             sb4.append("cut -f 2 ./PE/SE3724-" + i + "_forcalu.txt > ./PE/SE3724-" + i + "_forcalu_2.txt\n");
-            sb4.append("paste /data1/home/xiaohan/SiPASsimu/20210802simulation/TrueSet.txt ./PE/SE3724-" + i + "_forcalu_2.txt > ./PE/SE3724-" + i + ".simu\n");
+            sb4.append("paste ./TrueSet.txt ./PE/SE3724-" + i + "_forcalu_2.txt > ./PE/SE3724-" + i + ".simu\n");
             sb4.append("cat ./PE/SE3724-" + i + ".simu | awk -F '\\t' '$2!=0||$3!=0{print $0}' > ./PE/SE3724-" + i + ".s\n");
             command = sb4.toString();
             System.out.println(command);
@@ -164,7 +165,7 @@ public class simulationData {
             BufferedWriter bw = IOUtils.getTextWriter(outfile);
             try {
                 bw.write("FileName\tTP\tFP\tFN\tPrecision\tRecall\n");
-                for (int i = 50; i < 151; i++) {
+                for (int i = 40; i < 151; i++) {
                     for (int j = 1; j < 101; j++) {
                         int number = i;
                         String index = String.valueOf(number);
