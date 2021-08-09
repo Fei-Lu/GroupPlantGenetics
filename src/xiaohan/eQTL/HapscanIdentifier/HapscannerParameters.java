@@ -1522,8 +1522,9 @@ public class HapscannerParameters {
             }
         } else {
             for (int i = 0; i < dirs.length; i++) {
-                if (!dirs[i].endsWith("DS_Store") && !dirs[i].startsWith("countTable")) {
-                    File[] fs1 = new File(BamDir, dirs[i] + "/sams").listFiles();
+//                if (!dirs[i].endsWith("DS_Store") && !dirs[i].startsWith("countTable")) {
+                    if (dirs[i].equals("sams")) {
+                    File[] fs1 = new File(BamDir, dirs[i]).listFiles();
                     fs1 = IOUtils.listFilesEndsWith(fs1, "_Aligned.out.sorted.bam");
                     for (int j = 0; j < fs1.length; j++) {
                         files.add(fs1[j].getAbsolutePath());

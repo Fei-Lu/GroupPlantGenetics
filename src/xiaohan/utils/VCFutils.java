@@ -24,23 +24,19 @@ import java.util.List;
  */
 public class VCFutils {
 
-    String inputfile = null;
-    String outputfile = null;
-    String temp = null;
-    List<String> temps = null;
-    String[] tems = null;
-    
-    HashMap<String, Integer> geneIndexMap = new HashMap<>();
-    int[] homosite;
-    int[] hetersite;
-    double heterozygosity;
-
     public VCFutils() {
     }
 
-    public void getHeter(String input, String output) {
-        this.inputfile = input;
-        this.outputfile = output;
+    public static void getHeter(String input, String output) {
+        String inputfile = input;
+        String outputfile = output;
+        String temp = null;
+        List<String> temps = null;
+        String[] tems = null;
+        HashMap<String, Integer> geneIndexMap = new HashMap<>();
+        int[] homosite = new int[0];
+        int[] hetersite = new int[0];
+        double heterozygosity;
         List<String> samplelist = new ArrayList<>();
         BufferedReader br ;
         if(input.endsWith("gz")){
@@ -99,7 +95,30 @@ public class VCFutils {
         }
     }
 
-    public void getIBS(String VCF1,String VCF2,String outputfile){
+    public static void getHeterozygosity(String VCF,String output){
+        String input = new File(VCF).getAbsolutePath();
+        GenotypeGrid g = new GenotypeGrid(input,GenoIOFormat.VCF);
+        BufferedWriter bw = IOUtils.getTextWriter(output);
+        String[] names = g.getTaxaNames();
+        int homosite = 0;
+        int hetersite = 0;
+        double heterozygosity = 0;
+        try {
+            for (int i = 0; i < names.length; i++) {
+                hetersite = g.getHeterozygoteNumberByTaxon(i);
+                homosite = g.getHomozygoteNumberByTaxon(i);
+                heterozygosity = (double) hetersite / (hetersite + homosite);
+                bw.write(names[i] + "\t" + heterozygosity + "\n");
+            }
+            bw.flush();
+            bw.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    public static void getIBS(String VCF1,String VCF2,String outputfile){
         String vcf1 = new File(VCF1).getAbsolutePath();
         String vcf2 = new File(VCF2).getAbsolutePath();
         String out = new File(outputfile).getAbsolutePath();
