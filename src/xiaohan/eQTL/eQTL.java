@@ -52,20 +52,20 @@ public class eQTL {
 //        this.getsequencingDepth(args);
 //        this.getvariants(args);
 
-        this.getsubtable(args);
-        this.cov(args);
+//        this.getsubtable(args);
+//        this.cov(args);
 //        this.getdepth(args);
 //        this.simulation(args);
-        this.merge();
+//        this.merge();
 
         this.gethhh(args);
 
     }
 
     public void gethhh(String[] args){
-        String input = "/data2/xiaohan/hapscanner/output/S1coleoptile/VCF/chr001.vcf";
-        String output = "/data2/xiaohan/hapscanner/output/S1coleoptile/VCF/test1.txt";
-        String output1 = "/data2/xiaohan/hapscanner/output/S1coleoptile/VCF/test2.txt";
+        String input = "/data2/xiaohan/hapscanner/output/S1coleoptile/RNA/RNA_chr001.vcf";
+        String output = "/data2/xiaohan/hapscanner/output/S1coleoptile/RNA/test1.txt";
+        String output1 = "/data2/xiaohan/hapscanner/output/S1coleoptile/RNA/test2.txt";
         VCFutils.getHeter(input,output);
         VCFutils.getHeterozygosity(input,output1);
     }

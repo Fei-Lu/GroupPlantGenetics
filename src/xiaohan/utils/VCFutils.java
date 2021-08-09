@@ -66,7 +66,7 @@ public class VCFutils {
                     if (tems[0].equals("./.")) continue;
                     if ((Integer.parseInt(tems[1].split(",")[0]) + Integer.parseInt(tems[1].split(",")[1])) < 2)
                         continue;
-                    System.out.println(tems[0]);
+//                    System.out.println(tems[0]);
                     switch (tems[0]) {
                         case "1/1":
                             homosite[i - 9] += 1;
@@ -83,9 +83,9 @@ public class VCFutils {
             br.close();
             DecimalFormat decfor = new DecimalFormat("0.0000");
             for (int i = 0; i < samplelist.size(); i++) {
-                System.out.println(hetersite[i]);
+//                System.out.println(hetersite[i]);
                 heterozygosity = (double) hetersite[i] / (hetersite[i] + homosite[i]);
-                System.out.println(heterozygosity);
+//                System.out.println(heterozygosity);
                 bw.write(samplelist.get(i) + "\t" + decfor.format(heterozygosity) + "\n");
             }
             bw.flush();
