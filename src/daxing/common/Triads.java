@@ -33,7 +33,7 @@ public class Triads {
             List<String> temp;
             br.readLine();
             String[] triadGeneNameArray;
-            int[] cdsLenABD;
+            int[] cdsLenABD, ifUnique;
             int ifSyntenic,ifExpressed;
             while ((line=br.readLine())!=null){
                 temp= PStringUtils.fastSplit(line);
@@ -45,10 +45,14 @@ public class Triads {
                 ifSyntenic=temp.get(4).equals("syntenic") ? 1 : 0;
                 ifExpressed=temp.get(5).equals("TRUE") ? 1 : 0;
                 cdsLenABD=new int[3];
+                ifUnique = new int[3];
                 cdsLenABD[0]=StringTool.isNumeric(temp.get(6)) ? Integer.parseInt(temp.get(6)) : -1;
                 cdsLenABD[1]=StringTool.isNumeric(temp.get(7)) ? Integer.parseInt(temp.get(7)) : -1;
                 cdsLenABD[2]=StringTool.isNumeric(temp.get(8)) ? Integer.parseInt(temp.get(8)) : -1;
-                triadsRecord=new TriadsRecord(triadID, triadGeneNameArray, ifSyntenic, ifExpressed, cdsLenABD);
+                ifUnique[0] =StringTool.isNumeric(temp.get(9)) ? Integer.parseInt(temp.get(9)) : -1;
+                ifUnique[1] =StringTool.isNumeric(temp.get(10)) ? Integer.parseInt(temp.get(10)) : -1;
+                ifUnique[2] =StringTool.isNumeric(temp.get(11)) ? Integer.parseInt(temp.get(11)) : -1;
+                triadsRecord=new TriadsRecord(triadID, triadGeneNameArray, ifSyntenic, ifExpressed, cdsLenABD, ifUnique);
                 this.triadsRecordList.add(triadsRecord);
             }
         } catch (IOException e) {
@@ -86,13 +90,16 @@ public class Triads {
         int ifSyntenic; //0 is non-syntenic and 1 is syntenic
         int ifExpressed; // 0 is false and 1 is true
         int[] cdsLen; //-1: NA
+        int[] ifUnique;
 
-        TriadsRecord(String triadID, String[] triadGeneNameArray, int ifSyntenic, int ifExpressed, int[] cdsLen){
+        TriadsRecord(String triadID, String[] triadGeneNameArray, int ifSyntenic, int ifExpressed, int[] cdsLen,
+                     int[] ifUnique){
             this.triadID=triadID;
             this.triadGeneNameArray=triadGeneNameArray;
             this.ifSyntenic=ifSyntenic;
             this.ifExpressed=ifExpressed;
             this.cdsLen=cdsLen;
+            this.ifUnique=ifUnique;
         }
 
         public String getTriadID() {
@@ -146,17 +153,19 @@ public class Triads {
 
         String[] geneNameArray=new String[WheatLineage.values().length];
         int[] cdsLen={-1,-1,-1};
+        int[] ifUnique={-1,-1,-1};
         for (int i = 0; i < geneNameArray.length; i++) {
             if(Triads.getSubgenome(geneName).getIndex()!=i) continue;
             geneNameArray[i]=geneName;
         }
         this.setSortTypeBySubGeneName(Triads.getSubgenome(geneName));
-        return getTriadsRecordIndex(new TriadsRecord("", geneNameArray, Integer.MIN_VALUE, Integer.MIN_VALUE, cdsLen));
+        return getTriadsRecordIndex(new TriadsRecord("", geneNameArray, Integer.MIN_VALUE, Integer.MIN_VALUE, cdsLen,
+         ifUnique));
     }
 
     public int getTriadsRecordIndexByTriadsID(String triadsID){
         this.setSortTypeByTriadsID();
-        return getTriadsRecordIndex(new TriadsRecord(triadsID, null, Integer.MIN_VALUE, Integer.MIN_VALUE,null));
+        return getTriadsRecordIndex(new TriadsRecord(triadsID, null, Integer.MIN_VALUE, Integer.MIN_VALUE,null, null));
     }
 
     public static WheatLineage getSubgenome(String geneName){

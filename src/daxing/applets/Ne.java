@@ -44,10 +44,10 @@ public class Ne {
                                               Group group, SubgenomeCombination subgenomeCombination,
                                               int pseudoDiploidNum){
         System.out.println(DateTime.getDateTimeOfNow());
-        List<File> files = IOUtils.getFileListInDirEndsWith(vmap2InputDir, "gz");
+        List<File> files = IOUtils.getFileListInDirEndsWith(vmap2InputDir, ".vcf");
         List<File> subgenomeFiles=getFiles(files, subgenomeCombination);
         String[] subgenomeOutFileName= subgenomeFiles.stream().map(File::getName).
-                map(s -> s.replaceAll(".vcf.gz", ".PseudoDiploid.vcf.gz")).toArray(String[]::new);
+                map(s -> s.replaceAll(".vcf", ".PseudoDiploid.vcf.gz")).toArray(String[]::new);
         Map<String,String> taxaGroupSubgenomeMap=getTaxaGroupSubgenomeMap(taxaInfo_depthFile, group, subgenomeCombination);
         IntStream.range(0, subgenomeFiles.size()).parallel().forEach(e->syntheticPseudoDiploid(group, pseudoDiploidNum,
                 subgenomeFiles.get(e),taxaGroupSubgenomeMap, new File(outDir, subgenomeOutFileName[e])));
@@ -55,6 +55,14 @@ public class Ne {
         System.out.println(DateTime.getDateTimeOfNow());
     }
 
+    /**
+     * 确保伪二倍体每个site都有alt allele, 并且具有0|1 or 1|0的杂合位点
+     * @param group
+     * @param pseudoDiploidNumInPop
+     * @param vmap2File
+     * @param taxaGroupMap
+     * @param outFile
+     */
     private static void syntheticPseudoDiploid(Group group, int pseudoDiploidNumInPop, File vmap2File,
                                                Map<String, String> taxaGroupMap, File outFile){
         Set<String> groupSet=getValueSet(taxaGroupMap);
@@ -110,7 +118,8 @@ public class Ne {
                 sb.append(String.join("\t", temp.subList(0,9))).append("\t");
                 for (List<int[]> indexList : indexListArray){
                     for (int[] combination: indexList){
-                        if (temp.get(combination[0]).startsWith("./.") || temp.get(combination[1]).startsWith("0/1")){
+                        if (temp.get(combination[0]).startsWith("./.") || temp.get(combination[0]).startsWith("0/1") ||
+                            temp.get(combination[1]).startsWith("./.") || temp.get(combination[1]).startsWith("0/1")){
                             sb.append(".|.").append("\t");
                         }else {
                             sb.append(temp.get(combination[0]).substring(0,1)).append("|");
@@ -119,6 +128,8 @@ public class Ne {
                     }
                 }
                 sb.deleteCharAt(sb.length()-1);
+                if (!haveAltAllele(sb.toString())) continue;
+                if (!haveHeteroSite(sb.toString())) continue;
                 bw.write(sb.toString());
                 bw.newLine();
             }
@@ -127,6 +138,23 @@ public class Ne {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static boolean haveAltAllele(String vcfLine){
+        List<String> temp = PStringUtils.fastSplit(vcfLine);
+        for (int i = 9; i < temp.size(); i++) {
+            if (temp.get(i).startsWith("0|1") || temp.get(i).startsWith("1|0") || temp.get(i).startsWith("1|1")) return true;
+        }
+        return false;
+    }
+
+    private static boolean haveHeteroSite(String vcfLine){
+        List<String> temp = PStringUtils.fastSplit(vcfLine);
+        for (int i = 9; i < temp.size(); i++) {
+            if (temp.get(i).startsWith("0|1")) return true;
+            if (temp.get(i).startsWith("1|0")) return true;
+        }
+        return false;
     }
 
     private static Map<String, String> getTaxaGroupSubgenomeMap(String taxaInfo_depthFile, Group group,
@@ -141,6 +169,9 @@ public class Ne {
             case Subspecies:
                 taxaGroupMap=RowTableTool.getMap(taxaInfo_depthFile,0,3);
                 taxaGroupMap.remove("NA");
+                break;
+            case Ploidy:
+                taxaGroupMap= RowTableTool.getMap(taxaInfo_depthFile, 0, 1);
                 break;
         }
         for (Map.Entry<String, String> entry : taxaGroupMap.entrySet()){
@@ -215,12 +246,19 @@ public class Ne {
         List<File> vcfFiles=IOUtils.getVisibleFileListInDir(vcfDir);
         List<File> ancestralFiles=IOUtils.getVisibleFileListInDir(ancestralDir);
         String[] outNames=vcfFiles.stream().map(File::getName).map(s->s.replaceAll("\\.vcf.gz",".RefToAncestral" +
-                ".vcf")).toArray(String[]::new);
+                ".vcf.gz")).toArray(String[]::new);
         IntStream.range(0, ancestralFiles.size()).forEach(e->transformRefToAncestral(vcfFiles.get(e),
                 ancestralFiles.get(e), new File(outDir, outNames[e])));
         System.out.println(DateTime.getDateTimeOfNow());
     }
 
+    /**
+     * 将具有ancestral 状态的sites 的ref allele替换为ancestral allele,
+     * ancestral状态未知的sites保持原样
+     * @param vcfFile
+     * @param ancestralFile
+     * @param outFile
+     */
     private static void transformRefToAncestral(File vcfFile, File ancestralFile, File outFile){
         Table<Integer, Integer, String> ancestralTable=getAncestral(ancestralFile.getAbsolutePath());
         try (BufferedReader br = IOTool.getReader(vcfFile);
@@ -247,7 +285,11 @@ public class Ne {
                 refAllele=temp.get(3);
                 altAllele=temp.get(4);
                 ancestralAllele=ancestralTable.get(chr, pos);
-                if (!ancestralTable.contains(chr, pos)) continue;
+                if (!ancestralTable.contains(chr, pos)){
+                    bw.write(line);
+                    bw.newLine();
+                    continue;
+                }
                 ancestralCount++;
                 if (refAllele.equals(ancestralAllele)){
                     count++;
@@ -277,6 +319,9 @@ public class Ne {
                     }
                     sb.deleteCharAt(sb.length()-1);
                     bw.write(sb.toString());
+                    bw.newLine();
+                }else {
+                    bw.write(line);
                     bw.newLine();
                 }
             }

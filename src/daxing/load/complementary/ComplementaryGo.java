@@ -25,18 +25,20 @@ import java.util.stream.IntStream;
 
 public class ComplementaryGo {
 
-    public static void start(){
+    public static void tetestart(){
         String exonSNPAnnoDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/003_Gene_Variant_genotype/002_variantsAnnotation/004_GeneSiteAnno/001_byChrID";
 //        String exonSNPAnnoDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/002_exon/002_exonVCFAnno/003_exonAnnotationByDerivedSiftTriadsGene/001_exonSNP_anno_triadsGene";
         String exonVCFDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/003_Gene_Variant_genotype/001_longestTranscriptVCF";
         String taxa_InfoDB="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/001_GermplasmDetermination/TaxaInfo/GermplasmInfo.txt";
         String triadFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/triadGenes1.1.txt";
         String pgfFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/wheat_v1.1_Lulab.pgf";
+        String nonoverlapGeneFile="/Users/xudaxing/Desktop/test/003_parameterFile/wheat_v1.1_nonoverlap.txt";
 //        String outDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftLoadComplementary";
         String outDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/004_BurdenPerGene/003_GERP";
         int blockGeneNum=20;
         SNPAnnotation.MethodCallDeleterious methodCallDeleterious = SNPAnnotation.MethodCallDeleterious.GERP;
-        go(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, triadFile, blockGeneNum, pgfFile, outDir,methodCallDeleterious);
+        go(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, triadFile, nonoverlapGeneFile, blockGeneNum, pgfFile, outDir,
+                methodCallDeleterious);
     }
 
     /**
@@ -61,6 +63,7 @@ public class ComplementaryGo {
     }
 
     public static void go(String exonSNPAnnoDir, String exonVCFDir, String taxa_InfoDBFile, String triadFile,
+                          String nonoverlapFile,
                           int blockGeneNum, String pgfFile, String outDir,
                           SNPAnnotation.MethodCallDeleterious methodCallDeleterious){
         System.out.println(DateTime.getDateTimeOfNow());
@@ -75,13 +78,13 @@ public class ComplementaryGo {
         IntStream.range(0, exonVCFFiles.size()).forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
                 taxonOutDirMap, e+1, exonSNPAnnoDir, methodCallDeleterious));
         merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
-//        syntheticPseudohexaploidHexaploid(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
-//                new File(outDir, subdir[2]).getAbsolutePath());
-//        calculateLoadInfo(triadFile, pgfFile, blockGeneNum, new File(outDir, subdir[2]).getAbsoluteFile(), new File(outDir,
-//                subdir[3]));
-//        mergeTriadsBlockBySubspecies(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
-////        mergeTriadsBlockWithEightModel(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
-//        mergeAllIndividualTriadsBlock(new File(outDir, subdir[3]), pgfFile, new File(outDir, subdir[4]));
+        syntheticPseudohexaploidHexaploid(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
+                new File(outDir, subdir[2]).getAbsolutePath());
+        calculateLoadInfo(triadFile, pgfFile, nonoverlapFile, blockGeneNum, new File(outDir, subdir[2]).getAbsoluteFile(),
+                new File(outDir, subdir[3]));
+        mergeTriadsBlockBySubspecies(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
+//        mergeTriadsBlockWithEightModel(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
+        mergeAllIndividualTriadsBlock(new File(outDir, subdir[3]), pgfFile, new File(outDir, subdir[4]));
     }
 
     public static void go2(String exonSNPAnnoDir, String exonVCFDir, String taxa_InfoDBFile, String syntenicGeneFile,
@@ -205,10 +208,11 @@ public class ComplementaryGo {
 
     public static void syntheticPseudohexaploidHexaploid(String inputDir, String vmapIIGroupFile, String outDir){
         List<File> files=IOUtils.getVisibleFileListInDir(inputDir);
-        Map<String, String> taxonGroupMap=RowTableTool.getMap(vmapIIGroupFile,0,15);
+        Map<String, String> taxonGroupMap=RowTableTool.getMap(vmapIIGroupFile,0,10);
         Map<String, List<File>> groupFileMap= files.stream().collect(Collectors.groupingBy(f->taxonGroupMap.get(PStringUtils.fastSplit(f.getName(), ".").get(0))));
-        groupFileMap.remove("OtherHexaploid");
-        groupFileMap.remove("OtherTetraploid");
+        groupFileMap.remove("OtherHexaploids");
+        groupFileMap.remove("OtherTetraploids");
+        groupFileMap.remove("Synthetic_hexaploid");
         String[] subdirs={"001_pseudohexaploid","002_hexaploid"};
         File[] subdirFiles=new File[subdirs.length];
         for (int i = 0; i < subdirs.length; i++) {
@@ -230,12 +234,12 @@ public class ComplementaryGo {
                 key = s;
                 valuesFile = groupFileMap.get(key);
                 if (key.equals("Landrace") || key.equals("Cultivar")) {
-                    p2 = P2.valueOf(key);
+                    p2 = P2.valueOf(key.toUpperCase());
                     for (File file : valuesFile) {
                         Files.copy(file, new File(subdirFiles[1], "hexaploid." + p2.getAbbreviation() + "." + file.getName()));
                     }
                 } else {
-                    p3 = P3.valueOf(PStringUtils.fastSplit(key, ".").get(0));
+                    p3 = P3.valueOf(PStringUtils.fastSplit(key, ".").get(0).toUpperCase());
                     p3Files[p3.getIndex()].addAll(valuesFile);
                 }
             }
@@ -306,10 +310,10 @@ public class ComplementaryGo {
         }
     }
 
-    public static void calculateLoadInfo(String triadsGeneFile, String pgfFile, int blockGeneNum,
+    public static void calculateLoadInfo(String triadsGeneFile, String pgfFile, String nonoverlapFile, int blockGeneNum,
                                          File individualLoadInfoFilesDir,
                                          File outDir){
-        TriadsBlockUtils.writeTriadsBlock(triadsGeneFile, pgfFile, blockGeneNum,
+        TriadsBlockUtils.writeTriadsBlock(triadsGeneFile, pgfFile, nonoverlapFile, blockGeneNum,
                 new File(outDir, "triadsBlock.txt.gz").getAbsolutePath());
         TriadsBlock[] triadsBlockArray=
                 TriadsBlockUtils.readTriadBlock(new File(outDir, "triadsBlock.txt.gz").getAbsolutePath());
@@ -346,7 +350,7 @@ public class ComplementaryGo {
             List<String>[] blockGeneName;
             TIntArrayList[] abdIndexArray;
             int index;
-            bw.write("TriadsBlock\tBlockGeneNum\tGenotypedGeneNum\t"+taxonName+"\tSlightlyModel\tStronglyModel");
+            bw.write("TriadsBlock\tBlockGeneNum\tGenotypedGeneNum\t"+taxonName);
             bw.newLine();
             IndividualTriadsBlockLoad individualTriadsBlockLoad;
             for (TriadsBlock triadsBlock : triadsBlockArray) {

@@ -1,31 +1,89 @@
 package daxing;
 
+import daxing.common.ChrRange;
 import daxing.common.IOTool;
-import daxing.common.VCF;
-import daxing.load.ancestralSite.ChrSNPAnnoDB;
+import daxing.load.ancestralSite.SNPAnnotation;
+import daxing.load.complementary.ComplementaryGo;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.doubles.DoubleList;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.IntStream;
 
 public class Start {
 
     public static void main(String[] args) {
-//        String vcfInputDir=args[0];
-//        String pgfFile=args[1];
-//        String nonOverlapGeneFile=args[2];
-//        String ancestralDir=args[3];
-//        String outDir=args[4];
-//        GeneSiteAnnoDB.extractGeneSiteInfoForAnnoDB(vcfInputDir, pgfFile, nonOverlapGeneFile, ancestralDir, outDir);
-        ChrSNPAnnoDB.splitSNPAnnoDB("/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/003_Gene_Variant_genotype/002_variantsAnnotation/004_GeneSiteAnno/geneSiteAnno.txt.gz",
-                "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/005_vmap2_1000/003_Gene_Variant_genotype/002_variantsAnnotation/004_GeneSiteAnno/004_byChrID_parsimony_leftJoinAoyue_vepSnpeff");
+
+//        IOTool.viewHeader("/Users/xudaxing/Desktop/test/003_parameterFile/017_WheatVMap2_GermplasmInfo.txt");
+
+        String exonSNPAnnoDir=args[0];
+        String exonVCFDir=args[1];
+        String taxa_InfoDBFile=args[2];
+        String triadFile=args[3];
+        String nonoverlapGeneFile=args[4];
+        int blockGeneNum=Integer.parseInt(args[5]);
+        String pgfFile=args[6];
+        String outDir=args[7];
+        SNPAnnotation.MethodCallDeleterious methodCallDeleterious= SNPAnnotation.MethodCallDeleterious.HIGH_VEP;
+        ComplementaryGo.go(exonSNPAnnoDir,exonVCFDir, taxa_InfoDBFile, triadFile, nonoverlapGeneFile, blockGeneNum, pgfFile, outDir,
+                methodCallDeleterious);
+    }
+
+    public static void recombination(String inputFile1, String inputFile2, String outFile){
+        try (BufferedReader br1 = IOTool.getReader(inputFile1);
+             BufferedReader br2 = IOTool.getReader(inputFile2);
+             BufferedWriter bw = IOTool.getWriter(outFile)) {
+            bw.write("Chromosome\tPosition(bp)\tRate(cM/Mb)\tMap(cM)");
+            bw.newLine();
+            String line1, line2;
+            List<String> temp1, temp2;
+            br1.readLine();
+            br2.readLine();
+            String refChr;
+            int refPos, start, end;
+            int chrID, pos;
+            double geneticsPos, recombinationRate;
+            List<ChrRange> chrRangeList = new ArrayList<>();
+            DoubleList recombinationRateList = new DoubleArrayList();
+            ChrRange chrRange;
+            StringBuilder sb = new StringBuilder();
+            while ((line2= br2.readLine())!=null){
+                temp2 = PStringUtils.fastSplit(line2);
+                refChr = temp2.get(0).substring(3,5);
+                start = Integer.parseInt(temp2.get(1));
+                end = Integer.parseInt(temp2.get(2));
+                recombinationRate = Double.parseDouble(temp2.get(4));
+                chrRange = new ChrRange(refChr, start, end+1);
+                chrRangeList.add(chrRange);
+                recombinationRateList.add(recombinationRate);
+            }
+            while((line1= br1.readLine())!=null){
+                temp1 = PStringUtils.fastSplit(line1);
+                refChr = temp1.get(1).substring(3,5);
+                refPos = Integer.parseInt(temp1.get(2));
+                geneticsPos= Double.parseDouble(temp1.get(3));
+                chrRange = new ChrRange(refChr, refPos, refPos+1);
+                int hit = Collections.binarySearch(chrRangeList, chrRange);
+                int index =  hit < 0 ? -hit-2 : hit;
+                recombinationRate = recombinationRateList.getDouble(index);
+                chrID = RefV1Utils.getChrID(refChr, refPos);
+                pos = RefV1Utils.getPosOnChrID(refChr, refPos);
+                sb.setLength(0);
+                sb.append(chrID).append("\t").append(pos).append("\t").append(recombinationRate).append("\t");
+                sb.append(geneticsPos);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void biAllele(String inputDir, String outDir){
@@ -108,30 +166,6 @@ public class Start {
         });
     }
 
-    public static void filterMaf(String inputDir, String outDir){
-        List<File> files = IOTool.getFileListInDirEndsWith(inputDir, ".vcf.gz");
-        String[] outNames= files.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz",".maf0.1.vcf.gz")).toArray(String[]::new);
-        IntStream.range(0, files.size()).parallel().forEach(e -> {
-            try (BufferedReader br = IOTool.getReader(files.get(e));
-                 BufferedWriter bw =IOTool.getWriter(new File(outDir, outNames[e]))) {
-                String line;
-                while ((line=br.readLine()).startsWith("##")){
-                    bw.write(line);
-                    bw.newLine();
-                }
-                bw.write(line);
-                bw.newLine();
-                while ((line=br.readLine())!=null){
-                    if (Double.parseDouble(VCF.calculateMaf(line)) < 0.1) continue;
-                    bw.write(line);
-                    bw.newLine();
-                }
-                bw.flush();
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-            }
-        });
-    }
 
     public static void extract(String inputDir, String outDir){
         List<File> files = IOTool.getFileListInDirEndsWith(inputDir, ".vcf.gz");
