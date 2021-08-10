@@ -59,15 +59,59 @@ public class eQTL {
 //        this.merge();
 
         this.gethhh(args);
+//        this.getMerge();
+    }
 
+    public void getMerge() {
+        String infileDirRNA = new File("/data2/xiaohan/hapscanner/output/SiPASR3", "RNA").getAbsolutePath();
+        String infileDirDNA = new File("/data2/xiaohan/hapscanner/output/SiPASR3", "Isec").getAbsolutePath();
+        BufferedWriter bwRNA = IOUtils.getTextWriter(new File(infileDirRNA, "RNAall.vcf").getAbsolutePath());
+        BufferedWriter bwDNA = IOUtils.getTextWriter(new File(infileDirDNA, "DNAall.vcf").getAbsolutePath());
+        String temp = null;
+        try {
+            for (int i = 0; i < 42; i++) {
+                int chr = i + 1;
+                BufferedReader br = IOUtils.getTextReader(new File(infileDirRNA, "RNA_chr" + PStringUtils.getNDigitNumber(3, chr) + ".vcf").getAbsolutePath());
+                while ((temp = br.readLine()) != null) {
+                    if (chr != 1 && temp.startsWith("#")) {
+                        continue;
+                    } else {
+                        bwRNA.write(temp + "\n");
+                    }
+                }
+                br.close();
+            }
+            bwRNA.flush();
+            bwRNA.close();
+            for (int i = 0; i < 42; i++) {
+                int chr = i + 1;
+                BufferedReader br = IOUtils.getTextReader(new File(infileDirDNA, "DNA_chr" + PStringUtils.getNDigitNumber(3, chr) + ".vcf").getAbsolutePath());
+                while ((temp = br.readLine()) != null) {
+                    if (chr != 1 && temp.startsWith("#")) {
+                        continue;
+                    } else {
+                        bwDNA.write(temp + "\n");
+                    }
+                }
+                br.close();
+            }
+            bwDNA.flush();
+            bwDNA.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void gethhh(String[] args){
-        String input = "/data2/xiaohan/hapscanner/output/S1coleoptile/RNA/RNA_chr001.vcf";
-        String output = "/data2/xiaohan/hapscanner/output/S1coleoptile/RNA/test1.txt";
-        String output1 = "/data2/xiaohan/hapscanner/output/S1coleoptile/RNA/test2.txt";
-        VCFutils.getHeter(input,output);
-        VCFutils.getHeterozygosity(input,output1);
+        String input = "/data2/xiaohan/hapscanner/output/SiPASR3/VCF";
+        String output = "/data2/xiaohan/hapscanner/output/SiPASR3/heter1";
+        String output1 = "/data2/xiaohan/hapscanner/output/SiPASR3/heter2";
+        for (int i = 0; i < 42; i++) {
+            String chr = PStringUtils.getNDigitNumber(3,i+1);
+            VCFutils.getHeter(new File(input,"chr"+chr+".vcf").getAbsolutePath(),new File(output,"chr"+chr+".txt").getAbsolutePath());
+            VCFutils.getHeterozygosity(new File(input,"chr"+chr+".vcf").getAbsolutePath(),new File(output1,"chr"+chr+".txt").getAbsolutePath());
+        }
+
     }
 
     public void merge() {
