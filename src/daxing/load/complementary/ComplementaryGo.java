@@ -11,13 +11,12 @@ import daxing.load.ancestralSite.SNPAnnotation;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.range.Range;
 import pgl.infra.table.RowTable;
+import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
+
+import java.io.*;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -75,16 +74,18 @@ public class ComplementaryGo {
         List<File> exonAnnoFiles= IOUtils.getVisibleFileListInDir(exonSNPAnnoDir);
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
         Map<String, File> taxonOutDirMap=getTaxonOutDirMap(taxa_InfoDBFile, new File(outDir, subdir[0]).getAbsolutePath());
-        IntStream.range(0, exonVCFFiles.size()).forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
-                taxonOutDirMap, e+1, exonSNPAnnoDir, methodCallDeleterious));
-        merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
-        syntheticPseudohexaploidHexaploid(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
-                new File(outDir, subdir[2]).getAbsolutePath());
-        calculateLoadInfo(triadFile, pgfFile, nonoverlapFile, blockGeneNum, new File(outDir, subdir[2]).getAbsoluteFile(),
-                new File(outDir, subdir[3]));
-        mergeTriadsBlockBySubspecies(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
-//        mergeTriadsBlockWithEightModel(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
-        mergeAllIndividualTriadsBlock(new File(outDir, subdir[3]), pgfFile, new File(outDir, subdir[4]));
+//        IntStream.range(0, exonVCFFiles.size()).forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
+//                taxonOutDirMap, e+1, exonSNPAnnoDir, methodCallDeleterious));
+//        merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
+//        syntheticPseudohexaploidHexaploid(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
+//                new File(outDir, subdir[2]).getAbsolutePath());
+//        calculateLoadInfo(triadFile, pgfFile, nonoverlapFile, blockGeneNum, new File(outDir, subdir[2]).getAbsoluteFile(),
+//                new File(outDir, subdir[3]));
+//        mergeTriadsBlockBySubspecies(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
+////        mergeTriadsBlockWithEightModel(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
+//        mergeAllIndividualTriadsBlock(new File(outDir, subdir[3]), pgfFile, new File(outDir, subdir[4]));
+        calculateStatic(new File(outDir, subdir[4]).getAbsolutePath(), taxa_InfoDBFile, new File(outDir, subdir[5]).getAbsolutePath());
+        System.out.println(DateTime.getDateTimeOfNow());
     }
 
     public static void go2(String exonSNPAnnoDir, String exonVCFDir, String taxa_InfoDBFile, String syntenicGeneFile,
@@ -735,5 +736,44 @@ public class ComplementaryGo {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void calculateStatic(String inputDir, String taxaInfoFile, String outDir){
+        List<File> files = IOTool.getFileListInDirEndsWith(inputDir, ".txt.gz");
+        String vmap2ComplementaryVCFInputFile= files.get(0).getAbsolutePath();
+        String pseudoHexaploidInfoFile=files.get(2).getAbsolutePath();
+        calculateStatic(vmap2ComplementaryVCFInputFile, pseudoHexaploidInfoFile, taxaInfoFile, outDir);
+    }
+
+    private static void calculateStatic(String vmap2ComplementaryVCFInputFile, String pseudoHexaploidInfoFile,
+                                       String taxaInfoFile, String outDir){
+        String[] subDirs = {"001_matrix","002_byTaxon","003_byTriads"};
+        File[] subFiles= new File[subDirs.length];
+        for (int i = 0; i < subDirs.length; i++) {
+            subFiles[i] = new File(outDir, subDirs[i]);
+            subFiles[i].mkdirs();
+        }
+        Vmap2ComplementaryVCF vmap2ComplementaryVCF = new Vmap2ComplementaryVCF(vmap2ComplementaryVCFInputFile);
+        WheatLineage positionBySub= WheatLineage.A;
+        Vmap2ComplementaryVCF.Statics statics= Vmap2ComplementaryVCF.Statics.WSR;
+        String matrixOutFile;
+        String byTaxonOutFile;
+        String byTriadsOutFile;
+        for (Vmap2ComplementaryVCF.SubgenomeCombination subgenomeCombination :
+                Vmap2ComplementaryVCF.SubgenomeCombination.values()){
+            System.out.println(subgenomeCombination+ " start...");
+            long start = System.nanoTime();
+            matrixOutFile =
+                    new File(subFiles[0], "normalizedWilcoxonSignedRank.matrix."+subgenomeCombination.name()+".txt.gz").getAbsolutePath();
+            byTaxonOutFile = new File(subFiles[1], "normalizedWilcoxonSignedRank.byTaxon."+subgenomeCombination.name()+ ".txt.gz").getAbsolutePath();
+            byTriadsOutFile = new File(subFiles[2], "normalizedWilcoxonSignedRank.byTriads."+subgenomeCombination.name()+ ".txt.gz").getAbsolutePath();
+//            vmap2ComplementaryVCF.calculateStaticsValueMatrixByTaxonByTriads(pseudoHexaploidInfoFile, taxaInfoFile,
+//                    matrixOutFile, byTaxonOutFile, byTriadsOutFile, subgenomeCombination, positionBySub, statics);
+            vmap2ComplementaryVCF.calculateStaticsValueByTriads(pseudoHexaploidInfoFile, taxaInfoFile,
+                    byTriadsOutFile, subgenomeCombination, positionBySub, statics);
+            System.out.println(subgenomeCombination + " completed in "+ Benchmark.getTimeSpanMinutes(start)+ " " +
+                    "minutes");
+        }
+        System.out.println("All subgenomeCombination completed");
     }
 }
