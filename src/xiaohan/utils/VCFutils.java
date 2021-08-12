@@ -108,7 +108,7 @@ public class VCFutils {
                 hetersite = g.getHeterozygoteNumberByTaxon(i);
                 homosite = g.getHomozygoteNumberByTaxon(i);
                 heterozygosity = (double) hetersite / (hetersite + homosite);
-                bw.write(names[i] + "\t" + heterozygosity + "\n");
+                bw.write(names[i] + "\t" + hetersite + "\t" + homosite + "\t" + heterozygosity + "\n");
             }
             bw.flush();
             bw.close();

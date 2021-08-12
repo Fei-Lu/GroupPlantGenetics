@@ -122,6 +122,10 @@ public class MathUtils {
         return min;
     }
 
+    /**
+     * @param array
+     * @return
+     */
     public static double getmode(double[] array){
         double mode = 0;
         Arrays.sort(array);
@@ -140,4 +144,41 @@ public class MathUtils {
         return mode;
     }
 
+    public static double PearsonCor(double[] array1,double[] array2){
+        double pearson = 0;
+        if(array1.length!=array2.length){
+            sortGeneByStartPosition();
+        }else {
+            double x = 0;
+            double y = 0;
+            double xy = 0;
+            double x2 = 0;
+            double y2 = 0;
+            for (int i = 0; i < array1.length; i++) {
+                x += array1[i];
+                y += array2[i];
+                xy += array1[i] * array2[i];
+                x2 += array1[i] * array1[i];
+                y2 += array2[i] * array2[i];
+            }
+            pearson = (xy - x*y) / (Math.sqrt(x2-x*x) * Math.sqrt(y2-y*y));
+        }
+        return pearson;
+    }
+
+    public static double SpearmanCor(double[] array1,double[] array2){
+        double spearman = 0;
+        return spearman;
+    }
+
+    public static double KendallCor(double[] array1,double[] array2){
+        double kendall = 0;
+        return kendall;
+    }
+
+
+    public static void sortGeneByStartPosition () {
+        Boolean condition = false;
+        System.out.println("X and Y have different lengths");
+    }
 }

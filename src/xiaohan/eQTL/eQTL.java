@@ -103,14 +103,17 @@ public class eQTL {
     }
 
     public void gethhh(String[] args){
-        String input = "/data2/xiaohan/hapscanner/output/SiPASR3/VCF";
-        String output = "/data2/xiaohan/hapscanner/output/SiPASR3/heter1";
-        String output1 = "/data2/xiaohan/hapscanner/output/SiPASR3/heter2";
-        for (int i = 0; i < 42; i++) {
-            String chr = PStringUtils.getNDigitNumber(3,i+1);
-            VCFutils.getHeter(new File(input,"chr"+chr+".vcf").getAbsolutePath(),new File(output,"chr"+chr+".txt").getAbsolutePath());
-            VCFutils.getHeterozygosity(new File(input,"chr"+chr+".vcf").getAbsolutePath(),new File(output1,"chr"+chr+".txt").getAbsolutePath());
-        }
+//        String input = "/data2/xiaohan/hapscanner/output/SiPASR3/VCF";
+//        String output = "/data2/xiaohan/hapscanner/output/SiPASR3/heter1";
+//        String output1 = "/data2/xiaohan/hapscanner/output/SiPASR3/heter2";
+//        for (int i = 0; i < 42; i++) {
+//            String chr = PStringUtils.getNDigitNumber(3,i+1);
+//            VCFutils.getHeter(new File(input,"chr"+chr+".vcf").getAbsolutePath(),new File(output,"chr"+chr+".txt").getAbsolutePath());
+//            VCFutils.getHeterozygosity(new File(input,"chr"+chr+".vcf").getAbsolutePath(),new File(output1,"chr"+chr+".txt").getAbsolutePath());
+//        }
+        String input = args[0];
+        String output = args[1];
+        VCFutils.getHeterozygosity(new File(input).getAbsolutePath(),new File(output).getAbsolutePath());
 
     }
 
