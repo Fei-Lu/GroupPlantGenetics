@@ -20,8 +20,10 @@ public class Start {
 
     public static void main(String[] args) {
 
-//        IOTool.viewHeader("/Users/xudaxing/Desktop/test/003_parameterFile/017_WheatVMap2_GermplasmInfo.txt");
 
+
+////        IOTool.viewHeader("/Users/xudaxing/Desktop/test/003_parameterFile/017_WheatVMap2_GermplasmInfo.txt");
+//
         String exonSNPAnnoDir=args[0];
         String exonVCFDir=args[1];
         String taxa_InfoDBFile=args[2];
@@ -30,10 +32,31 @@ public class Start {
         int blockGeneNum=Integer.parseInt(args[5]);
         String pgfFile=args[6];
         String outDir=args[7];
-        SNPAnnotation.MethodCallDeleterious methodCallDeleterious= SNPAnnotation.MethodCallDeleterious.HIGH_VEP;
+//////
+//        String exonSNPAnnoDir="/Users/xudaxing/Desktop/test/001_geneSiteaAnnoDB";
+//        String exonVCFDir="/Users/xudaxing/Desktop/test/002_geneVCF";
+//        String taxa_InfoDBFile="/Users/xudaxing/Desktop/test/003_parameterFile/017_WheatVMap2_GermplasmInfo.txt";
+//        String triadFile="/Users/xudaxing/Desktop/test/003_parameterFile/triadGenes1.1.txt";
+//        String nonoverlapGeneFile="/Users/xudaxing/Desktop/test/003_parameterFile/wheat_v1.1_nonoverlap.txt";
+//        int blockGeneNum=Integer.parseInt("20");
+//        String pgfFile="/Users/xudaxing/Desktop/test/003_parameterFile/wheat_v1.1_Lulab.pgf";
+//        String outDir="/Users/xudaxing/Desktop/test/004_outDir";
+        SNPAnnotation.MethodCallDeleterious methodCallDeleterious= SNPAnnotation.MethodCallDeleterious.SIFT_GERP;
         ComplementaryGo.go(exonSNPAnnoDir,exonVCFDir, taxa_InfoDBFile, triadFile, nonoverlapGeneFile, blockGeneNum, pgfFile, outDir,
                 methodCallDeleterious);
+
+//        String inputFile_bin=args[0];
+//        String positionsDir_42=args[1];
+//        String maxIndexPerChrFile=args[2];
+//        String alleleAgeSH=args[3];
+//        AlleleAge.buildSH_alleleAge(inputFile_bin, positionsDir_42, maxIndexPerChrFile, alleleAgeSH);
+
+//        ScriptMethods.splitSh(args[0], args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]));
+
+//        ScriptMethods.splitSh(args[0], args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]));
     }
+
+
 
     public static void recombination(String inputFile1, String inputFile2, String outFile){
         try (BufferedReader br1 = IOTool.getReader(inputFile1);
