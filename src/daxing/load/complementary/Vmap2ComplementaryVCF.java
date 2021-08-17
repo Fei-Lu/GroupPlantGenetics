@@ -381,7 +381,7 @@ public class Vmap2ComplementaryVCF {
                 callableList.add(()->triadsBlockRecord.getSlightStronglyAdditiveDominanceTaxon_StaticsValue(pseudoTaxonIndexList,
                         hexaploidTaxonIndexList,subgenomeCombination, statics));
             }
-            ExecutorService executorService=Executors.newFixedThreadPool(PGLConstraints.parallelLevel);
+            ExecutorService executorService=Executors.newFixedThreadPool(PGLConstraints.parallelLevel/2);
             List<Future<double[][][]>> futureList=executorService.invokeAll(callableList);
             executorService.shutdown();
             executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
@@ -896,6 +896,69 @@ public class Vmap2ComplementaryVCF {
         System.out.println(DateTime.getDateTimeOfNow());
     }
 
+    public void writeMiniLoadSubgenome(String miniLoadSubgenomeOutFile, String pseudohexaploidInfo,
+                                       SubgenomeCombination subgenomeCombination){
+        String triadsBlockID;
+        List<LoadINFO> hexaploidLoadINFOS;
+        StringBuilder sb =new StringBuilder();
+        double[] subgenome_Load;
+        TDoubleArrayList subLoad;
+        TIntArrayList subIndexList;
+        String[] subs= {"A","B","D"};
+        double miniLoad;
+        TIntArrayList miniLoadSubIndexList;
+        TIntArrayList hexaploidTaxonIndex = this.getHexaploidIndexList(pseudohexaploidInfo);
+        List<String> hexaploidTaxonList = this.getHexaploidTaxonList(pseudohexaploidInfo);
+        try (BufferedWriter bw = IOTool.getWriter(miniLoadSubgenomeOutFile)) {
+            sb.setLength(0);
+            sb.append("TriadsBlockID\t");
+            sb.append(String.join("\t", hexaploidTaxonList));
+            bw.write(sb.toString());
+            bw.newLine();
+            StringBuilder sbmini = new StringBuilder();
+            for (TriadsBlockRecord triadsBlockRecord : triadsBlockRecordList){
+                triadsBlockID=triadsBlockRecord.triadsBlockID;
+                hexaploidLoadINFOS = triadsBlockRecord.getLoadINFO(hexaploidTaxonIndex);
+                sb.setLength(0);
+                sb.append(triadsBlockID).append("\t");
+                for (LoadINFO loadINFO : hexaploidLoadINFOS){
+                    subgenome_Load = loadINFO.getSlightlyStronglySubgenome_Load()[1];
+                    subIndexList = subgenomeCombination.getIndexList();
+                    subLoad = new TDoubleArrayList();
+                    for (int i = 0; i < subgenome_Load.length; i++) {
+                        if (!subIndexList.contains(i)) continue;
+                        if (subgenome_Load[i] < 0) continue;
+                        if (Double.isNaN(subgenome_Load[i])) continue;
+                        subLoad.add(subgenome_Load[i]);
+                    }
+                    if (subLoad.size() < subIndexList.size()){
+                        sb.append("NA").append("\t");
+                    }else {
+                        miniLoad = subLoad.min();
+                        miniLoadSubIndexList = new TIntArrayList();
+                        for (int i = 0; i < subgenome_Load.length; i++) {
+                            if (subgenome_Load[i]==miniLoad){
+                                miniLoadSubIndexList.add(i);
+                            }
+                        }
+                        sbmini.setLength(0);
+                        for (int i = 0; i < miniLoadSubIndexList.size(); i++) {
+                            sbmini.append(subs[i]).append(";");
+                        }
+                        sbmini.deleteCharAt(sbmini.length()-1);
+                        sb.append(sbmini).append("\t");
+                    }
+                }
+                sb.deleteCharAt(sb.length()-1);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public enum SlightlyOrStrongly{
         SLIGHTLY(0, "Slightly"), STRONGLY(1, "Strongly");
@@ -1100,7 +1163,7 @@ public class Vmap2ComplementaryVCF {
             List<LoadINFO> loadINFOS=this.getLoadINFO();
             List<LoadINFO> res=new ArrayList<>();
             for (int i = 0; i < taxonIndexList.size(); i++) {
-                res.add(loadINFOS.get(i));
+                res.add(loadINFOS.get(taxonIndexList.get(i)));
             }
             return  res;
         }
@@ -1226,6 +1289,8 @@ public class Vmap2ComplementaryVCF {
                     if (pseudoLoadRemovedNAInfNaNList.size() < 2) continue;
                     for (int k = 0; k < hexaploidTaxonIndexList.size(); k++) {
                         if (slightlyStronglyAdditiveDominanceHexaploidLoad[i][j][k] < 0) continue;
+                        if (Double.isInfinite(slightlyStronglyAdditiveDominanceHexaploidLoad[i][j][k])) continue;
+                        if (Double.isNaN(slightlyStronglyAdditiveDominanceHexaploidLoad[i][j][k])) continue;
                         res[i][j][k]= statics.getHexaploidStaticsValue(slightlyStronglyAdditiveDominanceHexaploidLoad[i][j][k], pseudoLoadRemovedNAInfNaNList.toArray());
                     }
                 }
