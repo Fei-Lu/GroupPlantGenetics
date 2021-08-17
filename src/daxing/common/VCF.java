@@ -490,6 +490,7 @@ public class VCF {
                     bw.write(line);
                     bw.newLine();
                     while ((line = br.readLine()) != null) {
+                        if (Double.parseDouble(VCF.calculateMaf(line)) < 0.05) continue;
                         total++;
                         r = Math.random();
                         if (r > rate) continue;
@@ -500,7 +501,7 @@ public class VCF {
                     br.close();
                     bw.flush();
                     bw.close();
-                    System.out.println("samping " + count + "(" + total + ") row from "
+                    System.out.println("samping " + count + "(" + total + " maf > 0.05) row from "
                             + f1[e].getName() + " into " + new File(subsetFileDir, f2[e]).getName() + " in "
                             + Benchmark.getTimeSpanMinutes(start) + " minutes");
                 } catch (IOException ex) {
