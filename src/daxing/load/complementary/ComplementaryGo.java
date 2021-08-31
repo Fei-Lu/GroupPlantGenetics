@@ -74,16 +74,16 @@ public class ComplementaryGo {
         List<File> exonAnnoFiles= IOUtils.getVisibleFileListInDir(exonSNPAnnoDir);
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
         Map<String, File> taxonOutDirMap=getTaxonOutDirMap(taxa_InfoDBFile, new File(outDir, subdir[0]).getAbsolutePath());
-//        IntStream.range(0, exonVCFFiles.size()).forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
-//                taxonOutDirMap, e+1, exonSNPAnnoDir, methodCallDeleterious));
-//        merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
-//        syntheticPseudohexaploidHexaploid(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
-//                new File(outDir, subdir[2]).getAbsolutePath());
-//        calculateLoadInfo(triadFile, pgfFile, nonoverlapFile, blockGeneNum, new File(outDir, subdir[2]).getAbsoluteFile(),
-//                new File(outDir, subdir[3]));
-//        mergeTriadsBlockBySubspecies(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
+        IntStream.range(0, exonVCFFiles.size()).forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
+                taxonOutDirMap, e+1, exonSNPAnnoDir, methodCallDeleterious));
+        merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
+        syntheticPseudohexaploidHexaploid(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
+                new File(outDir, subdir[2]).getAbsolutePath());
+        calculateLoadInfo(triadFile, pgfFile, nonoverlapFile, blockGeneNum, new File(outDir, subdir[2]).getAbsoluteFile(),
+                new File(outDir, subdir[3]));
+        mergeTriadsBlockBySubspecies(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
 ////        mergeTriadsBlockWithEightModel(new File(outDir, subdir[3]), new File(outDir, subdir[4]));
-//        mergeAllIndividualTriadsBlock(new File(outDir, subdir[3]), pgfFile, new File(outDir, subdir[4]));
+        mergeAllIndividualTriadsBlock(new File(outDir, subdir[3]), pgfFile, new File(outDir, subdir[4]));
         calculateStatic(new File(outDir, subdir[4]).getAbsolutePath(), taxa_InfoDBFile, new File(outDir, subdir[5]).getAbsolutePath());
         System.out.println(DateTime.getDateTimeOfNow());
     }
