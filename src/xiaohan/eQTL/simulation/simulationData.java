@@ -14,7 +14,7 @@ import java.util.Random;
 public class simulationData {
     public simulationData(String[] args) {
 //        this.generateFastq(args);
-//        this.generateReads(args[0]);
+        this.generateReads(args[0]);
 //        this.getTrueSet(args[0]);
 //        this.getReadslength(args[0]);
 //        this.getalignment(args[0]);

@@ -5,7 +5,7 @@ import os
 import gzip
 
 parser = argparse.ArgumentParser(description='Combine significant pairs from multiple eQTL mapping runs.')
-parser.add_argument('signifpair_list_file', help="File listing of 'signifpairs' outputs from eQTL pipeline.")
+parser.add_argument('signifpair_list_file', help="Fileutils listing of 'signifpairs' outputs from eQTL pipeline.")
 parser.add_argument('prefix', help='Prefix for output file: <prefix>.combined_signifpairs.txt.gz')
 parser.add_argument('-o', '--output_dir', default='.', help='Output directory')
 args = parser.parse_args()

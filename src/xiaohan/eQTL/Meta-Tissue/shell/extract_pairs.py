@@ -8,7 +8,7 @@ import feather
 
 parser = argparse.ArgumentParser(description='Extract variant-gene pairs from list of associations.')
 parser.add_argument('input_pairs', help="'Nominal' output from FastQTL.")
-parser.add_argument('extract_pairs', help="File containing list variant-gene pairs to extract.")
+parser.add_argument('extract_pairs', help="Fileutils containing list variant-gene pairs to extract.")
 parser.add_argument('prefix', help='Prefix for output file: <prefix>.extracted_pairs.{txt.gz|ft}')
 parser.add_argument('-o', '--output_dir', default='.', help='Output directory')
 parser.add_argument('--feather', action='store_true', help='Write output in feather format')

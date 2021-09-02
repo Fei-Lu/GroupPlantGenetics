@@ -41,6 +41,7 @@ public class HapscannerParameters {
 
     int chrNumber = -1;
     double rate = 0.0;
+    double rate1 = 0.0;
 
     String plate = null;
     String threads = null;
@@ -87,9 +88,10 @@ public class HapscannerParameters {
         this.parseparameters(args[0]);
         chrNumber = Integer.parseInt(args[1]);
         rate = Double.parseDouble(args[2]);
-        this.parameter();
-        this.taxaRefBAM();
-        this.Hapscanner();
+        rate1 = Double.parseDouble(args[3]);
+//        this.parameter();
+//        this.taxaRefBAM();
+//        this.Hapscanner();
 
         this.getsubRNAgenotypeor1();
         this.getIsec1();
@@ -170,7 +172,7 @@ public class HapscannerParameters {
 //                    DNA = RNA.substring(3, 7);
                     DNA = RNA.split("_")[4];
                 }
-                if(DNA.equals("NULL"))continue;
+                if (DNA.equals("NULL")) continue;
 
                 double[] IBS = t.getColumnAsDoubleArray(t.getColumnIndex(RNA));
                 double[] subIBS = Arrays.copyOfRange(IBS, RNASet.size(), header.length - 1);
@@ -485,14 +487,22 @@ public class HapscannerParameters {
                         continue;
                     }
                     int num = 0;
+                    int num1 = 0;
 //                    int total = (int) (temps.length * 0.4);
                     int total = temps.length - 9;
                     for (int i = 9; i < temps.length; i++) {
-                        if (!temps[i].split(";")[0].equals("./.")) {
+                        if (temps[i].split(":")[0].equals("./.")) {
                             num++;
+                        } else {
+                            int depth1 = Integer.parseInt(temps[i].split(":")[1].split(",")[0]);
+                            int depth2 = Integer.parseInt(temps[i].split(":")[1].split(",")[1]);
+//                            System.out.println(depth1);
+                            if ((depth1 + depth2) <= 2) {
+                                num1++;
+                            }
                         }
                     }
-                    if (num >= total * rate) {
+                    if ((num <= total * rate)&&(num1 <= total * rate1)) {
                         bw.write(temp + "\n");
                     }
                 }
@@ -935,7 +945,7 @@ public class HapscannerParameters {
 //                    DNA = RNA.substring(3, 7);
                     DNA = RNA.split("_")[4];
                 }
-                if(DNA.equals("NULL"))continue;
+                if (DNA.equals("NULL")) continue;
                 int RNAindex = nameIndexMap.get(RNA);
                 int DNAindex = nameIndexMap.get(DNA) - 1;
                 bw.write(RNA + "\t" + DNA + "\t");
@@ -1537,17 +1547,17 @@ public class HapscannerParameters {
 //                }
 //            }
 //        } else {
-            for (int i = 0; i < dirs.length; i++) {
+        for (int i = 0; i < dirs.length; i++) {
 //                if (!dirs[i].endsWith("DS_Store") && !dirs[i].startsWith("countTable")) {
-                if (dirs[i].equals("sams")) {
-                    File[] fs1 = new File(BamDir, dirs[i]).listFiles();
-                    fs1 = IOUtils.listFilesEndsWith(fs1, "_Aligned.out.sorted.bam");
-                    for (int j = 0; j < fs1.length; j++) {
-                        files.add(fs1[j].getName());
-                        System.out.println(fs1[j]);
-                    }
+            if (dirs[i].equals("sams")) {
+                File[] fs1 = new File(BamDir, dirs[i]).listFiles();
+                fs1 = IOUtils.listFilesEndsWith(fs1, "_Aligned.out.sorted.bam");
+                for (int j = 0; j < fs1.length; j++) {
+                    files.add(fs1[j].getName());
+                    System.out.println(fs1[j]);
                 }
             }
+        }
 //        }
 
         HashSet<String> nameSet = new HashSet();
@@ -1565,7 +1575,7 @@ public class HapscannerParameters {
                     StringBuilder sb = new StringBuilder();
                     sb.append(namelist[j].replace("_Aligned.out.sorted.bam", "")).append("\t");
                     sb.append(new File(referenceDir, "chr" + chr + ".fa").getAbsolutePath() + "\t");
-                    sb.append(new File(BamDir, "/sams/"+namelist[j]).getAbsolutePath());
+                    sb.append(new File(BamDir, "/sams/" + namelist[j]).getAbsolutePath());
                     bw.write(sb.toString());
                     bw.newLine();
                 }

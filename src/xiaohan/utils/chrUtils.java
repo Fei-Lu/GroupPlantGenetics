@@ -72,6 +72,51 @@ public class chrUtils {
         return chr;
     }
 
+    public static int getChrABDpostoChrpos(String chrABD,int position){
+        String length = "471304005\n" +
+                "438720154\n" +
+                "452179604\n" +
+                "462376173\n" +
+                "453218924\n" +
+                "462216879\n" +
+                "454103970\n" +
+                "448155269\n" +
+                "476235359\n" +
+                "452555092\n" +
+                "451014251\n" +
+                "451004620\n" +
+                "453230519\n" +
+                "451372872\n" +
+                "451901030\n" +
+                "452440856\n" +
+                "452077197\n" +
+                "450509124\n" +
+                "450046986\n" +
+                "453822637\n" +
+                "453812268";
+        String[] lengths = length.split("\n");
+        String subgenome = chrABD.substring(1,2);
+        int chrnumber = Integer.parseInt(chrABD.substring(0,1));
+        int chr42 = -1;
+        if(subgenome.equals("A")){
+            chr42 = (chrnumber-1)*6 + 1;
+        }
+        if(subgenome.equals("B")){
+            chr42 = (chrnumber-1)*6 + 3;
+        }
+        if(subgenome.equals("D")){
+            chr42 = (chrnumber-1)*6 + 5;
+        }
+        if(position > Integer.parseInt(lengths[chr42/2])){
+            chr42 ++;
+        }
+        String chr = String.valueOf(chr42);
+        int pos = 0;
+        if(Integer.parseInt(chr)%2 == 0) {
+            pos = position-Integer.parseInt(lengths[chr42/2-1]);
+        } else pos = position;
+        return pos;
+    }
     /**
      * from chrindex to chrABDindex
      * indexlist like : 1,2,3,4,5,6 of 1A,1B,1D,2A,2B,2D
