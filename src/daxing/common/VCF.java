@@ -195,10 +195,10 @@ public class VCF {
         abd_lineageFile[0]= Arrays.stream(f).filter(ap).toArray(File[]::new);
         abd_lineageFile[1]= Arrays.stream(f).filter(bp).toArray(File[]::new);
         abd_lineageFile[2]= Arrays.stream(f).filter(dp).toArray(File[]::new);
-        String[] outNames={"chr.Asubgenome.vcf", "chr.Bsubgenome.vcf", "chr.Dsubgenome.vcf"};
+        String[] outNames={"chr.Asubgenome.vcf.gz", "chr.Bsubgenome.vcf.gz", "chr.Dsubgenome.vcf.gz"};
         BufferedWriter[] bws=new BufferedWriter[3];
         for (int i = 0; i < bws.length; i++) {
-            bws[i]=IOUtils.getTextWriter(new File(outDir, outNames[i]).getAbsolutePath());
+            bws[i]=IOTool.getWriter(new File(outDir, outNames[i]).getAbsolutePath());
         }
         try {
             BufferedReader br;
