@@ -60,9 +60,15 @@ public class eQTL {
 
 //        this.gethhh(args);
 //        this.getMerge();
-//        this.mapping();
+        this.mapping();
 //        this.GWAS();
-        this.getQuality(args);
+//        this.getQuality(args);
+
+//        this.epi();
+    }
+
+    public void epi() {
+        String infile = "/Users/yxh/Documents/003eQTL/005analysis/aFC/annotation";
     }
 
     public void getQuality(String[] args) {
@@ -122,7 +128,7 @@ public class eQTL {
                     seq2 = br2.readLine();
                     des2 = br2.readLine();
                     quality2 = br2.readLine();
-                    if (quality1.length() != quality2.length())continue;
+                    if (quality1.length() != quality2.length()) continue;
                     for (int i = 0; i < quality1.length(); i++) {
 //                        System.out.println(quality1.length());
 //                        System.out.println(i);
@@ -191,7 +197,7 @@ public class eQTL {
                 file.mkdir();
                 for (int j = 0; j < 42; j++) {
                     int chr = j + 1;
-                    bw[i][j] = IOUtils.getTextWriter(new File("/Users/yxh/Documents/003eQTL/005analysis/colocal/" + names[i] +"/"+ names[i] + "_" + chr + ".txt").getAbsolutePath());
+                    bw[i][j] = IOUtils.getTextWriter(new File("/Users/yxh/Documents/003eQTL/005analysis/colocal/" + names[i] + "/" + names[i] + "_" + chr + ".txt").getAbsolutePath());
                 }
             }
             while ((temp = br.readLine()) != null) {
@@ -200,7 +206,7 @@ public class eQTL {
                 if (temps[1].startsWith("U")) continue;
                 String chr42 = chrUtils.getChrABDtoChr(temps[1], Integer.parseInt(temps[2]));
                 start = chrUtils.getChrABDpostoChrpos(temps[1], Integer.parseInt(temps[2]));
-                end = start +1;
+                end = start + 1;
                 for (int i = 0; i < names.length; i++) {
                     String pvalue = temps[(i + 1) * 3];
                     String effect = temps[(i + 1) * 3 + 1];
@@ -222,14 +228,118 @@ public class eQTL {
     }
 
     public void mapping() {
-        int[][] arrays = new int[3][2];
-        arrays[0][0] = 1;
-        arrays[0][1] = 15;
-        arrays[1][0] = 23;
-        arrays[1][1] = 28;
-        arrays[2][0] = 32;
-        arrays[2][1] = 39;
-        System.out.println(SNPmappingInGene.binarySearch(arrays, 35)[0]);
+//        int[][] arrays = new int[3][2];
+//        arrays[0][0] = 1;
+//        arrays[0][1] = 15;
+//        arrays[1][0] = 23;
+//        arrays[1][1] = 28;
+//        arrays[2][0] = 32;
+//        arrays[2][1] = 39;
+//        System.out.println(SNPmappingInGene.binarySearch(arrays, 35)[0]);
+
+        int[][] regionNumber = new int[42][2];
+        String temppr = null;
+        String tempen = null;
+        try {
+            for (int i = 0; i < 42; i++) {
+                int chr = i + 1;
+                BufferedReader brpr = IOUtils.getTextReader(new File("/Users/yxh/Documents/003eQTL/005analysis/aFC/annotation/" + chr + "_enhancer.bed").getAbsolutePath());
+                BufferedReader bren = IOUtils.getTextReader(new File("/Users/yxh/Documents/003eQTL/005analysis/aFC/annotation/" + chr + "_promoter.bed").getAbsolutePath());
+                int countlinepr = 0;
+                int countlineen = 0;
+                while ((temppr = brpr.readLine()) != null) {
+                    countlinepr++;
+                }
+                while ((tempen = bren.readLine()) != null) {
+                    countlineen++;
+                }
+                brpr.close();
+                bren.close();
+                regionNumber[i][0] = countlinepr;
+                regionNumber[i][1] = countlineen;
+            }
+            int[][][] arraypr = new int[42][][];
+            int[][][] arrayen = new int[42][][];
+            for (int i = 0; i < 42; i++) {
+                arraypr[i] = new int[regionNumber[i][0]][2];
+                arrayen[i] = new int[regionNumber[i][1]][2];
+            }
+            for (int i = 0; i < 42; i++) {
+                int chr = i + 1;
+                BufferedReader brpr = IOUtils.getTextReader(new File("/Users/yxh/Documents/003eQTL/005analysis/aFC/annotation/" + chr + "_enhancer.bed").getAbsolutePath());
+                BufferedReader bren = IOUtils.getTextReader(new File("/Users/yxh/Documents/003eQTL/005analysis/aFC/annotation/" + chr + "_promoter.bed").getAbsolutePath());
+                int countlinepr = 0;
+                int countlineen = 0;
+                while ((temppr = brpr.readLine()) != null) {
+                    arraypr[i][countlinepr][0] = Integer.parseInt(temppr.split("\t")[1]);
+                    arraypr[i][countlinepr][1] = Integer.parseInt(temppr.split("\t")[2]);
+                    countlinepr++;
+                }
+                while ((tempen = bren.readLine()) != null) {
+                    arrayen[i][countlineen][0] = Integer.parseInt(tempen.split("\t")[1]);
+                    arrayen[i][countlineen][1] = Integer.parseInt(tempen.split("\t")[2]);
+                    countlineen++;
+                }
+                brpr.close();
+                bren.close();
+            }
+            String temp = null;
+            String[] temps = null;
+            BufferedReader br = IOUtils.getTextReader(new File("/Users/yxh/Documents/003eQTL/005analysis/epi/plink/all.txt").getAbsolutePath());
+//            BufferedReader br = IOUtils.getTextReader(new File("/Users/yxh/Documents/003eQTL/005analysis/epi/plink/allinde.txt").getAbsolutePath());
+//            HashSet<String> geneSet = new HashSet<>();
+//            Multimap<String, String> genesnpMap = ArrayListMultimap.create();
+//            while ((temp = br.readLine()) != null) {
+//                temps = temp.split("\t");
+//                geneSet.add(temps[0]);
+//                genesnpMap.put(temps[0], temps[6]);
+////                System.out.println(temps[0]);
+////                System.out.println(temps[6]);
+//            }
+//            String[] genelist = geneSet.toArray(new String[0]);
+            BufferedWriter bw = IOUtils.getTextWriter(new File("/Users/yxh/Documents/003eQTL/005analysis/epi/plink/allepi.txt").getAbsolutePath());
+            String chr = null;
+            String snp1 = null;
+            String snp2 = null;
+            String annotation1 = null;
+            String annotation2 = null;
+            while ((temp = br.readLine()) != null) {
+                chr = temp.split("\t")[1].split("_")[0];
+                snp1 = temp.split("\t")[1].split("_")[1];
+                snp2 = temp.split("\t")[3].split("_")[1];
+//            for (int i = 0; i < genelist.length; i++) {
+//                String gene = genelist[i];
+//                List<String> snp = (List<String>) genesnpMap.get(gene);
+//                if (snp.size() == 1) continue;
+//                for (int j = 0; j < snp.size(); j++) {
+//                    for (int k = j + 1; k < snp.size(); k++) {
+//                        snp1 = snp.get(j).split("_")[1];
+//                        snp2 = snp.get(k).split("_")[1];
+//                        chr = snp.get(k).split("_")[0];
+                if (SNPmappingInGene.binarySearch(arraypr[Integer.parseInt(chr) - 1], Integer.parseInt(snp1))[0] != -1) {
+                    annotation1 = "promoter";
+                } else if (SNPmappingInGene.binarySearch(arrayen[Integer.parseInt(chr) - 1], Integer.parseInt(snp1))[0] != -1) {
+                    annotation1 = "enhancer";
+                } else {
+                    annotation1 = "null";
+                }
+                if (SNPmappingInGene.binarySearch(arrayen[Integer.parseInt(chr) - 1], Integer.parseInt(snp2))[0] != -1) {
+                    annotation2 = "enhancer";
+                } else if (SNPmappingInGene.binarySearch(arraypr[Integer.parseInt(chr) - 1], Integer.parseInt(snp2))[0] != -1) {
+                    annotation2 = "promoter";
+                } else {
+                    annotation2 = "null";
+                }
+//                bw.write(gene + "\t" + snp1 + "\t" + snp2 + "\t " + annotation1 + "\t" + annotation2 + "\n");
+                bw.write(temp +  "\t " + annotation1 + "\t" + annotation2 + "\n");
+//                    }
+//                }
+            }
+            br.close();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void getMerge() {

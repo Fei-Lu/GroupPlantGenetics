@@ -88,25 +88,41 @@ public class HapscannerParameters {
         this.parseparameters(args[0]);
         chrNumber = Integer.parseInt(args[1]);
         rate = Double.parseDouble(args[2]);
-        rate1 = Double.parseDouble(args[3]);
+//        rate1 = Double.parseDouble(args[3]);
 //        this.parameter();
 //        this.taxaRefBAM();
 //        this.Hapscanner();
 
-        this.getsubRNAgenotypeor1();
-        this.getIsec1();
-        this.getMerge();
+//        this.getsubRNAgenotypeor1();
+//        this.getIsec1();
+//        this.getMerge();
 //        this.getMergedVCF();
 //        this.getsortedVCF();
 //        this.changeRNAVCFname();
-        this.getIBdistane();
-        this.getDensityIBS();
+//        this.getIBdistane();
+//        this.getDensityIBS();
         this.filtersample();
     }
 
+    public HashMap<String, String> getheter(String infile) {
+        BufferedReader br = IOUtils.getTextReader(infile);
+        HashMap<String, String> heterMap = new HashMap<>();
+        String temp = null;
+        String[] temps = null;
+        try {
+            while ((temp = br.readLine()) != null) {
+                temps = temp.split("\t");
+                heterMap.put(temps[0], temps[3]);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return heterMap;
+    }
 
     public void filtersample() {
         long startTime = System.currentTimeMillis();   //获取开始时间
+        System.out.println("start");
         System.out.println("This is filtering samples ******************************************************************");
         String outfileDir = new File(outputDir, "Isec").getAbsolutePath();
         String infile = new File(outfileDir, "IBSdensity.txt").getAbsolutePath();
@@ -115,6 +131,10 @@ public class HapscannerParameters {
         HashSet<String> notsampleSet = new HashSet<>();
         HashSet<String> addingsampleSet = new HashSet<>();
         HashMap<String, String> RNADNAmap = new HashMap<>();
+
+        HashMap<String, String> heterMap = getheter(new File(outputDir, "heterRNA/heterRNA.txt").getAbsolutePath());
+        System.out.println(new File(outputDir, "heterRNA/heterRNA.txt").getAbsolutePath());
+
         try {
             String temp = null;
             String[] temps = null;
@@ -140,7 +160,6 @@ public class HapscannerParameters {
 
             BufferedReader brinfo = IOUtils.getTextReader(infor);
 
-
             RowTable<String> t = new RowTable<>(infor);
             //index of RNA samples and DNA samples : 1,2,3,...,RNAsamplecount,...,total
             String[] header = t.getHeader().toArray(new String[0]);
@@ -160,9 +179,9 @@ public class HapscannerParameters {
             BufferedWriter bw2 = IOUtils.getTextWriter(new File(outfileDir, "list2.txt").getAbsolutePath());
             BufferedWriter bw3 = IOUtils.getTextWriter(new File(outfileDir, "list3.txt").getAbsolutePath());
 
-
             for (int i = 0; i < RNASet.size(); i++) {
                 String RNA = RNASet.get(i);
+                if(Double.parseDouble(heterMap.get(RNA)) > 0.08)continue;
                 String DNA = null;
                 if (RNA.contains("JM22")) {
                     DNA = "E025";
@@ -170,10 +189,12 @@ public class HapscannerParameters {
                     DNA = "E360";
                 } else {
 //                    DNA = RNA.substring(3, 7);
-                    DNA = RNA.split("_")[4];
+                    DNA = RNA.split("_")[4].substring(0,4);
                 }
                 if (DNA.equals("NULL")) continue;
 
+                System.out.println(RNA);
+                System.out.println(DNA);
                 double[] IBS = t.getColumnAsDoubleArray(t.getColumnIndex(RNA));
                 double[] subIBS = Arrays.copyOfRange(IBS, RNASet.size(), header.length - 1);
                 // 对应值
@@ -185,17 +206,17 @@ public class HapscannerParameters {
                 // 最小的IBS
                 double IBSDNAvalue = Min[0];
 
-                bw.write(RNA + "\t" + DNA + "\t" + IBSvalue + "\t" + DNATrue + "\t" + IBSDNAvalue + "\t");
+                bw.write(RNA + "\t" + DNA + "\t" + IBSvalue + "\t" + DNATrue + "\t" + IBSDNAvalue + "\t" + heterMap.get(RNA)+"\t");
 
                 if (DNA.equals(DNATrue)) {
                     bw.write("TRUE" + "\n");
-                    bw1.write(RNA + "\t" + DNA + "\n");
+                    bw1.write(RNA + "\t" + DNA + "\t" + heterMap.get(RNA) +"\n");
                 } else {
                     bw.write("False" + "\n");
-                    if (Math.abs(IBSDNAvalue - IBSvalue) < 0.01) {
-                        bw2.write(RNA + "\t" + DNA + "\n");
+                    if (Math.abs(IBSDNAvalue - IBSvalue) < 0.1) {
+                        bw2.write(RNA + "\t" + DNA + "\t" + heterMap.get(RNA) + "\n");
                     } else if (IBSDNAvalue < 0.1) {
-                        bw3.write(RNA + "\t" + DNATrue + "\n");
+                        bw3.write(RNA + "\t" + DNATrue + "\t" + heterMap.get(RNA) +"\n");
                     }
                 }
 
@@ -502,7 +523,7 @@ public class HapscannerParameters {
                             }
                         }
                     }
-                    if ((num <= total * rate)&&(num1 <= total * rate1)) {
+                    if (num <= total * rate) {
                         bw.write(temp + "\n");
                     }
                 }
