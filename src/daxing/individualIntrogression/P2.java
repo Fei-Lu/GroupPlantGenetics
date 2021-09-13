@@ -2,10 +2,10 @@ package daxing.individualIntrogression;
 
 public enum P2 {
 
-    Cultivar(0, "CL"), Landrace(1,"LR");
+    CULTIVAR(0, "CL"), LANDRACE(1,"LR");
 
-    public static final P2 CL= P2.Cultivar;
-    public static final P2 LR= P2.Landrace;
+    public static final P2 CL= P2.CULTIVAR;
+    public static final P2 LR= P2.LANDRACE;
 
     int index;
     String abbreviation;

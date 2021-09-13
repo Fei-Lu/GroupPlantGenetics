@@ -195,10 +195,10 @@ public class VCF {
         abd_lineageFile[0]= Arrays.stream(f).filter(ap).toArray(File[]::new);
         abd_lineageFile[1]= Arrays.stream(f).filter(bp).toArray(File[]::new);
         abd_lineageFile[2]= Arrays.stream(f).filter(dp).toArray(File[]::new);
-        String[] outNames={"chr.Asubgenome.vcf", "chr.Bsubgenome.vcf", "chr.Dsubgenome.vcf"};
+        String[] outNames={"chr.Asubgenome.vcf.gz", "chr.Bsubgenome.vcf.gz", "chr.Dsubgenome.vcf.gz"};
         BufferedWriter[] bws=new BufferedWriter[3];
         for (int i = 0; i < bws.length; i++) {
-            bws[i]=IOUtils.getTextWriter(new File(outDir, outNames[i]).getAbsolutePath());
+            bws[i]=IOTool.getWriter(new File(outDir, outNames[i]).getAbsolutePath());
         }
         try {
             BufferedReader br;
@@ -490,6 +490,7 @@ public class VCF {
                     bw.write(line);
                     bw.newLine();
                     while ((line = br.readLine()) != null) {
+                        if (Double.parseDouble(VCF.calculateMaf(line)) < 0.05) continue;
                         total++;
                         r = Math.random();
                         if (r > rate) continue;
@@ -500,7 +501,7 @@ public class VCF {
                     br.close();
                     bw.flush();
                     bw.close();
-                    System.out.println("samping " + count + "(" + total + ") row from "
+                    System.out.println("samping " + count + "(" + total + " maf > 0.05) row from "
                             + f1[e].getName() + " into " + new File(subsetFileDir, f2[e]).getName() + " in "
                             + Benchmark.getTimeSpanMinutes(start) + " minutes");
                 } catch (IOException ex) {
@@ -1252,5 +1253,30 @@ public class VCF {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void filterMaf(String inputDir, String outDir, double maf){
+        List<File> files = IOTool.getFileListInDirEndsWith(inputDir, ".vcf.gz");
+        String[] outNames= files.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz",".maf0.1.vcf.gz")).toArray(String[]::new);
+        IntStream.range(0, files.size()).parallel().forEach(e -> {
+            try (BufferedReader br = IOTool.getReader(files.get(e));
+                 BufferedWriter bw =IOTool.getWriter(new File(outDir, outNames[e]))) {
+                String line;
+                while ((line=br.readLine()).startsWith("##")){
+                    bw.write(line);
+                    bw.newLine();
+                }
+                bw.write(line);
+                bw.newLine();
+                while ((line=br.readLine())!=null){
+                    if (Double.parseDouble(VCF.calculateMaf(line)) < maf) continue;
+                    bw.write(line);
+                    bw.newLine();
+                }
+                bw.flush();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        });
     }
 }

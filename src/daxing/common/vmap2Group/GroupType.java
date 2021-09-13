@@ -12,6 +12,8 @@ public interface GroupType {
                 return GroupBySubspecies.newInstanceFrom(groups);
             case Subcontinent:
                 return GroupBySubcontinent.newInstanceFrom(groups);
+            case Ploidy:
+                return GroupByPloidy.newInstanceFrom(groups);
         }
         return null;
     }

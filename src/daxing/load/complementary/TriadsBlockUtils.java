@@ -10,6 +10,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Predicate;
 
 public class TriadsBlockUtils {
 
@@ -17,11 +18,20 @@ public class TriadsBlockUtils {
      *
      * @param triadGeneFile
      * @param pgfFile
-     * @param blockGeneNum 上(下)游基因数目, total: blockGeneNum * 2 +1
+     * @param blockGeneNum 上(下)游基因总数, blockGeneNum 20
      * @param outFile
      */
-    public static void writeTriadsBlock(String triadGeneFile, String pgfFile, int blockGeneNum, String outFile){
+    public static void writeTriadsBlock(String triadGeneFile, String pgfFile,
+                                        String nonoverlapFile,
+                                        int blockGeneNum,
+                                        String outFile){
         PGF pgf=new PGF(pgfFile);
+        RowTableTool<String> table= new RowTableTool<>(nonoverlapFile);
+        Predicate<List<String>> uniqueGeneP = l -> l.get(3).equals("1");
+        table.removeIf(uniqueGeneP.negate());
+        Set<String> uniqueGeneSet = new HashSet<>(table.getColumn(0));
+        Predicate<PGF.Gene> duplicatedP = gene -> !uniqueGeneSet.contains(gene.getGeneName());
+        pgf.removeIf(duplicatedP);
         try (BufferedReader br = IOTool.getReader(triadGeneFile);
              BufferedWriter bw =IOTool.getWriter(outFile)) {
             bw.write("TriadID\tTriadsGeneName\tCDSLen\tBlockGeneNum\tBlockGeneListA\tBlockGeneListB\tBlockGeneListD");
@@ -41,6 +51,12 @@ public class TriadsBlockUtils {
                 if (!StringTool.isNumeric(temp.get(6))) continue;
                 if (!StringTool.isNumeric(temp.get(7))) continue;
                 if (!StringTool.isNumeric(temp.get(8))) continue;
+                if (!StringTool.isNumeric(temp.get(9))) continue;
+                if (!StringTool.isNumeric(temp.get(10))) continue;
+                if (!StringTool.isNumeric(temp.get(11))) continue;
+                if (Integer.parseInt(temp.get(9))==0) continue;
+                if (Integer.parseInt(temp.get(10))==0) continue;
+                if (Integer.parseInt(temp.get(11))==0) continue;
                 triadsID=temp.get(0);
                 geneName=new String[3];
                 cdsLen=new int[3];

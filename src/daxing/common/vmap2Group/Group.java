@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public enum Group {
-    Subspecies, Subcontinent;
+    Subspecies, Subcontinent, Ploidy;
 
     private List<String> getGroupAB() {
         List<String> groupABList=new ArrayList<>();
@@ -20,6 +20,12 @@ public enum Group {
             case Subspecies:
                 for (GroupBySubspecies group : GroupBySubspecies.values()){
                     if (group.equals(GroupBySubspecies.AT)) continue;
+                    groupABList.add(group.getGroup());
+                }
+                return groupABList;
+            case Ploidy:
+                for (GroupByPloidy group : GroupByPloidy.values()){
+                    if (group.equals(GroupByPloidy.DIPLOID)) continue;
                     groupABList.add(group.getGroup());
                 }
                 return groupABList;
@@ -47,6 +53,12 @@ public enum Group {
                     if (group.equals(GroupBySubspecies.WE)) continue;
                     if (group.equals(GroupBySubspecies.DE)) continue;
                     if (group.equals(GroupBySubspecies.FT)) continue;
+                    groupDList.add(group.getGroup());
+                }
+                return groupDList;
+            case Ploidy:
+                for (GroupByPloidy group : GroupByPloidy.values()){
+                    if (group.equals(GroupByPloidy.TETRAPLOID)) continue;
                     groupDList.add(group.getGroup());
                 }
                 return groupDList;

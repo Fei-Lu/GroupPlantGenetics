@@ -2,12 +2,12 @@ package daxing.individualIntrogression;
 
 public enum P3 {
 
-    Wild_emmer(0, "WE"), Domesticated_emmer(1, "DE"), Free_threshing_tetraploid(2, "FT"), Ae(3, "AT");
+    WILD_EMMER(0, "WE"), DOMESTICATED_EMMER(1, "DE"), FREE_THRESHING_TETRAPLOIDS(2, "FT"), STRANGULATA(3, "AT");
 
-    public static final P3 WE= P3.Wild_emmer;
-    public static final P3 DE= P3.Domesticated_emmer;
-    public static final P3 FT= P3.Free_threshing_tetraploid;
-    public static final P3 AE= P3.Ae;
+    public static final P3 WE= P3.WILD_EMMER;
+    public static final P3 DE= P3.DOMESTICATED_EMMER;
+    public static final P3 FT= P3.FREE_THRESHING_TETRAPLOIDS;
+    public static final P3 AE= P3.STRANGULATA;
 
     int index;
     String abbreviation;
