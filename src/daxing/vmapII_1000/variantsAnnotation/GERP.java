@@ -171,13 +171,19 @@ public class GERP {
                     chrID = Integer.parseInt(temp.get(0));
                     pos = Integer.parseInt(temp.get(1));
                     geneIndex = pgf.getGeneIndex(chrID, pos);
+                    if (geneIndex < 0){
+                        functionalElement = FunctionalElement.INTERGENIC;
+                        sb.setLength(0);
+                        sb.append(String.join("\t", temp)).append("\t").append(functionalElement.name());
+                        bw.write(sb.toString());
+                        bw.newLine();
+                        continue;
+                    }
                     longestTranscriptIndex = pgf.getLongestTranscriptIndex(geneIndex);
                     utr5Index = pgf.getGene(geneIndex).getTs().get(longestTranscriptIndex).get5UTRIndex(chrID, pos);
                     utr3Index = pgf.getGene(geneIndex).getTs().get(longestTranscriptIndex).get3UTRIndex(chrID, pos);
                     cdsIndex = pgf.getGene(geneIndex).getTs().get(longestTranscriptIndex).getCDSIndex(chrID, pos);
-                    if (geneIndex < 0){
-                        functionalElement = FunctionalElement.INTERGENIC;
-                    }else if (utr5Index >=0){
+                   if (utr5Index >=0){
                         functionalElement = FunctionalElement.UTR5;
                     }else if (utr3Index >=0){
                         functionalElement = FunctionalElement.UTR3;
