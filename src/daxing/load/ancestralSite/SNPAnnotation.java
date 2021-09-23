@@ -140,7 +140,7 @@ public class SNPAnnotation extends BiSNP{
                 if(!isNonSyn()) return false;
                 if(this.getGerp().equals("NA")) return false;
                 gerp=Double.parseDouble(this.getGerp());
-                return !(gerp <= 1);
+                return !(gerp < 2.14);
             case SIFT_GERP:
                 if(!isNonSyn()) return false;
                 if(this.getDerived_SIFT().equals("NA")) return false;
@@ -148,7 +148,7 @@ public class SNPAnnotation extends BiSNP{
                 if (sift >= 0.05) return false;
                 if(this.getGerp().equals("NA")) return false;
                 gerp=Double.parseDouble(this.getGerp());
-                return !(gerp <= 1);
+                return !(gerp < 2.14);
             case STOPGAIN_STARTLOST_SIFT:
                 if (this.getVariant_type().equals("STOP-GAIN") || this.getVariant_type().equals("START-LOST")) return true;
                 return false;

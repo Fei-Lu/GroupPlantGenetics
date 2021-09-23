@@ -1,5 +1,6 @@
 package daxing.vmapII_1000.variantsAnnotation;
 
+import daxing.applets.ScriptMethods;
 import daxing.common.IOTool;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
@@ -15,7 +16,7 @@ import java.util.Map;
 public class PhyloP {
 
     public static void split_toChrID(String inputDir, String outDir){
-        List<File> files = IOTool.getFileListInDirEndsWith(inputDir, "phyloP_CON.bedg.gz");
+        List<File> files = IOTool.getFileListInDirEndsWith(inputDir, "phyloP_CON_refmask.bedg.gz");
         Map<Integer, BufferedWriter> chrBWMap = new HashMap<>();
         BufferedWriter bw = null;
         String chr;
@@ -61,17 +62,36 @@ public class PhyloP {
                     bw.newLine();
                 }
                 br.close();
-                for (Integer integer: chrIDList){
-                    chrBWMap.get(integer).flush();
-                    chrBWMap.get(integer).close();
-                }
+//                for (Integer integer: chrIDList){
+//                    chrBWMap.get(integer).flush();
+//                    chrBWMap.get(integer).close();
+//                }
             }
-//            for (Map.Entry<Integer, BufferedWriter> entry : chrBWMap.entrySet()){
-//                entry.getValue().flush();
-//                entry.getValue().close();
-//            }
+            for (Map.Entry<Integer, BufferedWriter> entry : chrBWMap.entrySet()){
+                entry.getValue().flush();
+                entry.getValue().close();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+//    public static void main(String[] args) {
+//        String inputDir=args[0];
+//        String outDir=args[1];
+//        double rate=Double.parseDouble(args[2]);
+//        String pgfFile=args[3];
+//        String nonoverlapGeneFile=args[4];
+//        String[] subDir={"001_chrID","002_constraintRegionSize","003_subset","004_geneFuture"};
+//        File[] files=new File[subDir.length];
+//        for (int i = 0; i < subDir.length; i++) {
+//            files[i]=new File(outDir, subDir[i]);
+//            files[i].mkdirs();
+//        }
+//        PhyloP.split_toChrID(inputDir, new File(outDir, subDir[0]).getAbsolutePath());
+//        GERP.calculateConstraintRegionSize(files[0].getAbsolutePath(), new File(files[1],
+//                "phylopRemoveRef_constraintRegionSize.txt.gz").getAbsolutePath());
+//        ScriptMethods.getSubsetFromDir(files[0].getAbsolutePath(), rate, files[2].getAbsolutePath());
+//        GERP.addGERPGeneFuture(files[2].getAbsolutePath(), files[3].getAbsolutePath(), pgfFile, nonoverlapGeneFile);
+//    }
 }
