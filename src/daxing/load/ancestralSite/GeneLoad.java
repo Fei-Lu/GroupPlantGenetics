@@ -2,6 +2,8 @@ package daxing.load.ancestralSite;
 
 import gnu.trove.list.array.TByteArrayList;
 import gnu.trove.list.array.TDoubleArrayList;
+
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -60,7 +62,7 @@ public class GeneLoad implements Comparable<GeneLoad>{
 
     public void addGenotype(byte[] indexGenotype, SNPAnnotation.MethodCallDeleterious methodCallDeleterious){
         String method = methodCallDeleterious.toString();
-        if (method.equals("SIFT_GERP") || method.equals("SIFT") ||method.equals("GERP")){
+        if (method.equals("SIFT_GERP") || method.equals("SIFT") ||method.equals("GERP") || method.equals("PHYLOP") || method.equals("LIST_S2")){
             if (indexGenotype[0]==0){
                 this.synGenotype.add(indexGenotype[1]);
             }else if(indexGenotype[0]==2){
