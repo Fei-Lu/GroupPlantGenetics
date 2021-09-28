@@ -2,7 +2,8 @@ package xiaohan.eQTL.HapscanIdentifier;
 
 import com.koloboke.collect.map.IntDoubleMap;
 import com.koloboke.collect.map.hash.HashIntDoubleMaps;
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
 import pgl.AppUtils;
 import pgl.infra.dna.genot.GenoIOFormat;
 import pgl.infra.dna.genot.GenotypeGrid;
@@ -11,9 +12,10 @@ import pgl.infra.dna.genot.summa.SumTaxaDivergence;
 import pgl.infra.utils.Dyad;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.PStringUtils;
+import xiaohan.utils.IOUtils;
 import xiaohan.utils.RowTable;
 import xiaohan.utils.SNPmappingInGene;
-import xiaohan.utils.IOUtils;
+import xiaohan.utils.VCFutils;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -93,15 +95,24 @@ public class HapscannerParameters {
 //        this.taxaRefBAM();
 //        this.Hapscanner();
 
-//        this.getsubRNAgenotypeor1();
-//        this.getIsec1();
-//        this.getMerge();
+        this.getsubRNAgenotypeor1();
+        this.getIsec1();
+        this.getMerge();
+        this.getHeterozygosity();
 //        this.getMergedVCF();
 //        this.getsortedVCF();
 //        this.changeRNAVCFname();
-//        this.getIBdistane();
-//        this.getDensityIBS();
+        this.getIBdistane();
+        this.getDensityIBS();
         this.filtersample();
+    }
+
+    private void getHeterozygosity(){
+        File out = new File(new File(outputDir,"heterRNA").getAbsolutePath());
+        out.mkdir();
+        String input = new File(outputDir,"RNA/RNAall.vcf.gz").getAbsolutePath();
+        String output = new File(out,"heterRNA.txt").getAbsolutePath();
+        VCFutils.getHeterozygosityGZ(new File(input).getAbsolutePath(), new File(output).getAbsolutePath());
     }
 
     public HashMap<String, String> getheter(String infile) {
@@ -206,13 +217,11 @@ public class HapscannerParameters {
                 // 最小的IBS
                 double IBSDNAvalue = Min[0];
 
-                bw.write(RNA + "\t" + DNA + "\t" + IBSvalue + "\t" + DNATrue + "\t" + IBSDNAvalue + "\t" + heterMap.get(RNA)+"\t");
+                bw.write(RNA + "\t" + DNA + "\t" + IBSvalue + "\t" + DNATrue + "\t" + IBSDNAvalue + "\t" + heterMap.get(RNA)+"\n");
 
                 if (DNA.equals(DNATrue)) {
-                    bw.write("TRUE" + "\n");
                     bw1.write(RNA + "\t" + DNA + "\t" + heterMap.get(RNA) +"\n");
                 } else {
-                    bw.write("False" + "\n");
                     if (Math.abs(IBSDNAvalue - IBSvalue) < 0.1) {
                         bw2.write(RNA + "\t" + DNA + "\t" + heterMap.get(RNA) + "\n");
                     } else if (IBSDNAvalue < 0.1) {
@@ -513,7 +522,9 @@ public class HapscannerParameters {
                     int total = temps.length - 9;
                     for (int i = 9; i < temps.length; i++) {
                         if (temps[i].split(":")[0].equals("./.")) {
+//                            System.out.println(temps[i].split(":")[0]);
                             num++;
+//                            System.out.println(num);
                         } else {
                             int depth1 = Integer.parseInt(temps[i].split(":")[1].split(",")[0]);
                             int depth2 = Integer.parseInt(temps[i].split(":")[1].split(",")[1]);
@@ -626,6 +637,8 @@ public class HapscannerParameters {
             StringBuilder sb = new StringBuilder();
             sb.append("rm ./RNA/RNA_chr* \n");
             sb.append("rm ./Isec/DNA_chr* \n");
+            sb.append("bgzip ./RNA/RNAall.vcf \n");
+            sb.append("bgzip ./Isec/DNAall.vcf \n");
             String command = sb.toString();
             File dir = new File(new File(outputDir).getAbsolutePath());
             String[] cmdarry = {"/bin/bash", "-c", command};
@@ -905,14 +918,14 @@ public class HapscannerParameters {
     public void getIBdistane() {
         System.out.println("This is getting IBS matrix *****************************************************************");
         String infileDir = new File(outputDir).getAbsolutePath();
-        String infileS1 = new File(infileDir, "RNA/RNAall.vcf").getAbsolutePath();
-        String infileS2 = new File(infileDir, "Isec/DNAall.vcf").getAbsolutePath();
+        String infileS1 = new File(infileDir, "RNA/RNAall.vcf.gz").getAbsolutePath();
+        String infileS2 = new File(infileDir, "Isec/DNAall.vcf.gz").getAbsolutePath();
 //        String infileS1 = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/DNA.all.sort.vcf";
 //        String infileS2 = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/RNA.all.sort.vcf";
         String ibsOutfileS = new File(infileDir, "Isec/check.txt").getAbsolutePath();
 //        String ibsOutfileS = "/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/input/check.txt";
-        GenotypeGrid g1 = new GenotypeGrid(infileS1, GenoIOFormat.VCF);
-        GenotypeGrid g2 = new GenotypeGrid(infileS2, GenoIOFormat.VCF);
+        GenotypeGrid g1 = new GenotypeGrid(infileS1, GenoIOFormat.VCF_GZ);
+        GenotypeGrid g2 = new GenotypeGrid(infileS2, GenoIOFormat.VCF_GZ);
         GenotypeGrid g = GenotypeOperation.mergeGenotypesByTaxon(g1, g2);
         SumTaxaDivergence std = new SumTaxaDivergence(g);
         std.writeDxyMatrix(ibsOutfileS, IOFileFormat.Text);

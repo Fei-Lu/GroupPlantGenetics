@@ -26,10 +26,10 @@ public class pheno {
     //args1 : TissueDir ;    args2: replace sample
     public pheno(String[] args) {
         this.parseparameter(args);
-        this.getMergedCountTable();
-        this.DESeqnormalization();
-        this.fixation();
-        this.filtersampe();
+//        this.getMergedCountTable();
+//        this.DESeqnormalization();
+//        this.fixation();
+//        this.filtersampe();
 //        this.changeName();
         this.countExpDonor02();
         this.SplitPhenoBychr();
@@ -43,13 +43,14 @@ public class pheno {
 //            System.out.println("args2 : phenolist tissue dir ");
 //        }
         this.plate = args[0];
-        this.replacesample = args[1];
-        HashSet<String> tissues = new HashSet<>();
-        this.TissueDir = args[2];
-//        this.TissueDir[1] = args[3];
-        this.outputDir = new File("/data2/xiaohan/pheno/", plate).getAbsolutePath();
-        File out = new File(outputDir);
-        out.mkdir();
+//        this.replacesample = args[1];
+//        HashSet<String> tissues = new HashSet<>();
+        this.TissueDir = args[1];
+////        this.TissueDir[1] = args[3];
+        this.outputDir = new File("/data2/xiaohan/pheno/", plate + "new").getAbsolutePath();
+//        File out = new File(outputDir);
+//        out.mkdir();
+
     }
 
     public void getMergedCountTable() {
@@ -117,8 +118,8 @@ public class pheno {
 
     public void DESeqnormalization() {
         System.out.println("*********Deseq normalization ***************************************************************");
-        String infile = new File(this.outputDir, plate + "countResult.txt").getAbsolutePath();
-        String tempfile = new File(this.outputDir, plate + "expressiontemp.txt").getAbsolutePath();
+        String infile = new File(this.TissueDir, plate + "_countResult.txt").getAbsolutePath();
+        String tempfile = new File(this.outputDir, plate + "expression.txt").getAbsolutePath();
         try {
             File f = new File(tempfile);
             StringBuilder sb = new StringBuilder();
@@ -298,7 +299,7 @@ public class pheno {
 
     public void countExpDonor02() {
         System.out.println("*********phenotype making ******************************************************************");
-        String infileS = new File(outputDir, plate + "expression_hapscanner.txt").getAbsolutePath();
+        String infileS = new File(outputDir, plate + "expression.txt").getAbsolutePath();
         String outfileS = new File(outputDir, plate + "expression_hapscanner_donor02.txt").getAbsolutePath();
         String outfileS1 = new File(outputDir, plate + "expression_hapscanner_donor02_zscore.txt").getAbsolutePath();
         GeneFeature gf = new GeneFeature("/data1/home/xiaohan/reference/wheat_v1.1_Lulab.gff3");
@@ -309,7 +310,7 @@ public class pheno {
             BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             BufferedWriter bw1 = IOUtils.getTextWriter(outfileS1);
             while ((temp = br.readLine()) != null) {
-                if (temp.startsWith("Gene")) {
+                if (temp.startsWith("E")) {
                     bw.write("Chr\tstart\tend\tID\t");
                     bw.write(temp.replace("Gene\t", ""));
                     bw.newLine();
@@ -332,12 +333,14 @@ public class pheno {
                     int index = gf.getGeneIndex(geneName);
                     int chr = gf.getChromosomeOfGene(index);
                     int start = -1;
+                    int end = -1;
                     if (gf.getGeneStrand(index) == 1) {
-                        start = gf.getGeneStart(index);
+                        end = gf.getGeneStart(index);
+                        start = end - 1;
                     } else {
-                        start = gf.getGeneEnd(index);
+                        end = gf.getGeneEnd(index);
+                        start = end - 1;
                     }
-                    int end = start + 1;
                     StringBuilder sb = new StringBuilder();
                     StringBuilder sb1 = new StringBuilder();
                     sb.append(chr + "\t" + start + "\t" + end + "\t" + geneName + "\t");
@@ -384,7 +387,7 @@ public class pheno {
             String temp = null;
             String[] temps = null;
             temp = br.readLine();
-            bw1.write("#"+temp);
+            bw1.write("#" + temp);
             bw1.newLine();
             bw1.flush();
             bw1.close();

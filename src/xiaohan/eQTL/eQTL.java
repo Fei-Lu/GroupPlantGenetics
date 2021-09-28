@@ -60,11 +60,40 @@ public class eQTL {
 
 //        this.gethhh(args);
 //        this.getMerge();
-        this.mapping();
+//        this.mapping();
 //        this.GWAS();
 //        this.getQuality(args);
 
 //        this.epi();
+//        this.command();
+        this.exp(args);
+    }
+
+    public void exp(String[] args){
+        new pheno(args);
+    }
+
+    public void command() {
+        String[] names = {"S1coleoptile", "S1root", "S2leaf", "S2root", "S3leaf", "S4leaf", "S4root", "S4stem", "S4spike", "S5leaf", "S5Anthers", "S6leaf", "S6grain", "S7leaf", "S7grain", "S8leaf", "S8grain", "S9grain"};
+        String[] covNumber = {"5", "10", "15", "20", "25","30","35","40","45","50"};
+        try {
+            for (int j = 0; j < covNumber.length; j++) {
+                for (int i = 0; i < names.length; i++) {
+                    BufferedWriter bw = IOUtils.getTextWriter("/Users/yxh/Documents/003eQTL/005analysis/originaldata/" + names[i] + "_" + covNumber[j] + "_cis.txt");
+                    for (int k = 0; k < 42; k++) {
+                        int chr = k + 1;
+                        bw.write("python3 -m tensorqtl /data2/xiaohan/genotypeMaf005bed/" + chr + " /data2/junxu/pheno/" + names[i] + "/bed_byChr/" + chr + ".bed.gz  /data2/xiaohan/tensorQTL/" + names[i] + "/" + covNumber[j] + "/" + chr + " --covariates /data2/junxu/pheno/" + names[i] + "/cov_" + covNumber[j] + ".txt.gz --mode cis > /data2/xiaohan/tensorQTL/scripts/log/logcis" + names[i] + "_" + covNumber[j] + "_" + chr + ".txt\n");
+//                        bw.write("python3 -m tensorqtl /data2/xiaohan/genotypeMaf005bed/" + chr + " /data2/junxu/pheno/" + names[i] + "/bed_byChr/" + chr + ".bed.gz  /data2/xiaohan/tensorQTL/" + names[i] + "/" + covNumber[j] + "/" + chr + " --covariates /data2/junxu/pheno/" + names[i] + "/cov_" + covNumber[j] + ".txt.gz --mode cis_nominal > /data2/xiaohan/tensorQTL/scripts/log/lognominal" + names[i] + "_" + covNumber[j] + "_" + chr + ".txt\n");
+//                        bw.write("python3 -m tensorqtl /data2/xiaohan/genotypeMaf005bed/" + chr + " /data2/junxu/pheno/" + names[i] + "/bed_byChr/" + chr + ".bed.gz  /data2/xiaohan/tensorQTL/" + names[i] + "/" + covNumber[j] + "/" + chr + " --covariates /data2/junxu/pheno/" + names[i] + "/cov_" + covNumber[j] + ".txt.gz --cis_output /data2/xiaohan/tensorQTL/" + names[i] + "/" + covNumber[j] + "/" + chr + ".cis_qtl.txt.gz --mode cis_independent > /data2/xiaohan/tensorQTL/scripts/log/logindependent" + names[i] + "_" + covNumber[j] + "_" + chr + ".txt\n");
+                    }
+                    bw.flush();
+                    bw.close();
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void epi() {
@@ -331,7 +360,7 @@ public class eQTL {
                     annotation2 = "null";
                 }
 //                bw.write(gene + "\t" + snp1 + "\t" + snp2 + "\t " + annotation1 + "\t" + annotation2 + "\n");
-                bw.write(temp +  "\t " + annotation1 + "\t" + annotation2 + "\n");
+                bw.write(temp + "\t " + annotation1 + "\t" + annotation2 + "\n");
 //                    }
 //                }
             }
