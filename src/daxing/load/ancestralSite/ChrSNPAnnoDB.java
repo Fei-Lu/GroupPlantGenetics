@@ -62,7 +62,8 @@ public class ChrSNPAnnoDB {
         String recombinationRate=null;
         return new SNPAnnotation(chr, pos, refBase, altBase, geneName, majorBase, ancestral, maf
                 , aaf, daf, dafs, region, variant_type, derived_SIFT, gerp, recombinationRate,
-                null, null, null, null);
+                null, null, null, null, null,
+                null, null, null,null,null,null,null);
     }
 
     /**
@@ -87,16 +88,29 @@ public class ChrSNPAnnoDB {
         SNPAnnotation.Region region=SNPAnnotation.Region.valueOf(temp.get(12));
         String variant_type=temp.get(13);
         String derived_SIFT=temp.get(16);
+        String effect_vep=temp.get(17);
+        String impact_vep=temp.get(18);
+        String effect_snpEff=temp.get(19);
+        String impact_snpEff=temp.get(20);
+        String gerp16way=temp.get(22);
+        String aaPos=temp.get(23);
+        String listS2=temp.get(25);
+        String phylop=temp.get(26);
+        String aaSize=temp.get(27);
+        String phylopRefMask=temp.get(28);
+        String alleleAgeJ=temp.get(29);
+        String alleleAgeM=temp.get(30);
+        String alleleAgeR=temp.get(31);
+
         String recombinationRate=null;
         double[] aaf = null;
         String[] dafs = null;
-        String effect_snpEff=temp.get(19);
-        String impact_snpEff=temp.get(20);
-        String effect_vep=temp.get(17);
-        String impact_vep=temp.get(18);
+
+
         return new SNPAnnotation(chr, pos, refBase, altBase, geneName, majorBase, ancestral, maf
                 , aaf, daf, dafs, region, variant_type, derived_SIFT, gerp, recombinationRate,
-                effect_snpEff, impact_snpEff, effect_vep, impact_vep);
+                effect_snpEff, impact_snpEff, effect_vep, impact_vep,gerp16way,aaPos, aaSize, listS2, phylopRefMask,
+                alleleAgeJ,alleleAgeM, alleleAgeR);
     }
 
     public int getSize(){

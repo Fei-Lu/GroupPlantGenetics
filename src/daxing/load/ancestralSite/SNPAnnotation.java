@@ -20,6 +20,16 @@ public class SNPAnnotation extends BiSNP{
     String effect_vep;
     String impact_vep;
 
+    String gerp16way;
+    int aaPos;
+    int aaSize;
+    double list_s2;
+    String phylopP_refMask;
+    double alleleAgeJ;
+    double alleleAgeM;
+    double alleleAgeR;
+
+
     public enum Region{
         UTR_5((byte)0), CDS((byte)1), UTR_3((byte)2), Intron((byte)3);
 
@@ -32,17 +42,22 @@ public class SNPAnnotation extends BiSNP{
 
     public enum MethodCallDeleterious{
         SIFT, GERP, SIFT_GERP, STOPGAIN_STARTLOST_SIFT, STOPGAIN_STARTLOST_VEP, STOPGAIN_STARTLOST_SNPEFF, HIGH_VEP,
-        HIGH_SNPEFF;
+        HIGH_SNPEFF, PHYLOP, LIST_S2
 
         // SIFT < 0.05
-        // GERP > 1
+        // GERP >= 2.14
+        // PhyloP >= 1.5
+        // LIST-S2 >= 0.85
 
     }
+
 
     SNPAnnotation(short chr, int pos, char refBase, char altBase, String transcriptName, char majorBase,
                   String ancestral, double maf, double[] aaf, String daf, String[] dafs, Region region,
                   String variant_type, String derived_SIFT, String gerp, String recombinationRate,
-                  String effect_snpEff, String impact_snpEff, String effect_vep, String impact_vep){
+                  String effect_snpEff, String impact_snpEff, String effect_vep, String impact_vep, String gerp16way,
+                  String aaPos, String aaSize, String list_s2, String phylopP_refMask, String alleleAgeJ, String alleleAgeM
+            , String alleleAgeR){
         super(chr, pos, refBase, altBase, transcriptName);
         if (this.getReferenceAlleleBase()==majorBase){
             this.setReferenceAlleleType(AlleleType.Major);
@@ -68,13 +83,21 @@ public class SNPAnnotation extends BiSNP{
         this.region=region;
         this.variant_type=variant_type;
         this.derived_SIFT =derived_SIFT;
-        this.recombinationRate=recombinationRate;
         this.gerp=gerp;
         this.recombinationRate=recombinationRate;
         this.effect_vep=effect_vep;
         this.impact_vep=impact_vep;
         this.effect_snpEff=effect_snpEff;
         this.impact_snpEff=impact_snpEff;
+
+        this.gerp16way = gerp16way;
+        this.aaPos= aaPos.equals("NA") ? -1 : Integer.parseInt(aaPos);
+        this.aaSize= aaSize.equals("NA") ? -1 : Integer.parseInt(aaSize);
+        this.list_s2=list_s2.equals("NA") ? -1 : Double.parseDouble(list_s2);
+        this.phylopP_refMask=phylopP_refMask;
+        this.alleleAgeJ=alleleAgeJ.equals("NA") ? -1 : Double.parseDouble(alleleAgeJ);
+        this.alleleAgeM=alleleAgeM.equals("NA") ? -1 : Double.parseDouble(alleleAgeM);
+        this.alleleAgeR=alleleAgeR.equals("NA") ? -1 : Double.parseDouble(alleleAgeR);
     }
 
     public double getMaf() {
@@ -85,8 +108,36 @@ public class SNPAnnotation extends BiSNP{
         return derived_SIFT;
     }
 
-    public String getGerp() {
-        return gerp;
+    public String getGerp16way(){
+        return gerp16way;
+    }
+
+    public double getList_s2() {
+        return list_s2;
+    }
+
+    public String getPhylopP_refMask() {
+        return phylopP_refMask;
+    }
+
+    public int getAaPos() {
+        return aaPos;
+    }
+
+    public int getAaSize() {
+        return aaSize;
+    }
+
+    public double getAlleleAgeJ() {
+        return alleleAgeJ;
+    }
+
+    public double getAlleleAgeM() {
+        return alleleAgeM;
+    }
+
+    public double getAlleleAgeR() {
+        return alleleAgeR;
     }
 
     public String getVariant_type() {
@@ -119,8 +170,8 @@ public class SNPAnnotation extends BiSNP{
         if(this.getDerived_SIFT().equals("NA")) return false;
         double sift=Double.parseDouble(this.getDerived_SIFT());
         if (sift >= 0.05) return false;
-        if(this.getGerp().equals("NA")) return false;
-        double gerp=Double.parseDouble(this.getGerp());
+        if(this.getGerp16way().equals("NA")) return false;
+        double gerp=Double.parseDouble(this.getGerp16way());
         return !(gerp <= 1);
 //        if (this.getVariant_type().equals("STOP-GAIN") || this.getVariant_type().equals("START-LOST")) return true;
 //        return false;
@@ -128,7 +179,7 @@ public class SNPAnnotation extends BiSNP{
 
     public boolean isDeleterious(MethodCallDeleterious methodCallDeleterious){
         if (!hasAncestral()) return false;
-        double sift, gerp;
+        double sift, gerp16wayRefMask, phylop;
         switch (methodCallDeleterious){
             case SIFT:
                 if(!isNonSyn()) return false;
@@ -138,17 +189,17 @@ public class SNPAnnotation extends BiSNP{
                 return true;
             case GERP:
                 if(!isNonSyn()) return false;
-                if(this.getGerp().equals("NA")) return false;
-                gerp=Double.parseDouble(this.getGerp());
-                return !(gerp <= 1);
+                if(this.getGerp16way().equals("NA")) return false;
+                gerp16wayRefMask=Double.parseDouble(this.getGerp16way());
+                return !(gerp16wayRefMask < 2.14);
             case SIFT_GERP:
                 if(!isNonSyn()) return false;
                 if(this.getDerived_SIFT().equals("NA")) return false;
                 sift=Double.parseDouble(this.getDerived_SIFT());
                 if (sift >= 0.05) return false;
-                if(this.getGerp().equals("NA")) return false;
-                gerp=Double.parseDouble(this.getGerp());
-                return !(gerp <= 1);
+                if(this.getGerp16way().equals("NA")) return false;
+                gerp16wayRefMask=Double.parseDouble(this.getGerp16way());
+                return !(gerp16wayRefMask < 2.14);
             case STOPGAIN_STARTLOST_SIFT:
                 if (this.getVariant_type().equals("STOP-GAIN") || this.getVariant_type().equals("START-LOST")) return true;
                 return false;
@@ -162,6 +213,11 @@ public class SNPAnnotation extends BiSNP{
                 return this.getImpact_vep().equals("HIGH");
             case HIGH_SNPEFF:
                 return this.getImpact_snpEff().equals("HIGH");
+            case PHYLOP:
+                if(!isNonSyn()) return false;
+                if(this.getPhylopP_refMask().equals("NA")) return false;
+                phylop=Double.parseDouble(this.getPhylopP_refMask());
+                return !(phylop < 1.5);
         }
         return false;
     }

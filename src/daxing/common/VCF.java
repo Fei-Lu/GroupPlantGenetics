@@ -7,6 +7,9 @@ import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.util.CombinatoricsUtils;
+import pgl.infra.dna.genot.GenoIOFormat;
+import pgl.infra.dna.genot.GenotypeGrid;
+import pgl.infra.dna.genot.GenotypeOperation;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PArrayUtils;
@@ -1278,5 +1281,49 @@ public class VCF {
                 ioException.printStackTrace();
             }
         });
+    }
+
+    public static void calculateMissingRate(String inputChrVCF, List<String> taxaList1, List<String> taxaList2,
+                                            String outFile){
+        GenotypeGrid genotypeGrid = new GenotypeGrid(inputChrVCF, GenoIOFormat.VCF_GZ);
+        int[] taxaIndexes1= new int[taxaList1.size()];
+        int[] taxaIndexes2= new int[taxaList2.size()];
+        Arrays.fill(taxaIndexes1, -1);
+        Arrays.fill(taxaIndexes2, -1);
+        for (int i = 0; i < taxaList1.size(); i++) {
+            taxaIndexes1[i]=genotypeGrid.getTaxonIndex(taxaList1.get(i));
+        }
+        for (int i = 0; i < taxaList2.size(); i++) {
+            taxaIndexes2[i] = genotypeGrid.getTaxonIndex(taxaList2.get(i));
+        }
+        GenotypeGrid taxa1G=GenotypeOperation.getSubsetGenotypeByTaxon(genotypeGrid, taxaIndexes1);
+        GenotypeGrid taxa2G=GenotypeOperation.getSubsetGenotypeByTaxon(genotypeGrid, taxaIndexes2);
+        StringBuilder sb = new StringBuilder();
+        NumberFormat numberFormat = NumberFormat.getInstance();
+        numberFormat.setMaximumFractionDigits(5);
+        numberFormat.setGroupingUsed(false);
+        double totalTaxa1=taxa1G.getTaxaNumber();
+        double totalTaxa2=taxa2G.getTaxaNumber();
+        String missingRate1, missingRate2;
+        String refChr;
+        int refPosition;
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
+            bw.write("ChrID\tPos\tMissingRate1\tMissingRate2");
+            bw.newLine();
+            for (int i = 0; i < genotypeGrid.getSiteNumber(); i++) {
+                sb.setLength(0);
+                missingRate1 = numberFormat.format(taxa1G.getMissingNumberBySite(i)/totalTaxa1);
+                missingRate2 = numberFormat.format(taxa2G.getMissingNumberBySite(i)/totalTaxa2);
+                refChr = RefV1Utils.getChromosome(genotypeGrid.getChromosome(i), genotypeGrid.getPosition(i));
+                refPosition = RefV1Utils.getPosOnChromosome(genotypeGrid.getChromosome(i), genotypeGrid.getPosition(i));
+                sb.append(refChr).append("\t").append(refPosition).append("\t");
+                sb.append(missingRate1).append("\t").append(missingRate2);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
