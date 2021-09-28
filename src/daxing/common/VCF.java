@@ -1326,4 +1326,107 @@ public class VCF {
             e.printStackTrace();
         }
     }
+
+    public static void transformRefToAncestral(String vcfDir, String ancestralDir, String outDir){
+        System.out.println(DateTime.getDateTimeOfNow());
+        List<File> vcfFiles=IOUtils.getVisibleFileListInDir(vcfDir);
+        List<File> ancestralFiles=IOUtils.getVisibleFileListInDir(ancestralDir);
+        String[] outNames=vcfFiles.stream().map(File::getName).map(s->s.replaceAll("\\.vcf.gz",".RefToAncestral" +
+                ".vcf.gz")).toArray(String[]::new);
+        IntStream.range(0, ancestralFiles.size()).forEach(e->transformRefToAncestral(vcfFiles.get(e),
+                ancestralFiles.get(e), new File(outDir, outNames[e])));
+        System.out.println(DateTime.getDateTimeOfNow());
+    }
+
+    /**
+     * 将具有ancestral 状态的sites 的ref allele替换为ancestral allele,
+     * ancestral状态未知的sites保持原样
+     * @param vcfFile
+     * @param ancestralFile
+     * @param outFile
+     */
+    private static void transformRefToAncestral(File vcfFile, File ancestralFile, File outFile){
+        Table<Integer, Integer, String> ancestralTable=getAncestral(ancestralFile.getAbsolutePath());
+        try (BufferedReader br = IOTool.getReader(vcfFile);
+             BufferedWriter bw=IOTool.getWriter(outFile)) {
+            String line, refAllele, altAllele, ancestralAllele;
+            List<String> temp;
+            int chr, pos;
+            int total=0;
+            int count=0;
+            int ancestralCount=0;
+            while ((line=br.readLine()).startsWith("##")){
+                bw.write(line);
+                bw.newLine();
+            }
+            bw.write(line);
+            bw.newLine();
+            String te;
+            StringBuilder sb=new StringBuilder();
+            while ((line=br.readLine())!=null){
+                total++;
+                temp=PStringUtils.fastSplit(line);
+                chr=Integer.parseInt(temp.get(0));
+                pos=Integer.parseInt(temp.get(1));
+                refAllele=temp.get(3);
+                altAllele=temp.get(4);
+                ancestralAllele=ancestralTable.get(chr, pos);
+                if (!ancestralTable.contains(chr, pos)){
+                    bw.write(line);
+                    bw.newLine();
+                    continue;
+                }
+                ancestralCount++;
+                if (refAllele.equals(ancestralAllele)){
+                    count++;
+                    bw.write(line);
+                    bw.newLine();
+                }else if (altAllele.equals(ancestralAllele)){
+                    sb.setLength(0);
+                    sb.append(String.join("\t", temp.subList(0,3))).append("\t");
+                    sb.append(ancestralAllele).append("\t").append(refAllele).append("\t");
+                    sb.append(String.join("\t", temp.subList(5,9))).append("\t");
+                    for (int i = 9; i < temp.size(); i++) {
+                        if (temp.get(i).startsWith("0/0")){
+                            te=temp.get(i);
+                            sb.append("1/1").append(te.substring(3)).append("\t");
+                        }else if (temp.get(i).startsWith("1/1")){
+                            te=temp.get(i);
+                            sb.append("0/0").append(te.substring(3)).append("\t");
+                        }else {
+                            sb.append(temp.get(i)).append("\t");
+                        }
+                    }
+                    sb.deleteCharAt(sb.length()-1);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }else {
+                    bw.write(line);
+                    bw.newLine();
+                }
+            }
+            bw.flush();
+            System.out.println(vcfFile.getName()+" total sites: "+total+", ancestral site: "+ancestralCount+", " +
+                    "refAllele equal " +
+                    "ancestral allele sites: "+ count);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static Table<Integer, Integer, String> getAncestral(String ancestralFile){
+        Table<Integer, Integer, String> table= HashBasedTable.create();
+        try (BufferedReader br = IOTool.getReader(ancestralFile)) {
+            String line;
+            List<String> temp;
+            br.readLine();
+            while ((line=br.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                table.put(Integer.parseInt(temp.get(0)), Integer.parseInt(temp.get(1)), temp.get(2));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return table;
+    }
 }
