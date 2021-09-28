@@ -179,7 +179,7 @@ public class SNPAnnotation extends BiSNP{
 
     public boolean isDeleterious(MethodCallDeleterious methodCallDeleterious){
         if (!hasAncestral()) return false;
-        double sift, gerp16wayRefMask, phylop;
+        double sift, gerp16wayRefMask, phylop, listS2;
         switch (methodCallDeleterious){
             case SIFT:
                 if(!isNonSyn()) return false;
@@ -218,6 +218,11 @@ public class SNPAnnotation extends BiSNP{
                 if(this.getPhylopP_refMask().equals("NA")) return false;
                 phylop=Double.parseDouble(this.getPhylopP_refMask());
                 return !(phylop < 1.5);
+            case LIST_S2:
+                if(!isNonSyn()) return false;
+                if(this.getList_s2() < 0) return false;
+                listS2=this.getList_s2();
+                return !(listS2 < 0.85);
         }
         return false;
     }
