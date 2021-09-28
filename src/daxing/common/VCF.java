@@ -2,11 +2,15 @@ package daxing.common;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import com.koloboke.collect.map.hash.HashCharByteMap;
+import com.koloboke.collect.map.hash.HashCharByteMaps;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.util.CombinatoricsUtils;
+import pgl.infra.dna.BaseEncoder;
+import pgl.infra.dna.allele.AlleleEncoder;
 import pgl.infra.dna.genot.GenoIOFormat;
 import pgl.infra.dna.genot.GenotypeGrid;
 import pgl.infra.dna.genot.GenotypeOperation;
@@ -1428,5 +1432,52 @@ public class VCF {
             e.printStackTrace();
         }
         return table;
+    }
+
+    public static void getGenotypeNum(String inputVCFDir, List<String> taxaList, String outDir){
+        List<File> files = IOTool.getFileListInDirEndsWith(inputVCFDir, ".vcf.gz");
+        String[] outNames =files.stream().map(File::getName).map(s-> s.replaceAll(".vcf.gz",".geno.gz")).toArray(String[]::new);
+        IntStream.range(0, files.size()).parallel().forEach(e->{
+            GenotypeGrid genotypeGrid = new GenotypeGrid(files.get(e).getAbsolutePath(), GenoIOFormat.VCF_GZ);
+            int[] taxaIndexes=new int[taxaList.size()];
+            Arrays.fill(taxaIndexes, -1);
+            for (int i = 0; i < taxaList.size(); i++) {
+                taxaIndexes[i]=genotypeGrid.getTaxonIndex(taxaList.get(i));
+                assert taxaIndexes[i] >=0 : "taxon name error";
+            }
+            try (BufferedWriter bw = IOTool.getWriter(new File(outDir, outNames[e]))) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("Chr\tPos\tRef\tAlt\t").append(String.join("\t", taxaList));
+                bw.write(sb.toString());
+                bw.newLine();
+                GenotypeGrid grid=GenotypeOperation.getSubsetGenotypeByTaxon(genotypeGrid, taxaIndexes);
+                byte genotypeByte;
+                char allele1, allele2, refAllele, altAllele;
+                GenotypeRecode genotypeRecode;
+                for (int i = 0; i < grid.getSiteNumber(); i++) {
+                    sb.setLength(0);
+                    sb.append(grid.getChromosome(i)).append("\t");
+                    sb.append(grid.getPosition(i)).append("\t");
+                    sb.append(grid.getReferenceAlleleBase(i)).append("\t");
+                    sb.append(grid.getAlternativeAlleleBase(i)).append("\t");
+                    for (int j = 0; j < taxaIndexes.length; j++) {
+                        genotypeByte=grid.getGenotypeByte(i,j);
+                        refAllele = grid.getReferenceAlleleBase(i);
+                        altAllele = grid.getAlternativeAlleleBase(i);
+                        allele1=AlleleEncoder.getAlleleBase1FromGenotypeByte(genotypeByte);
+                        allele2=AlleleEncoder.getAlleleBase2FromGenotypeByte(genotypeByte);
+                        genotypeRecode = GenotypeRecode.newInstanceFromChar(refAllele,altAllele,allele1, allele2);
+                        sb.append(genotypeRecode.getRecodeByte()).append("\t");
+                    }
+                    sb.deleteCharAt(sb.length()-1);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+                bw.flush();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+
+        });
     }
 }
