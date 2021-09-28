@@ -21,6 +21,15 @@ public enum GenotypeRecode {
         return genotype;
     }
 
+    /**
+     * Allele byte from AlleleEncoder
+     * missing ./. is N in AlleleEncoder
+     * @param refAllele
+     * @param altAllele
+     * @param allele1
+     * @param allele2
+     * @return
+     */
     public static GenotypeRecode newInstanceFromChar(char refAllele, char altAllele, char allele1, char allele2){
         if (allele1==allele2 && allele1 == refAllele) return GenotypeRecode.REF;
         if (allele1==allele2 && allele1 == altAllele) return GenotypeRecode.ALT;
