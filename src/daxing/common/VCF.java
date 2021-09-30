@@ -1434,36 +1434,36 @@ public class VCF {
         return table;
     }
 
-    public static void getGenotypeNum(String inputVCFDir, List<String> taxaList, String outDir){
+    public static void getGenotypeNum(String inputVCFDir, String outDir){
         List<File> files = IOTool.getFileListInDirEndsWith(inputVCFDir, ".vcf.gz");
         String[] outNames =files.stream().map(File::getName).map(s-> s.replaceAll(".vcf.gz",".geno.gz")).toArray(String[]::new);
         IntStream.range(0, files.size()).parallel().forEach(e->{
             GenotypeGrid genotypeGrid = new GenotypeGrid(files.get(e).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-            int[] taxaIndexes=new int[taxaList.size()];
-            Arrays.fill(taxaIndexes, -1);
-            for (int i = 0; i < taxaList.size(); i++) {
-                taxaIndexes[i]=genotypeGrid.getTaxonIndex(taxaList.get(i));
-                assert taxaIndexes[i] >=0 : "taxon name error";
-            }
             try (BufferedWriter bw = IOTool.getWriter(new File(outDir, outNames[e]))) {
                 StringBuilder sb = new StringBuilder();
-                sb.append("Chr\tPos\tRef\tAlt\t").append(String.join("\t", taxaList));
+                String[] taxaNames=genotypeGrid.getTaxaNames();
+                sb.append("CHROM\tPOS\tREF\tALT\t").append(String.join("\t", taxaNames));
                 bw.write(sb.toString());
                 bw.newLine();
-                GenotypeGrid grid=GenotypeOperation.getSubsetGenotypeByTaxon(genotypeGrid, taxaIndexes);
+                String refChr;
+                int refPos, pos, chrID;
                 byte genotypeByte;
                 char allele1, allele2, refAllele, altAllele;
                 GenotypeRecode genotypeRecode;
-                for (int i = 0; i < grid.getSiteNumber(); i++) {
+                for (int i = 0; i < genotypeGrid.getSiteNumber(); i++) {
                     sb.setLength(0);
-                    sb.append(grid.getChromosome(i)).append("\t");
-                    sb.append(grid.getPosition(i)).append("\t");
-                    sb.append(grid.getReferenceAlleleBase(i)).append("\t");
-                    sb.append(grid.getAlternativeAlleleBase(i)).append("\t");
-                    for (int j = 0; j < taxaIndexes.length; j++) {
-                        genotypeByte=grid.getGenotypeByte(i,j);
-                        refAllele = grid.getReferenceAlleleBase(i);
-                        altAllele = grid.getAlternativeAlleleBase(i);
+                    chrID=genotypeGrid.getChromosome(i);
+                    pos=genotypeGrid.getPosition(i);
+                    refChr = RefV1Utils.getChromosome(chrID,pos);
+                    refPos = RefV1Utils.getPosOnChromosome(chrID, pos);
+                    sb.append(refChr).append("\t");
+                    sb.append(refPos).append("\t");
+                    sb.append(genotypeGrid.getReferenceAlleleBase(i)).append("\t");
+                    sb.append(genotypeGrid.getAlternativeAlleleBase(i)).append("\t");
+                    for (int j = 0; j < taxaNames.length; j++) {
+                        genotypeByte=genotypeGrid.getGenotypeByte(i,j);
+                        refAllele = genotypeGrid.getReferenceAlleleBase(i);
+                        altAllele = genotypeGrid.getAlternativeAlleleBase(i);
                         allele1=AlleleEncoder.getAlleleBase1FromGenotypeByte(genotypeByte);
                         allele2=AlleleEncoder.getAlleleBase2FromGenotypeByte(genotypeByte);
                         genotypeRecode = GenotypeRecode.newInstanceFromChar(refAllele,altAllele,allele1, allele2);
