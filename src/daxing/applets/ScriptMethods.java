@@ -14,6 +14,7 @@ import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
+import smile.stat.Stat;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -781,5 +782,35 @@ public class ScriptMethods {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void reCollectedUncompletedScript(String shDir, String shLogDir, String outDir){
+        List<File> shFiles = IOTool.getFileListInDirEndsWith(shDir, "sh");
+        List<File> shLogFiles = IOTool.getFileListInDirEndsWith(shLogDir, "log");
+        String[] outNames=shFiles.stream().map(File::getName).map(s -> s.replaceAll("sh","uncompleted_sh")).toArray(String[]::new);
+        IntStream.range(0, shFiles.size()).parallel().forEach(e->{
+            try (BufferedReader brSh = IOTool.getReader(shFiles.get(e));
+                 BufferedReader brShLog=IOTool.getReader(shLogFiles.get(e));
+                 BufferedWriter bw = IOTool.getWriter(new File(outDir, outNames[e]))) {
+                String line;
+                int cnt=0;
+                int count=0;
+                while((line= brShLog.readLine())!=null){
+                    if (line.startsWith("Done")){
+                        cnt++;
+                    }
+                }
+                while ((line= brSh.readLine())!=null){
+                    count++;
+                    if (count > cnt){
+                        bw.write(line);
+                        bw.newLine();
+                    }
+                }
+                bw.flush();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        });
     }
 }
