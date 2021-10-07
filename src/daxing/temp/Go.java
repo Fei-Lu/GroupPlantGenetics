@@ -4,7 +4,6 @@ import com.google.common.base.Enums;
 import daxing.common.DateTime;
 import daxing.common.IOTool;
 import daxing.common.RowTableTool;
-import daxing.common.WheatLineage;
 import daxing.load.ancestralSite.ChrSNPAnnoDB;
 import daxing.load.ancestralSite.GeneLoad;
 import daxing.load.ancestralSite.SNPAnnotation;
@@ -58,7 +57,7 @@ public class Go {
             ChrSNPAnnoDB transcriptDB=new ChrSNPAnnoDB(exonSNPAnnoFile);
             IndividualBurden[] taxonBurden=new IndividualBurden[taxonNames.size()];
             for (int i = 0; i < taxonBurden.length; i++) {
-                taxonBurden[i]=new IndividualBurden(taxonNames.get(i), 10);
+                taxonBurden[i]=new IndividualBurden(taxonNames.get(i), chr,10);
             }
             int pos, depth;
             String genotype, subLine;
@@ -69,7 +68,6 @@ public class Go {
             byte[] indexGenotype; // syn nonsyn del
             String sub;
             IntrogressionRegion.P2 p2;
-            WheatLineage wheatLineage;
             double[] p3Bins;
             while ((line=br.readLine())!=null){
                 subLine= line.substring(0,20);
@@ -82,10 +80,9 @@ public class Go {
                 isDeleterious=transcriptDB.isDeleterious(chr, pos, methodCallDeleterious);
                 if (!(isSyn || isNonsyn || isDeleterious)) continue;
                 isRefAlleleAncestral=transcriptDB.isRefAlleleAncestral(chr, pos);
-                sub=transcriptDB.getGeneName(chr, pos).substring(8,9);
-                wheatLineage=WheatLineage.valueOf(sub);
                 temp = PStringUtils.fastSplit(line);
                 for (int i = 0; i < taxonNames.size(); i++) {
+                    if (!taxaP2Map.containsKey(taxonNames.get(i))) continue;
                     genotypeList=PStringUtils.fastSplit(temp.get(i+9), ":");
                     genotype=genotypeList.get(0);
                     if (genotype.equals("./.")) continue;
@@ -109,16 +106,18 @@ public class Go {
                     p2=IntrogressionRegion.P2.valueOf(taxaP2Map.get(taxonNames.get(i)));
                     p3Bins = introgressionRegion.getP3fdModifyBins(chr,pos,p2);
                     for (IntrogressionRegion.P3 p3: IntrogressionRegion.P3.values()){
-                        taxonBurden[i].addLoadCount(wheatLineage,p3Bins[p3.index],p3, indexGenotype);
+                        if (p3Bins[p3.index] < 0) continue;
+                        taxonBurden[i].addLoadCount(p3Bins[p3.index],p3, indexGenotype);
                     }
                 }
             }
             // dim1: Sub, dim2: fdBins, dim3: p3, dim4: burden 9 column
-            bw.write("Taxa\tSub\tFdModifyBins\tP3\tnumSyn\tnumDerivedInSyn\tnumHeterInSyn\tnumNonsyn" +
+            bw.write("Taxa\tChrID\tFdModifyBins\tP3\tnumSyn\tnumDerivedInSyn\tnumHeterInSyn\tnumNonsyn" +
                     "\tnumDerivedInNonsyn\tnumHeterInNonsyn\tnumHGDeleterious\tnumDerivedInHGDeleterious" +
                     "\tnumHeterInHGDeleterious");
             bw.newLine();
             for (IndividualBurden individualBurden:taxonBurden){
+                if (!taxaP2Map.containsKey(individualBurden.taxon)) continue;
                 bw.write(individualBurden.toString());
                 bw.newLine();
             }

@@ -84,7 +84,7 @@ public class IntrogressionRegion {
                 temp= PStringUtils.fastSplit(line);
                 chr = temp.get(0);
                 start = Integer.parseInt(temp.get(1));
-                end = Integer.parseInt(temp.get(2));
+                end = Integer.parseInt(temp.get(2))+1;
                 chrRange = new ChrRange(chr, start, end);
                 index = Arrays.binarySearch(this.getChrRanges(), chrRange);
                 assert index >=0 : "check index";
@@ -142,8 +142,7 @@ public class IntrogressionRegion {
     }
 
     private boolean isWithinThisChrRange(int index, String refChr, int refPos){
-        if (refChr!=this.chrRanges[index].getChr()) return false;
-        if (refPos < this.chrRanges[index].getStart()) return false;
+        if (!refChr.equals(this.chrRanges[index].getChr())) return false;
         if (refPos >= this.chrRanges[index].getEnd()) return false;
         return  true;
     }
