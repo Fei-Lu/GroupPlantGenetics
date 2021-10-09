@@ -7,7 +7,6 @@ import daxing.common.RowTableTool;
 import pgl.infra.pos.ChrPos;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
-
 import java.io.*;
 import java.util.*;
 import java.util.function.Predicate;
@@ -67,7 +66,8 @@ public class ChrSNPAnnoDB {
         return new SNPAnnotation(chr, pos, refBase, altBase, geneName, majorBase, ancestral, maf
                 , aaf, daf, dafs, region, variant_type, derived_SIFT, gerp, recombinationRate,
                 null, null, null, null, null,
-                null, null, null,null,null,null,null);
+                null, null, null,null,null,null,
+                null, null, null, null);
     }
 
     /**
@@ -110,11 +110,14 @@ public class ChrSNPAnnoDB {
         double[] aaf = null;
         String[] dafs = null;
 
+        String derived_PolyPhen2_prediction=temp.get(38);
+        String derived_PolyPhen2_class=temp.get(39);
+        String derived_PolyPhen2_prob=temp.get(40);
 
         return new SNPAnnotation(chr, pos, refBase, altBase, geneName, majorBase, ancestral, maf
                 , aaf, daf, dafs, region, variant_type, derived_SIFT, gerp, recombinationRate,
                 effect_snpEff, impact_snpEff, effect_vep, impact_vep,gerp16way,aaPos, aaSize, listS2, phylopRefMask,
-                alleleAgeJ,alleleAgeM, alleleAgeR);
+                alleleAgeJ,alleleAgeM, alleleAgeR, derived_PolyPhen2_prediction, derived_PolyPhen2_class, derived_PolyPhen2_prob);
     }
 
     public int getSize(){

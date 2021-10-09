@@ -28,6 +28,9 @@ public class SNPAnnotation extends BiSNP{
     double alleleAgeJ;
     double alleleAgeM;
     double alleleAgeR;
+    String derived_PolyPhen2_prediction;
+    String derived_PolyPhen2_class;
+    double derived_PolyPhen2_prob;
 
 
     public enum Region{
@@ -42,13 +45,13 @@ public class SNPAnnotation extends BiSNP{
 
     public enum MethodCallDeleterious{
         SIFT, GERP, SIFT_GERP, STOPGAIN_STARTLOST_SIFT, STOPGAIN_STARTLOST_VEP, STOPGAIN_STARTLOST_SNPEFF, HIGH_VEP,
-        HIGH_SNPEFF, PHYLOP, LIST_S2
+        HIGH_SNPEFF, PHYLOP, LIST_S2, PPH2, GERP_PPH2
 
         // SIFT < 0.05
-        // GERP >= 2.14
+        // GERP >= 1
         // PhyloP >= 1.5
         // LIST-S2 >= 0.85
-
+        // PPH2 >=0.452
     }
 
 
@@ -57,7 +60,8 @@ public class SNPAnnotation extends BiSNP{
                   String variant_type, String derived_SIFT, String gerp, String recombinationRate,
                   String effect_snpEff, String impact_snpEff, String effect_vep, String impact_vep, String gerp16way,
                   String aaPos, String aaSize, String list_s2, String phylopP_refMask, String alleleAgeJ, String alleleAgeM
-            , String alleleAgeR){
+            , String alleleAgeR, String derived_PolyPhen2_prediction, String derived_PolyPhen2_class,
+                  String derived_PolyPhen2_prob){
         super(chr, pos, refBase, altBase, transcriptName);
         if (this.getReferenceAlleleBase()==majorBase){
             this.setReferenceAlleleType(AlleleType.Major);
@@ -98,6 +102,9 @@ public class SNPAnnotation extends BiSNP{
         this.alleleAgeJ=alleleAgeJ.equals("NA") ? -1 : Double.parseDouble(alleleAgeJ);
         this.alleleAgeM=alleleAgeM.equals("NA") ? -1 : Double.parseDouble(alleleAgeM);
         this.alleleAgeR=alleleAgeR.equals("NA") ? -1 : Double.parseDouble(alleleAgeR);
+        this.derived_PolyPhen2_prediction= derived_PolyPhen2_prediction;
+        this.derived_PolyPhen2_class=derived_PolyPhen2_class;
+        this.derived_PolyPhen2_prob=derived_PolyPhen2_prob.equals("NA") ? -1 : Double.parseDouble(derived_PolyPhen2_prob);
     }
 
     public double getMaf() {
@@ -114,6 +121,10 @@ public class SNPAnnotation extends BiSNP{
 
     public double getList_s2() {
         return list_s2;
+    }
+
+    public double getDerived_PolyPhen2_prob() {
+        return derived_PolyPhen2_prob;
     }
 
     public String getPhylopP_refMask() {
@@ -179,7 +190,7 @@ public class SNPAnnotation extends BiSNP{
 
     public boolean isDeleterious(MethodCallDeleterious methodCallDeleterious){
         if (!hasAncestral()) return false;
-        double sift, gerp16wayRefMask, phylop, listS2;
+        double sift, gerp16wayRefMask, phylop, listS2, pph2;
         switch (methodCallDeleterious){
             case SIFT:
                 if(!isNonSyn()) return false;
@@ -191,7 +202,7 @@ public class SNPAnnotation extends BiSNP{
                 if(!isNonSyn()) return false;
                 if(this.getGerp16way().equals("NA")) return false;
                 gerp16wayRefMask=Double.parseDouble(this.getGerp16way());
-                return !(gerp16wayRefMask < 2.14);
+                return !(gerp16wayRefMask < 1);
             case SIFT_GERP:
                 if(!isNonSyn()) return false;
                 if(this.getDerived_SIFT().equals("NA")) return false;
@@ -199,7 +210,7 @@ public class SNPAnnotation extends BiSNP{
                 if (sift >= 0.05) return false;
                 if(this.getGerp16way().equals("NA")) return false;
                 gerp16wayRefMask=Double.parseDouble(this.getGerp16way());
-                return !(gerp16wayRefMask < 2.14);
+                return !(gerp16wayRefMask < 1);
             case STOPGAIN_STARTLOST_SIFT:
                 if (this.getVariant_type().equals("STOP-GAIN") || this.getVariant_type().equals("START-LOST")) return true;
                 return false;
@@ -223,6 +234,19 @@ public class SNPAnnotation extends BiSNP{
                 if(this.getList_s2() < 0) return false;
                 listS2=this.getList_s2();
                 return !(listS2 < 0.85);
+            case PPH2:
+                if(!isNonSyn()) return false;
+                if(this.getDerived_PolyPhen2_prob() < 0) return false;
+                pph2=this.getDerived_PolyPhen2_prob();
+                return !(pph2 < 0.452);
+            case GERP_PPH2:
+                if(!isNonSyn()) return false;
+                if(this.getGerp16way().equals("NA")) return false;
+                gerp16wayRefMask=Double.parseDouble(this.getGerp16way());
+                if (gerp16wayRefMask < 1) return false;
+                if(this.getDerived_PolyPhen2_prob() < 0) return false;
+                pph2=this.getDerived_PolyPhen2_prob();
+                return !(pph2 < 0.452);
         }
         return false;
     }
