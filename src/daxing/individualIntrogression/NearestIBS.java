@@ -63,7 +63,7 @@ public class NearestIBS {
             }
         }
         RowTableTool<String> taxonTable=new RowTableTool<>(taxa_InfoDB);
-        Map<String, String> taxonMap= taxonTable.getHashMap(23,0);
+        Map<String, String> taxonMap= taxonTable.getHashMap(35,0);
         GenotypeGrid genotypeGridA, genotypeGridB, genotypeGrid;
 //        System.out.println("----------- Start calculate: "+chrAB.get(index)+" -----------");
 //        genotypeGridA=new GenotypeGrid(abFiles.get(2*index).getAbsolutePath(), GenoIOFormat.VCF_GZ);
@@ -113,8 +113,8 @@ public class NearestIBS {
         String p2, p3;
         Set<String> p2Set=new HashSet<>(), p3Set=new HashSet<>();
         for (int i = 0; i < chrFdFiles.size(); i++) {
-            p2=chrFdFiles.get(i).getName().substring(14,19);
-            p3=chrFdFiles.get(i).getName().substring(20,25);
+            p2=chrFdFiles.get(i).getName().substring(14,20);
+            p3=chrFdFiles.get(i).getName().substring(22,28);
             p2Set.add(p2);
             p3Set.add(p3);
         }
@@ -128,12 +128,12 @@ public class NearestIBS {
         }
         int p2Index;
         for (int i = 0; i < chrFdFiles.size(); i++) {
-            p2=chrFdFiles.get(i).getName().substring(14,19);
+            p2=chrFdFiles.get(i).getName().substring(14,20);
             p2Index=Collections.binarySearch(p2List, p2);
             taxonFdFiles[p2Index].add(chrFdFiles.get(i));
         }
         String[] outNames= IntStream.range(0, p2List.size()).boxed().map(e->
-                                   chrFdFiles.get(0).getName().substring(0,14)+p2List.get(e)+".csv").toArray(String[]::new);
+                                   chrFdFiles.get(0).getName().substring(0,13)+p2List.get(e)+".csv").toArray(String[]::new);
         for (int i = 0; i < taxonFdFiles.length; i++) {
             findNearestIBSWindow(genotypeGrid, p3List, taxonMap, taxonFdFiles[i], new File(outDir, outNames[i]));
         }
@@ -152,7 +152,7 @@ public class NearestIBS {
         long start= System.nanoTime();
         Collections.sort(p3FdFilesPerP2);
         List<ChrRange> chrRanges=extractWindow(p3FdFilesPerP2.get(0));
-        String p2 =p3FdFilesPerP2.get(0).getName().substring(14,19);
+        String p2 =p3FdFilesPerP2.get(0).getName().substring(14,20);
         int p2Index, p3Index, startPosVCF, endPosVCF, startIndex, endIndex;
         short startChrID, endChrID;
         float ibs;
@@ -181,7 +181,7 @@ public class NearestIBS {
                 temp=p3Tables.get(j).getRow(i);
                 if (ifDChangeTo0(temp.get(8))){
                     p3Tables.get(j).setCell(i, 9, "0"); // if D 为nan 或-inf inf, 将fd转换为0
-                    p3Tables.get(j).setCell(i, 8, "0"); // if D 为nan 或-inf inf, 将D转换为0
+//                    p3Tables.get(j).setCell(i, 8, "0"); // if D 为nan 或-inf inf, 将D转换为0
                     continue;
                 }
                 if (ifFdChangeTo0(temp.get(8), temp.get(9))){
