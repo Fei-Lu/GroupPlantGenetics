@@ -1,14 +1,18 @@
 package daxing.load.ancestralSite;
 
+import daxing.common.ChrRange;
+import daxing.common.ChrRanges;
 import daxing.common.IOTool;
 import daxing.common.RowTableTool;
 import pgl.infra.pos.ChrPos;
 import pgl.infra.utils.PStringUtils;
+import pgl.infra.utils.wheat.RefV1Utils;
 
 import java.io.*;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class ChrSNPAnnoDB {
 
@@ -278,5 +282,58 @@ public class ChrSNPAnnoDB {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void filterRange(String rangeFile, String snpAnnpDBDir, String outDir){
+        ChrRanges chrRanges=getChrRange(rangeFile);
+        chrRanges.sortBy(ChrRanges.SortType.POSITION);
+        List<File> snpAnnDBFiles=IOTool.getFileListInDirEndsWith(snpAnnpDBDir, ".gz");
+        String[] outNames=snpAnnDBFiles.stream().map(File::getName).toArray(String[]::new);
+        IntStream.range(0, snpAnnDBFiles.size()).forEach(e->{
+            try (BufferedReader br = IOTool.getReader(snpAnnDBFiles.get(e));
+                 BufferedWriter bw = IOTool.getWriter(new File(outDir, outNames[e]))) {
+                List<String> temp;
+                String line, refChr;
+                line=br.readLine();
+                bw.write(line);
+                bw.newLine();
+                int chrID, pos, refPos;
+                while ((line=br.readLine())!=null){
+                    temp=PStringUtils.fastSplit(line);
+                    chrID = Integer.parseInt(temp.get(1));
+                    pos = Integer.parseInt(temp.get(2));
+                    refChr= RefV1Utils.getChromosome(chrID, pos);
+                    refPos = RefV1Utils.getPosOnChromosome(chrID, pos);
+                    if (chrRanges.contain(refChr, refPos)) continue;
+                    bw.write(line);
+                    bw.newLine();
+                }
+                bw.flush();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        });
+    }
+
+    private static ChrRanges getChrRange(String rangeFile){
+        List<ChrRange> rangeList=new ArrayList<>();
+        try (BufferedReader br = IOTool.getReader(rangeFile)) {
+            String line, refChr;
+            int refStart, refEnd;
+            ChrRange chrRange;
+            List<String> temp;
+            br.readLine();
+            while ((line=br.readLine())!=null){
+                temp=PStringUtils.fastSplit(line);
+                refChr=temp.get(0);
+                refStart=Integer.parseInt(temp.get(1));
+                refEnd=Integer.parseInt(temp.get(2))+1;
+                chrRange = new ChrRange(refChr, refStart, refEnd);
+                rangeList.add(chrRange);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new ChrRanges(rangeList);
     }
 }
