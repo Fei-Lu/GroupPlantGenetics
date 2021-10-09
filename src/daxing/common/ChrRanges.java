@@ -26,6 +26,19 @@ public class ChrRanges {
         return sA-sB;
     };
 
+    IntComparator compByPosition = (indexA, indexB) ->{
+        String chrA = getChrRange(indexA).getChr();
+        String chrB = getChrRange(indexB).getChr();
+        if (chrA.equals(chrB)) {
+            int startA = getChrRange(indexA).getStart();
+            int startB = getChrRange(indexB).getStart();
+            return startA-startB;
+        }
+        else {
+            return chrA.compareTo(chrB);
+        }
+    };
+
     public enum SortType{
         SIZE, POSITION, UNSORTED
     }
@@ -42,10 +55,6 @@ public class ChrRanges {
 
     public List<ChrRange> getChrRanges() {
         return chrRanges;
-    }
-
-    public int[] getOverlappedRangeIndices(ChrRange chrRange){
-        return null;
     }
 
     public ChrRange getChrRange(int rangeIndex){
@@ -82,19 +91,6 @@ public class ChrRanges {
         return this.chrRanges.size();
     }
 
-    IntComparator compByStartPosition = (indexA, indexB) ->{
-        String chrA = getChrRange(indexA).getChr();
-        String chrB = getChrRange(indexB).getChr();
-        if (chrA.equals(chrB)) {
-            int startA = getChrRange(indexA).getStart();
-            int startB = getChrRange(indexB).getStart();
-            return startA-startB;
-        }
-        else {
-            return chrA.compareTo(chrB);
-        }
-    };
-
     public void sortBy(SortType sortType){
         assert sortType.equals(SortType.SIZE) || sortType.equals(SortType.POSITION) : "must sort by position or size," +
                 " other do not support";
@@ -104,7 +100,7 @@ public class ChrRanges {
                 this.sortType = SortType.SIZE;
                 break;
             case POSITION:
-                GenericSorting.quickSort(0, this.getRangeNumber(), compByStartPosition, swapper);
+                GenericSorting.quickSort(0, this.getRangeNumber(), compByPosition, swapper);
                 this.sortType = SortType.POSITION;
                 break;
             case UNSORTED:
