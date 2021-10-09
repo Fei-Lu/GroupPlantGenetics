@@ -14,8 +14,6 @@ import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
-import smile.stat.Stat;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -812,5 +810,18 @@ public class ScriptMethods {
                 ioException.printStackTrace();
             }
         });
+    }
+
+    public static void searchRunnedCommand(String inputResDir, String runnedNameOutFile){
+        List<File> files = IOTool.getFileListInDirEndsWith(inputResDir, "csv");
+        Predicate<File> filePredicate = file -> file.length() > 200;
+        List<String> runnedFiles=files.stream().filter(filePredicate).map(File::getName).collect(Collectors.toList());
+        try (BufferedWriter bw = IOTool.getWriter(runnedNameOutFile)) {
+            bw.write(String.join("\n", runnedFiles));
+            bw.newLine();
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
