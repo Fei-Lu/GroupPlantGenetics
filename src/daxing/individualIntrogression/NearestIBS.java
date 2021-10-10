@@ -262,7 +262,7 @@ public class NearestIBS {
         System.out.println(DateTime.getDateTimeOfNow());
         List<File> files=IOUtils.getVisibleFileListInDir(fdChrDir);
         Map<String, List<File>> taxaMap=
-                files.stream().collect(Collectors.groupingBy(file -> PStringUtils.fastSplit(file.getName(), "_").get(2)));
+                files.stream().collect(Collectors.groupingBy(file -> file.getName().substring(13,20)));
         String taxaName;
         List<File> taxaChrFiles;
         RowTableTool<String> table0, table;
