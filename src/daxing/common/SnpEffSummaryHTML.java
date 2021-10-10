@@ -34,7 +34,7 @@ public class SnpEffSummaryHTML {
     }
 
     private void parseSummaryHTML(File inputFileOfSummaryHTML){
-        try (BufferedReader br = IOUtils.getTextReader(inputFileOfSummaryHTML.getAbsolutePath())) {
+        try (BufferedReader br = IOTool.getReader(inputFileOfSummaryHTML.getAbsolutePath())) {
             String line;
             boolean first=false;
             TIntArrayList numberOfEffectsByImpactList=new TIntArrayList();
@@ -212,7 +212,7 @@ public class SnpEffSummaryHTML {
                                                      String outFileDirOfEffectsByTypeAndRegion){
         File[] input=IOUtils.listRecursiveFiles(new File(summaryHtmlFileDir));
         Predicate<File> p=File::isHidden;
-        File[] files=Arrays.stream(input).filter(p.negate()).filter(f->f.getName().endsWith("html")).toArray(File[]::new);
+        File[] files= Arrays.stream(input).filter(p.negate()).filter(f->f.getName().endsWith("html.gz")).toArray(File[]::new);
         List<SnpEffSummaryHTML> snpEffSummaryHTMLS=Arrays.stream(files).map(SnpEffSummaryHTML::new).collect(Collectors.toList());
         int[] a_LineageIndex= IntStream.iterate(1, n->n+6).map(n->n-1).limit(7).toArray();
         int[] b_LineageIndex=IntStream.iterate(3, n->n+6).map(n->n-1).limit(7).toArray();
