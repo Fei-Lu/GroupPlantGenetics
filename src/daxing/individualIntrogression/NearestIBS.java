@@ -97,7 +97,7 @@ public class NearestIBS {
 //            calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdDFiles[i],fdOutDir);
 //            System.out.println("----------- finished: "+chrD.get(i)+" -----------");
 //        }
-//        System.out.println(DateTime.getDateTimeOfNow());
+        System.out.println(DateTime.getDateTimeOfNow());
     }
 
     /**
@@ -113,8 +113,8 @@ public class NearestIBS {
         String p2, p3;
         Set<String> p2Set=new HashSet<>(), p3Set=new HashSet<>();
         for (int i = 0; i < chrFdFiles.size(); i++) {
-            p2=chrFdFiles.get(i).getName().substring(14,20);
-            p3=chrFdFiles.get(i).getName().substring(22,28);
+            p2=chrFdFiles.get(i).getName().substring(14,21);
+            p3=chrFdFiles.get(i).getName().substring(22,29);
             p2Set.add(p2);
             p3Set.add(p3);
         }
@@ -128,7 +128,7 @@ public class NearestIBS {
         }
         int p2Index;
         for (int i = 0; i < chrFdFiles.size(); i++) {
-            p2=chrFdFiles.get(i).getName().substring(14,20);
+            p2=chrFdFiles.get(i).getName().substring(14,21);
             p2Index=Collections.binarySearch(p2List, p2);
             taxonFdFiles[p2Index].add(chrFdFiles.get(i));
         }
@@ -152,7 +152,7 @@ public class NearestIBS {
         long start= System.nanoTime();
         Collections.sort(p3FdFilesPerP2);
         List<ChrRange> chrRanges=extractWindow(p3FdFilesPerP2.get(0));
-        String p2 =p3FdFilesPerP2.get(0).getName().substring(14,20);
+        String p2 =p3FdFilesPerP2.get(0).getName().substring(14,21);
         int p2Index, p3Index, startPosVCF, endPosVCF, startIndex, endIndex;
         short startChrID, endChrID;
         float ibs;
