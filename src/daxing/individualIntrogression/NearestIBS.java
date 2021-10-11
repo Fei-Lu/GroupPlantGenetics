@@ -82,8 +82,8 @@ public class NearestIBS {
         System.out.println("----------- finished: "+chrD.get(index)+" -----------");
 //        for (int i = 0; i < chrFdABFiles.length; i++) {
 //            System.out.println("----------- Start calculate: "+chrAB.get(i)+" -----------");
-//            genotypeGridA=new GenotypeGrid(abFiles.get(2*i).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-//            genotypeGridB=new GenotypeGrid(abFiles.get(2*i+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
+//            genotypeGridA=new GenotypeGrid(abFiles.get(2*i).getAbsolutePath(), GenoIOFormat.Binary_GZ);
+//            genotypeGridB=new GenotypeGrid(abFiles.get(2*i+1).getAbsolutePath(),GenoIOFormat.Binary_GZ);
 //            genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
 //            genotypeGrid.sortByTaxa();
 //            calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdABFiles[i], fdOutDir);
@@ -91,8 +91,8 @@ public class NearestIBS {
 //        }
 //        for (int i = 0; i < chrFdDFiles.length; i++) {
 //            System.out.println("----------- Start calculate: "+chrD.get(i)+" -----------");
-//            genotypeGridA=new GenotypeGrid(dFiles.get(2*i).getAbsolutePath(),GenoIOFormat.VCF_GZ);
-//            genotypeGridB=new GenotypeGrid(dFiles.get(2*i+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
+//            genotypeGridA=new GenotypeGrid(dFiles.get(2*i).getAbsolutePath(),GenoIOFormat.Binary_GZ);
+//            genotypeGridB=new GenotypeGrid(dFiles.get(2*i+1).getAbsolutePath(),GenoIOFormat.Binary_GZ);
 //            genotypeGrid=GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
 //            genotypeGrid.sortByTaxa();
 //            calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdDFiles[i],fdOutDir);
