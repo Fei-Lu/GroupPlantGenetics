@@ -67,8 +67,8 @@ public class NearestIBS {
         Map<String, String> taxonMap= taxonTable.getHashMap(35,0);
         GenotypeGrid genotypeGridA, genotypeGridB, genotypeGrid;
         System.out.println("----------- Start calculate: "+chrAB.get(index)+" -----------");
-        genotypeGridA=new GenotypeGrid(abFiles.get(2*index).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-        genotypeGridB=new GenotypeGrid(abFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
+        genotypeGridA=new GenotypeGrid(abFiles.get(2*index).getAbsolutePath(), GenoIOFormat.Binary_GZ);
+        genotypeGridB=new GenotypeGrid(abFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.Binary_GZ);
         genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
         genotypeGrid.sortByTaxa();
         calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdABFiles[index], fdOutDir);
