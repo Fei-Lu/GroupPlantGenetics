@@ -66,20 +66,20 @@ public class NearestIBS {
         RowTableTool<String> taxonTable=new RowTableTool<>(taxa_InfoDB);
         Map<String, String> taxonMap= taxonTable.getHashMap(35,0);
         GenotypeGrid genotypeGridA, genotypeGridB, genotypeGrid;
-//        System.out.println("----------- Start calculate: "+chrAB.get(index)+" -----------");
-//        genotypeGridA=new GenotypeGrid(abFiles.get(2*index).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-//        genotypeGridB=new GenotypeGrid(abFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
-//        genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
-//        genotypeGrid.sortByTaxa();
-//        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdABFiles[index], fdOutDir);
-//        System.out.println("----------- finished: "+chrAB.get(index)+" -----------");
-        System.out.println("----------- Start calculate: "+chrD.get(index)+" -----------");
-        genotypeGridA=new GenotypeGrid(dFiles.get(2*index).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-        genotypeGridB=new GenotypeGrid(dFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
+        System.out.println("----------- Start calculate: "+chrAB.get(index)+" -----------");
+        genotypeGridA=new GenotypeGrid(abFiles.get(2*index).getAbsolutePath(), GenoIOFormat.VCF_GZ);
+        genotypeGridB=new GenotypeGrid(abFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
         genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
         genotypeGrid.sortByTaxa();
-        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdDFiles[index], fdOutDir);
-        System.out.println("----------- finished: "+chrD.get(index)+" -----------");
+        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdABFiles[index], fdOutDir);
+        System.out.println("----------- finished: "+chrAB.get(index)+" -----------");
+//        System.out.println("----------- Start calculate: "+chrD.get(index)+" -----------");
+//        genotypeGridA=new GenotypeGrid(dFiles.get(2*index).getAbsolutePath(), GenoIOFormat.VCF_GZ);
+//        genotypeGridB=new GenotypeGrid(dFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
+//        genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
+//        genotypeGrid.sortByTaxa();
+//        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdDFiles[index], fdOutDir);
+//        System.out.println("----------- finished: "+chrD.get(index)+" -----------");
 //        for (int i = 0; i < chrFdABFiles.length; i++) {
 //            System.out.println("----------- Start calculate: "+chrAB.get(i)+" -----------");
 //            genotypeGridA=new GenotypeGrid(abFiles.get(2*i).getAbsolutePath(), GenoIOFormat.VCF_GZ);
@@ -113,9 +113,16 @@ public class NearestIBS {
         genotypeGrid.sortByTaxa();
         String p2, p3;
         Set<String> p2Set=new HashSet<>(), p3Set=new HashSet<>();
+        List<String> temp;
+        StringBuilder sb= new StringBuilder();
         for (int i = 0; i < chrFdFiles.size(); i++) {
-            p2=chrFdFiles.get(i).getName().substring(14,21);
-            p3=chrFdFiles.get(i).getName().substring(22,29);
+            temp =PStringUtils.fastSplit(chrFdFiles.get(i).getName(), "_");
+            sb.setLength(0);
+            sb.append(temp.get(2)).append("_").append(temp.get(3));
+            p2=sb.toString();
+            sb.setLength(0);
+            sb.append(temp.get(4)).append("_").append(temp.get(5).replaceAll("\\.csv",""));
+            p3=sb.toString();
             p2Set.add(p2);
             p3Set.add(p3);
         }
@@ -129,7 +136,10 @@ public class NearestIBS {
         }
         int p2Index;
         for (int i = 0; i < chrFdFiles.size(); i++) {
-            p2=chrFdFiles.get(i).getName().substring(14,21);
+            temp =PStringUtils.fastSplit(chrFdFiles.get(i).getName(), "_");
+            sb.setLength(0);
+            sb.append(temp.get(2)).append("_").append(temp.get(3));
+            p2=sb.toString();
             p2Index=Collections.binarySearch(p2List, p2);
             taxonFdFiles[p2Index].add(chrFdFiles.get(i));
         }
@@ -152,15 +162,16 @@ public class NearestIBS {
                                              File outFile){
         long start= System.nanoTime();
         Collections.sort(p3FdFilesPerP2);
+        List<String> temp;
+        temp =PStringUtils.fastSplit(p3FdFilesPerP2.get(0).getName(), "_");
+        String p2=temp.get(2)+"_"+temp.get(3);
         List<ChrRange> chrRanges=extractWindow(p3FdFilesPerP2.get(0));
-        String p2 =p3FdFilesPerP2.get(0).getName().substring(14,21);
         int p2Index, p3Index, startPosVCF, endPosVCF, startIndex, endIndex;
         short startChrID, endChrID;
         float ibs;
         String p3;
         p2Index= chrGenotypeGrid.getTaxonIndex(taxonMap.get(p2));
         List<RowTableTool<String>> p3Tables=getP3TablesPerP2(p3FdFilesPerP2);
-        List<String> temp;
         TIntArrayList maxFdIndexList;
         double maxFd;
         double[] p3FdArray;
