@@ -14,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -65,20 +66,20 @@ public class NearestIBS {
         RowTableTool<String> taxonTable=new RowTableTool<>(taxa_InfoDB);
         Map<String, String> taxonMap= taxonTable.getHashMap(35,0);
         GenotypeGrid genotypeGridA, genotypeGridB, genotypeGrid;
-//        System.out.println("----------- Start calculate: "+chrAB.get(index)+" -----------");
-//        genotypeGridA=new GenotypeGrid(abFiles.get(2*index).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-//        genotypeGridB=new GenotypeGrid(abFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
-//        genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
-//        genotypeGrid.sortByTaxa();
-//        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdABFiles[index], fdOutDir);
-//        System.out.println("----------- finished: "+chrAB.get(index)+" -----------");
-        System.out.println("----------- Start calculate: "+chrD.get(index)+" -----------");
-        genotypeGridA=new GenotypeGrid(dFiles.get(2*index).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-        genotypeGridB=new GenotypeGrid(dFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
+        System.out.println("----------- Start calculate: "+chrAB.get(index)+" -----------");
+        genotypeGridA=new GenotypeGrid(abFiles.get(2*index).getAbsolutePath(), GenoIOFormat.VCF_GZ);
+        genotypeGridB=new GenotypeGrid(abFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
         genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
         genotypeGrid.sortByTaxa();
-        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdDFiles[index], fdOutDir);
-        System.out.println("----------- finished: "+chrD.get(index)+" -----------");
+        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdABFiles[index], fdOutDir);
+        System.out.println("----------- finished: "+chrAB.get(index)+" -----------");
+//        System.out.println("----------- Start calculate: "+chrD.get(index)+" -----------");
+//        genotypeGridA=new GenotypeGrid(dFiles.get(2*index).getAbsolutePath(), GenoIOFormat.VCF_GZ);
+//        genotypeGridB=new GenotypeGrid(dFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
+//        genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
+//        genotypeGrid.sortByTaxa();
+//        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdDFiles[index], fdOutDir);
+//        System.out.println("----------- finished: "+chrD.get(index)+" -----------");
 //        for (int i = 0; i < chrFdABFiles.length; i++) {
 //            System.out.println("----------- Start calculate: "+chrAB.get(i)+" -----------");
 //            genotypeGridA=new GenotypeGrid(abFiles.get(2*i).getAbsolutePath(), GenoIOFormat.VCF_GZ);
@@ -133,7 +134,7 @@ public class NearestIBS {
             taxonFdFiles[p2Index].add(chrFdFiles.get(i));
         }
         String[] outNames= IntStream.range(0, p2List.size()).boxed().map(e->
-                                   chrFdFiles.get(0).getName().substring(0,13)+p2List.get(e)+".csv").toArray(String[]::new);
+                                   chrFdFiles.get(0).getName().substring(0,13)+p2List.get(e)+".txt").toArray(String[]::new);
         for (int i = 0; i < taxonFdFiles.length; i++) {
             findNearestIBSWindow(genotypeGrid, p3List, taxonMap, taxonFdFiles[i], new File(outDir, outNames[i]));
         }
@@ -156,7 +157,6 @@ public class NearestIBS {
         int p2Index, p3Index, startPosVCF, endPosVCF, startIndex, endIndex;
         short startChrID, endChrID;
         float ibs;
-        TIntArrayList[] windowP3IndexArray=new TIntArrayList[chrRanges.size()];
         String p3;
         p2Index= chrGenotypeGrid.getTaxonIndex(taxonMap.get(p2));
         List<RowTableTool<String>> p3Tables=getP3TablesPerP2(p3FdFilesPerP2);
@@ -165,8 +165,11 @@ public class NearestIBS {
         double maxFd;
         double[] p3FdArray;
         TDoubleArrayList ibsListOfMaxFd;
-        TIntArrayList indexListOfMaxFdMiniIBS;
-        TIntArrayList windowP3Index;
+        MaxFdMiniIBSP3[] maxFdMiniIBSP3Array=new MaxFdMiniIBSP3[chrRanges.size()];
+        for (int i = 0; i < maxFdMiniIBSP3Array.length; i++) {
+            maxFdMiniIBSP3Array[i]= new MaxFdMiniIBSP3(Double.MIN_VALUE, Double.MIN_VALUE, new ArrayList<>());
+        }
+        List<String> p3s;
         for (int i = 0; i < chrRanges.size(); i++) {
             startPosVCF=chrRanges.get(i).getVCFStart();
             endPosVCF=chrRanges.get(i).getVCFEnd()-1;
@@ -179,15 +182,7 @@ public class NearestIBS {
             Arrays.fill(p3FdArray,-1);
             for (int j = 0; j < p3List.size(); j++) {
                 temp=p3Tables.get(j).getRow(i);
-                if (ifDChangeTo0(temp.get(8))){
-                    p3Tables.get(j).setCell(i, 9, "0"); // if D 为nan 或-inf inf, 将fd转换为0
-//                    p3Tables.get(j).setCell(i, 8, "0"); // if D 为nan 或-inf inf, 将D转换为0
-                    continue;
-                }
-                if (ifFdChangeTo0(temp.get(8), temp.get(9))){
-                    p3Tables.get(j).setCell(i, 9, "0");
-                    continue;
-                }
+                if (ifFdChangeTo0(temp.get(8), temp.get(9))) continue;
                 p3FdArray[j]=Double.parseDouble(temp.get(9));
             }
             maxFd= Arrays.stream(p3FdArray).max().getAsDouble();
@@ -198,7 +193,6 @@ public class NearestIBS {
                 }
             }
             ibsListOfMaxFd=new TDoubleArrayList();
-            indexListOfMaxFdMiniIBS=new TIntArrayList();
             for (int j = 0; j < maxFdIndexList.size(); j++) {
                 p3=taxonMap.get(p3List.get(maxFdIndexList.get(j)));
                 p3Index=chrGenotypeGrid.getTaxonIndex(p3);
@@ -206,28 +200,22 @@ public class NearestIBS {
                 ibsListOfMaxFd.add(ibs);
             }
             double miniIBS=ibsListOfMaxFd.min();
+            p3s = new ArrayList<>();
             for (int j = 0; j < ibsListOfMaxFd.size(); j++) {
-                if (ibsListOfMaxFd.get(j) > miniIBS) continue;
-                indexListOfMaxFdMiniIBS.add(maxFdIndexList.get(j));
+                if (ibsListOfMaxFd.get(j) != miniIBS) continue;
+                p3s.add(p3List.get(maxFdIndexList.get(j)));
             }
-            windowP3IndexArray[i]=indexListOfMaxFdMiniIBS;
+            maxFdMiniIBSP3Array[i].set(maxFd, miniIBS, p3s);
         }
         StringBuilder sb=new StringBuilder();
         try (BufferedWriter bw = IOTool.getWriter(outFile)) {
-            bw.write("chr,start,end,mid,sites,sitesUsed,ABBA,BABA,D,fd,fdM,MiniIBSP3");
+            bw.write("Chr\tStart\tEnd\tMaxFd\tMiniIBS\tP3");
             bw.newLine();
-            List<String> line;
             for (int i = 0; i < chrRanges.size(); i++) {
-                windowP3Index=windowP3IndexArray[i];
-                if (windowP3Index.size()==0) continue;
-                line=p3Tables.get(windowP3Index.get(0)).getRow(i);
-                bw.write(String.join(",",line));
                 sb.setLength(0);
-                sb.append(",");
-                for (int j = 0; j < windowP3Index.size(); j++) {
-                    sb.append(p3List.get(windowP3Index.get(j))).append("|");
-                }
-                sb.deleteCharAt(sb.length()-1);
+                sb.append(chrRanges.get(i).getChr()).append("\t").append(chrRanges.get(i).getStart()).append("\t");
+                sb.append(chrRanges.get(i).getEnd()).append("\t");
+                sb.append(maxFdMiniIBSP3Array[i].toString());
                 bw.write(sb.toString());
                 bw.newLine();
             }
@@ -242,7 +230,7 @@ public class NearestIBS {
     public static boolean ifFdChangeTo0(String D, String fd){
         if (ifDChangeTo0(D)) return true;
         if (!StringTool.isNumeric(fd)) return true;
-        if (Double.parseDouble(D) < 0) return true;
+        if (Double.parseDouble(D) <= 0) return true;
         if (Double.parseDouble(fd) < 0) return true;
         if (Double.parseDouble(fd) > 1) return true;
         return false;
@@ -251,6 +239,38 @@ public class NearestIBS {
     public static boolean ifDChangeTo0(String D){
         if (!StringTool.isNumeric(D)) return true;
         return false;
+    }
+
+    public static class MaxFdMiniIBSP3{
+        double fd;
+        double ibs;
+        List<String> p3List;
+
+        public MaxFdMiniIBSP3(double fd, double ibs, List<String> p3List){
+            this.fd=fd;
+            this.ibs=ibs;
+            this.p3List=p3List;
+        }
+
+        public void set(double fd, double ibs, List<String> p3List){
+            this.fd=fd;
+            this.ibs=ibs;
+            this.p3List=p3List;
+        }
+
+        @Override
+        public String toString() {
+            NumberFormat numberFormat =NumberFormat.getInstance();
+            numberFormat.setGroupingUsed(false);
+            numberFormat.setMaximumFractionDigits(5);
+            StringBuilder sb = new StringBuilder();
+           if (this.ibs==Double.MIN_VALUE || this.fd==Double.MIN_VALUE){
+               sb.append("NA").append("\t").append("NA").append("\t").append("NA");
+           }else {
+               sb.append(fd).append("\t").append(numberFormat.format(ibs)).append("\t").append(String.join(",", p3List));
+           }
+           return sb.toString();
+        }
     }
 
     /**
