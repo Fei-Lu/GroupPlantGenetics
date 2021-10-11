@@ -10,6 +10,7 @@ import daxing.load.complementary.TriadsBlockUtils;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.util.CombinatoricsUtils;
+import pgl.infra.range.Range;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
@@ -823,5 +824,84 @@ public class ScriptMethods {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void filterVMAP2(String inputDir, String coordinateRangeFile, double rate, String outDir){
+        List<File> fileList = IOTool.getFileListInDirEndsWith(inputDir, ".gz");
+        List<ChrRange> chrRanges=extractWindow(new File(coordinateRangeFile));
+        Collections.sort(chrRanges);
+        List<ChrRange> startRangeList=filterStart(chrRanges);
+        List<ChrRange> endRangeList=filterEnd(chrRanges);
+        String[] outNames= fileList.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz", "_"+rate+".vcf.gz")).toArray(String[]::new);
+        IntStream.range(0, fileList.size()).parallel().forEach(e->{
+            try (BufferedReader br = IOTool.getReader(fileList.get(e));
+                 BufferedWriter bw =IOTool.getWriter(new File(outDir, outNames[e]))) {
+                String line;
+                List<String> temp;
+                while ((line=br.readLine()).startsWith("##")){
+                    bw.write(line);
+                    bw.newLine();
+                }
+                bw.write(line);
+                bw.newLine();
+                int pos, chrID, index_start, index_end;
+                ChrRange chrRange;
+                double r;
+                while ((line=br.readLine())!=null){
+                    temp = PStringUtils.fastSplit(line.substring(0,30));
+                    chrID = Integer.parseInt(temp.get(0));
+                    pos =Integer.parseInt(temp.get(1));
+                    chrRange = ChrRange.changeToChrRange(new Range(chrID, pos, pos+1));
+                    index_start = Collections.binarySearch(startRangeList, chrRange);
+                    index_end = Collections.binarySearch(endRangeList, chrRange);
+                    if (index_start >= 0 || index_end >=0){
+                        bw.write(line);
+                        bw.newLine();
+                    }else {
+                        r=Math.random();
+                        if (r>rate) continue;
+                        bw.write(line);
+                        bw.newLine();
+                    }
+                }
+                bw.flush();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        });
+    }
+
+    public static List<ChrRange> filterStart(List<ChrRange> chrRangeList){
+        List<ChrRange> chrRanges=new ArrayList<>();
+        for (ChrRange chrRange : chrRangeList){
+            chrRanges.add(new ChrRange(chrRange.getChr(), chrRange.getStart(), chrRange.getStart()+1));
+        }
+        return chrRanges;
+    }
+
+    public static List<ChrRange> filterEnd(List<ChrRange> chrRangeList){
+        List<ChrRange> chrRanges=new ArrayList<>();
+        for (ChrRange chrRange : chrRangeList){
+            chrRanges.add(new ChrRange(chrRange.getChr(), chrRange.getEnd()-1, chrRange.getEnd()));
+        }
+        return chrRanges;
+    }
+
+    public static List<ChrRange> extractWindow(File fdres){
+        List<ChrRange> chrRanges=new ArrayList<>();
+        try (BufferedReader br = IOTool.getReader(fdres)) {
+            String line;
+            List<String> temp;
+            ChrRange chrRange;
+            br.readLine();
+            while ((line=br.readLine())!=null){
+                temp= PStringUtils.fastSplit(line);
+                chrRange=new ChrRange(temp.get(0), Integer.parseInt(temp.get(1)), Integer.parseInt(temp.get(2))+1);
+                chrRanges.add(chrRange);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return chrRanges;
     }
 }

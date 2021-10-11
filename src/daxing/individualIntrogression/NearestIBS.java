@@ -66,20 +66,20 @@ public class NearestIBS {
         RowTableTool<String> taxonTable=new RowTableTool<>(taxa_InfoDB);
         Map<String, String> taxonMap= taxonTable.getHashMap(35,0);
         GenotypeGrid genotypeGridA, genotypeGridB, genotypeGrid;
-        System.out.println("----------- Start calculate: "+chrAB.get(index)+" -----------");
-        genotypeGridA=new GenotypeGrid(abFiles.get(2*index).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-        genotypeGridB=new GenotypeGrid(abFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
-        genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
-        genotypeGrid.sortByTaxa();
-        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdABFiles[index], fdOutDir);
-        System.out.println("----------- finished: "+chrAB.get(index)+" -----------");
-//        System.out.println("----------- Start calculate: "+chrD.get(index)+" -----------");
-//        genotypeGridA=new GenotypeGrid(dFiles.get(2*index).getAbsolutePath(), GenoIOFormat.VCF_GZ);
-//        genotypeGridB=new GenotypeGrid(dFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
+//        System.out.println("----------- Start calculate: "+chrAB.get(index)+" -----------");
+//        genotypeGridA=new GenotypeGrid(abFiles.get(2*index).getAbsolutePath(), GenoIOFormat.VCF_GZ);
+//        genotypeGridB=new GenotypeGrid(abFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
 //        genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
 //        genotypeGrid.sortByTaxa();
-//        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdDFiles[index], fdOutDir);
-//        System.out.println("----------- finished: "+chrD.get(index)+" -----------");
+//        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdABFiles[index], fdOutDir);
+//        System.out.println("----------- finished: "+chrAB.get(index)+" -----------");
+        System.out.println("----------- Start calculate: "+chrD.get(index)+" -----------");
+        genotypeGridA=new GenotypeGrid(dFiles.get(2*index).getAbsolutePath(), GenoIOFormat.VCF_GZ);
+        genotypeGridB=new GenotypeGrid(dFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.VCF_GZ);
+        genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
+        genotypeGrid.sortByTaxa();
+        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdDFiles[index], fdOutDir);
+        System.out.println("----------- finished: "+chrD.get(index)+" -----------");
 //        for (int i = 0; i < chrFdABFiles.length; i++) {
 //            System.out.println("----------- Start calculate: "+chrAB.get(i)+" -----------");
 //            genotypeGridA=new GenotypeGrid(abFiles.get(2*i).getAbsolutePath(), GenoIOFormat.VCF_GZ);
@@ -167,7 +167,7 @@ public class NearestIBS {
         TDoubleArrayList ibsListOfMaxFd;
         MaxFdMiniIBSP3[] maxFdMiniIBSP3Array=new MaxFdMiniIBSP3[chrRanges.size()];
         for (int i = 0; i < maxFdMiniIBSP3Array.length; i++) {
-            maxFdMiniIBSP3Array[i]= new MaxFdMiniIBSP3(Double.MIN_VALUE, Double.MIN_VALUE, new ArrayList<>());
+            maxFdMiniIBSP3Array[i]= new MaxFdMiniIBSP3(Double.MIN_VALUE, Double.MIN_VALUE, -1, new ArrayList<>());
         }
         List<String> p3s;
         for (int i = 0; i < chrRanges.size(); i++) {
@@ -186,6 +186,7 @@ public class NearestIBS {
                 p3FdArray[j]=Double.parseDouble(temp.get(9));
             }
             maxFd= Arrays.stream(p3FdArray).max().getAsDouble();
+            if (maxFd <= 0) continue;
             maxFdIndexList=new TIntArrayList();
             for (int j = 0; j < p3FdArray.length; j++) {
                 if (p3FdArray[j]==maxFd){
@@ -205,16 +206,17 @@ public class NearestIBS {
                 if (ibsListOfMaxFd.get(j) != miniIBS) continue;
                 p3s.add(p3List.get(maxFdIndexList.get(j)));
             }
-            maxFdMiniIBSP3Array[i].set(maxFd, miniIBS, p3s);
+            int snpCount= chrGenotypeGrid.getSubGenotypeTableBySite(IntStream.range(startIndex, endIndex+1).toArray()).getSiteNumber();
+            maxFdMiniIBSP3Array[i].set(maxFd, miniIBS, snpCount, p3s);
         }
         StringBuilder sb=new StringBuilder();
         try (BufferedWriter bw = IOTool.getWriter(outFile)) {
-            bw.write("Chr\tStart\tEnd\tMaxFd\tMiniIBS\tP3");
+            bw.write("Chr\tStart\tEnd\tMaxFd\tMiniIBS\tSNPCount\tP3");
             bw.newLine();
             for (int i = 0; i < chrRanges.size(); i++) {
                 sb.setLength(0);
                 sb.append(chrRanges.get(i).getChr()).append("\t").append(chrRanges.get(i).getStart()).append("\t");
-                sb.append(chrRanges.get(i).getEnd()).append("\t");
+                sb.append(chrRanges.get(i).getEnd()-1).append("\t");
                 sb.append(maxFdMiniIBSP3Array[i].toString());
                 bw.write(sb.toString());
                 bw.newLine();
@@ -244,17 +246,20 @@ public class NearestIBS {
     public static class MaxFdMiniIBSP3{
         double fd;
         double ibs;
+        int snpCount;
         List<String> p3List;
 
-        public MaxFdMiniIBSP3(double fd, double ibs, List<String> p3List){
+        public MaxFdMiniIBSP3(double fd, double ibs, int snpCount, List<String> p3List){
             this.fd=fd;
             this.ibs=ibs;
+            this.snpCount=snpCount;
             this.p3List=p3List;
         }
 
-        public void set(double fd, double ibs, List<String> p3List){
+        public void set(double fd, double ibs, int snpCount, List<String> p3List){
             this.fd=fd;
             this.ibs=ibs;
+            this.snpCount=snpCount;
             this.p3List=p3List;
         }
 
@@ -265,9 +270,11 @@ public class NearestIBS {
             numberFormat.setMaximumFractionDigits(5);
             StringBuilder sb = new StringBuilder();
            if (this.ibs==Double.MIN_VALUE || this.fd==Double.MIN_VALUE){
-               sb.append("NA").append("\t").append("NA").append("\t").append("NA");
+               sb.append("NA").append("\t").append("NA").append("\t").append("NA").append("\t").append("NA");
            }else {
-               sb.append(fd).append("\t").append(numberFormat.format(ibs)).append("\t").append(String.join(",", p3List));
+               sb.append(fd).append("\t").append(numberFormat.format(ibs)).append("\t");
+               sb.append(snpCount).append("\t");
+               sb.append(String.join(",", p3List));
            }
            return sb.toString();
         }
@@ -304,7 +311,7 @@ public class NearestIBS {
      * @param fdres
      * @return
      */
-    private static List<ChrRange> extractWindow(File fdres){
+    public static List<ChrRange> extractWindow(File fdres){
         List<ChrRange> chrRanges=new ArrayList<>();
         try (BufferedReader br = IOTool.getReader(fdres)) {
             String line;
