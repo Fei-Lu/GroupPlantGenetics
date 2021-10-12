@@ -70,15 +70,16 @@ public class NearestIBS {
         System.out.println("----------- Start calculate: "+chrAB.get(index)+" -----------");
         genotypeGridA=new GenotypeGrid(abFiles.get(2*index).getAbsolutePath(), GenoIOFormat.Binary_GZ);
         genotypeGridB=new GenotypeGrid(abFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.Binary_GZ);
+        long start=System.nanoTime();
+        System.out.println("start merge genotype table...");
         genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
-        genotypeGrid.sortByTaxa();
+        System.out.println("merge genotype table take "+ Benchmark.getTimeSpanSeconds(start)+ " seconds");
         calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdABFiles[index], fdOutDir);
         System.out.println("----------- finished: "+chrAB.get(index)+" -----------");
 //        System.out.println("----------- Start calculate: "+chrD.get(index)+" -----------");
 //        genotypeGridA=new GenotypeGrid(dFiles.get(2*index).getAbsolutePath(), GenoIOFormat.Binary_GZ);
 //        genotypeGridB=new GenotypeGrid(dFiles.get(2*index+1).getAbsolutePath(), GenoIOFormat.Binary_GZ);
 //        genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
-//        genotypeGrid.sortByTaxa();
 //        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdDFiles[index], fdOutDir);
 //        System.out.println("----------- finished: "+chrD.get(index)+" -----------");
 //        for (int i = 0; i < chrFdABFiles.length; i++) {
@@ -225,7 +226,7 @@ public class NearestIBS {
         }
         StringBuilder sb=new StringBuilder();
         try (BufferedWriter bw = IOTool.getWriter(outFile)) {
-            bw.write("Chr\tStart\tEnd\tMaxFd\tMiniIBS\tSNPCount\tP3");
+            bw.write("Chr\tStart\tEnd\tMaxFd\tMiniIBS\tP3");
             bw.newLine();
             for (int i = 0; i < chrRanges.size(); i++) {
                 sb.setLength(0);
