@@ -1,6 +1,7 @@
 package daxing.common.genot;
 
 import pgl.infra.dna.snp.BiSNP;
+import pgl.infra.utils.Benchmark;
 import java.util.BitSet;
 
 /**
@@ -55,7 +56,9 @@ public class GenoOperation {
      * @return Return null if the merging is not successful
      */
     public static GenoRows mergeGenotypesBySite(GenoRows gt1, GenoRows gt2) {
-        if (gt1.getTaxaNumber() != gt2.getTaxaNumber()) return null;
+        long start=System.nanoTime();
+        assert gt1.getTaxaNumber()== gt2.getTaxaNumber() : "Two genotypes should have the same number of taxa in the " +
+                "same order";
         int snpCount = gt1.getSiteNumber()+gt2.getSiteNumber();
         SiteGeno[] geno = new SiteGeno[snpCount];
         int cnt = 0;
@@ -68,6 +71,7 @@ public class GenoOperation {
             cnt++;
         }
         GenoRows gt = new GenoRows(geno, gt1.taxa);
+        System.out.println("merge spend "+ Benchmark.getTimeSpanSeconds(start)+ " seconds");
         return gt;
     }
 

@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.stream.IntStream;
 
 /**
  * Modify from GenotypeRows, improved performance, easy for me to customize
@@ -48,31 +49,28 @@ public class GenoRows implements GenotypeTable {
 
     /**
      * Construct an object by reading a file
-     * @param infileS
-     * @param format
+     * @param infileS file
+     * @param format format
      */
     public GenoRows(String infileS, GenoIOFormat format) {
-        if (format == GenoIOFormat.VCF) {
-            this.buildFromVCF(infileS);
-        }
-        else if (format == GenoIOFormat.VCF_GZ) {
-            this.buildFromVCF(infileS);
-        }
-        else if (format == GenoIOFormat.Binary) {
-            this.buildFromBinary(infileS);
-        }
-        else if (format == GenoIOFormat.Binary_GZ) {
-            this.buildFromBinary(infileS);
-        }
-        else if (format == GenoIOFormat.HDF5) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        switch (format) {
+            case VCF:
+            case VCF_GZ:
+                this.buildFromVCF(infileS);
+                break;
+            case Binary:
+            case Binary_GZ:
+                this.buildFromBinary(infileS);
+                break;
+            case HDF5:
+                throw new UnsupportedOperationException("Not supported yet.");
         }
     }
 
     /**
      * Construct an object
-     * @param geno
-     * @param taxa
+     * @param geno siteGeno
+     * @param taxa taxa
      */
     public GenoRows (SiteGeno[] geno, String[] taxa) {
         this.taxa = taxa;
@@ -91,9 +89,6 @@ public class GenoRows implements GenotypeTable {
 
     @Override
     public String[] getTaxaNames () {
-//        String nTaxa[]  = new String[this.getTaxaNumber()];
-//        System.arraycopy(taxa, 0, nTaxa, 0, nTaxa.length);
-//        return nTaxa;
         return this.taxa;
     }
 
@@ -126,11 +121,7 @@ public class GenoRows implements GenotypeTable {
     public void sortByTaxa() {
         int[] indices = PArrayUtils.getIndicesByAscendingValue(this.taxa);
         Arrays.sort(this.taxa);
-        List<SiteGeno> genoList = Arrays.asList(this.geno);
-        genoList.parallelStream().forEach(g -> {
-            g.sortByTaxa(indices);
-        });
-        geno = genoList.toArray(new SiteGeno[genoList.size()]);
+        Arrays.stream(this.geno).parallel().forEach(geno->geno.sortByTaxa(indices));
     }
 
     @Override
@@ -186,8 +177,7 @@ public class GenoRows implements GenotypeTable {
     @Override
     public int getSiteIndex(short chromosome, int position) {
         ChrPos query = new ChrPos (chromosome, position);
-        int index = Arrays.binarySearch(geno, query);
-        return index;
+        return Arrays.binarySearch(geno, query);
     }
 
     @Override
@@ -383,11 +373,10 @@ public class GenoRows implements GenotypeTable {
 
     @Override
     public float getIBSDistance(int taxonIndex1, int taxonIndex2, int startSiteIndex, int endSiteIndex) {
-        int size = endSiteIndex - startSiteIndex;
         int cnt = 0;
         double dxy = 0;
-        for (int i = 0; i < size; i++) {
-            float dxySite = this.getDxySite(taxonIndex1, taxonIndex2, startSiteIndex+i);
+        for (int i = startSiteIndex; i < endSiteIndex; i++) {
+            float dxySite = this.getDxySite(taxonIndex1, taxonIndex2, i);
             if (Float.isNaN(dxySite)) continue;
             dxy+=dxySite;
             cnt++;
@@ -399,10 +388,10 @@ public class GenoRows implements GenotypeTable {
     public float getIBSDistance(int taxonIndex1, int taxonIndex2, int[] siteIndices) {
         int cnt = 0;
         double dxy = 0;
-        for (int i = 0; i < siteIndices.length; i++) {
-            float dxySite = this.getDxySite(taxonIndex1,taxonIndex2, siteIndices[i]);
+        for (int siteIndex : siteIndices) {
+            float dxySite = this.getDxySite(taxonIndex1, taxonIndex2, siteIndex);
             if (Float.isNaN(dxySite)) continue;
-            dxy+=dxySite;
+            dxy += dxySite;
             cnt++;
         }
         return (float)(dxy/cnt);
@@ -429,21 +418,6 @@ public class GenoRows implements GenotypeTable {
         return matrix;
     }
 
-    public float[][] getDxyMatrixFast10K() {
-        int size = 10_000;
-        if (this.getSiteNumber() > size) {
-            int[] siteIndices = new int[size];
-            double add = this.getSiteNumber()/size;
-            for (int i = 0; i < size; i++) {
-                siteIndices[i] = (int)(i*add);
-            }
-            return this.getIBSDistanceMatrix(siteIndices);
-        }
-        else {
-            return this.getIBSDistanceMatrix();
-        }
-    }
-
     @Override
     public float[][] getIBSDistanceMatrix(int[] siteIndices) {
         float[][] matrix = new float[this.getTaxaNumber()][this.getTaxaNumber()];
@@ -462,22 +436,27 @@ public class GenoRows implements GenotypeTable {
 
     /**
      * Return the dxy bwteen two taxa at a specific site
-     * @param taxonIndex1
-     * @param taxonIndex2
-     * @param siteIndex
+     * @param taxonIndex1 taxonIndex1
+     * @param taxonIndex2 taxonIndex2
+     * @param siteIndex siteIndex
      * @return Float.NaN if no shared non-missing site available
      */
     private float getDxySite (int taxonIndex1, int taxonIndex2, int siteIndex) {
-        if (this.isMissing(taxonIndex1, siteIndex)) return Float.NaN;
-        if (this.isMissing(taxonIndex2, siteIndex)) return Float.NaN;
-        int cnt1 = 0;
-        int cnt2 = 0;
-        if (this.geno[siteIndex].isPhase1Alternative(taxonIndex1)) cnt1++;
-        if (this.geno[siteIndex].isPhase2Alternative(taxonIndex1)) cnt1++;
-        if (this.geno[siteIndex].isPhase1Alternative(taxonIndex2)) cnt2++;
-        if (this.geno[siteIndex].isPhase2Alternative(taxonIndex2)) cnt2++;
-        if (cnt1 > cnt2) return (float)((double)(cnt1-cnt2)/2);
-        return (float)((double)(cnt2-cnt1)/2);
+        if (this.isMissing(siteIndex, taxonIndex1)) return Float.NaN;
+        if (this.isMissing(siteIndex, taxonIndex2)) return Float.NaN;
+        boolean isTaxon1Phase1Alt=this.geno[siteIndex].isPhase1Alternative(taxonIndex1);
+        boolean isTaxon1Phase2Alt=this.geno[siteIndex].isPhase2Alternative(taxonIndex1);
+        boolean isTaxon2Phase1Alt=this.geno[siteIndex].isPhase1Alternative(taxonIndex2);
+        boolean isTaxon2Phase2Alt=this.geno[siteIndex].isPhase2Alternative(taxonIndex2);
+        if (isTaxon1Phase1Alt && isTaxon1Phase2Alt && isTaxon2Phase1Alt && isTaxon2Phase2Alt){
+            return 0f;
+        }else if (!isTaxon1Phase1Alt && !isTaxon1Phase2Alt && !isTaxon2Phase1Alt && !isTaxon2Phase2Alt){
+            return 0f;
+        }else if (isTaxon1Phase1Alt!=isTaxon1Phase2Alt || isTaxon2Phase1Alt!=isTaxon2Phase2Alt){
+            return 0.5f;
+        }else {
+            return 1f;
+        }
     }
 
     @Override
@@ -486,8 +465,7 @@ public class GenoRows implements GenotypeTable {
         for (int i = 0; i < siteIndices.length; i++) {
             ge[i] = geno[siteIndices[i]];
         }
-        GenoRows gb = new GenoRows(ge, taxa);
-        return gb;
+        return new GenoRows(ge, taxa);
     }
 
     @Override
@@ -497,23 +475,17 @@ public class GenoRows implements GenotypeTable {
             nTaxa[i] = taxa[taxaIndices[i]];
         }
         SiteGeno[] nGeno = new SiteGeno[this.getSiteNumber()];
-        List<Integer> indexList = new ArrayList<>(this.getSiteNumber());
-        for (int i = 0; i < this.getSiteNumber(); i++) {
-            indexList.add(i);
-        }
-        indexList.parallelStream().forEach(index -> {
-            nGeno[index] = geno[index].getSubGenotypeByTaxa(taxaIndices);
-        });
+        IntStream.range(0, this.getSiteNumber()).parallel().forEach(index -> nGeno[index] = geno[index].getSubGenotypeByTaxa(taxaIndices));
         return new GenoRows(nGeno, nTaxa);
     }
 
     /**
      * Build an object from a binary genotype file
-     * @param infileS
+     * @param infileS infileS
      */
     private void buildFromBinary (String infileS) {
         try{
-            DataInputStream dis = null;
+            DataInputStream dis;
             if (infileS.endsWith(".gz")) {
                 dis = IOUtils.getBinaryGzipReader(infileS);
             }
@@ -548,7 +520,7 @@ public class GenoRows implements GenotypeTable {
                 if (siteCount%1000000 == 0) {
                     sb.setLength(0);
                     sb.append("Read in ").append(siteCount).append(" SNPs from ").append(infileS);
-                    System.out.println(sb.toString());
+                    System.out.println(sb);
                 }
             }
             dis.close();
@@ -569,7 +541,7 @@ public class GenoRows implements GenotypeTable {
             sb.setLength(0);
             sb.append("A total of ").append(this.getSiteNumber()).append(" SNPs are in ").append(infileS).append("\n");
             sb.append("Genotype table is successfully built");
-            System.out.println(sb.toString());
+            System.out.println(sb);
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -581,10 +553,10 @@ public class GenoRows implements GenotypeTable {
      */
     class BlockBinarySiteGeno implements Callable<BlockBinarySiteGeno> {
         public static final int blockSize = 4096;
-        byte[][] lines = null;
-        int startIndex = Integer.MIN_VALUE;
-        int actBlockSize = Integer.MIN_VALUE;
-        short taxaNumber = Short.MIN_VALUE;
+        byte[][] lines;
+        int startIndex;
+        int actBlockSize;
+        short taxaNumber;
         SiteGeno[] sgbArray = null;
 
         public BlockBinarySiteGeno(byte[][] lines, int startIndex, int actBlockSize, short taxaNumber) {
@@ -622,18 +594,18 @@ public class GenoRows implements GenotypeTable {
     private void buildFromVCF (String infileS) {
         try {
             List<String> vcfAnnotationList = new ArrayList<>();
-            BufferedReader br = null;
+            BufferedReader br;
             if (infileS.endsWith(".gz")) {
                 br = IOUtils.getTextGzipReader(infileS);
             }
             else {
                 br = IOUtils.getTextReader(infileS);
             }
-            String temp = null;
+            String temp;
             while ((temp = br.readLine()).startsWith("##")) {
                 vcfAnnotationList.add(temp);
             }
-            List<String> l = new ArrayList<>();
+            List<String> l;
             l = PStringUtils.fastSplit(temp);
             this.taxa = new String[l.size()-9];
             for (int i = 9; i < l.size(); i++) {
@@ -658,7 +630,7 @@ public class GenoRows implements GenotypeTable {
                 if (siteCount%1000000 == 0) {
                     sb.setLength(0);
                     sb.append("Read in ").append(siteCount).append(" SNPs from ").append(infileS);
-                    System.out.println(sb.toString());
+                    System.out.println(sb);
                 }
             }
             br.close();
@@ -679,7 +651,7 @@ public class GenoRows implements GenotypeTable {
             sb.setLength(0);
             sb.append("A total of ").append(this.getSiteNumber()).append(" SNPs are in ").append(infileS).append("\n");
             sb.append("Genotype table is successfully built");
-            System.out.println(sb.toString());
+            System.out.println(sb);
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -691,9 +663,9 @@ public class GenoRows implements GenotypeTable {
      */
     class BlockSiteGeno implements Callable<BlockSiteGeno> {
         public static final int blockSize = 4096;
-        List<String> lines = null;
-        int startIndex = Integer.MIN_VALUE;
-        int actBlockSize = Integer.MIN_VALUE;
+        List<String> lines;
+        int startIndex;
+        int actBlockSize;
         SiteGeno[] sgbArray = null;
 
         public BlockSiteGeno(List<String> lines, int startIndex) {
