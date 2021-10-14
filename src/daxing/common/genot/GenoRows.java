@@ -714,17 +714,16 @@ public class GenoRows extends AbstractGenotypeTable {
      */
     public GenoGrid getConvertedGenotype() {
         BitSet[][] bArray = new BitSet[this.getSiteNumber()][3];
-        int cnt = 0;
         for (int i = 0; i < this.getSiteNumber(); i++) {
-            bArray[cnt][0] = this.geno[i].getPhase1();
-            bArray[cnt][1] = this.geno[i].getPhase2();
-            bArray[cnt][2] = this.geno[i].getMissing();
+            bArray[i][0] = this.geno[i].getPhase1();
+            bArray[i][1] = this.geno[i].getPhase2();
+            bArray[i][2] = this.geno[i].getMissing();
         }
         BiSNP[] nsnps = new BiSNP[this.getSiteNumber()];
         for (int i = 0; i < nsnps.length; i++) {
             nsnps[i] = this.geno[i];
         }
-        return new GenoGrid(bArray, GenoGrid.Direction.ByTaxon, this.taxa, nsnps);
+        return new GenoGrid(bArray, GenoGrid.Direction.BySite, this.taxa, nsnps);
     }
 
     /**
