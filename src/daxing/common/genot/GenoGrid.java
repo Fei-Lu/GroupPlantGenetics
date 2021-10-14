@@ -778,7 +778,7 @@ public class GenoGrid extends AbstractGenotypeTable implements Swapper, IntCompa
     /**
      * Merge the specified GenoGrid with this GenoGrid
      * Two genotypes should have the same number of taxa in the same order.
-     * @param gt
+     * @param gt gt
      * @return Return a new GenoGrid
      */
     public GenoGrid mergeGenotypesBySite(GenoGrid gt) {
@@ -787,15 +787,11 @@ public class GenoGrid extends AbstractGenotypeTable implements Swapper, IntCompa
         BitSet[][] bArray = new BitSet[snpCount][3];
         int cnt = 0;
         for (int i = 0; i < this.getSiteNumber(); i++) {
-            for (int j = 0; j < this.genoSite[0].length; j++) {
-                bArray[cnt][j] = this.genoSite[i][j];
-            }
+            System.arraycopy(this.genoSite[i], 0, bArray[cnt], 0, this.genoSite[0].length);
             cnt++;
         }
         for (int i = 0; i < gt.getSiteNumber(); i++) {
-            for (int j = 0; j < gt.genoSite[0].length; j++) {
-                bArray[cnt][j] = gt.genoSite[i][j];
-            }
+            System.arraycopy(gt.genoSite[i], 0, bArray[cnt], 0, gt.genoSite[0].length);
             cnt++;
         }
         BiSNP[] nsnps = new BiSNP[snpCount];
@@ -814,7 +810,7 @@ public class GenoGrid extends AbstractGenotypeTable implements Swapper, IntCompa
     /**
      * Merge the specified GenoGrid with this GenoGrid
      * <p> Two genotypes should have the same number of sites in the same order
-     * @param gt
+     * @param gt gt
      * @return Return a new GenoGrid
      */
     public GenoGrid mergeGenotypesByTaxon(GenoGrid gt) {
@@ -825,16 +821,12 @@ public class GenoGrid extends AbstractGenotypeTable implements Swapper, IntCompa
         String[] taxa = new String[taxaCount];
         int cnt = 0;
         for (int i = 0; i < this.getTaxaNumber(); i++) {
-            for (int j = 0; j < this.genoTaxon[0].length; j++) {
-                bArray[cnt][j] = this.genoTaxon[i][j];
-            }
+            System.arraycopy(this.genoTaxon[i], 0, bArray[cnt], 0, this.genoTaxon[0].length);
             taxa[cnt] = this.getTaxonName(i);
             cnt++;
         }
         for (int i = 0; i < gt.getTaxaNumber(); i++) {
-            for (int j = 0; j < gt.genoTaxon[0].length; j++) {
-                bArray[cnt][j] = gt.genoTaxon[i][j];
-            }
+            System.arraycopy(gt.genoTaxon[i], 0, bArray[cnt], 0, gt.genoTaxon[0].length);
             taxa[cnt] = gt.getTaxonName(i);
             cnt++;
         }
@@ -866,15 +858,13 @@ public class GenoGrid extends AbstractGenotypeTable implements Swapper, IntCompa
 
     /**
      * Return a new subset of original genotype. The original genotype is unchanged.
-     * @param siteIndices
+     * @param siteIndices siteIndices
      * @return
      */
     public GenoGrid getSubsetGenotypeBySite(int[] siteIndices) {
         BitSet[][] bArray = new BitSet[siteIndices.length][3];
         for (int i = 0; i < siteIndices.length; i++) {
-            for (int j = 0; j < bArray[0].length; j++) {
-                bArray[i][j] = this.genoSite[siteIndices[i]][j];
-            }
+            System.arraycopy(this.genoSite[siteIndices[i]], 0, bArray[i], 0, bArray[0].length);
         }
         BiSNP[] nsnps = new BiSNP[siteIndices.length];
         for (int i = 0; i < siteIndices.length; i++) {
@@ -891,9 +881,7 @@ public class GenoGrid extends AbstractGenotypeTable implements Swapper, IntCompa
     public GenoGrid getSubsetGenotypeByTaxon(int[] taxaIndices) {
         BitSet[][] bArray = new BitSet[taxaIndices.length][3];
         for (int i = 0; i < taxaIndices.length; i++) {
-            for (int j = 0; j < bArray[0].length; j++) {
-                bArray[i][j] = this.genoTaxon[taxaIndices[i]][j];
-            }
+            System.arraycopy(this.genoTaxon[taxaIndices[i]], 0, bArray[i], 0, bArray[0].length);
         }
         String[] nTaxa = new String[taxaIndices.length];
         for (int i = 0; i < taxaIndices.length; i++) {
@@ -913,9 +901,7 @@ public class GenoGrid extends AbstractGenotypeTable implements Swapper, IntCompa
     public void subsetsGenotypeBySite(int[] siteIndices) {
         BitSet[][] bArray = new BitSet[siteIndices.length][3];
         for (int i = 0; i < siteIndices.length; i++) {
-            for (int j = 0; j < bArray[0].length; j++) {
-                bArray[i][j] = this.genoSite[siteIndices[i]][j];
-            }
+            System.arraycopy(this.genoSite[siteIndices[i]], 0, bArray[i], 0, bArray[0].length);
         }
         BiSNP[] nsnps = new BiSNP[siteIndices.length];
         for (int i = 0; i < siteIndices.length; i++) {
@@ -932,9 +918,7 @@ public class GenoGrid extends AbstractGenotypeTable implements Swapper, IntCompa
     public void subsetsGenotypeByTaxon(int[] taxaIndices) {
         BitSet[][] bArray = new BitSet[taxaIndices.length][3];
         for (int i = 0; i < taxaIndices.length; i++) {
-            for (int j = 0; j < bArray[0].length; j++) {
-                bArray[i][j] = this.genoTaxon[taxaIndices[i]][j];
-            }
+            System.arraycopy(this.genoTaxon[taxaIndices[i]], 0, bArray[i], 0, bArray[0].length);
         }
         String[] nTaxa = new String[taxaIndices.length];
         for (int i = 0; i < taxaIndices.length; i++) {

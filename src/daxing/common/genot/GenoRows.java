@@ -529,10 +529,10 @@ public class GenoRows extends AbstractGenotypeTable {
             pool.shutdown();
             pool.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
             this.geno = new SiteGeno[siteCount];
-            for (int i = 0; i < resultList.size(); i++) {
-                BlockBinarySiteGeno block = resultList.get(i).get();
+            for (Future<BlockBinarySiteGeno> blockBinarySiteGenoFuture : resultList) {
+                BlockBinarySiteGeno block = blockBinarySiteGenoFuture.get();
                 for (int j = 0; j < block.actBlockSize; j++) {
-                    geno[block.getStartIndex()+j] = block.getSiteGenotypes()[j];
+                    geno[block.getStartIndex() + j] = block.getSiteGenotypes()[j];
                 }
             }
             sb.setLength(0);
@@ -548,7 +548,7 @@ public class GenoRows extends AbstractGenotypeTable {
     /**
      * Class for parallel reading in a binary genotype file
      */
-    class BlockBinarySiteGeno implements Callable<BlockBinarySiteGeno> {
+    static class BlockBinarySiteGeno implements Callable<BlockBinarySiteGeno> {
         public static final int blockSize = 4096;
         byte[][] lines;
         int startIndex;
@@ -586,7 +586,7 @@ public class GenoRows extends AbstractGenotypeTable {
 
     /**
      * Build an object from a VCF file
-     * @param infileS
+     * @param infileS infileS
      */
     private void buildFromVCF (String infileS) {
         try {
@@ -606,7 +606,7 @@ public class GenoRows extends AbstractGenotypeTable {
             List<Future<BlockSiteGeno>> resultList = new ArrayList<>();
             int siteCount = 0;
             int startIndex = 0;
-            List<String> lines = new ArrayList ();
+            ArrayList lines = new ArrayList ();
             StringBuilder sb = new StringBuilder();
             while ((temp = br.readLine()) != null) {
                 lines.add(temp);
@@ -633,10 +633,10 @@ public class GenoRows extends AbstractGenotypeTable {
             pool.shutdown();
             pool.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
             this.geno = new SiteGeno[siteCount];
-            for (int i = 0; i < resultList.size(); i++) {
-                BlockSiteGeno block = resultList.get(i).get();
+            for (Future<BlockSiteGeno> blockSiteGenoFuture : resultList) {
+                BlockSiteGeno block = blockSiteGenoFuture.get();
                 for (int j = 0; j < block.actBlockSize; j++) {
-                    geno[block.getStartIndex()+j] = block.getSiteGenotypes()[j];
+                    geno[block.getStartIndex() + j] = block.getSiteGenotypes()[j];
                 }
             }
             sb.setLength(0);
@@ -652,7 +652,7 @@ public class GenoRows extends AbstractGenotypeTable {
     /**
      * Class for parallel reading in VCF
      */
-    class BlockSiteGeno implements Callable<BlockSiteGeno> {
+    static class BlockSiteGeno implements Callable<BlockSiteGeno> {
         public static final int blockSize = 4096;
         List<String> lines;
         int startIndex;
@@ -687,7 +687,7 @@ public class GenoRows extends AbstractGenotypeTable {
     /**
      * Merge the specified GenoRows with this GenoRows
      * <p> Two genotypes should have the same number of taxa in the same order.
-     * @param gt
+     * @param gt gt
      * @return Return a new GenoGrid
      */
     public GenoRows mergeGenotypesBySite(GenoRows gt) {
@@ -710,7 +710,7 @@ public class GenoRows extends AbstractGenotypeTable {
 
     /**
      * Convert {@link GenoGrid} to {@link GenoRows}
-     * @return
+     * @return GenoGrid
      */
     public GenoGrid getConvertedGenotype() {
         BitSet[][] bArray = new BitSet[this.getSiteNumber()][3];
@@ -720,16 +720,14 @@ public class GenoRows extends AbstractGenotypeTable {
             bArray[i][2] = this.geno[i].getMissing();
         }
         BiSNP[] nsnps = new BiSNP[this.getSiteNumber()];
-        for (int i = 0; i < nsnps.length; i++) {
-            nsnps[i] = this.geno[i];
-        }
+        System.arraycopy(this.geno, 0, nsnps, 0, nsnps.length);
         return new GenoGrid(bArray, GenoGrid.Direction.BySite, this.taxa, nsnps);
     }
 
     /**
      * Return a new subset of original genotype. The original genotype is unchanged.
      * @param siteIndices
-     * @return
+     * @return GenoRows
      */
     public GenoRows getSubsetGenotypeBySite(int[] siteIndices) {
         SiteGeno[] ge = new SiteGeno[siteIndices.length];
