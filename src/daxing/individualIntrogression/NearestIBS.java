@@ -1,12 +1,10 @@
 package daxing.individualIntrogression;
 
 import daxing.common.*;
+import daxing.common.genot.GenoGrid;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
-import it.unimi.dsi.fastutil.ints.IntSets;
 import pgl.infra.dna.genot.GenoIOFormat;
-import pgl.infra.dna.genot.GenotypeGrid;
-import pgl.infra.dna.genot.GenotypeOperation;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;
@@ -29,19 +27,14 @@ public class NearestIBS {
      * @param taxa_InfoDB
      * @param fdResDir
      */
-    public static void calculateNearestFd(String vmap2VCFDir, String taxa_InfoDB, String fdResDir, String fdOutDir,
-                                          int index){
+    public static void calculateNearestFd(String vmap2VCFDir, String taxa_InfoDB, String fdResDir, String fdOutDir){
         System.out.println(DateTime.getDateTimeOfNow());
         List<File> vmap2FileList= IOUtils.getFileListInDirEndsWith(vmap2VCFDir, "gz");
         Predicate<File> hidden=File::isHidden;
         List<File> vmap2Files=vmap2FileList.stream().filter(hidden.negate()).collect(Collectors.toList());
         String chr;
-        TIntArrayList abChrs=new TIntArrayList(WheatLineage.ablineage());
-        TIntArrayList dChrs=new TIntArrayList(WheatLineage.valueOf("D").getChrID());
-        Predicate<File> abP=file -> abChrs.contains(StringTool.getNumFromString(file.getName().substring(3,6)));
-        Predicate<File> dP=file -> dChrs.contains(StringTool.getNumFromString(file.getName().substring(3,6)));
-        List<File> abFiles=vmap2Files.stream().filter(abP).sorted().collect(Collectors.toList());
-        List<File> dFiles=vmap2Files.stream().filter(dP).sorted().collect(Collectors.toList());
+        List<File> abFiles= vmap2Files.stream().filter(file -> !file.getName().contains("D")).sorted().collect(Collectors.toList());
+        List<File> dFiles=vmap2Files.stream().filter(file -> file.getName().contains("D")).sorted().collect(Collectors.toList());
         List<File> fdFiles=IOUtils.getVisibleFileListInDir(fdResDir);
         List<File>[] chrFdABFiles=new List[14];
         List<File>[] chrFdDFiles=new List[7];
@@ -66,7 +59,8 @@ public class NearestIBS {
         }
         RowTableTool<String> taxonTable=new RowTableTool<>(taxa_InfoDB);
         Map<String, String> taxonMap= taxonTable.getHashMap(35,0);
-        GenotypeGrid genotypeGridA, genotypeGridB, genotypeGrid;
+//        GenotypeGrid genotypeGridA, genotypeGridB, genotypeGrid;
+        GenoGrid genoGrid;
 //        System.out.println("----------- Start calculate: "+chrAB.get(index)+" -----------");
 //        genotypeGridA=new GenotypeGrid(abFiles.get(2*index).getAbsolutePath(), GenoIOFormat.Binary_GZ);
 //        genotypeGridB=new GenotypeGrid(abFiles.get(2*index+1).getAbsolutePath(),GenoIOFormat.Binary_GZ);
@@ -76,33 +70,27 @@ public class NearestIBS {
 //        System.out.println("merge genotype table take "+ Benchmark.getTimeSpanSeconds(start)+ " seconds");
 //        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdABFiles[index], fdOutDir);
 //        System.out.println("----------- finished: "+chrAB.get(index)+" -----------");
-        System.out.println("----------- Start calculate: "+chrD.get(index)+" -----------");
-        genotypeGridA=new GenotypeGrid(dFiles.get(2*index).getAbsolutePath(), GenoIOFormat.Binary_GZ);
-        genotypeGridB=new GenotypeGrid(dFiles.get(2*index+1).getAbsolutePath(), GenoIOFormat.Binary_GZ);
-        long start=System.nanoTime();
-        System.out.println("start merge genotype table...");
-        genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
-        System.out.println("merge genotype table take "+ Benchmark.getTimeSpanSeconds(start)+ " seconds");
-        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdDFiles[index], fdOutDir);
-        System.out.println("----------- finished: "+chrD.get(index)+" -----------");
-//        for (int i = 0; i < chrFdABFiles.length; i++) {
-//            System.out.println("----------- Start calculate: "+chrAB.get(i)+" -----------");
-//            genotypeGridA=new GenotypeGrid(abFiles.get(2*i).getAbsolutePath(), GenoIOFormat.Binary_GZ);
-//            genotypeGridB=new GenotypeGrid(abFiles.get(2*i+1).getAbsolutePath(),GenoIOFormat.Binary_GZ);
-//            genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
-//            genotypeGrid.sortByTaxa();
-//            calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdABFiles[i], fdOutDir);
-//            System.out.println("----------- finished: "+chrAB.get(i)+" -----------");
-//        }
-//        for (int i = 0; i < chrFdDFiles.length; i++) {
-//            System.out.println("----------- Start calculate: "+chrD.get(i)+" -----------");
-//            genotypeGridA=new GenotypeGrid(dFiles.get(2*i).getAbsolutePath(),GenoIOFormat.Binary_GZ);
-//            genotypeGridB=new GenotypeGrid(dFiles.get(2*i+1).getAbsolutePath(),GenoIOFormat.Binary_GZ);
-//            genotypeGrid=GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
-//            genotypeGrid.sortByTaxa();
-//            calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdDFiles[i],fdOutDir);
-//            System.out.println("----------- finished: "+chrD.get(i)+" -----------");
-//        }
+//        System.out.println("----------- Start calculate: "+chrD.get(index)+" -----------");
+//        genotypeGridA=new GenotypeGrid(dFiles.get(2*index).getAbsolutePath(), GenoIOFormat.Binary_GZ);
+//        genotypeGridB=new GenotypeGrid(dFiles.get(2*index+1).getAbsolutePath(), GenoIOFormat.Binary_GZ);
+//        long start=System.nanoTime();
+//        System.out.println("start merge genotype table...");
+//        genotypeGrid= GenotypeOperation.mergeGenotypesBySite(genotypeGridA,genotypeGridB);
+//        System.out.println("merge genotype table take "+ Benchmark.getTimeSpanSeconds(start)+ " seconds");
+//        calculateNearestFdCByTaxon(genotypeGrid, taxonMap, chrFdDFiles[index], fdOutDir);
+//        System.out.println("----------- finished: "+chrD.get(index)+" -----------");
+        for (int i = 0; i < chrFdABFiles.length; i++) {
+            System.out.println("----------- Start calculate: "+chrAB.get(i)+" -----------");
+            genoGrid = new GenoGrid(abFiles.get(i).getAbsolutePath(), GenoIOFormat.Binary_GZ);
+            calculateNearestFdCByTaxon(genoGrid, taxonMap, chrFdABFiles[i], fdOutDir);
+            System.out.println("----------- finished: "+chrAB.get(i)+" -----------");
+        }
+        for (int i = 0; i < chrFdDFiles.length; i++) {
+            System.out.println("----------- Start calculate: "+chrD.get(i)+" -----------");
+            genoGrid=new GenoGrid(dFiles.get(i).getAbsolutePath(), GenoIOFormat.Binary_GZ);
+            calculateNearestFdCByTaxon(genoGrid, taxonMap, chrFdDFiles[i],fdOutDir);
+            System.out.println("----------- finished: "+chrD.get(i)+" -----------");
+        }
         System.out.println(DateTime.getDateTimeOfNow());
     }
 
@@ -113,7 +101,7 @@ public class NearestIBS {
      * @param chrFdFiles
      * @param outDir
      */
-    private static void calculateNearestFdCByTaxon(GenotypeGrid genotypeGrid, Map<String
+    private static void calculateNearestFdCByTaxon(GenoGrid genotypeGrid, Map<String
             , String> taxonMap, List<File> chrFdFiles, String outDir){
         long start=System.nanoTime();
         System.out.println("start calculateNearestFdCByTaxon ...");
@@ -164,7 +152,7 @@ public class NearestIBS {
      * @param taxonMap
      * @param p3FdFilesPerP2
      */
-    private static void findNearestIBSWindow(GenotypeGrid chrGenotypeGrid, List<String> p3List,
+    private static void findNearestIBSWindow(GenoGrid chrGenotypeGrid, List<String> p3List,
                                              Map<String, String> taxonMap, List<File> p3FdFilesPerP2,
                                              File outFile){
         long start= System.nanoTime();
@@ -363,6 +351,6 @@ public class NearestIBS {
         String fdResDir="/Users/xudaxing/Desktop/fdTest/003_fdRes";
         String outDir="/Users/xudaxing/Desktop/fdTest/004_fdOut";
         int index=0;
-        NearestIBS.calculateNearestFd(vmapIIVCFDir, taxaInfoFile, fdResDir, outDir, index);
+//        NearestIBS.calculateNearestFd(vmapIIVCFDir, taxaInfoFile, fdResDir, outDir, index);
     }
 }
