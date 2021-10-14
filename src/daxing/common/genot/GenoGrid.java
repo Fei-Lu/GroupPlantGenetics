@@ -4,6 +4,9 @@ import cern.colt.GenericSorting;
 import cern.colt.Swapper;
 import cern.colt.function.IntComparator;
 import daxing.common.IOTool;
+import daxing.common.genot.facilities.BlockBinary;
+import daxing.common.genot.facilities.BlockVCF;
+import daxing.common.genot.facilities.SiteGeno;
 import pgl.PGLConstraints;
 import pgl.infra.dna.allele.AlleleEncoder;
 import pgl.infra.dna.allele.AlleleType;
@@ -11,7 +14,6 @@ import pgl.infra.dna.genot.*;
 import pgl.infra.dna.snp.BiSNP;
 import pgl.infra.pos.ChrPos;
 import pgl.infra.utils.Benchmark;
-import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
@@ -30,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  * Modify from GenotypeGrid, performance improvement, code simplification, easy customization
  * @author Daxing Xu
  */
-public class GenoGrid implements GenotypeTable, Swapper, IntComparator {
+public class GenoGrid extends AbstractGenotypeTable implements Swapper, IntComparator {
 
     String[] taxa = null;
     BiSNP[] snps = null;
@@ -580,13 +582,7 @@ public class GenoGrid implements GenotypeTable, Swapper, IntComparator {
      */
     private void buildFromBinary (String infileS) {
         try{
-            DataInputStream dis;
-            if (infileS.endsWith(".gz")) {
-                dis = IOUtils.getBinaryGzipReader(infileS);
-            }
-            else {
-                dis = IOUtils.getBinaryReader(infileS);
-            }
+            DataInputStream dis=IOTool.getBinaryReader(infileS);
             int siteNumber = dis.readInt();
             short taxaNumber = (short)dis.readInt();
             this.taxa = new String[taxaNumber];
@@ -630,7 +626,7 @@ public class GenoGrid implements GenotypeTable, Swapper, IntComparator {
             this.snps = new BiSNP[siteCount];
             for (Future<BlockBinary> blockBinaryFuture : resultList) {
                 BlockBinary block = blockBinaryFuture.get();
-                for (int j = 0; j < block.actBlockSize; j++) {
+                for (int j = 0; j < block.getActBlockSize(); j++) {
                     this.snps[block.getStartIndex() + j] = block.getSNPBlock()[j];
                     this.genoSite[block.getStartIndex() + j] = block.getGenoSiteBlock()[j];
                 }
@@ -696,7 +692,7 @@ public class GenoGrid implements GenotypeTable, Swapper, IntComparator {
             this.snps = new BiSNP[siteCount];
             for (Future<BlockVCF> blockVCFFuture : resultList) {
                 BlockVCF block = blockVCFFuture.get();
-                for (int j = 0; j < block.actBlockSize; j++) {
+                for (int j = 0; j < block.getActBlockSize(); j++) {
                     this.snps[block.getStartIndex() + j] = block.getSNPBlock()[j];
                     this.genoSite[block.getStartIndex() + j] = block.getGenoSiteBlock()[j];
                 }
@@ -775,5 +771,181 @@ public class GenoGrid implements GenotypeTable, Swapper, IntComparator {
     @Override
     public int compare(int index1, int index2) {
         return snps[index1].compareTo(snps[index2]);
+    }
+
+
+
+    /**
+     * Merge the specified GenoGrid with this GenoGrid
+     * Two genotypes should have the same number of taxa in the same order.
+     * @param gt
+     * @return Return a new GenoGrid
+     */
+    public GenoGrid mergeGenotypesBySite(GenoGrid gt) {
+        assert this.getTaxaNumber()==gt.getTaxaNumber() : "check your GenoGrid";
+        int snpCount = this.getSiteNumber()+gt.getSiteNumber();
+        BitSet[][] bArray = new BitSet[snpCount][3];
+        int cnt = 0;
+        for (int i = 0; i < this.getSiteNumber(); i++) {
+            for (int j = 0; j < this.genoSite[0].length; j++) {
+                bArray[cnt][j] = this.genoSite[i][j];
+            }
+            cnt++;
+        }
+        for (int i = 0; i < gt.getSiteNumber(); i++) {
+            for (int j = 0; j < gt.genoSite[0].length; j++) {
+                bArray[cnt][j] = gt.genoSite[i][j];
+            }
+            cnt++;
+        }
+        BiSNP[] nsnps = new BiSNP[snpCount];
+        cnt = 0;
+        for (int i = 0; i < this.getSiteNumber(); i++) {
+            nsnps[cnt] = this.snps[i];
+            cnt++;
+        }
+        for (int i = 0; i < gt.getSiteNumber(); i++) {
+            nsnps[cnt] = gt.snps[i];
+            cnt++;
+        }
+        return new GenoGrid(bArray, GenoGrid.Direction.BySite, this.taxa, nsnps);
+    }
+
+    /**
+     * Merge the specified GenoGrid with this GenoGrid
+     * <p> Two genotypes should have the same number of sites in the same order
+     * @param gt
+     * @return Return a new GenoGrid
+     */
+    public GenoGrid mergeGenotypesByTaxon(GenoGrid gt) {
+        assert this.getSiteNumber()==gt.getSiteNumber() : "check your GenoGrid";
+        if (this.getSiteNumber() != gt.getSiteNumber()) return null;
+        int taxaCount = this.getTaxaNumber()+gt.getTaxaNumber();
+        BitSet[][] bArray = new BitSet[taxaCount][3];
+        String[] taxa = new String[taxaCount];
+        int cnt = 0;
+        for (int i = 0; i < this.getTaxaNumber(); i++) {
+            for (int j = 0; j < this.genoTaxon[0].length; j++) {
+                bArray[cnt][j] = this.genoTaxon[i][j];
+            }
+            taxa[cnt] = this.getTaxonName(i);
+            cnt++;
+        }
+        for (int i = 0; i < gt.getTaxaNumber(); i++) {
+            for (int j = 0; j < gt.genoTaxon[0].length; j++) {
+                bArray[cnt][j] = gt.genoTaxon[i][j];
+            }
+            taxa[cnt] = gt.getTaxonName(i);
+            cnt++;
+        }
+        BiSNP[] nsnps = new BiSNP[this.getSiteNumber()];
+        for (int i = 0; i < nsnps.length; i++) {
+            nsnps[i] = this.snps[i].replicateWithoutFeature();
+        }
+        return new GenoGrid(bArray, GenoGrid.Direction.ByTaxon, taxa, nsnps);
+    }
+
+    /**
+     * Convert {@link GenoGrid} to {@link GenoRows}
+     * @return
+     */
+    public GenoRows getConvertedGenotype() {
+        SiteGeno[] geno = new SiteGeno[this.getSiteNumber()];
+        for (int i = 0; i < this.getSiteNumber(); i++) {
+            short chr = this.getChromosome(i);
+            int pos = this.getPosition(i);
+            char refBase = this.getReferenceAlleleBase(i);
+            char altBase = this.getAlternativeAlleleBase(i);
+            BitSet phase1 = this.genoSite[i][0];
+            BitSet phase2 = this.genoSite[i][1];
+            BitSet missingP = this.genoSite[i][2];
+            geno[i] = new SiteGeno(chr, pos, refBase, altBase, null, phase1, phase2, missingP, this.getTaxaNumber());
+        }
+        return new GenoRows(geno, this.taxa);
+    }
+
+    /**
+     * Return a new subset of original genotype. The original genotype is unchanged.
+     * @param siteIndices
+     * @return
+     */
+    public GenoGrid getSubsetGenotypeBySite(int[] siteIndices) {
+        BitSet[][] bArray = new BitSet[siteIndices.length][3];
+        for (int i = 0; i < siteIndices.length; i++) {
+            for (int j = 0; j < bArray[0].length; j++) {
+                bArray[i][j] = this.genoSite[siteIndices[i]][j];
+            }
+        }
+        BiSNP[] nsnps = new BiSNP[siteIndices.length];
+        for (int i = 0; i < siteIndices.length; i++) {
+            nsnps[i] = this.snps[siteIndices[i]];
+        }
+        return new GenoGrid(bArray, Direction.BySite, this.taxa, nsnps);
+    }
+
+    /**
+     * Return a new subset of original genotype. The original genotype is unchanged.
+     * @param taxaIndices
+     * @return
+     */
+    public GenoGrid getSubsetGenotypeByTaxon(int[] taxaIndices) {
+        BitSet[][] bArray = new BitSet[taxaIndices.length][3];
+        for (int i = 0; i < taxaIndices.length; i++) {
+            for (int j = 0; j < bArray[0].length; j++) {
+                bArray[i][j] = this.genoTaxon[taxaIndices[i]][j];
+            }
+        }
+        String[] nTaxa = new String[taxaIndices.length];
+        for (int i = 0; i < taxaIndices.length; i++) {
+            nTaxa[i] = this.getTaxonName(taxaIndices[i]);
+        }
+        BiSNP[] nsnps = new BiSNP[this.getSiteNumber()];
+        for (int i = 0; i < this.getSiteNumber(); i++) {
+            nsnps[i] = this.snps[i].replicateWithoutFeature();
+        }
+        return new GenoGrid(bArray, Direction.ByTaxon, nTaxa, nsnps);
+    }
+
+    /**
+     * Subsets the original genotype. The original genotype is changed.
+     * @param siteIndices
+     */
+    public void subsetsGenotypeBySite(int[] siteIndices) {
+        BitSet[][] bArray = new BitSet[siteIndices.length][3];
+        for (int i = 0; i < siteIndices.length; i++) {
+            for (int j = 0; j < bArray[0].length; j++) {
+                bArray[i][j] = this.genoSite[siteIndices[i]][j];
+            }
+        }
+        BiSNP[] nsnps = new BiSNP[siteIndices.length];
+        for (int i = 0; i < siteIndices.length; i++) {
+            nsnps[i] = this.snps[siteIndices[i]];
+        }
+        this.genoSite=bArray;
+        this.snps=nsnps;
+    }
+
+    /**
+     * Subsets the original genotype. The original genotype is changed.
+     * @param taxaIndices
+     */
+    public void subsetsGenotypeByTaxon(int[] taxaIndices) {
+        BitSet[][] bArray = new BitSet[taxaIndices.length][3];
+        for (int i = 0; i < taxaIndices.length; i++) {
+            for (int j = 0; j < bArray[0].length; j++) {
+                bArray[i][j] = this.genoTaxon[taxaIndices[i]][j];
+            }
+        }
+        String[] nTaxa = new String[taxaIndices.length];
+        for (int i = 0; i < taxaIndices.length; i++) {
+            nTaxa[i] = this.getTaxonName(taxaIndices[i]);
+        }
+        BiSNP[] nsnps = new BiSNP[this.getSiteNumber()];
+        for (int i = 0; i < this.getSiteNumber(); i++) {
+            nsnps[i] = this.snps[i].replicateWithoutFeature();
+        }
+        this.genoTaxon=bArray;
+        this.taxa=nTaxa;
+        this.snps=nsnps;
     }
 }

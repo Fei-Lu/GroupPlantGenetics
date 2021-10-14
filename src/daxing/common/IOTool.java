@@ -2,10 +2,7 @@ package daxing.common;
 
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
@@ -37,6 +34,24 @@ public class IOTool extends IOUtils {
 
     public static BufferedWriter getWriter(String file){
         return getWriter(new File(file));
+    }
+
+    public static DataInputStream getBinaryReader(File file){
+        if (file.getName().endsWith("gz")) return IOUtils.getBinaryGzipReader(file.getAbsolutePath());
+        return IOUtils.getBinaryReader(file.getAbsolutePath());
+    }
+
+    public static DataInputStream getBinaryReader(String file){
+        return getBinaryReader(new File(file));
+    }
+
+    public static DataOutputStream getBinaryWriter(File file){
+        if (file.getName().endsWith("gz")) return IOUtils.getBinaryGzipWriter(file.getAbsolutePath());
+        return IOUtils.getBinaryWriter(file.getAbsolutePath());
+    }
+
+    public static DataOutputStream getBinaryWriter(String file){
+        return getBinaryWriter(new File(file));
     }
 
     /**

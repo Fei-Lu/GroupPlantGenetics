@@ -1,4 +1,4 @@
-package daxing.common.genot;
+package daxing.common.genot.facilities;
 
 import pgl.infra.dna.allele.AlleleEncoder;
 import pgl.infra.dna.allele.AlleleType;
@@ -58,6 +58,18 @@ public class SiteGeno extends BiSNP {
         this.phase2 = phase2;
         this.missing = missing;
         this.taxaNumber = (short)(taxaNumber+Short.MIN_VALUE);
+    }
+
+    public BitSet getPhase1() {
+        return phase1;
+    }
+
+    public BitSet getPhase2() {
+        return phase2;
+    }
+
+    public BitSet getMissing() {
+        return missing;
     }
 
     /**

@@ -1,11 +1,14 @@
 package daxing.common.genot;
 
+import daxing.common.IOTool;
+import daxing.common.genot.facilities.SiteGeno;
 import pgl.PGLConstraints;
 import pgl.infra.dna.allele.AlleleEncoder;
 import pgl.infra.dna.allele.AlleleType;
 import pgl.infra.dna.genot.*;
+import pgl.infra.dna.snp.BiSNP;
 import pgl.infra.pos.ChrPos;
-import pgl.infra.utils.IOUtils;
+import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
@@ -29,7 +32,7 @@ import java.util.stream.IntStream;
  *
  * @author feilu
  */
-public class GenoRows implements GenotypeTable {
+public class GenoRows extends AbstractGenotypeTable {
 
     /**
      * The taxa in the genotype table
@@ -239,8 +242,8 @@ public class GenoRows implements GenotypeTable {
 
     @Override
     public int getAlternativeAlleleOccurrenceBySite(int siteIndex) {
-        BitSet bs = geno[siteIndex].phase1;
-        bs.or(geno[siteIndex].phase2);
+        BitSet bs = geno[siteIndex].getPhase1();
+        bs.or(geno[siteIndex].getPhase2());
         return bs.cardinality();
     }
 
@@ -485,13 +488,7 @@ public class GenoRows implements GenotypeTable {
      */
     private void buildFromBinary (String infileS) {
         try{
-            DataInputStream dis;
-            if (infileS.endsWith(".gz")) {
-                dis = IOUtils.getBinaryGzipReader(infileS);
-            }
-            else {
-                dis = IOUtils.getBinaryReader(infileS);
-            }
+            DataInputStream dis = IOTool.getBinaryReader(infileS);
             int siteNumber = dis.readInt();
             short taxaNumber = (short)dis.readInt();
             this.taxa = new String[taxaNumber];
@@ -594,13 +591,7 @@ public class GenoRows implements GenotypeTable {
     private void buildFromVCF (String infileS) {
         try {
             List<String> vcfAnnotationList = new ArrayList<>();
-            BufferedReader br;
-            if (infileS.endsWith(".gz")) {
-                br = IOUtils.getTextGzipReader(infileS);
-            }
-            else {
-                br = IOUtils.getTextReader(infileS);
-            }
+            BufferedReader br = IOTool.getReader(infileS);
             String temp;
             while ((temp = br.readLine()).startsWith("##")) {
                 vcfAnnotationList.add(temp);
@@ -691,5 +682,69 @@ public class GenoRows implements GenotypeTable {
             lines = null;
             return this;
         }
+    }
+
+    /**
+     * Merge the specified GenoRows with this GenoRows
+     * <p> Two genotypes should have the same number of taxa in the same order.
+     * @param gt
+     * @return Return a new GenoGrid
+     */
+    public GenoRows mergeGenotypesBySite(GenoRows gt) {
+        long start=System.nanoTime();
+        assert this.getTaxaNumber()== gt.getTaxaNumber() : "check your GenoRows";
+        int snpCount = this.getSiteNumber()+gt.getSiteNumber();
+        SiteGeno[] geno = new SiteGeno[snpCount];
+        int cnt = 0;
+        for (int i = 0; i < this.getSiteNumber(); i++) {
+            geno[cnt] = this.geno[i];
+            cnt++;
+        }
+        for (int i = 0; i < gt.getSiteNumber(); i++) {
+            geno[cnt] = gt.geno[i];
+            cnt++;
+        }
+        System.out.println("merge spend "+ Benchmark.getTimeSpanSeconds(start)+ " seconds");
+        return new GenoRows(geno, this.taxa);
+    }
+
+    /**
+     * Convert {@link GenoGrid} to {@link GenoRows}
+     * @return
+     */
+    public GenoGrid getConvertedGenotype() {
+        BitSet[][] bArray = new BitSet[this.getSiteNumber()][3];
+        int cnt = 0;
+        for (int i = 0; i < this.getSiteNumber(); i++) {
+            bArray[cnt][0] = this.geno[i].getPhase1();
+            bArray[cnt][1] = this.geno[i].getPhase2();
+            bArray[cnt][2] = this.geno[i].getMissing();
+        }
+        BiSNP[] nsnps = new BiSNP[this.getSiteNumber()];
+        for (int i = 0; i < nsnps.length; i++) {
+            nsnps[i] = this.geno[i];
+        }
+        return new GenoGrid(bArray, GenoGrid.Direction.ByTaxon, this.taxa, nsnps);
+    }
+
+    /**
+     * Return a new subset of original genotype. The original genotype is unchanged.
+     * @param siteIndices
+     * @return
+     */
+    public GenoRows getSubsetGenotypeBySite(int[] siteIndices) {
+        SiteGeno[] ge = new SiteGeno[siteIndices.length];
+        for (int i = 0; i < siteIndices.length; i++) {
+            ge[i] = this.geno[siteIndices[i]];
+        }
+        return new GenoRows(ge, this.taxa);
+    }
+
+    /**
+     * Subsets the original genotype. The original genotype is changed.
+     * @param siteIndices
+     */
+    public void subsetsGenotypeBySite(int[] siteIndices) {
+        getSubsetGenotypeBySite(siteIndices);
     }
 }

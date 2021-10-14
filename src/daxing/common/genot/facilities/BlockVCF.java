@@ -1,4 +1,4 @@
-package daxing.common.genot;
+package daxing.common.genot.facilities;
 
 import pgl.infra.dna.snp.BiSNP;
 import pgl.infra.utils.Dyad;
@@ -27,6 +27,10 @@ public class BlockVCF implements Callable<BlockVCF> {
 
     public BiSNP[] getSNPBlock () {
         return this.snpBlock;
+    }
+
+    public int getActBlockSize() {
+        return actBlockSize;
     }
 
     public BitSet[][] getGenoSiteBlock () {

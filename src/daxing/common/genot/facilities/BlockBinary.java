@@ -1,4 +1,4 @@
-package daxing.common.genot;
+package daxing.common.genot.facilities;
 
 import pgl.infra.dna.allele.AlleleEncoder;
 import pgl.infra.dna.genot.GenotypeExport;
@@ -28,6 +28,10 @@ public class BlockBinary implements Callable<BlockBinary> {
 
     public BiSNP[] getSNPBlock () {
         return this.snpBlock;
+    }
+
+    public int getActBlockSize() {
+        return actBlockSize;
     }
 
     public BitSet[][] getGenoSiteBlock () {
