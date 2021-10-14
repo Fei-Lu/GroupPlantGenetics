@@ -726,7 +726,7 @@ public class GenoRows extends AbstractGenotypeTable {
 
     /**
      * Return a new subset of original genotype. The original genotype is unchanged.
-     * @param siteIndices
+     * @param siteIndices siteIndices
      * @return GenoRows
      */
     public GenoRows getSubsetGenotypeBySite(int[] siteIndices) {
@@ -739,7 +739,7 @@ public class GenoRows extends AbstractGenotypeTable {
 
     /**
      * Subsets the original genotype. The original genotype is changed.
-     * @param siteIndices
+     * @param siteIndices siteIndices
      */
     public void subsetsGenotypeBySite(int[] siteIndices) {
         getSubsetGenotypeBySite(siteIndices);
