@@ -5,7 +5,7 @@ import pgl.infra.utils.Benchmark;
 import java.util.BitSet;
 
 /**
- * Modify from GenotypeOperation, improved performance, easy for me to customize
+ * Modify from GenotypeOperation, performance improvement, code simplification, easy customization
  * Methods to merge, split, select genotype tables
  */
 public class GenoOperation {

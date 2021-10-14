@@ -6,13 +6,12 @@ import pgl.infra.dna.genot.GenotypeExport;
 import pgl.infra.dna.genot.SiteGenotype;
 import pgl.infra.dna.snp.BiSNP;
 import pgl.infra.utils.PStringUtils;
-
 import java.nio.ByteBuffer;
 import java.util.BitSet;
 import java.util.List;
 
 /**
- * Modify from SiteGenotype, improved performance, easy for me to customize
+ * Modify from SiteGenotype, performance improvement, code simplification, easy customization
  * Class holding SNP and genotype information per site,
  * Supports only bi-allelic SNPs, 3rd+ allele will be ignored. Allele depth is ignored.
  */

@@ -3,6 +3,7 @@ package daxing.common.genot;
 import cern.colt.GenericSorting;
 import cern.colt.Swapper;
 import cern.colt.function.IntComparator;
+import daxing.common.IOTool;
 import pgl.PGLConstraints;
 import pgl.infra.dna.allele.AlleleEncoder;
 import pgl.infra.dna.allele.AlleleType;
@@ -26,7 +27,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Modify from GenotypeGrid, improved performance, easy for me to customize
+ * Modify from GenotypeGrid, performance improvement, code simplification, easy customization
  * @author Daxing Xu
  */
 public class GenoGrid implements GenotypeTable, Swapper, IntComparator {
@@ -650,13 +651,7 @@ public class GenoGrid implements GenotypeTable, Swapper, IntComparator {
     private void buildFromVCF (String infileS) {
         try {
             List<String> vcfAnnotationList = new ArrayList<>();
-            BufferedReader br;
-            if (infileS.endsWith(".gz")) {
-                br = IOUtils.getTextGzipReader(infileS);
-            }
-            else {
-                br = IOUtils.getTextReader(infileS);
-            }
+            BufferedReader br = IOTool.getReader(infileS);
             String temp;
             while ((temp = br.readLine()).startsWith("##")) {
                 vcfAnnotationList.add(temp);

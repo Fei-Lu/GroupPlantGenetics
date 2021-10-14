@@ -9,7 +9,7 @@ import java.util.BitSet;
 import java.util.concurrent.Callable;
 
 /**
- * Modify from GenoSiteBlockBinary, improved performance, easy for me to customize
+ * Modify from GenoSiteBlockBinary, performance improvement, code simplification, easy customization
  * Multithreading reading facilities of GenoGrid
  */
 public class BlockBinary implements Callable<BlockBinary> {

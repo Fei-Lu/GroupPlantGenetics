@@ -9,7 +9,7 @@ import java.io.DataOutputStream;
 import java.nio.ByteBuffer;
 
 /**
- * Modify from GenotypeOperation, improved performance, easy for me to customize
+ * Modify from GenotypeOperation, performance improvement, code simplification, easy customization
  */
 public class GenoExport {
 

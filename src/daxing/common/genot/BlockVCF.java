@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
- * Modify from GenoSiteBlockVCF, improved performance, easy for me to customize
+ * Modify from GenoSiteBlockVCF, performance improvement, code simplification, easy customization
  * Multithreading reading facilities of GenoGrid
  */
 public class BlockVCF implements Callable<BlockVCF> {

@@ -19,7 +19,7 @@ import java.util.concurrent.*;
 import java.util.stream.IntStream;
 
 /**
- * Modify from GenotypeRows, improved performance, easy for me to customize
+ * Modify from GenotypeRows, performance improvement, code simplification, easy customization
  * The bit version implementation of a genotype table, see {@link GenotypeTable}
  * <p>
  * The class implements bitset genotype by site, which means it is smaller than {@link GenoGrid} in memory,
