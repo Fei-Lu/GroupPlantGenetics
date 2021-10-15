@@ -16,13 +16,12 @@ import java.util.concurrent.*;
 public class LinuxCommandUtils {
 
     /**
-     *
      * @param command one simple linux command with or without options, can't be a compound command: et al. ls | wc
      * @param workingDirectory current working dir
      * @param logFile contain command log and error log
      * @return 0 indicates normal termination
      */
-    public static Integer runOneSH(String command,
+    private static Integer runOneSH(String command,
                                    String workingDirectory, File logFile){
         List<String> commandList= PStringUtils.fastSplit(command, " ");
         ProcessBuilder processBuilder = new ProcessBuilder(commandList);
@@ -36,6 +35,9 @@ public class LinuxCommandUtils {
             exitCode = process.waitFor();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
+        }
+        if (exitCode==0){
+            System.out.println(command+" completed");
         }
         return exitCode;
     }
@@ -55,7 +57,7 @@ public class LinuxCommandUtils {
         List<String> commandList= IOTool.readAllLines(shFile);
         List<File> logFiles= IOTool.getLogFile(title, logDir, commandList.size());
         List<Callable<Integer>> callableList = new ArrayList<>();
-        for (int i = 0; i <callableList.size(); i++) {
+        for (int i = 0; i < commandList.size(); i++) {
             int finalI = i;
             callableList.add(()-> runOneSH(commandList.get(finalI), workingDirectory, logFiles.get(finalI)));
         }

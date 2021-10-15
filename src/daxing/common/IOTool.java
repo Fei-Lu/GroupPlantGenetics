@@ -109,7 +109,7 @@ public class IOTool extends IOUtils {
     }
 
     public static List<String> readAllLines(String file){
-        List<String> lines=null;
+        List<String> lines=new ArrayList<>();
         String line;
         try (BufferedReader br = IOTool.getReader(file)) {
             while ((line=br.readLine())!=null){
@@ -136,13 +136,13 @@ public class IOTool extends IOUtils {
 
     public static List<File> getLogFile(String title, String logDir, int logFileNum){
         assert logFileNum > 0 : logFileNum + " must be greater than 0";
-        int digitsNum=(int)Math.log(logFileNum) +1;
+        int digitsNum=(int)(Math.log10(logFileNum) +1);
         List<File> logFiles= new ArrayList<>();
         StringBuilder sb = new StringBuilder();
         File file;
         for (int i = 0; i < logFileNum; i++) {
             sb.setLength(0);
-            sb.append(title).append(PStringUtils.getNDigitNumber(i, digitsNum)).append(".log");
+            sb.append(title).append("_").append(PStringUtils.getNDigitNumber(digitsNum, i)).append(".log");
             file = new File(logDir, sb.toString());
             logFiles.add(file);
         }
