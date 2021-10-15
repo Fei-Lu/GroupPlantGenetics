@@ -19,7 +19,7 @@ public class LinuxCommandUtils {
      *
      * @param command one simple linux command with or without options, can't be a compound command: et al. ls | wc
      * @param workingDirectory current working dir
-     * @param logFile log file
+     * @param logFile contain command log and error log
      * @return 0 indicates normal termination
      */
     public static Integer runOneSH(String command,
