@@ -3,6 +3,7 @@ package daxing.common;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
@@ -25,6 +26,14 @@ public class IOTool extends IOUtils {
 
     public static BufferedReader getReader(String file){
         return getReader(new File(file));
+    }
+
+    public static BufferedReader getReader(Process p){
+       return new BufferedReader(new InputStreamReader(p.getInputStream()));
+    }
+
+    public static BufferedReader getErrorReader(Process p){
+        return new BufferedReader(new InputStreamReader(p.getErrorStream()));
     }
 
     public static BufferedWriter getWriter(File file){
@@ -97,5 +106,46 @@ public class IOTool extends IOUtils {
 
     public static void viewHeader(String file){
         viewHeader(file,"\t");
+    }
+
+    public static List<String> readAllLines(String file){
+        List<String> lines=null;
+        String line;
+        try (BufferedReader br = IOTool.getReader(file)) {
+            while ((line=br.readLine())!=null){
+                lines.add(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        assert lines!=null : " check "+file;
+        return lines;
+    }
+
+    public static void writeAllLines(File outFile, List<String> lines){
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
+            for (String line:lines){
+                bw.write(line);
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static List<File> getLogFile(String title, String logDir, int logFileNum){
+        assert logFileNum > 0 : logFileNum + " must be greater than 0";
+        int digitsNum=(int)Math.log(logFileNum) +1;
+        List<File> logFiles= new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        File file;
+        for (int i = 0; i < logFileNum; i++) {
+            sb.setLength(0);
+            sb.append(title).append(PStringUtils.getNDigitNumber(i, digitsNum)).append(".log");
+            file = new File(logDir, sb.toString());
+            logFiles.add(file);
+        }
+        return logFiles;
     }
 }
