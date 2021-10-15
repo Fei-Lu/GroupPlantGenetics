@@ -4,7 +4,12 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
 import com.google.common.collect.TreeMultimap;
-import daxing.common.*;
+import daxing.common.factors.SubgenomeCombination;
+import daxing.common.factors.WheatLineage;
+import daxing.common.table.RowTableTool;
+import daxing.common.utiles.DateTime;
+import daxing.common.utiles.IOTool;
+import daxing.common.utiles.StringTool;
 import daxing.common.vmap2Group.Group;
 import daxing.common.vmap2Group.GroupType;
 import gnu.trove.list.array.TIntArrayList;
@@ -164,7 +169,7 @@ public class Ne {
         Map<String, String> taxaGroupMap=null;
         switch (group){
             case Subcontinent:
-                taxaGroupMap=RowTableTool.getMap(taxaInfo_depthFile,0,2);
+                taxaGroupMap= RowTableTool.getMap(taxaInfo_depthFile,0,2);
                 break;
             case Subspecies:
                 taxaGroupMap=RowTableTool.getMap(taxaInfo_depthFile,0,3);
@@ -211,7 +216,7 @@ public class Ne {
     }
 
     private static List<File> getFiles(List<File> files, SubgenomeCombination subgenomeCombination){
-        int[] ab=WheatLineage.ablineage();
+        int[] ab= WheatLineage.ablineage();
         int[] d=WheatLineage.D.getChrID();
         TIntArrayList abList=new TIntArrayList(ab);
         TIntArrayList dList = new TIntArrayList(d);

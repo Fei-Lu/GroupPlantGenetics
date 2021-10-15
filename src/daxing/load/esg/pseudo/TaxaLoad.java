@@ -1,6 +1,10 @@
 package daxing.load.esg.pseudo;
 
-import daxing.common.*;
+import daxing.common.factors.WheatLineage;
+import daxing.common.table.RowTableTool;
+import daxing.common.utiles.ArrayTool;
+import daxing.common.utiles.IOTool;
+import daxing.common.factors.Ploidy;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
@@ -123,7 +127,7 @@ public class TaxaLoad {
         long start =System.nanoTime();
         int[][] randomABDTaxonIndex= new int[this.getPloidy().getSubgenomewNum()][]; // dim1: subgenome dim2: random number
         for (int i = 0; i < randomABDTaxonIndex.length; i++) {
-            randomABDTaxonIndex[i]=ArrayTool.getRandomNumberArray(pseudoNum, 0, this.getTaxaNum());
+            randomABDTaxonIndex[i]= ArrayTool.getRandomNumberArray(pseudoNum, 0, this.getTaxaNum());
         }
         try {
             BufferedWriter bw;

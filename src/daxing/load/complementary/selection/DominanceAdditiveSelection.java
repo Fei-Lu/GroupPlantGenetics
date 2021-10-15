@@ -1,7 +1,7 @@
 package daxing.load.complementary.selection;
 
-import daxing.common.ChrRange;
-import daxing.common.IOTool;
+import daxing.common.chrrange.ChrRange;
+import daxing.common.utiles.IOTool;
 import daxing.load.complementary.TriadsBlock;
 import daxing.load.complementary.TriadsBlockUtils;
 import gnu.trove.list.array.TIntArrayList;

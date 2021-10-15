@@ -1,8 +1,8 @@
 package daxing.applets;
 
-import daxing.common.NumberTool;
-import daxing.common.RowTableTool;
-import daxing.common.WheatLineage;
+import daxing.common.utiles.NumberTool;
+import daxing.common.table.RowTableTool;
+import daxing.common.factors.WheatLineage;
 import gnu.trove.list.array.TDoubleArrayList;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;

@@ -1,7 +1,7 @@
 package daxing.individualIntrogression;
 
-import daxing.common.IOTool;
-import daxing.common.LoadType;
+import daxing.common.utiles.IOTool;
+import daxing.common.factors.LoadType;
 import gnu.trove.list.array.TByteArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.PStringUtils;

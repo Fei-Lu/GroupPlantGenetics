@@ -1,7 +1,7 @@
 package daxing.applets;
 
-import daxing.common.IOTool;
-import daxing.common.SeqByte;
+import daxing.common.utiles.IOTool;
+import daxing.common.sequence.SeqByte;
 import gnu.trove.list.array.TByteArrayList;
 import gnu.trove.list.array.TIntArrayList;
 

@@ -1,8 +1,8 @@
 package daxing.load.global;
 
-import daxing.common.ColumnTableTool;
-import daxing.common.NumberTool;
-import daxing.common.RowTableTool;
+import daxing.common.table.ColumnTableTool;
+import daxing.common.utiles.NumberTool;
+import daxing.common.table.RowTableTool;
 import daxing.load.ancestralSite.Standardization;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;

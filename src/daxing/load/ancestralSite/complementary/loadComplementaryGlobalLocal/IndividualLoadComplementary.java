@@ -1,6 +1,10 @@
 package daxing.load.ancestralSite.complementary.loadComplementaryGlobalLocal;
 
-import daxing.common.*;
+import daxing.common.table.RowTableTool;
+import daxing.common.utiles.IOTool;
+import daxing.common.utiles.NumberTool;
+import daxing.common.wheat.PGF;
+import daxing.common.wheat.Triads;
 import gnu.trove.list.array.TDoubleArrayList;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.IOUtils;

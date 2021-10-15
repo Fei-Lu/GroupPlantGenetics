@@ -4,7 +4,13 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
 import com.google.common.collect.TreeMultimap;
-import daxing.common.*;
+import daxing.common.chrrange.ChrRange;
+import daxing.common.factors.WheatLineage;
+import daxing.common.table.RowTableTool;
+import daxing.common.utiles.IOTool;
+import daxing.common.utiles.StringTool;
+import daxing.common.wheat.PGF;
+import daxing.common.wheat.Triads;
 import daxing.load.complementary.TriadsBlock;
 import daxing.load.complementary.TriadsBlockUtils;
 import gnu.trove.list.array.TIntArrayList;
@@ -218,7 +224,7 @@ public class ScriptMethods {
     public static void retainVmapIExonGeno(String pgfFile, String geneHCFile, String genoInputDir, String outDir){
         PGF pgf=new PGF(pgfFile);
         System.out.println(pgf.getGeneNumber());
-        Set<String> hcGenes=RowTableTool.getColumnSet(geneHCFile,0);
+        Set<String> hcGenes= RowTableTool.getColumnSet(geneHCFile,0);
         Predicate<PGF.Gene> hcGenePredict=gene -> hcGenes.contains(gene.getGeneName());
         pgf.removeIf(hcGenePredict.negate());
         System.out.println(pgf.getGeneNumber());

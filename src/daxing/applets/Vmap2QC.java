@@ -1,7 +1,7 @@
 package daxing.applets;
 
-import daxing.common.IOTool;
-import daxing.common.VCF;
+import daxing.common.utiles.IOTool;
+import daxing.common.genotype.VCF;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;

@@ -1,8 +1,8 @@
 package daxing.load.ancestralSite;
 
-import daxing.common.ColumnTableTool;
-import daxing.common.IOTool;
-import daxing.common.NumberTool;
+import daxing.common.table.ColumnTableTool;
+import daxing.common.utiles.IOTool;
+import daxing.common.utiles.NumberTool;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedWriter;

@@ -1,6 +1,10 @@
 package daxing.individualIntrogression;
 
-import daxing.common.*;
+import daxing.common.chrrange.ChrPos;
+import daxing.common.chrrange.ChrRange;
+import daxing.common.factors.LoadType;
+import daxing.common.utiles.IOTool;
+import daxing.common.utiles.StringTool;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
@@ -348,7 +352,7 @@ public class PopulationIndividualFd {
                 chr=temp.get(0);
                 start=Integer.parseInt(temp.get(1));
                 end=Integer.parseInt(temp.get(2));
-                d=StringTool.isNumeric(temp.get(8)) ? Double.parseDouble(temp.get(8)) : Double.NaN;
+                d= StringTool.isNumeric(temp.get(8)) ? Double.parseDouble(temp.get(8)) : Double.NaN;
                 fd=StringTool.isNumeric(temp.get(9)) ? Double.parseDouble(temp.get(9)) : Double.NaN;
                 miniIBSP3=temp.get(11);
                 individualFdRecord=new IndividualFdRecord(d, fd, miniIBSP3);

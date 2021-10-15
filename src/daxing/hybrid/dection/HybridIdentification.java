@@ -1,8 +1,8 @@
 package daxing.hybrid.dection;
 
-import daxing.common.DateTime;
-import daxing.common.IOTool;
-import daxing.common.RowTableTool;
+import daxing.common.utiles.DateTime;
+import daxing.common.utiles.IOTool;
+import daxing.common.table.RowTableTool;
 import gnu.trove.list.TDoubleList;
 import gnu.trove.list.array.TDoubleArrayList;
 import pgl.infra.dna.genot.GenoIOFormat;

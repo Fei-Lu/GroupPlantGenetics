@@ -1,8 +1,8 @@
 package daxing.applets;
 
-import daxing.common.IOTool;
-import daxing.common.RowTableTool;
-import daxing.common.Triads;
+import daxing.common.utiles.IOTool;
+import daxing.common.table.RowTableTool;
+import daxing.common.wheat.Triads;
 import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOFileFormat;
 import java.io.BufferedWriter;

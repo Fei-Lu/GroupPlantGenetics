@@ -1,7 +1,7 @@
 package daxing.applets;
 
-import daxing.common.NumberTool;
-import daxing.common.WheatLineage;
+import daxing.common.utiles.NumberTool;
+import daxing.common.factors.WheatLineage;
 import gnu.trove.list.array.TByteArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;

@@ -1,6 +1,10 @@
 package daxing.load.complementary;
 
-import daxing.common.*;
+import daxing.common.chrrange.ChrRange;
+import daxing.common.factors.WheatLineage;
+import daxing.common.table.RowTableTool;
+import daxing.common.utiles.DateTime;
+import daxing.common.utiles.IOTool;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.distribution.TDistribution;
@@ -96,7 +100,7 @@ public class Vmap2ComplementaryVCF {
     }
 
     public List<String> getHexaploidTaxonList(String pseudoInfoFile){
-        List<String> pseudoTaxonNameList=RowTableTool.getColumnList(pseudoInfoFile,0);
+        List<String> pseudoTaxonNameList= RowTableTool.getColumnList(pseudoInfoFile,0);
         List<String> taxonList=this.taxonList;
         List<String> res=new ArrayList<>();
         for (String s : taxonList) {

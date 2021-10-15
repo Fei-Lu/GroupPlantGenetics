@@ -1,6 +1,6 @@
 package daxing.vmapII_1000.variantsAnnotation;
 
-import daxing.common.IOTool;
+import daxing.common.utiles.IOTool;
 import pgl.infra.utils.PStringUtils;
 
 import java.io.BufferedReader;

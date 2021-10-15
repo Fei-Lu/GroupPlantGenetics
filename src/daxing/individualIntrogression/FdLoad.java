@@ -2,10 +2,10 @@ package daxing.individualIntrogression;
 
 import com.google.common.collect.Table;
 import com.google.common.collect.TreeBasedTable;
-import daxing.common.DateTime;
-import daxing.common.IOTool;
-import daxing.common.LoadType;
-import daxing.common.RowTableTool;
+import daxing.common.utiles.DateTime;
+import daxing.common.utiles.IOTool;
+import daxing.common.factors.LoadType;
+import daxing.common.table.RowTableTool;
 import daxing.load.ancestralSite.ChrSNPAnnoDB;
 import pgl.infra.pos.ChrPos;
 import pgl.infra.range.Range;

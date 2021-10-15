@@ -1,7 +1,10 @@
 package daxing.load.ancestralSite;
 
 import com.google.common.collect.Table;
-import daxing.common.*;
+import daxing.common.factors.Ploidy;
+import daxing.common.table.RowTableTool;
+import daxing.common.utiles.*;
+import daxing.common.wheat.Triads;
 import org.apache.commons.math3.distribution.BinomialDistribution;
 import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOFileFormat;
@@ -213,7 +216,7 @@ public class LoadGO {
                 sb.append(ancestralNum).append("\t");
                 double[] synNonDelP=getTaxonSynNonDelDerivedProbability(taxonName, sub, derivedProbabilityFile);
                 for (int i = 0; i < synNonDelP.length; i++) {
-                    expectedDerivedNum=NumberTool.format(ancestralNum*synNonDelP[i], 5);
+                    expectedDerivedNum= NumberTool.format(ancestralNum*synNonDelP[i], 5);
                     sb.append(expectedDerivedNum).append("\t");
                 }
                 for (int i = 0; i < synNonDelP.length; i++) {
@@ -588,7 +591,7 @@ public class LoadGO {
                 combinations.add(combination);
             }
         }
-        int[] randomIndex=ArrayTool.getRandomNonrepetitionArray(numPseudohexaploid, 0, combinations.size());
+        int[] randomIndex= ArrayTool.getRandomNonrepetitionArray(numPseudohexaploid, 0, combinations.size());
         IntStream.range(0, randomIndex.length).parallel().forEach(e->syntheticPseudohexaploid(diploidFiles.get(combinations.get(randomIndex[e])[1]),
                 tetraploidFiles.get(combinations.get(randomIndex[e])[0]), outDir));
     }

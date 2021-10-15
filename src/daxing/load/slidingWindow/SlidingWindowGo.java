@@ -2,10 +2,10 @@ package daxing.load.slidingWindow;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
-import daxing.common.IOTool;
-import daxing.common.NumberTool;
-import daxing.common.RowTableTool;
-import daxing.common.Triads;
+import daxing.common.utiles.IOTool;
+import daxing.common.utiles.NumberTool;
+import daxing.common.table.RowTableTool;
+import daxing.common.wheat.Triads;
 import daxing.load.ancestralSite.ChrSNPAnnoDB;
 import daxing.load.ancestralSite.Standardization;
 import daxing.load.neutralSiteLoad.DynamicSNPGenotypeDB;

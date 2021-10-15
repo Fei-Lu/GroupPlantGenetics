@@ -1,7 +1,7 @@
 package daxing.load.esg;
 
-import daxing.common.IOTool;
-import daxing.common.Ploidy;
+import daxing.common.utiles.IOTool;
+import daxing.common.factors.Ploidy;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.lang.ArrayUtils;
 import pgl.infra.utils.Benchmark;

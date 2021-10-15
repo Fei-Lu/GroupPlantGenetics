@@ -1,7 +1,12 @@
 package daxing.individualIntrogression;
 
-import daxing.common.*;
-import daxing.common.genot.GenoGrid;
+import daxing.common.chrrange.ChrRange;
+import daxing.common.factors.WheatLineage;
+import daxing.common.genotype.GenoGrid;
+import daxing.common.table.RowTableTool;
+import daxing.common.utiles.DateTime;
+import daxing.common.utiles.IOTool;
+import daxing.common.utiles.StringTool;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.dna.genot.GenoIOFormat;

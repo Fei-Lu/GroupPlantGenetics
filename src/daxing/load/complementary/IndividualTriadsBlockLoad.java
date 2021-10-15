@@ -1,6 +1,10 @@
 package daxing.load.complementary;
 
-import daxing.common.*;
+import daxing.common.factors.LoadType;
+import daxing.common.factors.WheatLineage;
+import daxing.common.table.RowTableTool;
+import daxing.common.utiles.IOTool;
+import daxing.common.utiles.StringTool;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.PStringUtils;
 
@@ -238,7 +242,7 @@ public class IndividualTriadsBlockLoad {
         for (int i = 0; i < res.length; i++) {
             res[i]=new ArrayList<>(19000);
         }
-        res[0]=RowTableTool.getColumnList(individualTriadsBlockFile.getAbsolutePath(), 4);
+        res[0]= RowTableTool.getColumnList(individualTriadsBlockFile.getAbsolutePath(), 4);
         res[1]=RowTableTool.getColumnList(individualTriadsBlockFile.getAbsolutePath(), 5);
         return res;
     }

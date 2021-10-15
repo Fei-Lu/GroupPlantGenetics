@@ -1,10 +1,10 @@
 package daxing.vmapII_1000.variantsAnnotation;
 
 import com.ibm.icu.text.NumberFormat;
-import daxing.common.FunctionalElement;
-import daxing.common.IOTool;
-import daxing.common.PGF;
-import daxing.common.RowTableTool;
+import daxing.common.factors.FunctionalElement;
+import daxing.common.utiles.IOTool;
+import daxing.common.wheat.PGF;
+import daxing.common.table.RowTableTool;
 import gnu.trove.list.array.TDoubleArrayList;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;

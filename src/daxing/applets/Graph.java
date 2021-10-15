@@ -1,7 +1,7 @@
 package daxing.applets;
 
-import daxing.common.ArrayTool;
-import daxing.common.NumberTool;
+import daxing.common.utiles.ArrayTool;
+import daxing.common.utiles.NumberTool;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;

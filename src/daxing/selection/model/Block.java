@@ -1,7 +1,7 @@
 package daxing.selection.model;
 
-import daxing.common.ChrPos;
-import daxing.common.SeqByte;
+import daxing.common.chrrange.ChrPos;
+import daxing.common.sequence.SeqByte;
 import org.apache.commons.lang3.StringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
 import java.util.ArrayList;

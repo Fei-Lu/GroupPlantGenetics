@@ -1,9 +1,9 @@
 package daxing.load.ancestralSite;
 
-import daxing.common.ChrRange;
-import daxing.common.ChrRanges;
-import daxing.common.IOTool;
-import daxing.common.RowTableTool;
+import daxing.common.chrrange.ChrRange;
+import daxing.common.chrrange.ChrRanges;
+import daxing.common.utiles.IOTool;
+import daxing.common.table.RowTableTool;
 import pgl.infra.pos.ChrPos;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;

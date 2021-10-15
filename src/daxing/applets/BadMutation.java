@@ -1,9 +1,9 @@
 package daxing.applets;
 
-import daxing.common.DateTime;
-import daxing.common.PGF;
-import daxing.common.RowTableTool;
-import daxing.common.VCF;
+import daxing.common.utiles.DateTime;
+import daxing.common.wheat.PGF;
+import daxing.common.table.RowTableTool;
+import daxing.common.genotype.VCF;
 import pgl.infra.dna.FastaByte;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.Benchmark;

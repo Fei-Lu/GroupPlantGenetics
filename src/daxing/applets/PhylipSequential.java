@@ -1,9 +1,8 @@
 package daxing.applets;
 
-import daxing.common.DateTime;
-import daxing.common.MD5;
-import daxing.common.NumberTool;
-import daxing.common.WheatLineage;
+import daxing.common.utiles.DateTime;
+import daxing.common.utiles.NumberTool;
+import daxing.common.factors.WheatLineage;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
 import pgl.infra.utils.IOUtils;
@@ -14,14 +13,11 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class PhylipSequential {
 

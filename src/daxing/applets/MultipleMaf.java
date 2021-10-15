@@ -1,7 +1,7 @@
 package daxing.applets;
 
-import daxing.common.ChrConvertionRule;
-import daxing.common.ChrRange;
+import daxing.common.wheat.ChrConvertionRule;
+import daxing.common.chrrange.ChrRange;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
 import org.apache.commons.lang.StringUtils;

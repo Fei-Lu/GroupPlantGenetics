@@ -2,7 +2,7 @@ package daxing.temp;
 
 import com.google.common.base.Joiner;
 import com.google.common.primitives.Ints;
-import daxing.common.LoadType;
+import daxing.common.factors.LoadType;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.wheat.RefV1Utils;
 import java.util.Arrays;

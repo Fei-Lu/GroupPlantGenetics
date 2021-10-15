@@ -1,7 +1,6 @@
 package daxing.vmapII_1000.variantsAnnotation;
 
-import daxing.applets.ScriptMethods;
-import daxing.common.IOTool;
+import daxing.common.utiles.IOTool;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
 

@@ -1,9 +1,9 @@
 package daxing.load.ancestralSite.complementary.loadHeterozygositeGenotype;
 
-import daxing.common.IOTool;
-import daxing.common.NumberTool;
-import daxing.common.PGF;
-import daxing.common.RowTableTool;
+import daxing.common.utiles.IOTool;
+import daxing.common.utiles.NumberTool;
+import daxing.common.wheat.PGF;
+import daxing.common.table.RowTableTool;
 import daxing.load.ancestralSite.complementary.loadComplementaryGlobalLocal.SlidingWindowForLoadComplement;
 import gnu.trove.list.array.TDoubleArrayList;
 import pgl.infra.utils.PStringUtils;

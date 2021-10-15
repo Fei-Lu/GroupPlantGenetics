@@ -1,6 +1,6 @@
 package daxing.load.slidingWindow;
 
-import daxing.common.PGF;
+import daxing.common.wheat.PGF;
 import pgl.infra.range.Range;
 import java.util.ArrayList;
 import java.util.Collections;

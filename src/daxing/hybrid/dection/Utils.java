@@ -1,7 +1,7 @@
 package daxing.hybrid.dection;
 
-import daxing.common.IOTool;
-import daxing.common.RowTableTool;
+import daxing.common.utiles.IOTool;
+import daxing.common.table.RowTableTool;
 import pgl.infra.dna.genot.GenoIOFormat;
 import pgl.infra.dna.genot.GenotypeGrid;
 import pgl.infra.utils.Benchmark;

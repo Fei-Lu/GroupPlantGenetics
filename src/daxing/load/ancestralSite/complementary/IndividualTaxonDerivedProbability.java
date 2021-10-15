@@ -1,6 +1,10 @@
 package daxing.load.ancestralSite.complementary;
 
-import daxing.common.*;
+import daxing.common.table.RowTableTool;
+import daxing.common.utiles.IOTool;
+import daxing.common.factors.Ploidy;
+import daxing.common.wheat.PGF;
+import daxing.common.wheat.Triads;
 import daxing.load.ancestralSite.complementary.loadComplementaryGlobalLocal.IndividualLoadComplementary;
 import daxing.load.ancestralSite.complementary.loadComplementaryGlobalLocal.SlidingWindowForLoadComplement;
 import gnu.trove.list.array.TDoubleArrayList;
@@ -31,7 +35,7 @@ public class IndividualTaxonDerivedProbability {
     public static void getIndividualTaxonDerivedProbability(String inputDir, String taxa_InfoDBFile, String outFile){
         List<File> fileList= IOUtils.getVisibleFileListInDir(inputDir);
         BufferedReader br;
-        Map<String, String> taxonPloidyMap=RowTableTool.getMap(taxa_InfoDBFile, 0, 3);
+        Map<String, String> taxonPloidyMap= RowTableTool.getMap(taxa_InfoDBFile, 0, 3);
         Map<String,String> taxonTreeValidatedPloidyMap= RowTableTool.getMap(taxa_InfoDBFile,0, 14);
         Map<String, String> taxonSubspeciesMap=RowTableTool.getMap(taxa_InfoDBFile, 0, 15);
         Map<String, String> taxonFdBySubContinentMap=RowTableTool.getMap(taxa_InfoDBFile,0, 24);

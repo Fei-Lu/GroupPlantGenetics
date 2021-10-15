@@ -1,6 +1,6 @@
 package daxing.common.vmap2Group;
 
-import daxing.common.SubgenomeCombination;
+import daxing.common.factors.SubgenomeCombination;
 
 import java.util.ArrayList;
 import java.util.List;

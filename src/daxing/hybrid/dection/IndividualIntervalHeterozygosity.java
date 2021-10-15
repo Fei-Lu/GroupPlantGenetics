@@ -1,6 +1,6 @@
 package daxing.hybrid.dection;
 
-import daxing.common.IOTool;
+import daxing.common.utiles.IOTool;
 import gnu.trove.list.array.TIntArrayList;
 
 import java.io.BufferedWriter;

@@ -1,6 +1,6 @@
 package daxing.filterSNP;
 
-import daxing.common.CollectionTool;
+import daxing.common.utiles.CollectionTool;
 import pgl.infra.pos.ChrPos;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;

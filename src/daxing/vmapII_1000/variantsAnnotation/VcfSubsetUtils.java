@@ -1,10 +1,10 @@
 package daxing.vmapII_1000.variantsAnnotation;
 
 import com.google.common.collect.Table;
-import daxing.common.ArrayTool;
-import daxing.common.IOTool;
-import daxing.common.PGF;
-import daxing.common.RowTableTool;
+import daxing.common.utiles.ArrayTool;
+import daxing.common.utiles.IOTool;
+import daxing.common.wheat.PGF;
+import daxing.common.table.RowTableTool;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.range.Range;
 import pgl.infra.utils.Benchmark;

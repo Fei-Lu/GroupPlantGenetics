@@ -1,7 +1,7 @@
 package daxing.selection.model;
 
-import daxing.common.ChrPos;
-import daxing.common.IOTool;
+import daxing.common.chrrange.ChrPos;
+import daxing.common.utiles.IOTool;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;

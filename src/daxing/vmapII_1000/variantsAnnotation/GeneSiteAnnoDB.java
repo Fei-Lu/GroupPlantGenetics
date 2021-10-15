@@ -2,9 +2,9 @@ package daxing.vmapII_1000.variantsAnnotation;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
-import daxing.common.IOTool;
-import daxing.common.PGF;
-import daxing.common.RowTableTool;
+import daxing.common.utiles.IOTool;
+import daxing.common.wheat.PGF;
+import daxing.common.table.RowTableTool;
 import pgl.infra.range.Range;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;

@@ -1,9 +1,9 @@
 package daxing.temp;
 
 import com.google.common.collect.Table;
-import daxing.common.ChrRange;
-import daxing.common.IOTool;
-import daxing.common.RowTableTool;
+import daxing.common.chrrange.ChrRange;
+import daxing.common.utiles.IOTool;
+import daxing.common.table.RowTableTool;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
 import java.io.BufferedReader;

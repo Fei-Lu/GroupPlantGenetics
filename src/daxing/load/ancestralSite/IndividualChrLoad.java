@@ -1,6 +1,6 @@
 package daxing.load.ancestralSite;
 
-import daxing.common.IOTool;
+import daxing.common.utiles.IOTool;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedWriter;
 import java.io.File;

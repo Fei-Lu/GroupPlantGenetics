@@ -1,6 +1,11 @@
 package daxing.applets;
 
-import daxing.common.*;
+import daxing.common.factors.WheatLineage;
+import daxing.common.genotype.VCF;
+import daxing.common.table.RowTableTool;
+import daxing.common.utiles.ArrayTool;
+import daxing.common.utiles.CollectionTool;
+import daxing.common.utiles.IOTool;
 import gnu.trove.list.array.TDoubleArrayList;
 import org.apache.commons.lang.StringUtils;
 import pgl.infra.utils.IOUtils;
@@ -69,7 +74,7 @@ public class Ancestral {
         }
         node1States_ACGT.removeAt(majorAlleleIndex);
         int indexOfMaxAF_Node1=ArrayTool.getMaxIndex(node1States_ACGT.toArray());
-        List<String> acgt_remanin_Base=CollectionTool.changeToList(acgtBase);
+        List<String> acgt_remanin_Base= CollectionTool.changeToList(acgtBase);
         acgt_remanin_Base.remove(majorAlleleIndex);
         if (node1States_ACGT.get(indexOfMaxAF_Node1)>thresh) return acgt_remanin_Base.get(indexOfMaxAF_Node1);
         return "NA";

@@ -1,6 +1,11 @@
 package daxing.applets;
 
-import daxing.common.*;
+import daxing.common.wheat.ChrConvertionRule;
+import daxing.common.table.ColumnTableTool;
+import daxing.common.table.RowTableTool;
+import daxing.common.utiles.IOTool;
+import daxing.common.wheat.GeneWindow;
+import daxing.common.wheat.PGF;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.Benchmark;

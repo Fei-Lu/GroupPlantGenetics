@@ -1,6 +1,6 @@
 package daxing.load.complementary.selection;
 
-import daxing.common.ChrRange;
+import daxing.common.chrrange.ChrRange;
 import daxing.load.complementary.TriadsBlock;
 import gnu.trove.list.array.TDoubleArrayList;
 import java.util.List;

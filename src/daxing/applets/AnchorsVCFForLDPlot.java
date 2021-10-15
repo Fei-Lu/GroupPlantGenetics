@@ -1,7 +1,7 @@
 package daxing.applets;
 
-import daxing.common.ArrayTool;
-import daxing.common.WheatLineage;
+import daxing.common.utiles.ArrayTool;
+import daxing.common.factors.WheatLineage;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.lang3.StringUtils;
 import pgl.infra.utils.Benchmark;

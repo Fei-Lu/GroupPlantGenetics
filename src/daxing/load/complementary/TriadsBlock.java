@@ -1,8 +1,8 @@
 package daxing.load.complementary;
 
-import daxing.common.ChrRange;
-import daxing.common.PGF;
-import daxing.common.WheatLineage;
+import daxing.common.chrrange.ChrRange;
+import daxing.common.wheat.PGF;
+import daxing.common.factors.WheatLineage;
 import java.util.Arrays;
 import java.util.List;
 

@@ -1,7 +1,7 @@
 package daxing.expression;
 
-import daxing.common.IOTool;
-import daxing.common.RowTableTool;
+import daxing.common.utiles.IOTool;
+import daxing.common.table.RowTableTool;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import pgl.infra.utils.Benchmark;
