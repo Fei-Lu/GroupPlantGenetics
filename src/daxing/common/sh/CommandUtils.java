@@ -13,7 +13,7 @@ import java.util.concurrent.*;
 /**
  * This class is used to control the number of commands run in parallel
  */
-public class LinuxCommandUtils {
+public class CommandUtils {
 
     /**
      * @param command one simple linux command with or without options, can't be a compound command: et al. ls | wc
