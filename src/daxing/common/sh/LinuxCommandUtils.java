@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 /**
- * This class is used to run linux scripts in java
+ * This class is used to control the number of commands run in parallel
  */
 public class LinuxCommandUtils {
 
@@ -47,7 +47,7 @@ public class LinuxCommandUtils {
      * @param title log title
      * @param shFile sh script, one command per line
      * @param workingDirectory current working dir
-     * @param logDir log dir
+     * @param logDir log dir of commands in sh script
      * @param threadsNum thread number
      */
     public static void runSH(String title, String shFile, String workingDirectory, String logDir,
