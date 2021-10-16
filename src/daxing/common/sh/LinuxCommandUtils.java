@@ -21,8 +21,8 @@ public class LinuxCommandUtils {
      * @param logFile contain command log and error log
      * @return 0 indicates normal termination
      */
-    private static Integer runOneSH(String command,
-                                   String workingDirectory, File logFile){
+    private static Integer runOneCommand(String command,
+                                         String workingDirectory, File logFile){
         List<String> commandList= PStringUtils.fastSplit(command, " ");
         ProcessBuilder processBuilder = new ProcessBuilder(commandList);
         processBuilder.directory(new File(workingDirectory));
@@ -59,7 +59,7 @@ public class LinuxCommandUtils {
         List<Callable<Integer>> callableList = new ArrayList<>();
         for (int i = 0; i < commandList.size(); i++) {
             int finalI = i;
-            callableList.add(()-> runOneSH(commandList.get(finalI), workingDirectory, logFiles.get(finalI)));
+            callableList.add(()-> runOneCommand(commandList.get(finalI), workingDirectory, logFiles.get(finalI)));
         }
         ExecutorService executorService = Executors.newFixedThreadPool(threadsNum);
         List<Integer> exitCodes = new ArrayList<>();
@@ -80,7 +80,7 @@ public class LinuxCommandUtils {
             }
         }
         if (failCommandList.size()==0){
-            System.out.println(shFile+" all commands had completed in "+ Benchmark.getTimeSpanSeconds(start)+ " hours");
+            System.out.println(shFile+" all commands had completed in "+ Benchmark.getTimeSpanHours(start)+ " hours");
         }else {
             IOTool.writeAllLines(new File(logDir, "failedRunCommands.sh"), failCommandList);
             System.out.println(shFile+" had "+ failCommandList.size()+ "commands run failed");
