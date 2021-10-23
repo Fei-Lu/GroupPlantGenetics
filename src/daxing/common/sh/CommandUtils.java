@@ -2,8 +2,8 @@ package daxing.common.sh;
 
 import daxing.common.utiles.DateTime;
 import daxing.common.utiles.IOTool;
+import org.apache.commons.lang3.StringUtils;
 import pgl.infra.utils.Benchmark;
-import pgl.infra.utils.PStringUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,8 +23,8 @@ public class CommandUtils {
      */
     private static Integer runOneCommand(String command,
                                          String workingDirectory, File logFile){
-        List<String> commandList= PStringUtils.fastSplit(command, " ");
-        ProcessBuilder processBuilder = new ProcessBuilder(commandList);
+        String[] commands= StringUtils.split(command, " ");
+        ProcessBuilder processBuilder = new ProcessBuilder(commands);
         processBuilder.directory(new File(workingDirectory));
         processBuilder.redirectErrorStream(true);
         processBuilder.redirectOutput(logFile);
