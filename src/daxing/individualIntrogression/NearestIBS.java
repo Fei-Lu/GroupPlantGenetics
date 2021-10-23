@@ -307,12 +307,13 @@ public class NearestIBS {
         for(Map.Entry<String,List<File>> entry : taxaMap.entrySet()){
             taxaName=entry.getKey();
             taxaChrFiles=entry.getValue();
+            Collections.sort(taxaChrFiles);
             table0=new RowTableTool<>(taxaChrFiles.get(0).getAbsolutePath());
             for (int i = 1; i < taxaChrFiles.size(); i++) {
                 table=new RowTableTool<>(taxaChrFiles.get(i).getAbsolutePath());
                 table0.add(table);
             }
-            table0.write(new File(outDir, taxaName+"_vmap2.1.csv.gz"), IOFileFormat.TextGzip);
+            table0.write(new File(outDir, "IndividualFd_"+taxaName+"_vmap2.1.csv.gz"), IOFileFormat.TextGzip);
         }
         System.out.println(DateTime.getDateTimeOfNow());
     }
@@ -355,7 +356,8 @@ public class NearestIBS {
         String taxaInfoFile="/Users/xudaxing/Documents/deleteriousMutation/002_vmapII_taxaGroup/taxa_InfoDB.txt";
         String fdResDir="/Users/xudaxing/Desktop/fdTest/003_fdRes";
         String outDir="/Users/xudaxing/Desktop/fdTest/004_fdOut";
-        int index=0;
-//        NearestIBS.calculateNearestFd(vmapIIVCFDir, taxaInfoFile, fdResDir, outDir, index);
+        String fdMergeDir="";
+        NearestIBS.calculateNearestFd(vmapIIVCFDir, taxaInfoFile, fdResDir, outDir);
+        NearestIBS.merge(fdResDir, fdMergeDir);
     }
 }
