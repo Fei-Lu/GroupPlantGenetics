@@ -2,9 +2,9 @@ package daxing.individualIntrogression;
 
 import daxing.common.chrrange.ChrPos;
 import daxing.common.chrrange.ChrRange;
+import daxing.common.factors.HexaploidBySubcontinent;
 import daxing.common.factors.LoadType;
 import daxing.common.utiles.IOTool;
-import daxing.common.utiles.StringTool;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
@@ -18,7 +18,7 @@ import java.util.*;
 public class PopulationIndividualFd {
 
     ChrRange[] chrRangeArray;
-    double[][][][] dFdValueArray; // dimension 1,2,3,4: chrRange,p2,p3,d fd
+    double[][][] dFdValueArray; // dimension 1,2,3: chrRange,p2,p3
 
     static List<IndividualFdRecord[]> individualFdRecords;
     static List<String> taxaNameList;
@@ -27,7 +27,6 @@ public class PopulationIndividualFd {
 
     private static class IndividualFdRecord{
 
-        double dValue;
         double fdValue;
         String miniIBSP3; // AT001, different from P3 Ae
 
@@ -38,11 +37,10 @@ public class PopulationIndividualFd {
          * @return
          */
         private static final IndividualFdRecord getDefault(){
-            return new IndividualFdRecord(Double.MIN_VALUE, Double.MIN_VALUE, ".");
+            return new IndividualFdRecord(Double.MIN_VALUE, ".");
         }
 
-        IndividualFdRecord(double dValue, double fdValue, String miniIBSP3){
-            this.dValue=dValue;
+        IndividualFdRecord(double fdValue, String miniIBSP3){
             this.fdValue=fdValue;
             this.miniIBSP3=miniIBSP3;
         }
@@ -234,15 +232,12 @@ public class PopulationIndividualFd {
      */
     PopulationIndividualFd(String popFdFile, String individualFdDir){
         ChrRange[] chrRanges=extractChrRange(popFdFile);
-        double[][][][] dFdValueArray=new double[chrRanges.length][][][];
+        double[][][] dFdValueArray=new double[chrRanges.length][][];
         for (int i = 0; i < dFdValueArray.length; i++) {
-            dFdValueArray[i]=new double[2][][];
+            dFdValueArray[i]=new double[HexaploidBySubcontinent.values().length][];
             for (int j = 0; j < dFdValueArray[i].length; j++) {
-                dFdValueArray[i][j]=new double[4][];
-                for (int k = 0; k < dFdValueArray[i][j].length; k++) {
-                    dFdValueArray[i][j][k]=new double[2];
-                    Arrays.fill(dFdValueArray[i][j][k], Double.MIN_VALUE);
-                }
+                dFdValueArray[i][j]=new double[P3.values().length];
+                Arrays.fill(dFdValueArray[i][j], Double.MIN_VALUE);
             }
         }
         try (BufferedReader br = IOTool.getReader(popFdFile)) {
@@ -250,25 +245,23 @@ public class PopulationIndividualFd {
             String line, chr, dValue, fdValue;
             List<String> temp;
             int start, end, chrRangeIndex;
-            double d, fd;
-            P2 p2;
+            double fd;
+            HexaploidBySubcontinent p2;
             P3 p3;
             ChrRange chrRange;
             while ((line=br.readLine())!=null){
-                temp=PStringUtils.fastSplit(line, ",");
+                temp=PStringUtils.fastSplit(line);
                 chr=temp.get(0);
                 start=Integer.parseInt(temp.get(1));
                 end=Integer.parseInt(temp.get(2));
-                dValue=temp.get(8);
-                fdValue=temp.get(9);
-                d= NearestIBS.ifDChangeTo0(dValue) ? -1 : Double.parseDouble(dValue);
-                fd = NearestIBS.ifFdChangeTo0(dValue, fdValue) ? -1 : Double.parseDouble(fdValue);
-                p2=P2.valueOf(temp.get(11));
-                p3=P3.valueOf(temp.get(12));
+                fdValue=temp.get(14);
+                fd = Double.parseDouble(fdValue);
+                p2=HexaploidBySubcontinent.valueOf(temp.get(11));
+                p3=P3.newInstanceFrom(temp.get(12));
                 chrRange=new ChrRange(chr, start, end+1);
                 chrRangeIndex=Arrays.binarySearch(chrRanges, chrRange);
-                dFdValueArray[chrRangeIndex][p2.index][p3.index][0]=d;
-                dFdValueArray[chrRangeIndex][p2.index][p3.index][1]=fd;
+                assert chrRangeIndex >=0 : "check index";
+                dFdValueArray[chrRangeIndex][p2.getIndex()][p3.getIndex()]=fd;
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -292,7 +285,7 @@ public class PopulationIndividualFd {
             ChrRange chrRange;
             int start, end;
             while ((line=br.readLine())!=null){
-                temp=PStringUtils.fastSplit(line, ",");
+                temp=PStringUtils.fastSplit(line);
                 chr=temp.get(0);
                 start=Integer.parseInt(temp.get(1));
                 end=Integer.parseInt(temp.get(2));
@@ -315,7 +308,7 @@ public class PopulationIndividualFd {
         return this.chrRangeArray;
     }
 
-    private double[][][][] getdFdValueArray() {
+    private double[][][] getdFdValueArray() {
         return dFdValueArray;
     }
 
@@ -344,18 +337,17 @@ public class PopulationIndividualFd {
             String line, chr, miniIBSP3;
             List<String> temp;
             int start, end, rangeIndex;
-            double d, fd;
+            double fd;
             ChrRange chrRange;
             IndividualFdRecord individualFdRecord;
             while ((line=br.readLine())!=null){
-                temp= PStringUtils.fastSplit(line, ",");
+                temp= PStringUtils.fastSplit(line);
                 chr=temp.get(0);
                 start=Integer.parseInt(temp.get(1));
                 end=Integer.parseInt(temp.get(2));
-                d= StringTool.isNumeric(temp.get(8)) ? Double.parseDouble(temp.get(8)) : Double.NaN;
-                fd=StringTool.isNumeric(temp.get(9)) ? Double.parseDouble(temp.get(9)) : Double.NaN;
-                miniIBSP3=temp.get(11);
-                individualFdRecord=new IndividualFdRecord(d, fd, miniIBSP3);
+                miniIBSP3=temp.get(3);
+                fd=Double.parseDouble(temp.get(4));
+                individualFdRecord=new IndividualFdRecord(fd, miniIBSP3);
                 chrRange=new ChrRange(chr, start, end+1);
                 rangeIndex=binarySearch(chrRange);
                 individualFdRecords[rangeIndex]=individualFdRecord;
@@ -386,7 +378,7 @@ public class PopulationIndividualFd {
                 p2P3_IntrogressedTaxonSet[i][j]=new HashSet<>();
             }
         }
-        double[][][] p2P3_DFdValueArray=this.getdFdValueArray()[chrRangeIndex];
+        double[][] p2P3_DFdValueArray=this.getdFdValueArray()[chrRangeIndex];
         double fd;
         P2 p2;
         P3 p3;
@@ -403,7 +395,7 @@ public class PopulationIndividualFd {
             p2=P2.newInstanceFrom(i);
             for (int j = 0; j < p2P3_DFdValueArray[i].length; j++) {
                 p3=P3.newInstanceFrom(j);
-                fd=p2P3_DFdValueArray[i][j][1];
+                fd=p2P3_DFdValueArray[i][j];
                 p2p3_popFdArray[i][j]=fd;
                 for (int k = 0; k < individualFdRecordList.size(); k++) {
                     if (!(taxaNameList.get(k).substring(0,1).equals(p2.name().substring(0,1)))) continue;
