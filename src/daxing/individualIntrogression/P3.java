@@ -1,56 +1,39 @@
 package daxing.individualIntrogression;
 
+import java.util.Arrays;
+
 public enum P3 {
 
-    WILD_EMMER(0, "WE"), DOMESTICATED_EMMER(1, "DE"), FREE_THRESHING_TETRAPLOIDS(2, "FT"), STRANGULATA(3, "AT");
+    WILD_EMMER("WE"), DOMESTICATED_EMMER("DE"), FREE_THRESHING_TETRAPLOIDS("FTT"), STRANGULATA("AT");
 
-    public static final P3 WE= P3.WILD_EMMER;
-    public static final P3 DE= P3.DOMESTICATED_EMMER;
-    public static final P3 FT= P3.FREE_THRESHING_TETRAPLOIDS;
-    public static final P3 AE= P3.STRANGULATA;
-
-    int index;
     String abbreviation;
 
-    P3(int index, String p3Abbreviation) {
-        this.index=index;
+    P3(String p3Abbreviation) {
         this.abbreviation=p3Abbreviation;
     }
 
     public int getIndex() {
-        return index;
+        return Arrays.binarySearch(P3.values(), this);
     }
 
     public String getAbbreviation() {
         return abbreviation;
     }
 
-    public static final P3 newInstanceFrom(int index){
-        switch (index) {
-            case 0:
-                return WE;
-            case 1:
-                return DE;
-            case 2:
-                return FT;
-            case 3:
-                return AE;
-            default:
-                System.out.println("please check your parameter: "+index);
-        }
-        return null;
+    public static P3 newInstanceFrom(int index){
+        return P3.values()[index];
     }
 
     public static final P3 newInstanceFrom(String p3Abbreviation){
         switch (p3Abbreviation) {
             case "WE":
-                return WE;
+                return P3.WILD_EMMER;
             case "DE":
-                return DE;
-            case "FT":
-                return FT;
+                return P3.DOMESTICATED_EMMER;
+            case "FTT":
+                return P3.FREE_THRESHING_TETRAPLOIDS;
             case "AT":
-                return AE;
+                return P3.STRANGULATA;
             default:
                 System.out.println("please check your parameter: "+p3Abbreviation);
         }
