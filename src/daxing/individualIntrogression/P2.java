@@ -1,46 +1,35 @@
 package daxing.individualIntrogression;
 
+import java.util.Arrays;
+
 public enum P2 {
 
-    CULTIVAR(0, "CL"), LANDRACE(1,"LR");
+    CULTIVAR("CL"), LANDRACE("LR");
 
-    public static final P2 CL= P2.CULTIVAR;
-    public static final P2 LR= P2.LANDRACE;
-
-    int index;
     String abbreviation;
 
-    P2(int index, String abbreviation) {
-        this.index=index;
+    P2(String abbreviation) {
         this.abbreviation=abbreviation;
     }
 
     public int getIndex() {
-        return index;
+        return Arrays.binarySearch(P2.values(),this);
     }
 
     public String getAbbreviation() {
         return abbreviation;
     }
 
-    public static final P2 newInstanceFrom(int index){
-        switch (index) {
-            case 0:
-                return CL;
-            case 1:
-                return LR;
-            default:
-                System.out.println("please check your parameter: "+index);
-        }
-        return null;
+    public static P2 newInstanceFrom(int index){
+        return P2.values()[index];
     }
 
-    public static final P2 newInstanceFrom(String abbreviation){
+    public static P2 newInstanceFrom(String abbreviation){
         switch (abbreviation) {
             case "CL":
-                return CL;
+                return P2.CULTIVAR;
             case "LR":
-                return LR;
+                return P2.LANDRACE;
             default:
                 System.out.println("please check your parameter: "+abbreviation);
         }
