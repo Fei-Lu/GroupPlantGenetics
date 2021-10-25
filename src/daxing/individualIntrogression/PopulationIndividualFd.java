@@ -16,6 +16,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * 将个体load分为introgression区和nonintrogression区，introgression区的load是否低于nonintrogression区的load
+ */
 public class PopulationIndividualFd {
 
     ChrRange[] chrRangeArray;
@@ -70,8 +73,9 @@ public class PopulationIndividualFd {
             /**
              * 初始化并赋值为-1
              */
-            this.p2P3LoadType_introgressedDerivedTotalCount= new double[P2.values().length][P3.values().length][LoadType.values().length];
-            this.p2LoadType_nonIntrogressedDerivedTotalCount= new double[P2.values().length][LoadType.values().length];
+            this.p2P3LoadType_introgressedDerivedTotalCount=
+                    new double[HexaploidBySubcontinent.values().length][P3.values().length][LoadType.values().length];
+            this.p2LoadType_nonIntrogressedDerivedTotalCount= new double[HexaploidBySubcontinent.values().length][LoadType.values().length];
             for (int i = 0; i < this.p2P3LoadType_introgressedDerivedTotalCount.length; i++) {
                 for (int j = 0; j < p2P3LoadType_introgressedDerivedTotalCount[i].length; j++) {
                     Arrays.fill(p2P3LoadType_introgressedDerivedTotalCount[i][j], -1);
@@ -83,7 +87,7 @@ public class PopulationIndividualFd {
         }
 
         private TIntArrayList[][] getP2P3_IntrogressedTaxonIndex(){
-            TIntArrayList[][] p2p3_IntrogressedTaxonIndex=new TIntArrayList[P2.values().length][];
+            TIntArrayList[][] p2p3_IntrogressedTaxonIndex=new TIntArrayList[HexaploidBySubcontinent.values().length][];
             for (int i = 0; i < p2p3_IntrogressedTaxonIndex.length; i++) {
                 p2p3_IntrogressedTaxonIndex[i]=new TIntArrayList[P3.values().length];
                 for (int j = 0; j < p2p3_IntrogressedTaxonIndex[i].length; j++) {
@@ -104,7 +108,7 @@ public class PopulationIndividualFd {
         }
 
         private TIntArrayList[] getP2_NonIntrogressedTaxonIndex(){
-            TIntArrayList[] p2_NonIntrogressedTaxonIndex=new TIntArrayList[P2.values().length];
+            TIntArrayList[] p2_NonIntrogressedTaxonIndex=new TIntArrayList[HexaploidBySubcontinent.values().length];
             for (int i = 0; i < p2_NonIntrogressedTaxonIndex.length; i++) {
                 p2_NonIntrogressedTaxonIndex[i]=new TIntArrayList();
             }
@@ -419,14 +423,14 @@ public class PopulationIndividualFd {
                 }
             }
         }
-        List<String>[][] p2P3_IntrogressedTaxonList=new List[P2.values().length][];
+        List<String>[][] p2P3_IntrogressedTaxonList=new List[HexaploidBySubcontinent.values().length][];
         for (int i = 0; i < p2P3_IntrogressedTaxonList.length; i++) {
             p2P3_IntrogressedTaxonList[i]=new List[P3.values().length];
             for (int j = 0; j < p2P3_IntrogressedTaxonList[i].length; j++) {
                 p2P3_IntrogressedTaxonList[i][j]=new ArrayList<>();
             }
         }
-        List<String>[] p2_NonIntrogressedTaxonList=new List[P2.values().length];
+        List<String>[] p2_NonIntrogressedTaxonList=new List[HexaploidBySubcontinent.values().length];
         for (int i = 0; i < p2_NonIntrogressedTaxonList.length; i++) {
             p2_NonIntrogressedTaxonList[i]=new ArrayList<>();
         }
@@ -460,8 +464,8 @@ public class PopulationIndividualFd {
         }
     }
 
-    public void addLoadPerWindow(String individualLoadSummaryFile, String outFile){
-        try (BufferedReader br = IOTool.getReader(individualLoadSummaryFile);
+    public void addLoadPerWindow(String loadSiteGridFile, String outFile){
+        try (BufferedReader br = IOTool.getReader(loadSiteGridFile);
              BufferedWriter bw =IOTool.getWriter(outFile)) {
             bw.write(SingleWindow2.getHeader());
             bw.newLine();
@@ -522,10 +526,6 @@ public class PopulationIndividualFd {
         String taxaInfoFile="";
         String individualLoadSummaryFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftPerSite/007_individualLoadFdSummary/IndividualLoadFdSummary.txt.gz";
         String outFile="/Users/xudaxing/Desktop/fdLoadBySubspecies100SNPwindow_50Step.txt";
-//        String popFdFile="/Users/xudaxing/Desktop/fdLoadRelationship/001_fdBysubspecies/fdBySubspecies.subset.csv";
-//        String individualFdDir="/Users/xudaxing/Desktop/fdLoadRelationship/002_fdByIndividual";
-//        String individualLoadSummaryFile="/Users/xudaxing/Desktop/fdLoadRelationship/003_IndividualLoadFdSummary/IndividualLoadFdSummary.txt";
-//        String outFile="//Users/xudaxing/Desktop/fdLoadRelationship/004_outFile/res2.txt";
         writeWindowSize(popFdFile, individualFdDir, taxaInfoFile, individualLoadSummaryFile, outFile);
     }
 
@@ -534,14 +534,14 @@ public class PopulationIndividualFd {
      * PopulationFd特殊值解释 NA: D值不在[0,1]之间或fd值不在[0,1]之间
      * @param popFdFile
      * @param individualFdDir
-     * @param individualLoadSummaryFile
+     * @param loadSiteGridFile
      * @param outFile
      */
     public static void writeWindowSize(String popFdFile, String individualFdDir, String taxaInfoFile,
-                                       String individualLoadSummaryFile, String outFile){
+                                       String loadSiteGridFile, String outFile){
         PopulationIndividualFd populationIndividualFd=new PopulationIndividualFd(popFdFile, taxaInfoFile,
                 individualFdDir);
-        populationIndividualFd.addLoadPerWindow(individualLoadSummaryFile, outFile);
+        populationIndividualFd.addLoadPerWindow(loadSiteGridFile, outFile);
     }
 
 }
