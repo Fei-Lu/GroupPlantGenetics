@@ -7,6 +7,7 @@ import daxing.common.utiles.IOTool;
 import daxing.common.factors.LoadType;
 import daxing.common.table.RowTableTool;
 import daxing.load.ancestralSite.ChrSNPAnnoDB;
+import daxing.load.ancestralSite.SNPAnnotation;
 import pgl.infra.pos.ChrPos;
 import pgl.infra.table.RowTable;
 import pgl.infra.utils.Benchmark;
@@ -84,7 +85,7 @@ public class LoadPerSiteGrid {
                 isSyn=transcriptDB.isSyn(chr, pos);
                 isNonsyn=transcriptDB.isNonsyn(chr, pos);
                 if (!(isSyn || isNonsyn)) continue;
-                isDeleterious=transcriptDB.isDeleterious(chr, pos);
+                isDeleterious=transcriptDB.isDeleterious(chr, pos, SNPAnnotation.MethodCallDeleterious.GERP);
                 isRefAlleleAncestral=transcriptDB.isRefAlleleAncestral(chr, pos);
                 for (int i = 0; i < taxonNames.size(); i++) {
                     genotypeList=PStringUtils.fastSplit(temp.get(i+9), ":");
