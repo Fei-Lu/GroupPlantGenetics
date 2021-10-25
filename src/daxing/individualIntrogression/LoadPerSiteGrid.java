@@ -18,6 +18,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -32,14 +34,20 @@ public class LoadPerSiteGrid {
         String exonSNPAnnoDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/002_deleteriousPosLib/002_exonAnnotationByDerivedSift/001_exonSNPAnnotationByChrID";
         String exonVCFDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/003_exon/001_exonVCF";
         String taxa_InfoDB="/Users/xudaxing/Documents/deleteriousMutation/002_vmapII_taxaGroup/taxa_InfoDB.txt";
+        String popFdFile="";
+        String individualFdDir="";
+        SNPAnnotation.MethodCallDeleterious methodCallDeleterious = SNPAnnotation.MethodCallDeleterious.GERP;
         String outDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftPerSite";
-        go(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, outDir);
+        go(exonSNPAnnoDir, exonVCFDir, taxa_InfoDB, popFdFile, individualFdDir, methodCallDeleterious, outDir);
     }
 
-    public static void go(String exonSNPAnnoDir, String exonVCFDir, String taxa_InfoDBFile, String outDir){
+    public static void go(String exonSNPAnnoDir, String exonVCFDir, String taxa_InfoDBFile, String popFdFile,
+                          String individualFdDir, SNPAnnotation.MethodCallDeleterious methodCallDeleterious, String outDir){
         System.out.println(DateTime.getDateTimeOfNow());
-        String[] subdir={"001_count","002_countMerge","003_retainLandraceCutivarNotIncludeIndianDwarf",
-                "004_loadPerSiteGrid"};
+        String[] subdir={"001_count","002_countMerge","003_retainLandraceCutivar",
+                "004_loadPerSiteGrid","005_introgressionDonorBurden"};
+        Path loadPerSiteGridPath= Paths.get(new File(outDir, subdir[3]).getAbsolutePath(), "loadPerSiteGrid.txt.gz");
+        Path introgressionDonorBurdenPath=Paths.get(new File(outDir, subdir[4]).getAbsolutePath(), "introgressionDonorBurden.txt.gz");
         for (int i = 0; i < subdir.length; i++) {
             new File(outDir, subdir[i]).mkdir();
         }
@@ -47,17 +55,19 @@ public class LoadPerSiteGrid {
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
         Map<String, File> taxonOutDirMap=getTaxonOutDirMap(taxa_InfoDBFile, new File(outDir, subdir[0]).getAbsolutePath());
         IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e->go(exonAnnoFiles.get(e), exonVCFFiles.get(e),
-                taxonOutDirMap, e+1));
+                taxonOutDirMap, e+1, methodCallDeleterious));
         merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
         retainTreeValidatedLandraceCultivar(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
                 new File(outDir, subdir[2]).getAbsolutePath());
-        LoadPerSiteGrid.mergeLoadSiteRecordToGrid(new File(outDir, subdir[2]).getAbsolutePath(), new File(outDir,
-                subdir[3]).getAbsolutePath());
+        LoadPerSiteGrid.mergeLoadSiteRecordToGrid(new File(outDir, subdir[2]).getAbsolutePath(),
+                loadPerSiteGridPath.toString());
+        PopulationIndividualFd.writeWindowSize(popFdFile,individualFdDir, taxa_InfoDBFile, loadPerSiteGridPath.toString(),
+                introgressionDonorBurdenPath.toString());
         System.out.println(DateTime.getDateTimeOfNow());
     }
 
     private static void go(File exonSNPAnnoFile, File exonVCFFile,
-                           Map<String, File> taxonOutDirMap, int chr){
+                           Map<String, File> taxonOutDirMap, int chr, SNPAnnotation.MethodCallDeleterious methodCallDeleterious){
         try (BufferedReader br = IOTool.getReader(exonVCFFile)) {
             String line;
             List<String> temp;
@@ -85,7 +95,7 @@ public class LoadPerSiteGrid {
                 isSyn=transcriptDB.isSyn(chr, pos);
                 isNonsyn=transcriptDB.isNonsyn(chr, pos);
                 if (!(isSyn || isNonsyn)) continue;
-                isDeleterious=transcriptDB.isDeleterious(chr, pos, SNPAnnotation.MethodCallDeleterious.GERP);
+                isDeleterious=transcriptDB.isDeleterious(chr, pos, methodCallDeleterious);
                 isRefAlleleAncestral=transcriptDB.isRefAlleleAncestral(chr, pos);
                 for (int i = 0; i < taxonNames.size(); i++) {
                     genotypeList=PStringUtils.fastSplit(temp.get(i+9), ":");
@@ -195,9 +205,9 @@ public class LoadPerSiteGrid {
     /**
      * 将个体load和fd以vcf的形式输出
      * @param inputAddFdDir
-     * @param outDir
+     * @param outFile
      */
-    public static void mergeLoadSiteRecordToGrid(String inputAddFdDir, String outDir){
+    public static void mergeLoadSiteRecordToGrid(String inputAddFdDir, String outFile){
         List<File> files=IOUtils.getVisibleFileListInDir(inputAddFdDir);
         long start=System.nanoTime();
         Table<Integer, Integer, String> chrPosLoadTypeTable= TreeBasedTable.create();
@@ -228,7 +238,7 @@ public class LoadPerSiteGrid {
         for (int i = 0; i < files.size(); i++) {
             individualLoadToGrid.addIndividual(files.get(i).getAbsolutePath());
         }
-        individualLoadToGrid.write(new File(outDir, "loadPerSiteGrid.txt").getAbsolutePath());
+        individualLoadToGrid.write(outFile);
     }
 
     private static class ChrPosLoadType extends ChrPos{

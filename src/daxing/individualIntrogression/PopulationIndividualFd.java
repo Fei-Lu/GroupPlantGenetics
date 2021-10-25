@@ -520,14 +520,14 @@ public class PopulationIndividualFd {
 
 
 
-    public static void start(){
-        String popFdFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/002_fdResBySubspecies/002_plot_100SNPwindow_50Step/fdBySubspecies.csv";
-        String individualFdDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/006_fdResByIndividual/003_fdByIndividual.newMethod";
-        String taxaInfoFile="";
-        String individualLoadSummaryFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftPerSite/007_individualLoadFdSummary/IndividualLoadFdSummary.txt.gz";
-        String outFile="/Users/xudaxing/Desktop/fdLoadBySubspecies100SNPwindow_50Step.txt";
-        writeWindowSize(popFdFile, individualFdDir, taxaInfoFile, individualLoadSummaryFile, outFile);
-    }
+//    public static void start(){
+//        String popFdFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/002_fdResBySubspecies/002_plot_100SNPwindow_50Step/fdBySubspecies.csv";
+//        String individualFdDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/006_fdResByIndividual/003_fdByIndividual.newMethod";
+//        String taxaInfoFile="";
+//        String individualLoadSummaryFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftPerSite/007_individualLoadFdSummary/IndividualLoadFdSummary.txt.gz";
+//        String outFile="/Users/xudaxing/Desktop/fdLoadBySubspecies100SNPwindow_50Step.txt";
+//        writeWindowSize(popFdFile, individualFdDir, taxaInfoFile, individualLoadSummaryFile, outFile);
+//    }
 
     /**
      * WeakLoad and StrongLoad特殊值解释 NaN: 0/0 NA: 为初始化的默认值(即没有渗入) Infinity: 分母为0(即NonIntrogression load为0)
