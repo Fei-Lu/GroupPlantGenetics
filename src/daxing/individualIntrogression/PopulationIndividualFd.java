@@ -4,6 +4,7 @@ import daxing.common.chrrange.ChrPos;
 import daxing.common.chrrange.ChrRange;
 import daxing.common.factors.HexaploidBySubcontinent;
 import daxing.common.factors.LoadType;
+import daxing.common.table.RowTableTool;
 import daxing.common.utiles.IOTool;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.IOUtils;
@@ -22,6 +23,8 @@ public class PopulationIndividualFd {
 
     static List<IndividualFdRecord[]> individualFdRecords;
     static List<String> taxaNameList;
+    static Map<String, String> taxaGroupByContinentMap;
+
 
     static final double threshForIndividualHasNoIntrogression=0.5;
 
@@ -46,7 +49,7 @@ public class PopulationIndividualFd {
         }
 
         public boolean contain(P3 p3){
-            return miniIBSP3.substring(0,1).equals(p3.name().substring(0,1));
+            return miniIBSP3.equals(p3.getAbbreviation());
         }
     }
 
@@ -179,8 +182,8 @@ public class PopulationIndividualFd {
                         if (j==3) continue;
                     }
                     sb.append(chrRange.getChr()).append("\t").append(chrRange.getStart()).append("\t");
-                    sb.append(chrRange.getEnd()-1).append("\t").append(P2.newInstanceFrom(i).name()).append("\t");
-                    sb.append(P3.newInstanceFrom(j).name()).append("\t");
+                    sb.append(chrRange.getEnd()-1).append("\t").append(HexaploidBySubcontinent.values()[i]).append("\t");
+                    sb.append(P3.newInstanceFrom(j).getAbbreviation()).append("\t");
                     if (0 <= p2p3_popFd[i][j] && p2p3_popFd[i][j] <= 1){
                         sb.append(p2p3_popFd[i][j]).append("\t");
                     }else {
@@ -230,7 +233,7 @@ public class PopulationIndividualFd {
      * Double.MIN_VALUE表示群体p3 AB亚基因组D的默认值，或D亚基因组AB的默认值
      * @param popFdFile
      */
-    PopulationIndividualFd(String popFdFile, String individualFdDir){
+    PopulationIndividualFd(String popFdFile, String taxaInfoFile, String individualFdDir){
         ChrRange[] chrRanges=extractChrRange(popFdFile);
         double[][][] dFdValueArray=new double[chrRanges.length][][];
         for (int i = 0; i < dFdValueArray.length; i++) {
@@ -242,7 +245,7 @@ public class PopulationIndividualFd {
         }
         try (BufferedReader br = IOTool.getReader(popFdFile)) {
             br.readLine();
-            String line, chr, dValue, fdValue;
+            String line, chr, fdValue;
             List<String> temp;
             int start, end, chrRangeIndex;
             double fd;
@@ -274,6 +277,7 @@ public class PopulationIndividualFd {
         for (int i = 0; i < individualFdFiles.size(); i++) {
             this.addIndividual(individualFdFiles.get(i));
         }
+        PopulationIndividualFd.taxaGroupByContinentMap=RowTableTool.getMap(taxaInfoFile, 35, 36);
     }
 
     private ChrRange[] extractChrRange(String popFdFile){
@@ -329,7 +333,7 @@ public class PopulationIndividualFd {
     }
 
     private void addIndividual(File individualFdFile){
-        String taxaName=individualFdFile.getName().substring(0, 5);
+        String taxaName=individualFdFile.getName().substring(13, 20);
         IndividualFdRecord[] individualFdRecords= new IndividualFdRecord[this.getChrRangeNum()];
         Arrays.fill(individualFdRecords, IndividualFdRecord.DEFAULT);
         try (BufferedReader br = IOTool.getReader(individualFdFile)) {
@@ -366,9 +370,9 @@ public class PopulationIndividualFd {
         for (int i = 0; i < this.getIndividualFdRecords().size(); i++) {
             individualFdRecordList.add(this.getIndividualFdRecords().get(i)[chrRangeIndex]);
         }
-        Set<String>[][] p2P3_IntrogressedTaxonSet=new Set[P2.values().length][];
-        Set<String>[] p2_NonIntrogressedTaxonSet=new Set[P2.values().length];
-        double[][] p2p3_popFdArray=new double[P2.values().length][];
+        Set<String>[][] p2P3_IntrogressedTaxonSet=new Set[HexaploidBySubcontinent.values().length][];
+        Set<String>[] p2_NonIntrogressedTaxonSet=new Set[HexaploidBySubcontinent.values().length];
+        double[][] p2p3_popFdArray=new double[HexaploidBySubcontinent.values().length][];
         for (int i = 0; i < p2P3_IntrogressedTaxonSet.length; i++) {
             p2P3_IntrogressedTaxonSet[i]=new Set[P3.values().length];
             p2_NonIntrogressedTaxonSet[i]=new HashSet<>();
@@ -378,9 +382,9 @@ public class PopulationIndividualFd {
                 p2P3_IntrogressedTaxonSet[i][j]=new HashSet<>();
             }
         }
-        double[][] p2P3_DFdValueArray=this.getdFdValueArray()[chrRangeIndex];
+        double[][] p2P3_fdValueArray=this.getdFdValueArray()[chrRangeIndex];
         double fd;
-        P2 p2;
+        HexaploidBySubcontinent p2;
         P3 p3;
         IndividualFdRecord individualFdRecord;
         double individualFd;
@@ -391,14 +395,14 @@ public class PopulationIndividualFd {
          * p2_NonIntrogressedTaxonSet[i] : taxa list: num_2, so num1 + num_2 = 299
          * @Author: Aoyue
          */
-        for (int i = 0; i < p2P3_DFdValueArray.length; i++) {
-            p2=P2.newInstanceFrom(i);
-            for (int j = 0; j < p2P3_DFdValueArray[i].length; j++) {
+        for (int i = 0; i < p2P3_fdValueArray.length; i++) {
+            p2=HexaploidBySubcontinent.values()[i];
+            for (int j = 0; j < p2P3_fdValueArray[i].length; j++) {
                 p3=P3.newInstanceFrom(j);
-                fd=p2P3_DFdValueArray[i][j];
+                fd=p2P3_fdValueArray[i][j];
                 p2p3_popFdArray[i][j]=fd;
                 for (int k = 0; k < individualFdRecordList.size(); k++) {
-                    if (!(taxaNameList.get(k).substring(0,1).equals(p2.name().substring(0,1)))) continue;
+                    if (!(taxaGroupByContinentMap.get(taxaNameList.get(k)).equals(p2.name()))) continue;
                     individualFdRecord=individualFdRecordList.get(k);
                     individualFd=individualFdRecord.fdValue;
                     /**
@@ -515,13 +519,14 @@ public class PopulationIndividualFd {
     public static void start(){
         String popFdFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/002_fdResBySubspecies/002_plot_100SNPwindow_50Step/fdBySubspecies.csv";
         String individualFdDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/006_fdResByIndividual/003_fdByIndividual.newMethod";
+        String taxaInfoFile="";
         String individualLoadSummaryFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftPerSite/007_individualLoadFdSummary/IndividualLoadFdSummary.txt.gz";
         String outFile="/Users/xudaxing/Desktop/fdLoadBySubspecies100SNPwindow_50Step.txt";
 //        String popFdFile="/Users/xudaxing/Desktop/fdLoadRelationship/001_fdBysubspecies/fdBySubspecies.subset.csv";
 //        String individualFdDir="/Users/xudaxing/Desktop/fdLoadRelationship/002_fdByIndividual";
 //        String individualLoadSummaryFile="/Users/xudaxing/Desktop/fdLoadRelationship/003_IndividualLoadFdSummary/IndividualLoadFdSummary.txt";
 //        String outFile="//Users/xudaxing/Desktop/fdLoadRelationship/004_outFile/res2.txt";
-        writeWindowSize(popFdFile, individualFdDir, individualLoadSummaryFile, outFile);
+        writeWindowSize(popFdFile, individualFdDir, taxaInfoFile, individualLoadSummaryFile, outFile);
     }
 
     /**
@@ -532,9 +537,10 @@ public class PopulationIndividualFd {
      * @param individualLoadSummaryFile
      * @param outFile
      */
-    public static void writeWindowSize(String popFdFile, String individualFdDir,
+    public static void writeWindowSize(String popFdFile, String individualFdDir, String taxaInfoFile,
                                        String individualLoadSummaryFile, String outFile){
-        PopulationIndividualFd populationIndividualFd=new PopulationIndividualFd(popFdFile, individualFdDir);
+        PopulationIndividualFd populationIndividualFd=new PopulationIndividualFd(popFdFile, taxaInfoFile,
+                individualFdDir);
         populationIndividualFd.addLoadPerWindow(individualLoadSummaryFile, outFile);
     }
 
