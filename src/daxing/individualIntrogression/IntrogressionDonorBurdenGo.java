@@ -28,7 +28,7 @@ import java.util.stream.IntStream;
 /**
  * 将个体按site记录load
  */
-public class LoadPerSiteGrid {
+public class IntrogressionDonorBurdenGo {
 
     public static void start(){
         String exonSNPAnnoDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/002_deleteriousPosLib/002_exonAnnotationByDerivedSift/001_exonSNPAnnotationByChrID";
@@ -59,7 +59,7 @@ public class LoadPerSiteGrid {
         merge(new File(outDir, subdir[0]).getAbsolutePath(), new File(outDir, subdir[1]).getAbsolutePath());
         retainTreeValidatedLandraceCultivar(new File(outDir, subdir[1]).getAbsolutePath(), taxa_InfoDBFile,
                 new File(outDir, subdir[2]).getAbsolutePath());
-        LoadPerSiteGrid.mergeLoadSiteRecordToGrid(new File(outDir, subdir[2]).getAbsolutePath(),
+        IntrogressionDonorBurdenGo.mergeLoadSiteRecordToGrid(new File(outDir, subdir[2]).getAbsolutePath(),
                 loadPerSiteGridPath.toString());
         PopulationIndividualFd.writeWindowSize(popFdFile,individualFdDir, taxa_InfoDBFile, loadPerSiteGridPath.toString(),
                 introgressionDonorBurdenPath.toString());
