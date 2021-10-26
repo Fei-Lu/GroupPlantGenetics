@@ -27,26 +27,19 @@ public class Start {
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
         String[] outNames= exonVCFFiles.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz",
                         "_IndividualFdDonor.txt.gz")).toArray(String[]::new);
-        IntStream.range(0, exonVCFFiles.size()).forEach(e-> calculateDonorBurdenPerIndividual(individualFdDir, exonAnnoFiles.get(e),
-                exonVCFFiles.get(e), new File(outDir, outNames[e]), e+1, taxaInfoFile ,methodCallDeleterious));
+        IndividualFd[] individualFds=getIndividualFd(individualFdDir, taxaInfoFile);
+        IntStream.range(0, exonVCFFiles.size()).forEach(e-> calculateDonorBurdenPerIndividual(individualFds,
+                exonAnnoFiles.get(e), exonVCFFiles.get(e), new File(outDir, outNames[e]), e+1 ,methodCallDeleterious));
     }
 
-    private static void calculateDonorBurdenPerIndividual(String individualFdDir, File exonSNPAnnoFile,
+    private static void calculateDonorBurdenPerIndividual(IndividualFd[] individualFds, File exonSNPAnnoFile,
                                                           File exonVCFFile,
-                                                          File outFile, int chr, String taxaInfo,
+                                                          File outFile, int chr,
                                                           SNPAnnotation.MethodCallDeleterious methodCallDeleterious){
         long start=System.nanoTime();
-        Map<String, String> introgressionIDTaxaMap= RowTableTool.getMap(taxaInfo, 35, 0);
-        List<File> individualFdFiles = IOTool.getFileListInDirEndsWith(individualFdDir, ".gz");
-        IndividualFd[] individualFds = new IndividualFd[individualFdFiles.size()];
-        File file;
-        String taxon;
-        List<String> taxaList = new ArrayList<>();
-        for (int i = 0; i < individualFds.length; i++) {
-            file = individualFdFiles.get(i);
-            taxon = individualFdFiles.get(i).getName().substring(13,20);
-            individualFds[i] = new IndividualFd(file.getAbsolutePath(), taxon);
-            taxaList.add(introgressionIDTaxaMap.get(taxon));
+        List<String> fdTaxaList = new ArrayList<>();
+        for (IndividualFd individualFd : individualFds){
+            fdTaxaList.add(individualFd.taxon);
         }
         try (BufferedReader br = IOTool.getReader(exonVCFFile);
              BufferedWriter bw =IOTool.getWriter(outFile)) {
@@ -82,6 +75,7 @@ public class Start {
                 isRefAlleleAncestral=transcriptDB.isRefAlleleAncestral(chr, pos);
                 temp = PStringUtils.fastSplit(line);
                 for (int i = 0; i < taxonNames.size(); i++) {
+                    if (!fdTaxaList.contains(taxonNames.get(i))) continue;
                     genotypeList=PStringUtils.fastSplit(temp.get(i+9), ":");
                     genotype=genotypeList.get(0);
                     if (genotype.equals("./.")) continue;
@@ -100,8 +94,7 @@ public class Start {
                         indexGenotype[0]=1;
                     }
                     individualFd=new IndividualFd(taxonNames.get(i));
-                    int hit = Arrays.binarySearch(individualFds,individualFd);
-                    int index = hit < 0 ? -hit-1 : hit;
+                    int index = Arrays.binarySearch(individualFds,individualFd);
                     refChr = RefV1Utils.getChromosome(chr, pos);
                     refPos = RefV1Utils.getPosOnChromosome(chr, pos);
                     donorEnumSet=individualFds[index].getDonorFrom(refChr, refPos);
@@ -115,7 +108,7 @@ public class Start {
                     "\tnumHeterInHGDeleterious");
             bw.newLine();
             for (IndividualBurden_individualFd individualBurden:taxonBurden){
-                if (!taxaList.contains(individualBurden.taxon)) continue;
+                if (!fdTaxaList.contains(individualBurden.taxon)) continue;
                 bw.write(individualBurden.toString());
                 bw.newLine();
             }
@@ -124,5 +117,19 @@ public class Start {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static IndividualFd[] getIndividualFd(String individualFdDir, String taxaInfo){
+        List<File> individualFdFiles = IOTool.getFileListInDirEndsWith(individualFdDir, ".gz");
+        Map<String, String> introgressionIDTaxaMap= RowTableTool.getMap(taxaInfo, 35, 0);
+        IndividualFd[] individualFds = new IndividualFd[individualFdFiles.size()];
+        File file;
+        String taxon;
+        for (int i = 0; i < individualFds.length; i++) {
+            file = individualFdFiles.get(i);
+            taxon = individualFdFiles.get(i).getName().substring(13,20);
+            individualFds[i] = new IndividualFd(file.getAbsolutePath(), introgressionIDTaxaMap.get(taxon));
+        }
+        return individualFds;
     }
 }
