@@ -130,6 +130,7 @@ public class Start {
             taxon = individualFdFiles.get(i).getName().substring(13,20);
             individualFds[i] = new IndividualFd(file.getAbsolutePath(), introgressionIDTaxaMap.get(taxon));
         }
+        Arrays.sort(individualFds);
         return individualFds;
     }
 }
