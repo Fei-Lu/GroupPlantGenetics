@@ -61,6 +61,10 @@ public class ChrRanges {
         return this.chrRanges.get(rangeIndex);
     }
 
+    public void setSortType(SortType sortType){
+        this.sortType=sortType;
+    }
+
     /**
      *
      * @param rangeIndex
