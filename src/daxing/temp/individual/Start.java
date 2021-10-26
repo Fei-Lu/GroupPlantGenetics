@@ -6,6 +6,7 @@ import daxing.common.utiles.IOTool;
 import daxing.load.ancestralSite.ChrSNPAnnoDB;
 import daxing.load.ancestralSite.GeneLoad;
 import daxing.load.ancestralSite.SNPAnnotation;
+import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
@@ -34,6 +35,7 @@ public class Start {
                                                           File exonVCFFile,
                                                           File outFile, int chr, String taxaInfo,
                                                           SNPAnnotation.MethodCallDeleterious methodCallDeleterious){
+        long start=System.nanoTime();
         Map<String, String> introgressionIDTaxaMap= RowTableTool.getMap(taxaInfo, 35, 0);
         List<File> individualFdFiles = IOTool.getFileListInDirEndsWith(individualFdDir, ".gz");
         IndividualFd[] individualFds = new IndividualFd[individualFdFiles.size()];
@@ -58,8 +60,8 @@ public class Start {
             for (int i = 0; i < taxonBurden.length; i++) {
                 taxonBurden[i]=new IndividualBurden_individualFd(taxonNames.get(i), chr);
             }
-            int pos, depth;
-            String genotype, subLine;
+            int pos, depth, refPos;
+            String genotype, subLine, refChr;
             List<String> genotypeList, depthList;
             boolean isRefAlleleAncestral;
             boolean isSyn, isNonsyn, isDeleterious;
@@ -100,7 +102,9 @@ public class Start {
                     individualFd=new IndividualFd(taxonNames.get(i));
                     int hit = Arrays.binarySearch(individualFds,individualFd);
                     int index = hit < 0 ? -hit-1 : hit;
-                    donorEnumSet=individualFds[index].getDonorFrom(RefV1Utils.getChromosome(chr, pos), RefV1Utils.getPosOnChromosome(chr, pos));
+                    refChr = RefV1Utils.getChromosome(chr, pos);
+                    refPos = RefV1Utils.getPosOnChromosome(chr, pos);
+                    donorEnumSet=individualFds[index].getDonorFrom(refChr, refPos);
                     for (Donor donor: donorEnumSet){
                         taxonBurden[i].addLoadCount(donor, indexGenotype);
                     }
@@ -116,6 +120,7 @@ public class Start {
                 bw.newLine();
             }
             bw.flush();
+            System.out.println(outFile.getName()+ " completed in "+ Benchmark.getTimeSpanSeconds(start)+ " seconds");
         } catch (IOException e) {
             e.printStackTrace();
         }

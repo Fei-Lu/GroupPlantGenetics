@@ -3,7 +3,6 @@ package daxing.temp.individual;
 import cern.colt.GenericSorting;
 import cern.colt.Swapper;
 import cern.colt.function.IntComparator;
-import com.google.common.collect.Ordering;
 import daxing.common.chrrange.ChrRange;
 import daxing.common.chrrange.ChrRanges;
 import daxing.common.utiles.IOTool;
@@ -22,6 +21,8 @@ public class IndividualFd implements Comparable<IndividualFd> {
     Donor[] donors;
     double[] maxFdM;
     String taxon;
+
+    static final double thresholdIntrogression=1;
 
     IntComparator intComparator = (int a, int b) -> chrRanges.getChrRange(a).compareTo(chrRanges.getChrRange(b));
     Swapper swapper = new Swapper() {
@@ -49,6 +50,7 @@ public class IndividualFd implements Comparable<IndividualFd> {
             br.readLine();
             int start,end;
             ChrRange chrRange;
+            double maxFdM;
             Donor donor;
             while ((line=br.readLine())!=null){
                 temp = PStringUtils.fastSplit(line);
@@ -57,7 +59,9 @@ public class IndividualFd implements Comparable<IndividualFd> {
                 end=Integer.parseInt(temp.get(2));
                 chrRange=new ChrRange(refChr, start, end);
                 donor= temp.get(3).equals("NA") ? Donor.NONE : Donor.valueOf(temp.get(3));
-                maxFdMList.add(Double.parseDouble(temp.get(4)));
+                maxFdM = Double.parseDouble(temp.get(4));
+                donor = maxFdM < thresholdIntrogression ? Donor.NONE : donor;
+                maxFdMList.add(maxFdM);
                 chrRangeList.add(chrRange);
                 donorList.add(donor);
             }
