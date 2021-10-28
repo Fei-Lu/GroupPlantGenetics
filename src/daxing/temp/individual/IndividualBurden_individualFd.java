@@ -80,7 +80,9 @@ public class IndividualBurden_individualFd {
         // dim1: Donor, dim2: burden 9 column
         for (int i = 0; i < this.burdenCount.length; i++) {
             if (((!RefV1Utils.getChromosome(chrID,0).contains("D")) && i==3)) continue;
-            if ((RefV1Utils.getChromosome(chrID,0).contains("D") && i!=3)) continue;
+            if ((RefV1Utils.getChromosome(chrID,0).contains("D") && i==0)) continue;
+            if ((RefV1Utils.getChromosome(chrID,0).contains("D") && i==1)) continue;
+            if ((RefV1Utils.getChromosome(chrID,0).contains("D") && i==2)) continue;
             sb.append(taxon).append("\t");
             sb.append(chrID).append("\t");
             sb.append(Donor.values()[i]).append("\t");
