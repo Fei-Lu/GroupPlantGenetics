@@ -72,18 +72,10 @@ public enum Ploidy {
         return Optional.ofNullable(subSingleToEnumMap.get(subgenomeSingleChar));
     }
 
-    public static Ploidy newInstanceFromSubNum(int subgenomeNum){
-        switch (subgenomeNum){
-            case 3:
-                return Ploidy.HEXAPLOID;
-            case 2:
-                return Ploidy.TETRAPLOID;
-            case 1:
-                return Ploidy.DIPLOID;
-            default:
-                System.out.println("please check your parameter: "+subgenomeNum);
-        }
-        return null;
+    private static Map<Integer, Ploidy> subgenomeNumToEnumMap= Stream.of(values()).collect(Collectors.toMap(Ploidy::getSubgenomewNum, e->e));
+
+    public static Optional<Ploidy> getInstanceFromSubNum(int subgenomeNum){
+        return Optional.ofNullable(subgenomeNumToEnumMap.get(subgenomeNum));
     }
 
 }
