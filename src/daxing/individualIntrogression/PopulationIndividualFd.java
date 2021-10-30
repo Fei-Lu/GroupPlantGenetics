@@ -4,6 +4,7 @@ import daxing.common.chrrange.ChrPos;
 import daxing.common.chrrange.ChrRange;
 import daxing.common.factors.HexaploidBySubcontinent;
 import daxing.common.factors.LoadType;
+import daxing.common.factors.P3;
 import daxing.common.table.RowTableTool;
 import daxing.common.utiles.IOTool;
 import gnu.trove.list.array.TIntArrayList;
@@ -187,7 +188,7 @@ public class PopulationIndividualFd {
                     }
                     sb.append(chrRange.getChr()).append("\t").append(chrRange.getStart()).append("\t");
                     sb.append(chrRange.getEnd()-1).append("\t").append(HexaploidBySubcontinent.values()[i]).append("\t");
-                    sb.append(P3.newInstanceFrom(j).getAbbreviation()).append("\t");
+                    sb.append(P3.values()[j].getAbbreviation()).append("\t");
                     if (0 <= p2p3_popFd[i][j] && p2p3_popFd[i][j] <= 1){
                         sb.append(p2p3_popFd[i][j]).append("\t");
                     }else {
@@ -264,7 +265,7 @@ public class PopulationIndividualFd {
                 fdValue=temp.get(14);
                 fd = Double.parseDouble(fdValue);
                 p2=HexaploidBySubcontinent.valueOf(temp.get(11));
-                p3=P3.newInstanceFrom(temp.get(12));
+                p3=P3.getInstanceFrom(temp.get(12)).orElseThrow(IllegalArgumentException::new);
                 chrRange=new ChrRange(chr, start, end+1);
                 chrRangeIndex=Arrays.binarySearch(chrRanges, chrRange);
                 assert chrRangeIndex >=0 : "check index";
@@ -402,7 +403,7 @@ public class PopulationIndividualFd {
         for (int i = 0; i < p2P3_fdValueArray.length; i++) {
             p2=HexaploidBySubcontinent.values()[i];
             for (int j = 0; j < p2P3_fdValueArray[i].length; j++) {
-                p3=P3.newInstanceFrom(j);
+                p3=P3.values()[j];
                 fd=p2P3_fdValueArray[i][j];
                 p2p3_popFdArray[i][j]=fd;
                 for (int k = 0; k < individualFdRecordList.size(); k++) {

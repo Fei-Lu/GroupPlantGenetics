@@ -8,8 +8,8 @@ import daxing.common.utiles.DateTime;
 import daxing.common.utiles.IOTool;
 import daxing.common.factors.Ploidy;
 import daxing.common.wheat.PGF;
-import daxing.individualIntrogression.P2;
-import daxing.individualIntrogression.P3;
+import daxing.common.factors.P2;
+import daxing.common.factors.P3;
 import daxing.load.ancestralSite.ChrSNPAnnoDB;
 import daxing.load.ancestralSite.GeneLoad;
 import daxing.load.ancestralSite.IndividualChrLoad;
@@ -251,7 +251,7 @@ public class ComplementaryGo {
                 }
             }
             for (int i = 0; i < P3.values().length-1; i++) {
-                p3=P3.newInstanceFrom(i);
+                p3=P3.values()[i];
                 System.out.println("synthetic pseudohexaploid using "+p3.getAbbreviation()+" AT");
                 syntheticPseudohexaploid(p3Files[i], p3Files[3], subdirFiles[0].getAbsolutePath(),
                         "pseudohexaploid."+p3.getAbbreviation()+"_AT");
