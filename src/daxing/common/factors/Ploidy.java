@@ -1,23 +1,24 @@
 package daxing.common.factors;
 
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
  * @author xudaxing
  *
  */
 public enum Ploidy {
 
-    hexaploid("hexaploid", 3, "AABBDD","ABD"),
-    tetraploid("tetraploid", 2, "AABB","AB"),
-    diploid("diploid", 1, "DD","D");
+    HEXAPLOID("hexaploid", 3, "AABBDD","ABD"),
+    TETRAPLOID("tetraploid", 2, "AABB","AB"),
+    DIPLOID("diploid", 1, "DD","D");
 
-    public static final Ploidy HEXAPLOID= Ploidy.hexaploid;
-    public static final Ploidy TETRAPLOID= Ploidy.tetraploid;
-    public static final Ploidy DIPLOID= Ploidy.diploid;
-
-    String ploidy;
-    int subNum;
-    String subChar;
-    String subSingleChr;
+    private final String ploidy;
+    private final int subNum;
+    private final String subChar;
+    private final String subSingleChr;
 
     Ploidy(String ploidy, int subgenomowNum, String subChar, String subSingleChar) {
         this.ploidy=ploidy.toLowerCase();
@@ -52,56 +53,33 @@ public enum Ploidy {
         return res;
     }
 
-    public static Ploidy newInstanceFromPloidy(String ploidy){
-        switch (ploidy.toLowerCase()) {
-            case "hexaploid":
-                return HEXAPLOID;
-            case "tetraploid":
-                return TETRAPLOID;
-            case "diploid":
-                return DIPLOID;
-            default:
-                System.out.println("please check your parameter: "+ploidy);
-        }
-        return null;
+    private static final Map<String,Ploidy> ploidyToEnumMap=
+            Stream.of(values()).collect(Collectors.toMap(Ploidy::getPloidy, e->e));
+
+    public Optional<Ploidy> getInstanceFromPloidy(String ploidy){
+        return Optional.ofNullable(ploidyToEnumMap.get(ploidy));
     }
 
-    public static Ploidy newInstanceFromSubChar(String subgenomeChar){
-        switch (subgenomeChar.toUpperCase()){
-            case "AABBDD":
-                return HEXAPLOID;
-            case "AABB":
-                return TETRAPLOID;
-            case "DD":
-                return DIPLOID;
-            default:
-                System.out.println("please check your parameter: "+subgenomeChar);
-        }
-        return null;
+    private static final Map<String,Ploidy> subToEnumMap=Stream.of(values()).collect(Collectors.toMap(Ploidy::getSubChar, e->e));
+
+    public static Optional<Ploidy> getInstanceFromSubChar(String subgenomeChar){
+        return Optional.ofNullable(subToEnumMap.get(subgenomeChar));
     }
 
-    public static Ploidy newInstanceFromSubSingleChar(String subgenomeSingleChar){
-        switch (subgenomeSingleChar.toUpperCase()){
-            case "ABD":
-                return HEXAPLOID;
-            case "AB":
-                return TETRAPLOID;
-            case "D":
-                return DIPLOID;
-            default:
-                System.out.println("please check your parameter: "+subgenomeSingleChar);
-        }
-        return null;
+    private static final Map<String,Ploidy> subSingleToEnumMap=Stream.of(values()).collect(Collectors.toMap(Ploidy::getSubSingleChr, e->e));
+
+    public static Optional<Ploidy> getInstanceFromSubSingleChar(String subgenomeSingleChar){
+        return Optional.ofNullable(subSingleToEnumMap.get(subgenomeSingleChar));
     }
 
     public static Ploidy newInstanceFromSubNum(int subgenomeNum){
         switch (subgenomeNum){
             case 3:
-                return HEXAPLOID;
+                return Ploidy.HEXAPLOID;
             case 2:
-                return TETRAPLOID;
+                return Ploidy.TETRAPLOID;
             case 1:
-                return DIPLOID;
+                return Ploidy.DIPLOID;
             default:
                 System.out.println("please check your parameter: "+subgenomeNum);
         }

@@ -62,7 +62,7 @@ public class IndividualTaxonDerivedProbability {
                 br=IOTool.getReader(fileList.get(i));
                 br.readLine();
                 taxonName=PStringUtils.fastSplit(fileList.get(i).getName(), ".").get(0);
-                ploidy=Ploidy.newInstanceFromSubChar(taxonPloidyMap.get(taxonName));
+                ploidy= Ploidy.getInstanceFromSubChar(taxonPloidyMap.get(taxonName)).orElseThrow(IllegalArgumentException::new);
                 treeValidatedPloid=taxonTreeValidatedPloidyMap.get(taxonName);
                 subspecies=taxonSubspeciesMap.get(taxonName);
                 fdBySubContinent=taxonFdBySubContinentMap.get(taxonName);
@@ -386,7 +386,7 @@ public class IndividualTaxonDerivedProbability {
                                                            String taxonName, LoadType loadType){
         List<String> taxonList=RowTableTool.getColumnList(individualTaxonDerivedProbabilityFile, 0);
         Map<String, String> taxonPloidyMap=RowTableTool.getMap(taxa_InfoFile, 0, 3);
-        Ploidy ploidy=Ploidy.newInstanceFromSubChar(taxonPloidyMap.get(taxonName));
+        Ploidy ploidy=Ploidy.getInstanceFromSubChar(taxonPloidyMap.get(taxonName)).orElseThrow(IllformedLocaleException::new);
         if (!ploidy.equals(Ploidy.HEXAPLOID)){
             System.out.println("Only support hexaploid taxon, program will quit");
             System.exit(1);

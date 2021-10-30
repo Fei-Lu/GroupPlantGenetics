@@ -360,7 +360,7 @@ public class LoadGO {
         Triads triads =new Triads(triadFile);
         Map<String,String> taxaSubCharMap=RowTableTool.getMap(taxa_InfoDBFile, 0, 3);
         String taxonName=PStringUtils.fastSplit(inputFile.getName(),".").get(0);
-        Ploidy ploidy=Ploidy.newInstanceFromSubChar(taxaSubCharMap.get(taxonName));
+        Ploidy ploidy= Ploidy.getInstanceFromSubChar(taxaSubCharMap.get(taxonName)).orElseThrow(IllegalArgumentException::new);
         RowTableTool<String> table=new RowTableTool<>(inputFile.getAbsolutePath());
         List<String> geneNames=table.getColumn(0);
         Collections.sort(geneNames);

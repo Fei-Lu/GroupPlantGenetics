@@ -54,7 +54,7 @@ public class TaxaLoad {
         Predicate<File> pWEDEFTT = pWE.or(pDE.or(pFTT));
         if (ploidy.equals(Ploidy.HEXAPLOID)){
             return pLandraceCultivar;
-        }else if (ploidy.equals(Ploidy.tetraploid)){
+        }else if (ploidy.equals(Ploidy.TETRAPLOID)){
             return pWEDEFTT;
         }
         return null;

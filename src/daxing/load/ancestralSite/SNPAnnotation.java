@@ -202,7 +202,7 @@ public class SNPAnnotation extends BiSNP{
                 if(!isNonSyn()) return false;
                 if(this.getGerp16way().equals("NA")) return false;
                 gerp16wayRefMask=Double.parseDouble(this.getGerp16way());
-                return !(gerp16wayRefMask < 1);
+                return !(gerp16wayRefMask < 2.14);
             case SIFT_GERP:
                 if(!isNonSyn()) return false;
                 if(this.getDerived_SIFT().equals("NA")) return false;

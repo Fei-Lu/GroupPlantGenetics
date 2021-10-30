@@ -1,12 +1,16 @@
 package daxing.common.factors;
 
-import java.util.Arrays;
-
 public enum HexaploidBySubcontinent {
 
-    LR_AF, LR_AM, LR_CSA, LR_EA, LR_EU, LR_WA, CL;
+    LR_AF(0), LR_AM(1), LR_CSA(2), LR_EA(3), LR_EU(4), LR_WA(5), CL(6);
+
+    private final int index;
+
+    HexaploidBySubcontinent(int index){
+        this.index=index;
+    }
 
     public int getIndex(){
-        return Arrays.binarySearch(HexaploidBySubcontinent.values(), this);
+        return index;
     }
 }

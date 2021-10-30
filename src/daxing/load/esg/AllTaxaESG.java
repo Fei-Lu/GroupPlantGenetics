@@ -41,7 +41,7 @@ public class AllTaxaESG {
             while ((line=br.readLine())!=null){
                 temp = PStringUtils.fastSplit(line);
                 triadsBlockIDList.add(temp.get(0));
-                esgTaxa= new int[taxa.length][Ploidy.hexaploid.getSubgenomewNum()];
+                esgTaxa= new int[taxa.length][Ploidy.HEXAPLOID.getSubgenomewNum()];
                 for (int i = 0; i < esgTaxa.length; i++) {
                     esgTaxa[i] = new int[Ploidy.HEXAPLOID.getSubgenomewNum()];
                     Arrays.fill(esgTaxa[i], -1);

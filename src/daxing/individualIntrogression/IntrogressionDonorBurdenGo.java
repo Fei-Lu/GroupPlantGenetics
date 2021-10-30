@@ -87,6 +87,7 @@ public class IntrogressionDonorBurdenGo {
             byte genotypeByte;
             LoadType loadType;
             boolean ifHeter, ifHomozygousDerived;
+            Optional<LoadType> optionalLoadType;
             while ((line=br.readLine())!=null){
                 temp=PStringUtils.fastSplit(line);
                 pos=Integer.parseInt(temp.get(1));
@@ -105,7 +106,9 @@ public class IntrogressionDonorBurdenGo {
                     depthList=PStringUtils.fastSplit(genotypeList.get(1),",");
                     depth=Integer.parseInt(depthList.get(0))+Integer.parseInt(depthList.get(1));
                     if (depth < 2) continue;
-                    loadType= LoadType.newInstanceFrom(transcriptDB.getVariantType(chr, pos));
+                    optionalLoadType=LoadType.getInstanceFromString(transcriptDB.getVariantType(chr, pos));
+                    optionalLoadType.orElseThrow(IllegalArgumentException::new);
+                    loadType= optionalLoadType.get();
                     loadType= isDeleterious ? LoadType.Del : loadType;
                     genotypeByte= IndividualChrPosLoad.caculateGenotype(genotype, isRefAlleleAncestral);
                     ifHeter = genotypeByte==2 ? true : false;

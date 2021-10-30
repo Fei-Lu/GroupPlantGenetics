@@ -6,8 +6,9 @@ public enum GenotypeRecode {
     HETERO("0/1", (byte)2),
     MISSING("./.", (byte)9);
 
-    String genotype;
-    byte recodeByte;
+    private final String genotype;
+    private final byte recodeByte;
+
     GenotypeRecode(String genotype, byte genotypeByte) {
         this.genotype=genotype;
         this.recodeByte =genotypeByte;

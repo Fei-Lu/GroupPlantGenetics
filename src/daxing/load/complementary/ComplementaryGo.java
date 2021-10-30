@@ -685,9 +685,11 @@ public class ComplementaryGo {
             String taxa;
             Ploidy ploidy;
             StringBuilder sb= new StringBuilder();
+            Optional<Ploidy> ploidyOptional;
             for (int i = 0; i < files.size(); i++) {
                 taxa = PStringUtils.fastSplit(files.get(i).getName(), ".").get(0);
-                ploidy = Ploidy.newInstanceFromSubSingleChar(PStringUtils.fastSplit(files.get(i).getName(), "_").get(0));
+                ploidyOptional=Ploidy.getInstanceFromSubSingleChar(PStringUtils.fastSplit(files.get(i).getName(), "_").get(0));
+                ploidy = ploidyOptional.orElseThrow(IllegalArgumentException::new);
                 subs = ploidy.getSubgenomeArray();
                 numSyn = new int[ploidy.getSubgenomewNum()];
                 numDerivedInSyn= new int[ploidy.getSubgenomewNum()];
