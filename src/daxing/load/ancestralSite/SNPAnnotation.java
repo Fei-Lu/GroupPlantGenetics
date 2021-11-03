@@ -191,26 +191,31 @@ public class SNPAnnotation extends BiSNP{
     public boolean isDeleterious(MethodCallDeleterious methodCallDeleterious){
         if (!hasAncestral()) return false;
         double sift, gerp16wayRefMask, phylop, listS2, pph2;
+        double gerpThreshold=1.5;
+        double siftThreshold=0.05;
+        double phylopThreshold=1.5;
+        double listS2Threshold=0.85;
+        double pph2Threshold=0.5;
         switch (methodCallDeleterious){
             case SIFT:
                 if(!isNonSyn()) return false;
                 if(this.getDerived_SIFT().equals("NA")) return false;
                 sift=Double.parseDouble(this.getDerived_SIFT());
-                if (sift >= 0.05) return false;
+                if (sift >= siftThreshold) return false;
                 return true;
             case GERP:
                 if(!isNonSyn()) return false;
                 if(this.getGerp16way().equals("NA")) return false;
                 gerp16wayRefMask=Double.parseDouble(this.getGerp16way());
-                return !(gerp16wayRefMask < 2.14);
+                return !(gerp16wayRefMask < gerpThreshold);
             case SIFT_GERP:
                 if(!isNonSyn()) return false;
                 if(this.getDerived_SIFT().equals("NA")) return false;
                 sift=Double.parseDouble(this.getDerived_SIFT());
-                if (sift >= 0.05) return false;
+                if (sift >= siftThreshold) return false;
                 if(this.getGerp16way().equals("NA")) return false;
                 gerp16wayRefMask=Double.parseDouble(this.getGerp16way());
-                return !(gerp16wayRefMask < 1);
+                return !(gerp16wayRefMask < gerpThreshold);
             case STOPGAIN_STARTLOST_SIFT:
                 if (this.getVariant_type().equals("STOP-GAIN") || this.getVariant_type().equals("START-LOST")) return true;
                 return false;
@@ -228,25 +233,25 @@ public class SNPAnnotation extends BiSNP{
                 if(!isNonSyn()) return false;
                 if(this.getPhylopP_refMask().equals("NA")) return false;
                 phylop=Double.parseDouble(this.getPhylopP_refMask());
-                return !(phylop < 1.5);
+                return !(phylop < phylopThreshold);
             case LIST_S2:
                 if(!isNonSyn()) return false;
                 if(this.getList_s2() < 0) return false;
                 listS2=this.getList_s2();
-                return !(listS2 < 0.85);
+                return !(listS2 < listS2Threshold);
             case PPH2:
                 if(!isNonSyn()) return false;
                 if(this.getDerived_PolyPhen2_prob() < 0) return false;
                 pph2=this.getDerived_PolyPhen2_prob();
-                return !(pph2 < 0.452);
+                return !(pph2 < pph2Threshold);
             case GERP_PPH2:
                 if(!isNonSyn()) return false;
                 if(this.getGerp16way().equals("NA")) return false;
                 gerp16wayRefMask=Double.parseDouble(this.getGerp16way());
-                if (gerp16wayRefMask < 1) return false;
+                if (gerp16wayRefMask < gerpThreshold) return false;
                 if(this.getDerived_PolyPhen2_prob() < 0) return false;
                 pph2=this.getDerived_PolyPhen2_prob();
-                return !(pph2 < 0.452);
+                return !(pph2 < pph2Threshold);
         }
         return false;
     }
