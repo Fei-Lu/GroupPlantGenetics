@@ -12,5 +12,16 @@
     <orderEntry type="module" module-name="SiPAS-Profiler" exported="" />
     <orderEntry type="library" exported="" name="lib2" level="project" />
     <orderEntry type="module" module-name="TIGER" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../SiPAS-tools/src/lib/TIGER_v1.0.3.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/../../SiPAS-tools/src/lib/TIGER_v1.0.3.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>

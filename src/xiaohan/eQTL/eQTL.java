@@ -2,14 +2,11 @@ package xiaohan.eQTL;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import daxing.common.LibraryOfGRT;
 import daxing.common.MD5;
 import daxing.load.ancestralSite.Standardization;
-import pgl.infra.dna.genot.VCFUtils;
 import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.PStringUtils;
-import pgl.infra.utils.wheat.RefV1Utils;
 import xiaohan.eQTL.pipline.*;
 import xiaohan.eQTL.simulation.simulationData;
 import xiaohan.utils.*;
@@ -18,7 +15,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -66,30 +62,138 @@ public class eQTL {
 
 //        this.epi();
 //        this.command();
-        this.exp(args);
+//        this.exp(args);
+//        this.genotype(args);
+        this.subgenotype(args);
+        this.subgenotypeDNA(args);
     }
 
-    public void exp(String[] args){
+    public void subgenotypeDNA(String[] args){
+        HashSet<String> Samples = new HashSet<>();
+        HashSet<Integer> SampleIndex = new HashSet<>();
+        StringBuilder sb = new StringBuilder();
+        try{
+            BufferedReader br = IOUtils.getTextReader(new File("/data2/xiaohan/hapscanner/outputNew/47_0/Patent/Sample.txt").getAbsolutePath());
+            String temp = null;
+            String[] temps = null;
+            while((temp = br.readLine())!=null){
+                Samples.add(temp);
+            }
+            for (int i = 0; i < 42; i++) {
+                int chr = i+1;
+                BufferedReader br1 = IOUtils.getTextGzipReader(new File("/data1/home/junxu/genotypeMaf005/"+chr+".360.vcf.gz").getAbsolutePath());
+                BufferedWriter bw1 = IOUtils.getTextGzipWriter(new File("/data2/xiaohan/hapscanner/outputNew/47_0/Patent/DNA/chr"+PStringUtils.getNDigitNumber(3,chr)+".vcf.gz").getAbsolutePath());
+                while((temp = br1.readLine())!=null) {
+                    if (temp.startsWith("##")) {
+                        bw1.write(temp + "\n");
+                        continue;
+                    }
+                    if (temp.startsWith("#C")) {
+                        temps = temp.split("\t");
+                        int index = 0;
+                        for (int j = 9; j < temps.length; j++) {
+                            if (Samples.contains(temps[j])) {
+                                SampleIndex.add(j);
+                            }
+                        }
+                    }
+                    for (int j = 0; j < 9; j++) {
+                        SampleIndex.add(j);
+                    }
+                    temps = temp.split("\t");
+                    sb.setLength(0);
+                    for (int j = 0; j < temps.length; j++) {
+                        if(SampleIndex.contains(j)) {
+                            sb.append(temps[j]+"\t");
+                        }
+                    }
+                    bw1.write(sb.toString().replaceAll("\\s+$", "") + "\n");
+                }
+                bw1.flush();
+                bw1.close();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public void subgenotype(String[] args){
+        HashSet<String> Samples = new HashSet<>();
+        HashSet<Integer> SampleIndex = new HashSet<>();
+        StringBuilder sb = new StringBuilder();
+        try{
+            BufferedReader br = IOUtils.getTextReader(new File("/data2/xiaohan/hapscanner/outputNew/47_0/Patent/Sample1.txt").getAbsolutePath());
+            String temp = null;
+            String[] temps = null;
+            while((temp = br.readLine())!=null){
+                Samples.add(temp);
+            }
+            for (int i = 0; i < 42; i++) {
+                int chr = i+1;
+                BufferedReader br1 = IOUtils.getTextGzipReader(new File("/data2/xiaohan/hapscanner/outputNew/47_0/VCF/chr"+PStringUtils.getNDigitNumber(3,chr)+".vcf.gz").getAbsolutePath());
+                BufferedWriter bw1 = IOUtils.getTextGzipWriter(new File("/data2/xiaohan/hapscanner/outputNew/47_0/Patent/RNA/chr"+PStringUtils.getNDigitNumber(3,chr)+".vcf.gz").getAbsolutePath());
+                while((temp = br1.readLine())!=null) {
+                    if (temp.startsWith("##")) {
+                        bw1.write(temp + "\n");
+                        continue;
+                    }
+                    if (temp.startsWith("#C")) {
+                        temps = temp.split("\t");
+                        int index = 0;
+                        for (int j = 9; j < temps.length; j++) {
+                            if (Samples.contains(temps[j])) {
+                                SampleIndex.add(j);
+                            }
+                        }
+                    }
+                    for (int j = 0; j < 9; j++) {
+                        SampleIndex.add(j);
+                    }
+                    temps = temp.split("\t");
+                    sb.setLength(0);
+                    for (int j = 0; j < temps.length; j++) {
+                        if(SampleIndex.contains(j)) {
+                            sb.append(temps[j]+"\t");
+                        }
+                    }
+                    bw1.write(sb.toString().replaceAll("\\s+$", "") + "\n");
+                }
+                bw1.flush();
+                bw1.close();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public void genotype(String[] args) {
+        new genotypes(args);
+    }
+
+    public void exp(String[] args) {
         new pheno(args);
     }
 
     public void command() {
-        String[] names = {"S1coleoptile", "S1root", "S2leaf", "S2root", "S3leaf", "S4leaf", "S4root", "S4stem", "S4spike", "S5leaf", "S5Anthers", "S6leaf", "S6grain", "S7leaf", "S7grain", "S8leaf", "S8grain", "S9grain"};
-        String[] covNumber = {"5", "10", "15", "20", "25","30","35","40","45","50"};
+//        String[] names = {"S1coleoptile", "S1root", "S2leaf", "S2root", "S3leaf", "S4leaf", "S4Awn", "S4stem", "S4spike", "S5leaf", "S5Anthers", "S6leaf", "S6grain", "S7leaf", "S7grain", "S8leaf", "S8grain", "S9grain"};
+        String[] names = {"S3leaf", "S4leaf", "S4Awn", "S4stem", "S4spike", "S5leaf", "S5Anthers", "S6leaf", "S6grain", "S7leaf", "S7grain", "S8leaf", "S8grain", "S9grain"};
+        String[] covNumber = { "20", "25", "30", "35", "40", "45", "50"};
         try {
+            BufferedWriter bw = IOUtils.getTextWriter("/Users/yxh/Documents/003eQTL/005analysis/originaldata/cis.txt");
             for (int j = 0; j < covNumber.length; j++) {
                 for (int i = 0; i < names.length; i++) {
-                    BufferedWriter bw = IOUtils.getTextWriter("/Users/yxh/Documents/003eQTL/005analysis/originaldata/" + names[i] + "_" + covNumber[j] + "_cis.txt");
-                    for (int k = 0; k < 42; k++) {
-                        int chr = k + 1;
-                        bw.write("python3 -m tensorqtl /data2/xiaohan/genotypeMaf005bed/" + chr + " /data2/junxu/pheno/" + names[i] + "/bed_byChr/" + chr + ".bed.gz  /data2/xiaohan/tensorQTL/" + names[i] + "/" + covNumber[j] + "/" + chr + " --covariates /data2/junxu/pheno/" + names[i] + "/cov_" + covNumber[j] + ".txt.gz --mode cis > /data2/xiaohan/tensorQTL/scripts/log/logcis" + names[i] + "_" + covNumber[j] + "_" + chr + ".txt\n");
+
+                    for (int k = 0; k < 3; k++) {
+                        int chr = k * 2 + 1;
+                        bw.write("python3 -m tensorqtl /data2/xiaohan/genotype/" + chr + " /data2/junxu/pheno_20211015/" + names[i] + "/bed_byChr/" + chr + ".bed.gz  /data2/xiaohan/tensorQTL_20211015/" + names[i] + "/" + covNumber[j] + "/" + chr + " --covariates /data2/junxu/pheno_20211015/" + names[i] + "/cov_" + covNumber[j] + ".txt.gz --mode cis > /data2/xiaohan/tensorQTL/scripts/log/logcis" + names[i] + "_" + covNumber[j] + "_" + chr + ".txt\n");
 //                        bw.write("python3 -m tensorqtl /data2/xiaohan/genotypeMaf005bed/" + chr + " /data2/junxu/pheno/" + names[i] + "/bed_byChr/" + chr + ".bed.gz  /data2/xiaohan/tensorQTL/" + names[i] + "/" + covNumber[j] + "/" + chr + " --covariates /data2/junxu/pheno/" + names[i] + "/cov_" + covNumber[j] + ".txt.gz --mode cis_nominal > /data2/xiaohan/tensorQTL/scripts/log/lognominal" + names[i] + "_" + covNumber[j] + "_" + chr + ".txt\n");
 //                        bw.write("python3 -m tensorqtl /data2/xiaohan/genotypeMaf005bed/" + chr + " /data2/junxu/pheno/" + names[i] + "/bed_byChr/" + chr + ".bed.gz  /data2/xiaohan/tensorQTL/" + names[i] + "/" + covNumber[j] + "/" + chr + " --covariates /data2/junxu/pheno/" + names[i] + "/cov_" + covNumber[j] + ".txt.gz --cis_output /data2/xiaohan/tensorQTL/" + names[i] + "/" + covNumber[j] + "/" + chr + ".cis_qtl.txt.gz --mode cis_independent > /data2/xiaohan/tensorQTL/scripts/log/logindependent" + names[i] + "_" + covNumber[j] + "_" + chr + ".txt\n");
                     }
-                    bw.flush();
-                    bw.close();
+
                 }
             }
+            bw.flush();
+            bw.close();
 
         } catch (Exception e) {
             e.printStackTrace();
