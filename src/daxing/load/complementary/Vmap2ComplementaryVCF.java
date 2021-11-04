@@ -13,7 +13,6 @@ import org.apache.commons.math3.stat.inference.TestUtils;
 import pgl.PGLConstraints;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -158,7 +157,7 @@ public class Vmap2ComplementaryVCF {
     private TIntArrayList[] getGroupBySubcontinentIndexList(String taxaInfoDB){
         String[] groupBySubcontinent=Vmap2ComplementaryVCF.groupBySubcontinent;
         Arrays.sort(groupBySubcontinent);
-        Map<String, String> taxonGroupBySubcontinentMap=RowTableTool.getMap(taxaInfoDB, 0, 33);
+        Map<String, String> taxonGroupBySubcontinentMap=RowTableTool.getMap(taxaInfoDB, 0, 36);
         List<String> taxonList=this.taxonList;
         TIntArrayList[] groupBySubcontinentIndexList=new TIntArrayList[groupBySubcontinent.length];
         for (int i = 0; i < groupBySubcontinentIndexList.length; i++) {
@@ -494,7 +493,7 @@ public class Vmap2ComplementaryVCF {
                     }
                 }
             }
-            Map<String, String> taxaGroupBySubcontinentMap=RowTableTool.getMap(taxaInfoFile, 0, 33);
+            Map<String, String> taxaGroupBySubcontinentMap=RowTableTool.getMap(taxaInfoFile, 0, 36);
             SlightlyOrStrongly slightlyOrStrongly;
             AdditiveOrDominance additiveOrDominance;
             String taxonName, groupBySubcontinent;
@@ -502,8 +501,9 @@ public class Vmap2ComplementaryVCF {
             for (int i = 0; i < slightlyStronglyAdditiveDominanceIndiv_staticsValue[0][0].length; i++) {
                 taxonName=hexaploidNameList.get(i);
                 groupBySubcontinent=taxaGroupBySubcontinentMap.get(taxonName);
-                if (groupBySubcontinent.equals("Yunnan") || groupBySubcontinent.equals("NA") ||
-                        groupBySubcontinent.equals("Indian_dwarf") || groupBySubcontinent.equals("SHW")) continue;
+//                if (groupBySubcontinent.equals("Yunnan") || groupBySubcontinent.equals("NA") ||
+//                        groupBySubcontinent.equals("Indian_dwarf") || groupBySubcontinent.equals("SHW")) continue;
+                if (groupBySubcontinent.equals("NA")) continue;
                 for (int j = 0; j < SlightlyOrStrongly.values().length; j++) {
                     slightlyOrStrongly=SlightlyOrStrongly.newInstanceFromIndex(j);
                     for (int k = 0; k < AdditiveOrDominance.values().length; k++) {
