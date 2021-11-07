@@ -16,6 +16,7 @@ import java.util.concurrent.*;
 public class CommandUtils {
 
     /**
+     * when standard output is result.txt (using > result.txt), the log will be result
      * @param command one simple linux command with or without options, can't be a compound command: et al. ls | wc
      * @param workingDirectory current working dir
      * @param logFile contain command log and error log
