@@ -16,11 +16,10 @@ import java.util.*;
 public class MAF {
 
     List<MAFAlignment> mafAlignmentList;
+    WheatLineage wheatLineage;
 
-    static WheatLineage wheatLineage;
-
-    public MAF(String mafFile, WheatLineage wheatLineage){
-        wheatLineage=wheatLineage;
+    public MAF(File mafFile, WheatLineage wheatLineage){
+        this.wheatLineage=wheatLineage;
         List<MAFAlignment> mafAlignmentList= new ArrayList<>();
         MAFAlignment mafAlignment;
         List<String> linesPerAlignment= new ArrayList<>();
