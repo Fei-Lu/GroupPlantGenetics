@@ -1,14 +1,19 @@
 package daxing.common.maf;
 
+import com.koloboke.collect.map.hash.HashByteCharMap;
 import daxing.common.factors.WheatLineage;
 import daxing.common.utiles.IOTool;
+import gnu.trove.list.array.TByteArrayList;
+import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
+import pgl.infra.utils.Benchmark;
+import pgl.infra.utils.PStringUtils;
+
+import java.io.*;
 import java.util.*;
+import java.util.stream.IntStream;
 
 /**
  * multiple alignment format
@@ -150,7 +155,7 @@ public class MAF {
                 strand=Strand.getInstanceFrom(temp[4]);
                 srcSize=Integer.parseInt(temp[5]);
                 alignmentSize=temp[6].length();
-                ascIIArray=temp[6].getBytes();
+                ascIIArray=temp[6].toUpperCase().getBytes();
                 record= new Record(refChr, start, size, strand, srcSize, ascIIArray);
                 speciesMAFRecordEnumMap.put(species, record);
             }
@@ -179,5 +184,70 @@ public class MAF {
 
     }
 
+    public static void convertToGeno(String genoInputDir, String fourSpeciesDir, String outDir){
+        List<File> fourSpeciesFiles = IOTool.getFileListInDirEndsWith(fourSpeciesDir, ".gz");
+        List<File> genoFiles = IOTool.getFileListInDirEndsWith(genoInputDir, ".gz");
+        String[] outNames= genoFiles.stream().map(File::getName).map(s -> s.replaceAll(".ancestral.geno.gz", "_1B1R_anc_hvBd.geno.gz")).toArray(String[]::new);
+        IntStream.range(0, genoFiles.size()).forEach(e->{
+            TIntArrayList posList= new TIntArrayList();
+            TByteArrayList secerBaseAscIIList= new TByteArrayList();
+            TByteArrayList ancBaseAscIIList= new TByteArrayList();
+            try (BufferedReader brFourSpecies = IOTool.getReader(fourSpeciesFiles.get(e));
+                 BufferedReader brGenoFile = IOTool.getReader(genoFiles.get(e));
+                 BufferedWriter bw =IOTool.getWriter(new File(outDir, outNames[e]))) {
+                String line;
+                String[] temp;
+                brFourSpecies.readLine();
+                while ((line=brFourSpecies.readLine())!=null){
+                    temp = StringUtils.split(line);
+                    if (temp[4].equals(temp[5])){
+                        posList.add(Integer.parseInt(temp[1]));
+                        secerBaseAscIIList.add(temp[3].getBytes()[0]);
+                        ancBaseAscIIList.add(temp[4].getBytes()[0]);
+                    }
+                }
+                line=brGenoFile.readLine();
+                StringBuilder sb = new StringBuilder();
+                sb.append(line).append("\t").append("Secer\tAnc_hvBd");
+                bw.write(sb.toString());
+                bw.newLine();
+                int pos, index;
+                char secerBase;
+                char ancBase;
+                while ((line=brGenoFile.readLine())!=null){
+                    temp=StringUtils.split(line.substring(0,15));
+                    pos = Integer.parseInt(temp[1]);
+                    index = posList.binarySearch(pos);
+                    if (index < 0) continue;
+                    sb.setLength(0);
+                    secerBase=Sequence.getBaseFromAscII(secerBaseAscIIList.get(index));
+                    ancBase=Sequence.getBaseFromAscII(ancBaseAscIIList.get(index));
+                    sb.append(line).append("\t").append(secerBase);
+                    sb.append("/").append(secerBase);
+                    sb.append("\t").append(ancBase).append("/").append(ancBase);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+                bw.flush();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        });
+    }
+
+    public static void start(String inputMAFDir, String outDir){
+        long start=System.nanoTime();
+        EnumSet<Species> enumSet= EnumSet.of(Species.traes, Species.secer, Species.hovul, Species.brdis);
+        List<File> fileList = IOTool.getFileListInDirEndsWith(inputMAFDir, "maf.gz");
+        String[] outNames= fileList.stream().map(File::getName).map(s -> s.replaceAll(".maf.gz", ".txt.gz")).toArray(String[]::new);
+        MAF maf;
+        WheatLineage wheatLineage;
+        for (int i = 0; i < fileList.size(); i++) {
+            wheatLineage= WheatLineage.valueOf(fileList.get(i).getName().substring(1,2));
+            maf=new MAF(fileList.get(i), wheatLineage);
+            maf.extractSpecies(new File(outDir, outNames[i]).getAbsolutePath(), enumSet);
+        }
+        System.out.println(Benchmark.getTimeSpanMilliseconds(start)+ " ms");
+    }
 
 }
