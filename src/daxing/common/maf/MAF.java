@@ -184,6 +184,12 @@ public class MAF {
 
     }
 
+    /**
+     * add secer hv_bd to geno for fd
+     * @param genoInputDir
+     * @param fourSpeciesDir
+     * @param outDir
+     */
     public static void convertToGeno(String genoInputDir, String fourSpeciesDir, String outDir){
         List<File> fourSpeciesFiles = IOTool.getFileListInDirEndsWith(fourSpeciesDir, ".gz");
         List<File> genoFiles = IOTool.getFileListInDirEndsWith(genoInputDir, ".gz");
