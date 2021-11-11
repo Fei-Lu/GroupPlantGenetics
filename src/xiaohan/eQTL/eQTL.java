@@ -64,8 +64,8 @@ public class eQTL {
 //        this.command();
 //        this.exp(args);
 //        this.genotype(args);
-        this.subgenotype(args);
-        this.subgenotypeDNA(args);
+//        this.subgenotype(args);
+//        this.subgenotypeDNA(args);
     }
 
     public void subgenotypeDNA(String[] args){

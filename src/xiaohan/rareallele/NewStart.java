@@ -3,6 +3,7 @@ package xiaohan.rareallele;
 import pgl.infra.utils.PStringUtils;
 import xiaohan.eQTL.GeneFeature;
 import xiaohan.utils.IOUtils;
+import xiaohan.utils.chrUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -25,9 +26,92 @@ public class NewStart {
 //        this.mergeExpressionTable(args);
 //        this.getbedFile(args);
 //        this.splitBychr(args);
-        this.outliersSNP(args);
+//        this.outliersSNP(args);
 //        this.annotation(args);
 //        this.summary(args);
+        this.Version360(args);
+//        this.getFileSplitInABD(args);
+    }
+
+    public void getFileSplitInABD(String[] args) {
+        BufferedReader br;
+        BufferedWriter[] bw = new BufferedWriter[3];
+        br = IOUtils.getInFile(new File(args[0]).getAbsolutePath());
+        for (int i = 0; i < bw.length; i++) {
+            bw[i] = IOUtils.getOutFile(new File(args[i + 1]).getAbsolutePath());
+        }
+        int index = Integer.parseInt(args[args.length - 1]);
+        String temp = null;
+        String[] temps = null;
+        try {
+            while ((temp = br.readLine()) != null) {
+                temps = temp.split("\t");
+                if (!temps[index].startsWith("Tr")) {
+                    for (int i = 0; i < bw.length; i++) {
+                        bw[i].write(temp + "\n");
+                    }
+                } else {
+                    String CHR = temps[index].substring(8,9);
+                    if(CHR.equals("A")){
+                        bw[0].write(temp+"\n");
+                    }else if (CHR.equals("B")){
+                        bw[1].write(temp+"\n");
+                    }else {
+                        bw[2].write(temp+"\n");
+                    }
+                }
+            }
+            br.close();
+            for (int i = 0; i < bw.length; i++) {
+                bw[i].flush();
+                bw[i].close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void Version360(String[] args) {
+        String inputfile = new File(args[0]).getAbsolutePath();
+        String outputfile = new File(args[1]).getAbsolutePath();
+        BufferedReader br = IOUtils.getTextGzipReader(inputfile);
+        BufferedWriter bw = IOUtils.getTextGzipWriter(outputfile);
+        String temp = null;
+        String[] temps = null;
+        StringBuilder sb = new StringBuilder();
+        try {
+            while ((temp = br.readLine()) != null) {
+                if (temp.startsWith("##")) {
+                    bw.write(temp + "\n");
+                    continue;
+                }
+                temps = PStringUtils.fastSplit(temp).toArray(new String[0]);
+                sb.setLength(0);
+                for (int i = 0; i < temps.length; i++) {
+                    if (i > 9 && (i - 8) % 24 == 0) {
+                        if (temp.startsWith("#C")) {
+                            System.out.println(temps[353]);
+                            int sample = ((i - 8) / 24) * 25;
+                            sb.append(temps[i].replace("B18-", "") + "\t" + "E" + PStringUtils.getNDigitNumber(3, sample) + "\t");
+                        } else {
+                            sb.append(temps[i] + "\t" + temps[353] + "\t");
+                        }
+                    } else {
+                        if (temp.startsWith("#C")) {
+                            sb.append(temps[i].replace("B18-", "") + "\t");
+                        } else {
+                            sb.append(temps[i] + "\t");
+                        }
+                    }
+                }
+                bw.write(sb.toString().replaceAll("\\s+$", "") + "\n");
+            }
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void summary(String[] args) {
@@ -186,23 +270,23 @@ public class NewStart {
                 HashSet<String> siteSet = new HashSet<>();
                 HashMap<String, String> zscoreMap = new HashMap<>();
                 while ((temp = brinfo.readLine()) != null) {
-                    if(temp.startsWith("GENE"))continue;
+                    if (temp.startsWith("GENE")) continue;
                     temps = temp.split("\t");
                     symbol = temps[0] + "_" + temps[1];
                     gene = temps[0];
                     sample = temps[1];
-                    sampleindex = Integer.parseInt(temps[1].substring(1,4));
-                    if(Double.parseDouble(temps[3]) <0){
+                    sampleindex = Integer.parseInt(temps[1].substring(1, 4));
+                    if (Double.parseDouble(temps[3]) < 0) {
                         UnderoutlierSet.add(symbol);
                         zscoreMap.put(symbol, temps[3]);
                     }
-                    if(Double.parseDouble(temps[3]) > 0){
+                    if (Double.parseDouble(temps[3]) > 0) {
                         OveroutlierSet.add(symbol);
                         zscoreMap.put(symbol, temps[3]);
                     }
                     for (int j = 1; j <= 360; j++) {
-                        if(sampleindex == j)continue;
-                        sample = "E"+PStringUtils.getNDigitNumber(3,j);
+                        if (sampleindex == j) continue;
+                        sample = "E" + PStringUtils.getNDigitNumber(3, j);
                         symbol = gene + "_" + sample;
 //                        System.out.println(sample);
                         NonoutlierSet.add(symbol);
