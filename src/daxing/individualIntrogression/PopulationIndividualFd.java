@@ -7,6 +7,7 @@ import daxing.common.factors.LoadType;
 import daxing.common.factors.P3;
 import daxing.common.table.RowTableTool;
 import daxing.common.utiles.IOTool;
+import daxing.temp.individual.IfIntrogression;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
@@ -19,6 +20,7 @@ import java.util.*;
 
 /**
  * 将个体load分为introgression区和nonintrogression区，introgression区的load是否低于nonintrogression区的load
+ * 以群体fd window为区间, 计算introgressed个体和nonintrogressed个体的 total del count
  */
 public class PopulationIndividualFd {
 
@@ -354,8 +356,8 @@ public class PopulationIndividualFd {
                 chr=temp.get(0);
                 start=Integer.parseInt(temp.get(1));
                 end=Integer.parseInt(temp.get(2));
-                miniIBSP3=temp.get(3);
-                fd=Double.parseDouble(temp.get(4));
+                fd=Double.parseDouble(temp.get(12));
+                miniIBSP3= IfIntrogression.valueOf(temp.get(13)).getDonor().name();
                 individualFdRecord=new IndividualFdRecord(fd, miniIBSP3);
                 chrRange=new ChrRange(chr, start, end+1);
                 rangeIndex=binarySearch(chrRange);
@@ -518,17 +520,6 @@ public class PopulationIndividualFd {
         }
         return chrPosLineMap;
     }
-
-
-
-//    public static void start(){
-//        String popFdFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/002_fdResBySubspecies/002_plot_100SNPwindow_50Step/fdBySubspecies.csv";
-//        String individualFdDir="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/005_introgression/006_fdResByIndividual/003_fdByIndividual.newMethod";
-//        String taxaInfoFile="";
-//        String individualLoadSummaryFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/003_vmap2.1_20200628/004_deleterious/001_triadsSelection/003_derivedSiftPerSite/007_individualLoadFdSummary/IndividualLoadFdSummary.txt.gz";
-//        String outFile="/Users/xudaxing/Desktop/fdLoadBySubspecies100SNPwindow_50Step.txt";
-//        writeWindowSize(popFdFile, individualFdDir, taxaInfoFile, individualLoadSummaryFile, outFile);
-//    }
 
     /**
      * WeakLoad and StrongLoad特殊值解释 NaN: 0/0 NA: 为初始化的默认值(即没有渗入) Infinity: 分母为0(即NonIntrogression load为0)

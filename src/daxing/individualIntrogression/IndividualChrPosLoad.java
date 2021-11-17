@@ -5,7 +5,6 @@ import daxing.common.factors.LoadType;
 import gnu.trove.list.array.TByteArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.PStringUtils;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -17,7 +16,7 @@ import java.util.Map;
 /**
  * Only record derived
  */
-public class IndividualChrPosLoad{
+public class IndividualChrPosLoad implements Comparable<IndividualChrPosLoad>{
 
     String taxonName;
     int chr;
@@ -79,6 +78,14 @@ public class IndividualChrPosLoad{
         return posList;
     }
 
+    public byte getIfHeter(int siteIndex){
+        return this.getIfHeter().get(siteIndex);
+    }
+
+    public byte getIfHomozygousDerived(int siteIndex){
+        return this.getIfHomozygousDerived().get(siteIndex);
+    }
+
     public void addChrPos(int chr, int pos, LoadType synNonDel, boolean ifHeter, boolean ifHomozygousDerived){
         if (chr!=this.getChr()){
             System.out.println("please check your parameter chr: "+chr);
@@ -90,6 +97,15 @@ public class IndividualChrPosLoad{
         byte ifHomozygousDerivedByte= (byte) (ifHomozygousDerived ? 1 : 0);
         this.ifHeter.add(ifHeterByte);
         this.ifHomozygousDerived.add(ifHomozygousDerivedByte);
+    }
+
+    /**
+     *
+     * @param pos
+     * @return siteIndex
+     */
+    public int getIndex(int pos){
+        return posList.binarySearch(pos);
     }
 
     public void write(String outDir){
@@ -130,4 +146,8 @@ public class IndividualChrPosLoad{
         return genotypeToByteMap2.get(genotype);
     }
 
+    @Override
+    public int compareTo(IndividualChrPosLoad o) {
+        return this.taxonName.compareTo(o.taxonName);
+    }
 }
