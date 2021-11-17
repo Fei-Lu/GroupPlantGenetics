@@ -1,4 +1,4 @@
-package daxing.temp.individual;
+package daxing.individualIntrogression.individual;
 
 public enum IfIntrogression {
 

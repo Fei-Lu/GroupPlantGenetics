@@ -1,4 +1,4 @@
-package daxing.temp.individual;
+package daxing.individualIntrogression.individual;
 
 import java.util.Arrays;
 

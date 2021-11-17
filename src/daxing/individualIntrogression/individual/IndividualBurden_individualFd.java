@@ -1,4 +1,4 @@
-package daxing.temp.individual;
+package daxing.individualIntrogression.individual;
 
 import com.google.common.base.Joiner;
 import com.google.common.primitives.Ints;

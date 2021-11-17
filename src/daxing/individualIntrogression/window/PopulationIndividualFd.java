@@ -1,4 +1,4 @@
-package daxing.individualIntrogression;
+package daxing.individualIntrogression.window;
 
 import daxing.common.chrrange.ChrPos;
 import daxing.common.chrrange.ChrRange;
@@ -7,7 +7,7 @@ import daxing.common.factors.LoadType;
 import daxing.common.factors.P3;
 import daxing.common.table.RowTableTool;
 import daxing.common.utiles.IOTool;
-import daxing.temp.individual.IfIntrogression;
+import daxing.individualIntrogression.individual.IfIntrogression;
 import gnu.trove.list.array.TIntArrayList;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;

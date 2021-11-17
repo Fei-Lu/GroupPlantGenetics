@@ -1,4 +1,4 @@
-package daxing.temp.individual;
+package daxing.individualIntrogression.individual;
 
 import daxing.common.table.RowTableTool;
 import daxing.common.utiles.DateTime;
@@ -28,7 +28,7 @@ public class Start {
         String[] outNames= exonVCFFiles.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz",
                         "_IndividualFdDonor.txt.gz")).toArray(String[]::new);
         IndividualFd[] individualFds=getIndividualFd(individualFdDir, taxaInfoFile);
-        IntStream.range(0, exonVCFFiles.size()).forEach(e-> calculateDonorBurdenPerIndividual(individualFds,
+        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e-> calculateDonorBurdenPerIndividual(individualFds,
                 exonAnnoFiles.get(e), exonVCFFiles.get(e), new File(outDir, outNames[e]), e+1 ,methodCallDeleterious));
     }
 

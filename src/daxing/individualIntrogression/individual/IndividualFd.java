@@ -1,4 +1,4 @@
-package daxing.temp.individual;
+package daxing.individualIntrogression.individual;
 
 import cern.colt.GenericSorting;
 import cern.colt.Swapper;
@@ -22,7 +22,7 @@ public class IndividualFd implements Comparable<IndividualFd> {
     double[] maxFdM;
     String taxon;
 
-    static final double thresholdIntrogression=1;
+    static final double thresholdIntrogression=0.5;
 
     IntComparator intComparator = (int a, int b) -> chrRanges.getChrRange(a).compareTo(chrRanges.getChrRange(b));
     Swapper swapper = new Swapper() {
@@ -58,8 +58,8 @@ public class IndividualFd implements Comparable<IndividualFd> {
                 start=Integer.parseInt(temp.get(1));
                 end=Integer.parseInt(temp.get(2));
                 chrRange=new ChrRange(refChr, start, end);
-                donor= temp.get(3).equals("NA") ? Donor.NONE : Donor.valueOf(temp.get(3));
-                maxFdM = Double.parseDouble(temp.get(4));
+                donor= IfIntrogression.valueOf(temp.get(13)).getDonor();
+                maxFdM = Double.parseDouble(temp.get(12));
                 donor = maxFdM < thresholdIntrogression ? Donor.NONE : donor;
                 maxFdMList.add(maxFdM);
                 chrRangeList.add(chrRange);

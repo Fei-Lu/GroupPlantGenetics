@@ -1,4 +1,4 @@
-package daxing.individualIntrogression;
+package daxing.individualIntrogression.window;
 
 import daxing.common.factors.LoadType;
 import daxing.common.table.RowTableTool;
