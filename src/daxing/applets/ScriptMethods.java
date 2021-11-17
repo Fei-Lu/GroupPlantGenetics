@@ -6,6 +6,7 @@ import com.google.common.collect.Table;
 import com.google.common.collect.TreeMultimap;
 import daxing.common.chrrange.ChrRange;
 import daxing.common.factors.WheatLineage;
+import daxing.common.genotype.GenoGrid;
 import daxing.common.table.RowTableTool;
 import daxing.common.utiles.IOTool;
 import daxing.common.utiles.StringTool;
@@ -16,6 +17,7 @@ import daxing.load.complementary.TriadsBlockUtils;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.util.CombinatoricsUtils;
+import pgl.infra.dna.genot.GenoIOFormat;
 import pgl.infra.range.Range;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
@@ -25,6 +27,8 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.function.Predicate;
@@ -910,4 +914,57 @@ public class ScriptMethods {
         }
         return chrRanges;
     }
+
+    public static void getMissingRateFrom() throws IOException {
+        Integer a = 5;
+        String inputDir="/Users/xudaxing/Desktop/MissingRate/001_vcf";
+        String svFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/004_burdenPerIndividualOrPerGene/002_1B1R/sv_taxa_GERP1.5_PPH0.5.txt";
+        String nonSVFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/004_burdenPerIndividualOrPerGene/002_1B1R/nonsv_taxa_GERP1.5_PPH0.5.txt";
+        String outDir="/Users/xudaxing/Desktop/MissingRate/002_missing";
+        List<File> fileList = IOTool.getFileListInDirEndsWith(inputDir, ".gz");
+        String[] outNames= fileList.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz",".missingRate.txt.gz")).toArray(String[]::new);
+        List<String> svTaxa= Files.readAllLines(Paths.get(svFile));
+        List<String> nonsvTaxa=Files.readAllLines(Paths.get(nonSVFile));
+        IntStream.range(0, fileList.size()).forEach(e->{
+            GenoGrid genoGrid = new GenoGrid(fileList.get(e).getAbsolutePath(), GenoIOFormat.VCF_GZ);
+            try (BufferedWriter bw = IOTool.getWriter(new File(outDir, outNames[e]))) {
+                StringBuilder sb = new StringBuilder();
+                bw.write("ChrID\tPos\tMissingRate1B1R\tMissingRateNon1B1R");
+                bw.newLine();
+                int[] svIndices=new int[svTaxa.size()];
+                int[] nonsvIndices= new int[nonsvTaxa.size()];
+                for (int i = 0; i < svTaxa.size(); i++) {
+                    svIndices[i]=genoGrid.getTaxonIndex(svTaxa.get(i));
+                }
+                for (int i = 0; i < nonsvTaxa.size(); i++) {
+                    nonsvIndices[i]=genoGrid.getTaxonIndex(nonsvTaxa.get(i));
+                }
+                GenoGrid genoGridSV = genoGrid.getSubsetGenotypeByTaxon(svIndices);
+                GenoGrid genoGridNonSV = genoGrid.getSubsetGenotypeByTaxon(nonsvIndices);
+                double missingNumSV, missingNumNonSV;
+                double totalCountSV, totalCountNonSV;
+                double missingSV, missingNonSV;
+                NumberFormat numberFormat = NumberFormat.getInstance();
+                numberFormat.setGroupingUsed(false);
+                numberFormat.setMaximumFractionDigits(5);
+                for (int i = 0; i < genoGrid.getSiteNumber(); i++) {
+                    missingNumSV= genoGridSV.getMissingNumberBySite(i);
+                    totalCountSV = genoGridSV.getTaxaNumber();
+                    missingNumNonSV= genoGridNonSV.getMissingNumberBySite(i);
+                    totalCountNonSV = genoGridNonSV.getTaxaNumber();
+                    missingSV= missingNumSV/totalCountSV;
+                    missingNonSV= missingNumNonSV/totalCountNonSV;
+                    sb.setLength(0);
+                    sb.append(genoGrid.getChromosome(i)).append("\t").append(genoGrid.getPosition(i)).append("\t");
+                    sb.append(numberFormat.format(missingSV)).append("\t").append(numberFormat.format(missingNonSV));
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+                bw.flush();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        });
+    }
+
 }
