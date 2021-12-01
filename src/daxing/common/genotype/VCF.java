@@ -466,10 +466,10 @@ public class VCF {
      */
     public static void getSubSetVcfFromDir(String vcfDir, String subsetFileDir, double rate, int numThreads){
         long totalStart=System.nanoTime();
-        File[] files=IOUtils.listRecursiveFiles(new File(vcfDir));
+        List<File> files=IOTool.getFileListInDirEndsWith(vcfDir, ".gz");
         Predicate<File> p=File::isHidden;
-        File[] f1=Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
-        String[] f2=Arrays.stream(f1).map(File::getName).map(str->str.replaceAll("vcf.*$", "subset"+rate+".vcf"))
+        File[] f1=files.stream().filter(p.negate()).toArray(File[]::new);
+        String[] f2=Arrays.stream(f1).map(File::getName).map(str->str.replaceAll(".vcf.gz", "subset"+rate+".vcf"))
                 .toArray(String[]::new);
         int[][] indices= PArrayUtils.getSubsetsIndicesBySubsetSize(f1.length, numThreads);
         for (int[] index : indices) {
@@ -501,7 +501,7 @@ public class VCF {
                     bw.write(line);
                     bw.newLine();
                     while ((line = br.readLine()) != null) {
-                        if (Double.parseDouble(VCF.calculateMaf(line)) < 0.05) continue;
+//                        if (Double.parseDouble(VCF.calculateMaf(line)) < 0.05) continue;
                         total++;
                         r = Math.random();
                         if (r > rate) continue;
@@ -512,7 +512,7 @@ public class VCF {
                     br.close();
                     bw.flush();
                     bw.close();
-                    System.out.println("samping " + count + "(" + total + " maf > 0.05) row from "
+                    System.out.println("samping " + count + "(" + total + ") row from "
                             + f1[e].getName() + " into " + new File(subsetFileDir, f2[e]).getName() + " in "
                             + Benchmark.getTimeSpanMinutes(start) + " minutes");
                 } catch (IOException ex) {
@@ -1483,5 +1483,74 @@ public class VCF {
             }
 
         });
+    }
+
+    public static void addAncestral(String vmap2Dir, String ancestralDir, String outDir, int indexOfAncestralAllele){
+        System.out.println(DateTime.getDateTimeOfNow()+" start");
+        long start=System.nanoTime();
+        List<File> files1= IOUtils.getFileListInDirEndsWith(vmap2Dir,"vcf");
+//        Comparator<File> comparator= Comparator.comparing(file -> Integer.parseInt(PStringUtils.fastSplit(file.getName(),".").get(0).substring(3)));
+//        Collections.sort(files1, comparator);
+        List<File> files2= IOUtils.getVisibleFileListInDir(ancestralDir);
+        String[] outNames=
+                files1.stream().map(File::getName).map(str->str.replaceAll("vcf", "hvsc.vcf")).toArray(String[]::new);
+        IntStream.range(0, files1.size()).parallel().forEach(e-> addAncestral(files1.get(e), files2.get(e),
+                new File(outDir, outNames[e]), indexOfAncestralAllele));
+        System.out.println("completed in "+Benchmark.getTimeSpanHours(start)+" hours");
+        System.out.println(DateTime.getDateTimeOfNow()+" end");
+    }
+
+    private static void addAncestral(File vcfFile, File ancestralFile, File outFile,
+                                     int indexOfAncestralAllele){
+        long start=System.nanoTime();
+        Table<String, String, String> outGroupChrPosAllele= RowTableTool.getTable(ancestralFile.getAbsolutePath(), indexOfAncestralAllele);
+        try (BufferedReader br1 = IOTool.getReader(vcfFile);
+             BufferedWriter bw= IOTool.getWriter(outFile.getAbsolutePath())) {
+            String line;
+            List<String> temp;
+            StringBuilder sb = new StringBuilder();
+            while ((line=br1.readLine()).startsWith("##")){
+                bw.write(line);
+                bw.newLine();
+            }
+            sb.append(line).append("\t").append("Ancestral");
+            bw.write(sb.toString());
+            bw.newLine();
+            String refAllele, altAllele, outgroupAllele;
+            int total=0;
+            int ancestralCount=0;
+            while ((line=br1.readLine())!=null){
+                total++;
+                temp= PStringUtils.fastSplit(line.substring(0,30));
+                refAllele = temp.get(3);
+                altAllele = temp.get(4);
+                if (!outGroupChrPosAllele.contains(temp.get(0), temp.get(1))) continue;
+                outgroupAllele=outGroupChrPosAllele.get(temp.get(0), temp.get(1));
+                if (outgroupAllele.equals("-")) continue;
+                if (outgroupAllele.equals("NA")) continue;
+                sb=new StringBuilder(1000);
+                sb.append(line).append("\t");
+                if (refAllele.equals(outgroupAllele)){
+                    ancestralCount++;
+                    sb.append("0/0:100,0:0,5,10");
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }else if (altAllele.equals(outgroupAllele)){
+                    ancestralCount++;
+                    sb.append("1/1:0,100:10,5,0");
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+            }
+            br1.close();
+            bw.flush();
+            System.out.println(vcfFile.getName()+ " had total "+total+ " variants, "+ "only "+ancestralCount+ " sites" +
+                    " had" +
+                    " " +
+                    "ancestral allele");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        System.out.println(outFile.getName()+" completed in "+ Benchmark.getTimeSpanMinutes(start)+" minutes");
     }
 }
