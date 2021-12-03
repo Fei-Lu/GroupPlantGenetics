@@ -337,8 +337,8 @@ public class eQTL {
                 temps = temp.split("\t");
 //                System.out.println(temps.length);
                 if (temps[1].startsWith("U")) continue;
-                String chr42 = chrUtils.getChrABDtoChr(temps[1], Integer.parseInt(temps[2]));
-                start = chrUtils.getChrABDpostoChrpos(temps[1], Integer.parseInt(temps[2]));
+                String chr42 = chrUtils.getChrABDtoChr42(temps[1], Integer.parseInt(temps[2]));
+                start = chrUtils.getChrABDpostoChr42pos(temps[1], Integer.parseInt(temps[2]));
                 end = start + 1;
                 for (int i = 0; i < names.length; i++) {
                     String pvalue = temps[(i + 1) * 3];
