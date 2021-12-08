@@ -38,6 +38,13 @@ public class ABBA_BABA {
         System.out.println(DateTime.getDateTimeOfNow()+" end");
     }
 
+    /**
+     * vcf to geno, 仅保留ancestral位点
+     * @param vcfFile
+     * @param ancestralFile
+     * @param outFile
+     * @param indexOfAncestralAllele
+     */
     private static void convertVCFToGenoFormat(File vcfFile, File ancestralFile, File outFile,
                                                int indexOfAncestralAllele){
         long start=System.nanoTime();
@@ -83,6 +90,70 @@ public class ABBA_BABA {
                     }
                 }
                 sb.append(outgroupAllele).append("/").append(outgroupAllele);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            br1.close();
+            bw.flush();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        System.out.println(outFile.getName()+" completed in "+ Benchmark.getTimeSpanMinutes(start)+" minutes");
+    }
+
+    /**
+     * vcf to geno 保留 vcf 所有位点
+     * @param vcfFile
+     * @param ancestralFile
+     * @param outFile
+     * @param indexOfAncestralAllele
+     */
+    private static void convertVCFToGenoFormat2(File vcfFile, File ancestralFile, File outFile,
+                                               int indexOfAncestralAllele){
+        long start=System.nanoTime();
+        Table<String, String, String> outGroupChrPosAllele= RowTableTool.getTable(ancestralFile.getAbsolutePath(), indexOfAncestralAllele);
+        try (BufferedReader br1 = IOTool.getReader(vcfFile);
+             BufferedWriter bw= IOTool.getWriter(outFile.getAbsolutePath())) {
+            String line, genotype;
+            List<String> temp;
+            StringBuilder sb=new StringBuilder(100);
+            while ((line=br1.readLine()).startsWith("##")){}
+            temp=PStringUtils.fastSplit(line);
+            temp=temp.stream().skip(9).collect(Collectors.toList());
+            sb.append("#CHROM").append("\t").append("POS").append("\t").append(StringUtils.join(temp, "\t"));
+            sb.append("\t").append("ancestral");
+            bw.write(sb.toString());
+            bw.newLine();
+            String refAllele, altAllele, outgroupAllele;
+            while ((line=br1.readLine())!=null){
+                temp= PStringUtils.fastSplit(line);
+                sb.setLength(0);
+                sb.append(temp.get(0)).append("\t").append(temp.get(1)).append("\t");
+                refAllele=temp.get(3);
+                altAllele=temp.get(4);
+                for (int i = 9; i < temp.size(); i++) {
+                    genotype=temp.get(i).substring(0, 3);
+                    switch (genotype){
+                        case "0/1":
+                            sb.append(refAllele).append("/").append(altAllele).append("\t");
+                            break;
+                        case "0/0":
+                            sb.append(refAllele).append("/").append(refAllele).append("\t");
+                            break;
+                        case "1/1":
+                            sb.append(altAllele).append("/").append(altAllele).append("\t");
+                            break;
+                        case "./.":
+                            sb.append("N/N").append("\t");
+                            break;
+                    }
+                }
+                outgroupAllele=outGroupChrPosAllele.get(temp.get(0), temp.get(1));
+                if (outgroupAllele==null || outgroupAllele.equals("-") || outgroupAllele.equals("NA")){
+                    sb.append("N/N");
+                }else {
+                    sb.append(outgroupAllele).append("/").append(outgroupAllele);
+                }
                 bw.write(sb.toString());
                 bw.newLine();
             }
