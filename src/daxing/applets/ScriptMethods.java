@@ -967,4 +967,36 @@ public class ScriptMethods {
         });
     }
 
+    public static void transform(String inputFile, String outFile){
+        try (BufferedReader br = IOTool.getReader(inputFile);
+             BufferedWriter bw =IOTool.getWriter(outFile)) {
+            String line;
+            List<String> temp;
+            line=br.readLine();
+            bw.write(line);
+            bw.newLine();
+            StringBuilder sb = new StringBuilder();
+            int chrID, start, end, refStart, refEnd;
+            String refChr;
+            while ((line=br.readLine())!=null){
+                temp =PStringUtils.fastSplit(line);
+                chrID = Integer.parseInt(temp.get(0));
+                start = Integer.parseInt(temp.get(2));
+                end = Integer.parseInt(temp.get(3));
+                refStart = RefV1Utils.getPosOnChromosome(chrID, start);
+                refEnd = RefV1Utils.getPosOnChromosome(chrID, end);
+                refChr = RefV1Utils.getChromosome(chrID, start);
+                sb.setLength(0);
+                sb.append(refChr).append("\t").append(temp.get(1)).append("\t");
+                sb.append(refStart).append("\t").append(refEnd).append("\t");
+                sb.append(String.join("\t", temp.subList(4,temp.size())));
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
