@@ -48,10 +48,10 @@ public class SNPAnnotation extends BiSNP{
         HIGH_SNPEFF, PHYLOP, LIST_S2, PPH2, GERP_PPH2
 
         // SIFT < 0.05
-        // GERP >= 1
+        // GERP >= 1.5
         // PhyloP >= 1.5
         // LIST-S2 >= 0.85
-        // PPH2 >=0.452
+        // PPH2 >=0.5
     }
 
 
