@@ -999,4 +999,52 @@ public class ScriptMethods {
         }
     }
 
+    /**
+     * ancestral for AB: H. vulgare and Ae. tauschii
+     * ancestral for D: H. vulgare and Triticum urartu
+     * @param inputDir from kang ancestral VCF
+     * @param outDir
+     */
+    public static void extractVMap1_ancestral(String inputDir, String outDir){
+        List<File> files = IOTool.getFileListInDirEndsWith(inputDir, ".vcf.gz");
+        String[] outNames = files.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz",".ancestral.txt.gz")).toArray(String[]::new);
+        IntStream.range(0, files.size()).parallel().forEach(e->{
+            try (BufferedReader br = IOTool.getReader(files.get(e));
+                 BufferedWriter bw = IOTool.getWriter(new File(outDir, outNames[e]))) {
+                String line, chr, genotype1, genotype2;
+                List<String> temp, altAlleleList;
+                int ancestralAlleleIndex;
+                StringBuilder sb = new StringBuilder();
+                sb.append("Chr\tPos\tAncestral");
+                bw.write(sb.toString());
+                bw.newLine();
+                chr = files.get(e).getName().substring(0,2);
+                while ((line=br.readLine()).startsWith("##")) continue;
+                List<String> abChrs = WheatLineage.abLineage();
+                int ancestralIndex=abChrs.contains(chr) ? 12 : 11;
+                List<String> alleleList;
+                while ((line=br.readLine())!=null){
+                    temp =PStringUtils.fastSplit(line);
+                    genotype1 = temp.get(ancestralIndex);
+                    genotype2 = temp.get(15);
+                    if (genotype1.equals(".") || genotype2.equals(".")) continue;
+                    if (!genotype1.equals(genotype2)) continue;
+                    altAlleleList= PStringUtils.fastSplit(temp.get(4),",");
+                    alleleList = new ArrayList<>();
+                    alleleList.add(temp.get(3));
+                    alleleList.addAll(altAlleleList);
+                    ancestralAlleleIndex = Integer.parseInt(genotype1);
+                    sb.setLength(0);
+                    sb.append(chr).append("\t").append(temp.get(1)).append("\t");
+                    sb.append(alleleList.get(ancestralAlleleIndex));
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+                bw.flush();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        });
+    }
+
 }
