@@ -83,7 +83,7 @@ public class CommandUtils {
         if (failCommandList.size()==0){
             System.out.println(shFile+" all commands had completed in "+ Benchmark.getTimeSpanHours(start)+ " hours");
         }else {
-            IOTool.writeAllLines(new File(logDir, "failedRunCommands.sh"), failCommandList);
+            IOTool.writeAllLines(new File(logDir, title+".failedRunCommands.sh"), failCommandList);
             System.out.println(shFile+" had "+ failCommandList.size()+ "commands run failed");
             System.out.println("Commands run failed had been written to "+logDir);
             System.out.println(shFile+" total spend "+Benchmark.getTimeSpanHours(start)+ " hours");
