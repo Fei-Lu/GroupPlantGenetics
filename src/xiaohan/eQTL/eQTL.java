@@ -6,10 +6,9 @@ import daxing.common.MD5;
 import daxing.load.ancestralSite.Standardization;
 import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOFileFormat;
+import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
-import xiaohan.eQTL.pipline.*;
 import xiaohan.eQTL.simulation.simulationData;
-import xiaohan.utils.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -167,11 +166,11 @@ public class eQTL {
     }
 
     public void genotype(String[] args) {
-        new genotypes(args);
+        new xiaohan.eQTL.genotypes(args);
     }
 
     public void exp(String[] args) {
-        new pheno(args);
+        new xiaohan.eQTL.pipline.pheno(args);
     }
 
     public void command() {
@@ -272,8 +271,8 @@ public class eQTL {
 //                        System.out.println(FastqFeature.getscore(quality2.substring(i, i + 1)));
                         phred1 = quality1.substring(i, i + 1);
                         phred2 = quality2.substring(i, i + 1);
-                        Q1[i] += (double) FastqFeature.getscore(phred1);
-                        Q2[i] += (double) FastqFeature.getscore(phred2);
+                        Q1[i] += (double) xiaohan.utils.FastqFeature.getscore(phred1);
+                        Q2[i] += (double) xiaohan.utils.FastqFeature.getscore(phred2);
                     }
                 }
                 br1.close();
@@ -294,11 +293,11 @@ public class eQTL {
             double value2 = 0;
             for (int i = 0; i < names.length; i++) {
                 if (method.equals("mean")) {
-                    value1 = MathUtils.getmean(Q_R1[i]);
-                    value2 = MathUtils.getmean(Q_R2[i]);
+                    value1 = xiaohan.utils.MathUtils.getmean(Q_R1[i]);
+                    value2 = xiaohan.utils.MathUtils.getmean(Q_R2[i]);
                 } else if (method.equals("median")) {
-                    value1 = MathUtils.getmedian(Q_R1[i]);
-                    value2 = MathUtils.getmedian(Q_R2[i]);
+                    value1 = xiaohan.utils.MathUtils.getmedian(Q_R1[i]);
+                    value2 = xiaohan.utils.MathUtils.getmedian(Q_R2[i]);
                 }
                 bw1.write(names[i] + "\t" + defor.format(value1) + "\n");
                 bw2.write(names[i] + "\t" + defor.format(value2) + "\n");
@@ -337,8 +336,8 @@ public class eQTL {
                 temps = temp.split("\t");
 //                System.out.println(temps.length);
                 if (temps[1].startsWith("U")) continue;
-                String chr42 = chrUtils.getChrABDtoChr42(temps[1], Integer.parseInt(temps[2]));
-                start = chrUtils.getChrABDpostoChr42pos(temps[1], Integer.parseInt(temps[2]));
+                String chr42 = xiaohan.utils.chrUtils.getChrABDtoChr42(temps[1], Integer.parseInt(temps[2]));
+                start = xiaohan.utils.chrUtils.getChrABDpostoChr42pos(temps[1], Integer.parseInt(temps[2]));
                 end = start + 1;
                 for (int i = 0; i < names.length; i++) {
                     String pvalue = temps[(i + 1) * 3];
@@ -449,16 +448,16 @@ public class eQTL {
 //                        snp1 = snp.get(j).split("_")[1];
 //                        snp2 = snp.get(k).split("_")[1];
 //                        chr = snp.get(k).split("_")[0];
-                if (SNPmappingInGene.binarySearch(arraypr[Integer.parseInt(chr) - 1], Integer.parseInt(snp1))[0] != -1) {
+                if (xiaohan.utils.SNPmappingInGene.binarySearch(arraypr[Integer.parseInt(chr) - 1], Integer.parseInt(snp1))[0] != -1) {
                     annotation1 = "promoter";
-                } else if (SNPmappingInGene.binarySearch(arrayen[Integer.parseInt(chr) - 1], Integer.parseInt(snp1))[0] != -1) {
+                } else if (xiaohan.utils.SNPmappingInGene.binarySearch(arrayen[Integer.parseInt(chr) - 1], Integer.parseInt(snp1))[0] != -1) {
                     annotation1 = "enhancer";
                 } else {
                     annotation1 = "null";
                 }
-                if (SNPmappingInGene.binarySearch(arrayen[Integer.parseInt(chr) - 1], Integer.parseInt(snp2))[0] != -1) {
+                if (xiaohan.utils.SNPmappingInGene.binarySearch(arrayen[Integer.parseInt(chr) - 1], Integer.parseInt(snp2))[0] != -1) {
                     annotation2 = "enhancer";
-                } else if (SNPmappingInGene.binarySearch(arraypr[Integer.parseInt(chr) - 1], Integer.parseInt(snp2))[0] != -1) {
+                } else if (xiaohan.utils.SNPmappingInGene.binarySearch(arraypr[Integer.parseInt(chr) - 1], Integer.parseInt(snp2))[0] != -1) {
                     annotation2 = "promoter";
                 } else {
                     annotation2 = "null";
@@ -526,7 +525,7 @@ public class eQTL {
 //        }
         String input = args[0];
         String output = args[1];
-        VCFutils.getHeterozygosity(new File(input).getAbsolutePath(), new File(output).getAbsolutePath());
+        xiaohan.utils.VCFutils.getHeterozygosity(new File(input).getAbsolutePath(), new File(output).getAbsolutePath());
 
     }
 
@@ -637,7 +636,7 @@ public class eQTL {
     }
 
     public void cov(String[] args) {
-        new covaraties(args);
+        new xiaohan.eQTL.pipline.covaraties(args);
     }
 
 
@@ -818,7 +817,7 @@ public class eQTL {
             String temp = null;
             String[] temps = null;
             try {
-                GeneFeature gf = new GeneFeature(annotationfile);
+                xiaohan.eQTL.GeneFeature gf = new xiaohan.eQTL.GeneFeature(annotationfile);
                 HashSet<String> geneSet = new HashSet<>();
                 for (int i = 0; i < gf.getGeneNumber(); i++) {
                     if (gf.getChromosomeOfGene(i) == f) {
@@ -842,7 +841,7 @@ public class eQTL {
                         continue;
                     }
                     int snppos = Integer.parseInt(PStringUtils.fastSplit(temp).toArray(new String[0])[1]);
-                    int[] index = SNPmappingInGene.binarySearch(geneRange, snppos);
+                    int[] index = xiaohan.utils.SNPmappingInGene.binarySearch(geneRange, snppos);
                     if (index[0] == -1) {
                         continue;
                     } else {
@@ -999,8 +998,8 @@ public class eQTL {
         try {
             while ((temp = br.readLine()) != null) {
                 String command = temp;
-                Command com = new Command(command, dir);
-                Future<Command> chrom = pool.submit(com);
+                xiaohan.eQTL.Command com = new xiaohan.eQTL.Command(command, dir);
+                Future<xiaohan.eQTL.Command> chrom = pool.submit(com);
             }
             pool.shutdown();
             pool.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
@@ -1260,7 +1259,7 @@ public class eQTL {
         }
     }
 
-    private int[] getnumber(String gene, int snppos, GeneFeature gf) {
+    private int[] getnumber(String gene, int snppos, xiaohan.eQTL.GeneFeature gf) {
         int[] result = new int[]{0, 0, 0};
         int start = gf.getGeneStart(gf.getGeneIndex(gene));
         int end = gf.getGeneEnd(gf.getGeneIndex(gene));
@@ -1290,7 +1289,7 @@ public class eQTL {
         String outputFileUpEf = "/Users/yxh/Documents/eQTL/data_explain/" + mode + ".up.ef.txt";
         String outputFileDownEf = "/Users/yxh/Documents/eQTL/data_explain/" + mode + ".down.ef.txt";
         String outputFileInterEf = "/Users/yxh/Documents/eQTL/data_explain/" + mode + ".inter.ef.txt";
-        GeneFeature gf = new GeneFeature("/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/wheat_v1.1_Lulab.gff3");
+        xiaohan.eQTL.GeneFeature gf = new xiaohan.eQTL.GeneFeature("/Users/yxh/Documents/RareAllele/004test/SiPASpipeline/refer/wheat_v1.1_Lulab.gff3");
 //        int a=gf.getGeneStart(gf.getGeneIndex("TraesCS1A02G004400"));
 //        int b=gf.getGeneEnd(gf.getGeneIndex("TraesCS1A02G004400"));
         int[] countUp = new int[5000];
@@ -1883,7 +1882,7 @@ public class eQTL {
             String temp1 = null;
             String vcf = null;
             HashSet<String> geneSet = new HashSet<>();
-            GeneFeature gf = new GeneFeature("/data1/home/xiaohan/rareallele/SiPASpipeline/reference/wheat_v1.1_Lulab.gff3");
+            xiaohan.eQTL.GeneFeature gf = new xiaohan.eQTL.GeneFeature("/data1/home/xiaohan/rareallele/SiPASpipeline/reference/wheat_v1.1_Lulab.gff3");
             try {
                 while ((temp = br.readLine()) != null) {
                     if (temp.startsWith("Index")) continue;
