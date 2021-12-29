@@ -1,5 +1,10 @@
 package xiaohan.rareallele;
 
+import pgl.infra.dna.genot.GenoIOFormat;
+import pgl.infra.dna.genot.GenotypeGrid;
+import pgl.infra.dna.genot.GenotypeOperation;
+import pgl.infra.dna.genot.summa.SumTaxaDivergence;
+import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.PStringUtils;
 import xiaohan.Assembling.AssemblingMain;
 import xiaohan.eQTL.GeneFeature;
@@ -36,9 +41,91 @@ public class NewStart {
 //        this.Others(args);
 //        this.bedFilesToABD(args);
 //        this.test(args);
-        this.pseudoDiploid(args);
+//        this.pseudoDiploid(args);
 //        this.ChrABDtoChr42(args);
-//        this.Chr42toChrABD(args);
+        this.Chr42toChrABD(args);
+//        this.getIBS(args);
+//        this.getExpression(args);
+        this.FilterIndel(args);
+    }
+
+    public void FilterIndel(String[] args) {
+
+        String inputDir = new File(args[0]).getAbsolutePath();
+        String outputDir = new File(args[1]).getAbsolutePath();
+        HashSet<String> chrSet = new HashSet<>();
+        for (int i = 0; i < 42; i++) {
+            int chr = i + 1;
+            System.out.println(chr);
+            chrSet.add(PStringUtils.getNDigitNumber(3, chr));
+        }
+        chrSet.parallelStream().forEach(f -> {
+            String temp = null;
+            String[] temps = null;
+            BufferedReader br = IOUtils.getInFile(new File(inputDir, "chr" + f + ".vcf.gz").getAbsolutePath());
+            BufferedWriter bw = IOUtils.getOutFile(new File(outputDir, "chr" + f + ".vcf.gz").getAbsolutePath());
+            int countline = 0;
+            try {
+                while ((temp = br.readLine()) != null) {
+                    countline++;
+                    if (countline % 5000 == 0) {
+                        System.out.println(countline);
+                    }
+                    if (temp.startsWith("#")) {
+                        bw.write(temp + "\n");
+                        continue;
+                    }
+                    temps = temp.split("\t");
+                    if (temps[4].equals("A") && temps[4].equals("T") && temps[4].equals("G") && temps[4].equals("C")) {
+                        continue;
+                    } else {
+                        bw.write(temp + "\n");
+                    }
+                }
+                br.close();
+                bw.flush();
+                bw.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void getExpression(String[] args) {
+        String infile = new File(args[0]).getAbsolutePath();
+        String outfile = new File(args[1]).getAbsolutePath();
+        BufferedReader br = IOUtils.getTextReader(infile);
+        BufferedWriter bw = IOUtils.getTextWriter(outfile);
+        String temp = null;
+        String[] temps = null;
+        int samples = 0;
+        try {
+            while ((temp = br.readLine()) != null) {
+                temps = temp.split("\t");
+                if (temp.startsWith("Gene")) {
+                    samples = temps.length - 1;
+                    continue;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void getIBS(String[] args) {
+        System.out.println("This is getting IBS matrix *****************************************************************");
+        String infileDir = new File(args[0]).getAbsolutePath();
+        String infileS1 = new File(infileDir, "RNA/RNAall.vcf.gz").getAbsolutePath();
+        System.out.println(infileS1);
+        String infileS2 = new File(infileDir, "DNA/DNAall.vcf.gz").getAbsolutePath();
+        String ibsOutfileS = new File(infileDir, "Summary/check.txt").getAbsolutePath();
+        GenotypeGrid g1 = new GenotypeGrid(infileS1, GenoIOFormat.VCF_GZ);
+        System.out.println(g1 instanceof GenotypeGrid);
+        GenotypeGrid g2 = new GenotypeGrid(infileS2, GenoIOFormat.VCF_GZ);
+        GenotypeGrid g = GenotypeOperation.mergeGenotypesByTaxon(g1, g2);
+        SumTaxaDivergence std = new SumTaxaDivergence(g);
+        std.writeDxyMatrix(ibsOutfileS, IOFileFormat.Text);
+        g.getIBSDistanceMatrix();
     }
 
     public void test(String[] args) {
