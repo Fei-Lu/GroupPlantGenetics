@@ -15,7 +15,9 @@ import xiaohan.utils.chrUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * new scripts to analysis rare alleles
@@ -43,10 +45,119 @@ public class NewStart {
 //        this.test(args);
 //        this.pseudoDiploid(args);
 //        this.ChrABDtoChr42(args);
-        this.Chr42toChrABD(args);
+//        this.Chr42toChrABD(args);
 //        this.getIBS(args);
 //        this.getExpression(args);
-        this.FilterIndel(args);
+//        this.FilterIndel(args);
+        this.phasedVCF(args);
+    }
+
+    public void phasedVCF(String[] args) {
+        String input = new File(args[0]).getAbsolutePath();
+        String output = new File(args[1]).getAbsolutePath();
+        String inforDir = new File(args[2]).getAbsolutePath();
+        int threadsNum = Integer.parseInt(args[3]);
+        try {
+            ExecutorService pool = Executors.newFixedThreadPool(threadsNum);
+            for (int i = 0; i < 42; i++) {
+                int chr = i + 1;
+                String infile = new File(input, "chr" + PStringUtils.getNDigitNumber(3, chr) + ".vcf.gz").getAbsolutePath();
+                String outfile = new File(output, "chr" + PStringUtils.getNDigitNumber(3, chr) + ".vcf.gz").getAbsolutePath();
+                String infor = new File(inforDir, "chr" + PStringUtils.getNDigitNumber(3, chr) + "_secer_hv_ancestral.txt.gz").getAbsolutePath();
+                Command cd = new Command(infile, outfile, infor);
+                Future<Command> f = pool.submit(cd);
+            }
+            pool.shutdown();
+            pool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    class Command implements Callable<Command> {
+        String infile = null;
+        String outfile = null;
+        String infor = null;
+
+        public Command(String infile, String outfile, String infor) {
+            this.infile = infile;
+            this.outfile = outfile;
+            this.infor = infor;
+        }
+
+        @Override
+        public Command call() throws Exception {
+            BufferedReader br = IOUtils.getInFile(infile);
+            BufferedWriter bw = IOUtils.getOutFile(outfile);
+            BufferedReader brinfo = IOUtils.getInFile(infor);
+            String temp = null;
+            String[] temps = null;
+            StringBuilder sb = new StringBuilder();
+
+            String reference = null;
+            String alternative = null;
+            try {
+                int countline = 0;
+                LinkedList<Long> positions = new LinkedList<>();
+                LinkedList<String> ancestor = new LinkedList<>();
+                while ((temp = brinfo.readLine()) != null) {
+                    countline++;
+                    if (countline % 500 == 0) {
+                        System.out.println("Pasring infor : " + countline);
+                    }
+                    if (temp.startsWith("chr")) continue;
+                    temps = temp.split("\t");
+                    positions.add(Long.parseLong(temps[1]));
+                    ancestor.add(temps[2]);
+                }
+                brinfo.close();
+                countline = 0;
+
+                Long[] poslist = positions.toArray(new Long[positions.size()]);
+                String[] anc = ancestor.toArray(new String[ancestor.size()]);
+                int ref = -1;
+                while ((temp = br.readLine()) != null) {
+                    countline++;
+                    if (countline % 500 == 0) {
+                        System.out.println("Pasring VCF : " + countline);
+                    }
+                    if (temp.startsWith("#")) {
+                        bw.write(temp + "\n");
+                        continue;
+                    }
+                    temps = temp.split("\t");
+                    int index = Alogrithm.BinarySearch(poslist, Long.parseLong(temps[1]), 0, poslist.length - 1);
+                    if (index == -1) continue;
+                    if (!anc[index].equals(temps[3]) && !anc[index].equals(temps[4])) continue;
+                    if (anc[index] == temps[3]) {
+                        reference = temps[3];
+                        alternative = temps[4];
+                    } else {
+                        reference = temps[4];
+                        alternative = temps[3];
+                    }
+                    sb.setLength(0);
+                    sb.append(temps[0] + "\t" + temps[1] + "\t" + temps[2] + "\t" + reference + "\t" + alternative + "\t" + ".\t.\t.\tGT\t");
+                    for (int i = 9; i < temps.length; i++) {
+                        if (anc[index].equals(temps[3])) {
+                            ref = 0;
+                        } else {
+                            ref = 1;
+                        }
+                        String phase1 = phase(temps[i].substring(0, 3), ref);
+                        sb.append(phase1 + "\t");
+                        String out = sb.toString();
+                    }
+                    bw.write(sb.toString().replaceAll("\\s+$", "") + "\n");
+                }
+                br.close();
+                bw.flush();
+                bw.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
     }
 
     public void FilterIndel(String[] args) {
@@ -165,7 +276,7 @@ public class NewStart {
                 for (int j = 0; j < temps.length; j++) {
                     if (j == index[0]) {
                         chr = chrUtils.getChr42toChrABD(temps[index[0]].replace("chr", ""));
-                        sb.append(chr + "\t");
+                        sb.append("chr" + chr + "\t");
                         continue;
                     }
                     if (j == index[1]) {
@@ -309,16 +420,13 @@ public class NewStart {
                 sb.setLength(0);
                 sb.append(temps[0] + "\t" + temps[1] + "\t" + temps[2] + "\t" + reference + "\t" + alternative + "\t" + ".\t.\t.\tGT\t");
                 for (int i = 0; i < goalNumber; i++) {
-                    int index1 = r.nextInt(sampleNumber - 1) + 9;
-                    int index2 = r.nextInt(sampleNumber - 1) + 9;
                     if (anc[index].equals(temps[3])) {
                         ref = 0;
                     } else {
                         ref = 1;
                     }
-                    String phase1 = phase(temps[index1].substring(0, 3), ref);
-                    String phase2 = phase(temps[index2].substring(0, 3), ref);
-                    sb.append(phase1 + "|" + phase2 + "\t");
+                    String phase1 = phase(temps[i].substring(0, 3), ref);
+                    sb.append(phase1 + "\t");
                     String out = sb.toString();
                 }
                 bw.write(sb.toString().replaceAll("\\s+$", "") + "\n");
@@ -332,10 +440,15 @@ public class NewStart {
     }
 
     public static String phase(String gt, int ref) {
-        if (gt.equals("0/1") || gt.equals("./.")) return ".";
+        if (gt.equals("0/1") || gt.equals("./.")) return ".|.";
         if (ref == 0) {
-            return gt.substring(0, 1);
-        } else return String.valueOf(1 - Integer.parseInt(gt.substring(0, 1)));
+            return gt.replace("/", "|");
+        } else {
+            if (gt.equals("0/0")) {
+                return gt.replace("/", "|").replace("0", "1");
+            } else return gt.replace("/", "|").replace("1", "0");
+        }
+
     }
 
     public void test() {

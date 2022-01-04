@@ -41,7 +41,7 @@ public class eQTL {
 //        this.getTransposonLength();
 //        this.getTransposonClass();
 //
-//        this.ThreadPool(args[0],args[1]);
+        this.ThreadPool(args[0],args[1]);
 //        this.subextractGeneRegion(args[0], args[1]);
 //        this.md5check();
 //        this.getsequencingDepth(args);

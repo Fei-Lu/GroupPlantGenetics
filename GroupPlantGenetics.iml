@@ -8,8 +8,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="lib" level="project" />
-    <orderEntry type="library" exported="" name="lib1" level="project" />
-    <orderEntry type="module" module-name="SiPAS-Profiler" exported="" />
     <orderEntry type="library" exported="" name="lib2" level="project" />
     <orderEntry type="module" module-name="TIGER" />
     <orderEntry type="module-library">
