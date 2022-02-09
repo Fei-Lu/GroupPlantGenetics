@@ -32,7 +32,7 @@ public class NewStart {
 
     public NewStart(String[] args) {
 //        this.mergeExpressionTable(args);
-//        this.getbedFile(args);
+        this.getbedFile(args);
 //        this.splitBychr(args);
 //        this.outliersSNP(args);
 //        this.outliersAllSNP(args);
@@ -49,7 +49,174 @@ public class NewStart {
 //        this.getIBS(args);
 //        this.getExpression(args);
 //        this.FilterIndel(args);
-        this.phasedVCF(args);
+//        this.phasedVCF(args);
+//        this.getExisting(args);
+//        this.getSlidingMAF(args);
+//        this.getGeneMAF(args);
+    }
+
+    public void getGeneMAF(String[] args) {
+        String input = new File(args[0]).getAbsolutePath();
+        String output = new File(args[1]).getAbsolutePath();
+//        int windowsize = 100000;
+//        int windowstep = 100000;
+        String[] chrName = {"1A", "1B", "1D", "2A", "2B", "2D", "3A", "3B", "3D", "4A", "4B", "4D", "5A", "5B", "5D", "6A", "6B", "6D", "7A", "7B", "7D"};
+//        int[] chrLength = {594102056, 689851870, 495453186,
+//                780798557, 801256715, 651852609,
+//                750843639, 830829764, 615552423,
+//                744588157, 673617499, 509857067,
+//                709773743, 713149757, 566080677,
+//                618079260, 720988478, 473592718,
+//                736706236, 750620385, 638686055};
+        int size1 = 1000;
+        int size2 = 100;
+        int[] upcount = new int[size1];
+        int[] downcount = new int[size1];
+        int[] genecount = new int[size2];
+        double[] upfrq = new double[size1];
+        double[] downfrq = new double[size1];
+        double[] genefrq = new double[size2];
+
+        GeneFeature gf = new GeneFeature("");
+        for (int i = 0; i < chrName.length; i++) {
+//            pgl.infra.window.SimpleWindow sv = new pgl.infra.window.SimpleWindow(chrLength[i], windowsize, windowstep);
+//            pgl.infra.window.SimpleWindow sc = new pgl.infra.window.SimpleWindow(chrLength[i], windowsize, windowstep);
+            String temp = null;
+            String[] temps = null;
+            BufferedReader br = IOUtils.getInFile(new File(input, "chr" + chrName[i] + ".txt").getAbsolutePath());
+            BufferedWriter bw = IOUtils.getOutFile(new File(output, "chr" + chrName[i] + ".windowmaf.txt").getAbsolutePath());
+            try {
+                int position = -1;
+                double value = -1.0;
+                while ((temp = br.readLine()) != null) {
+                    temps = temp.split("\t");
+                    position = Integer.parseInt(temps[0]);
+                    value = Double.parseDouble(temps[1]);
+
+//                    sv.addDoubleValue(position, value);
+//                    sc.addPositionCount(position);
+                }
+                br.close();
+//                double[] values = sv.getWindowValuesDouble();
+//                int[] counts = sc.getWindowValuesInt();
+//                for (int j = 0; j < values.length; j++) {
+//                    int w = j * windowsize;
+//                    bw.write(w + "\t" + values[i] / counts[i] + "\n");
+//                }
+                bw.flush();
+                bw.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void getSlidingMAF(String[] args) {
+        String input = new File(args[0]).getAbsolutePath();
+        String output = new File(args[1]).getAbsolutePath();
+        int windowsize = 100000;
+        int windowstep = 100000;
+        String[] chrName = {"1A", "1B", "1D", "2A", "2B", "2D", "3A", "3B", "3D", "4A", "4B", "4D", "5A", "5B", "5D", "6A", "6B", "6D", "7A", "7B", "7D"};
+        int[] chrLength = {594102056, 689851870, 495453186,
+                780798557, 801256715, 651852609,
+                750843639, 830829764, 615552423,
+                744588157, 673617499, 509857067,
+                709773743, 713149757, 566080677,
+                618079260, 720988478, 473592718,
+                736706236, 750620385, 638686055};
+        for (int i = 0; i < chrName.length; i++) {
+            pgl.infra.window.SimpleWindow sv = new pgl.infra.window.SimpleWindow(chrLength[i], windowsize, windowstep);
+            pgl.infra.window.SimpleWindow sc = new pgl.infra.window.SimpleWindow(chrLength[i], windowsize, windowstep);
+            String temp = null;
+            String[] temps = null;
+            BufferedReader br = IOUtils.getInFile(new File(input, "chr" + chrName[i] + ".txt").getAbsolutePath());
+            BufferedWriter bw = IOUtils.getOutFile(new File(output, "chr" + chrName[i] + ".windowmaf.txt").getAbsolutePath());
+            try {
+                int position = -1;
+                double value = -1.0;
+                while ((temp = br.readLine()) != null) {
+                    temps = temp.split("\t");
+                    position = Integer.parseInt(temps[0]);
+                    value = Double.parseDouble(temps[1]);
+                    sv.addDoubleValue(position, value);
+                    sc.addPositionCount(position);
+                }
+                br.close();
+                double[] values = sv.getWindowValuesDouble();
+                int[] counts = sc.getWindowValuesInt();
+                for (int j = 0; j < values.length; j++) {
+                    int w = j * windowsize;
+                    bw.write(w + "\t" + values[i] / counts[i] + "\n");
+                }
+                bw.flush();
+                bw.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void getExisting(String[] args) {
+        String infor = new File(args[0]).getAbsolutePath();
+        String infile = new File(args[1]).getAbsolutePath();
+        String outfile = new File(args[2]).getAbsolutePath();
+
+        BufferedReader brinfor = IOUtils.getInFile(infor);
+        BufferedReader br = IOUtils.getInFile(infile);
+        BufferedWriter bw = IOUtils.getOutFile(outfile);
+
+        String temp = null;
+        String[] temps = null;
+        HashSet<String> nameSet = new HashSet<>();
+
+        try {
+            while ((temp = brinfor.readLine()) != null) {
+                if (temp.startsWith("EID")) continue;
+                temps = temp.split("\t");
+                nameSet.add(temps[1]);
+            }
+            brinfor.close();
+
+            System.out.println(nameSet.size());
+
+            int[] index = new int[346];
+
+            int countline = 0;
+            while ((temp = br.readLine()) != null) {
+                countline++;
+                if (countline % 5000 == 0) {
+                    System.out.println(countline);
+                }
+                if (temp.startsWith("##")) continue;
+                if (temp.startsWith("#C")) {
+                    temps = temp.split("\t");
+                    int l = 0;
+                    for (int i = 9; i < temps.length; i++) {
+                        if (nameSet.contains(temps[i])) {
+                            index[l] = i;
+                            l++;
+                        }
+                    }
+                    continue;
+                }
+                temps = temp.split("\t");
+
+                for (int i = 0; i < index.length; i++) {
+                    if (temps[index[i]].startsWith("0/1") || temps[index[i]].startsWith("1/1")) {
+                        int end = Integer.parseInt(temps[1]);
+                        int start = end - 1;
+                        bw.write(temps[0] + "\t" + start + "\t" + end + "\t" + "1\n");
+                        break;
+                    }
+                }
+            }
+            br.close();
+            bw.flush();
+            bw.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void phasedVCF(String[] args) {
@@ -938,7 +1105,7 @@ public class NewStart {
 //                    end = gf.getGeneStart(i);
 //                }
                 if (start >= 0 && end >= 0) {
-                    bw.write("chr" + chr + "\t" + start + "\t" + end + "\t" + genelist[i] + "\n");
+                    bw.write("chr" + chr + "\t" + start + "\t" + end + "\t" + gf.getGeneStrand(i) + "\t" + genelist[i] + "\n");
                 }
             }
             bw.flush();
