@@ -1047,4 +1047,70 @@ public class ScriptMethods {
         });
     }
 
+    public static void splitLoterVCF(String v2Dir, String outDir){
+        List<File> v2Files = IOTool.getFileListInDirEndsWith(v2Dir, ".vcf.gz");
+        for (int i = 0; i < v2Files.size(); i++) {
+            splitLoterVCF(v2Files.get(i), outDir);
+        }
+    }
+
+    public static void splitLoterVCF(File v2File, String outDir){
+        int variantsNum = getVariantsNjum(v2File);
+        int flag = (variantsNum/10) + 1;
+        BufferedWriter[] bws = new BufferedWriter[10];
+        String indexID, outNamePrefix;
+        for (int i = 0; i < bws.length; i++) {
+            indexID = PStringUtils.getNDigitNumber(2, i);
+            outNamePrefix = v2File.getName().replaceAll(".vcf.gz","");
+            bws[i] = IOTool.getWriter(new File(outDir, outNamePrefix+"_"+indexID+".vcf.gz"));
+        }
+        try (BufferedReader br = IOTool.getReader(v2File)) {
+            String line;
+            List<String> headerList;
+            headerList = new ArrayList<>();
+            while ((line= br.readLine()).startsWith("##")){
+                headerList.add(line);
+            }
+            headerList.add(line);
+            for (int i = 0; i < bws.length; i++) {
+                for (int j = 0; j < headerList.size(); j++) {
+                    bws[i].write(headerList.get(j));
+                    bws[i].newLine();
+                }
+            }
+            int index = 0;
+            int count = 0;
+            int flagCum = flag;
+            while ((line=br.readLine())!=null){
+                count++;
+                if (count>flagCum){
+                    index++;
+                    flagCum += flag;
+                }
+                bws[index].write(line);
+                bws[index].newLine();
+            }
+            for (int i = 0; i < bws.length; i++) {
+                bws[i].flush();
+                bws[i].close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static int getVariantsNjum(File v2File){
+        int variatnsNum = 0;
+        try (BufferedReader br = IOTool.getReader(v2File)) {
+            String line;
+            while ((line=br.readLine()).startsWith("##")){}
+            while ((line=br.readLine())!=null){
+                variatnsNum++;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return variatnsNum;
+    }
+
 }

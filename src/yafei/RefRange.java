@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 package yafei;
-import daxing.common.StringTool;
+import daxing.common.utiles.StringTool;
 import gnu.trove.list.array.TIntArrayList;
 //import utils.IOUtils;
 

@@ -2,7 +2,7 @@ package xiaohan.eQTL;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import daxing.common.MD5;
+import daxing.common.utiles.MD5;
 import daxing.load.ancestralSite.Standardization;
 import pgl.infra.table.RowTable;
 import pgl.infra.utils.IOFileFormat;
