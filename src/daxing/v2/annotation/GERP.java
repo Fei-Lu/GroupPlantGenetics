@@ -1,4 +1,4 @@
-package daxing.vmapII_1000.variantsAnnotation;
+package daxing.v2.annotation;
 
 import com.ibm.icu.text.NumberFormat;
 import daxing.common.factors.FunctionalElement;

@@ -1,4 +1,4 @@
-package daxing.vmapII_1000.variantsAnnotation;
+package daxing.v2.annotation;
 
 import daxing.common.utiles.IOTool;
 import pgl.infra.utils.PStringUtils;
