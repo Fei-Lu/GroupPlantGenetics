@@ -1,8 +1,0 @@
-# This is where the python files Dir is
-/data2/xiaohan/jar/metasoft
-# This is a file contains where sig files are
-/data2/xiaohan/metasoft/testoutput/sigpairs.txt
-# This is a file contains where nominal files are
-/data2/xiaohan/metasoft/testoutput/allpairs.txt
-# This is your STUDY's output Dir
-/data2/xiaohan/metasoft/testoutput

@@ -1,2 +1,0 @@
-/data2/xiaohan/metasoft/v6_allpairs/GTEx_Analysis_v6p_all-associations/Brain_Anterior_cingulate_cortex_BA24_Analysis.v6p.all_snpgene_pairs.txt.gz
-/data2/xiaohan/metasoft/v6_allpairs/GTEx_Analysis_v6p_all-associations/Uterus_Analysis.v6p.all_snpgene_pairs.txt.gz
