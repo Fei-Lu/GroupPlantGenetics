@@ -41,12 +41,14 @@ public class LoterMisc {
     }
 
     public enum GroupInTaxaInfo{
-        Subspecies_by6_TreeValidated(10), GroupbyContinent(36), IfAnalysisByPloidy(11);
+        Subspecies_by6_TreeValidated(10, "LRCL"), GroupbyContinent(36,"GroupbyContinent"), IfAnalysisByPloidy(11,"Hexaploid");
 
         int index;
+        String meaning;
 
-        GroupInTaxaInfo(int index){
+        GroupInTaxaInfo(int index, String meaning){
             this.index=index;
+            this.meaning = meaning;
         }
 
         public int getIndex() {
@@ -77,7 +79,7 @@ public class LoterMisc {
                 laiFiles.stream().map(File::getName).map(s -> s.replaceAll(".txt.gz",".ancestry.txt.gz")).toArray(String[]::new);
         Map<String, String> taxaGroupMap = RowTableTool.getMap(taxaInfo, 0, groupInTaxaInfo.getIndex());
         List<String> groupsList = groupInTaxaInfo.getGroup();
-        IntStream.range(0, laiFiles.size()).parallel().forEach(e->{
+        IntStream.range(0, laiFiles.size()).forEach(e->{
             try (BufferedReader br = IOTool.getReader(laiFiles.get(e));
                  BufferedReader brGenotype = IOTool.getReader(vcfFiles.get(e));
                  BufferedWriter bw =IOTool.getWriter(new File(outDir, outNames[e]))) {
