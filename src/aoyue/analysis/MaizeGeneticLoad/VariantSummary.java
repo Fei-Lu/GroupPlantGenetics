@@ -1162,7 +1162,7 @@ public class VariantSummary {
         //*********************************** START1 ***********************************//
         //该段代码的作用是，通过读取每个基因，得到最长转录本的名字，计算该转录本的长度。
         for (int i = 0; i < gf.getGeneNumber(); i++) {
-            int chrIndex = gf.getGeneChromosome(i)-1;
+            int chrIndex = gf.getChromosomeOfGene(i)-1;
             /*这个地方是先过滤数据，将定位在11号12号染色体上的基因过滤掉，并且跳出循环*/
             if (chrIndex >9) {
                 cntchr11and12++;
@@ -1482,7 +1482,7 @@ public class VariantSummary {
             genes[i] = geneName;
             List<Range> cdsList = gf.getCDSList(i, longTransIndex); /*得到基因的最长转录本的CDSList*/
             int cnt = 0;
-            int chrIndex = gf.getGeneChromosome(i)-1;
+            int chrIndex = gf.getChromosomeOfGene(i)-1;
             if (chrIndex >9) {
                 cntchr11and12++;
                 continue;
@@ -1713,7 +1713,7 @@ public class VariantSummary {
             bw.write(header);
             bw.newLine();
             for (int i = 0; i < (genes.length - cntchr11and12); i++) {
-                if(gf.getGeneChromosome(i) > 10) continue;
+                if(gf.getChromosomeOfGene(i) > 10) continue;
                 StringBuilder sb =new StringBuilder(genes[i]);
                 int cdsLength = geneCDSLengthMap.get(genes[i]);
                 sb.append("\t").append(cdsLength).append("\t").append(snpCount[i]).append("\t").append((double)snpCount[i]/cdsLength).append("\t");

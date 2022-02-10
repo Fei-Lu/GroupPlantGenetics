@@ -106,7 +106,7 @@ import pgl.infra.utils.PStringUtils;
             int longTransIndex = gf.getLongestTranscriptIndex(i);
             String name = gf.getTranscriptName(i, longTransIndex); /*得到最长的转录本的名字*/
             if (Arrays.binarySearch(transName, name) < 0) continue; /*过滤genefeature里那些假基因*/
-            int chrIndex = gf.getGeneChromosome(i) - 1; /*获得该基因的染色体位置*/
+            int chrIndex = gf.getChromosomeOfGene(i) - 1; /*获得该基因的染色体位置*/
             List<Range> cds = gf.getCDSList(i, longTransIndex); /*得到基因的最长转录本的CDSList*/
             for (int j = 0; j < cds.size(); j++) {
                 int index = Arrays.binarySearch(bounds[chrIndex], cds.get(j).start); //在bounds里搜索 该基因的第j个cds的起始位点
@@ -621,7 +621,7 @@ Table is written to /Users/Aoyue/Documents/maizeGeneticLoad/002recombination/why
             int longTransIndex = gf.getLongestTranscriptIndex(i);
             String name = gf.getTranscriptName(i, longTransIndex); /*得到最长的转录本的名字*/
             if (Arrays.binarySearch(transName, name) < 0) continue; /*过滤genefeature里那些假基因*/
-            int chrIndex = gf.getGeneChromosome(i) - 1;
+            int chrIndex = gf.getChromosomeOfGene(i) - 1;
             List<Range> cds = gf.getCDSList(i, longTransIndex); /*得到基因的最长转录本的CDSList*/
             for (int j = 0; j < cds.size(); j++) {
                 int index = Arrays.binarySearch(bounds[chrIndex], cds.get(j).start); //在bounds里搜索 该基因的第j个cds的起始位点
