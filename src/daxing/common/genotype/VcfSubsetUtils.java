@@ -1,4 +1,4 @@
-package daxing.v2.annotation;
+package daxing.common.genotype;
 
 import com.google.common.collect.Table;
 import daxing.common.utiles.ArrayTool;

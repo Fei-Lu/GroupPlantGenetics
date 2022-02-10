@@ -1,4 +1,4 @@
-package daxing.v2;
+package daxing.v2.loter;
 
 import daxing.common.factors.HexaploidBySubcontinent;
 import daxing.common.table.RowTableTool;
@@ -18,6 +18,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
+/**
+ * this class contain statics methods calculating individual local ancestry size and individual site percent
+ */
 public class Misc {
     /**
      * AB: WE DE FTT
@@ -66,8 +69,8 @@ public class Misc {
         }
     }
 
-    public static void extract(String inputDir, String genotypeDir, String taxaInfo, GroupInTaxaInfo groupInTaxaInfo,
-                               String outDir){
+    public static void calculateIndividualSitePercent(String inputDir, String genotypeDir, String taxaInfo, GroupInTaxaInfo groupInTaxaInfo,
+                                                      String outDir){
         List<File> laiFiles = IOTool.getFileListInDirEndsWith(inputDir, ".gz");
         List<File> vcfFiles = IOTool.getFileListInDirEndsWith(genotypeDir, "LRCL.recode.vcf.gz");
         String[] outNames =
