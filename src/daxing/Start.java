@@ -19,12 +19,18 @@ import java.util.stream.IntStream;
 public class Start {
 
     public static void main(String[] args) {
-        String inputDir=args[0];
-        String genotypeDir=args[1];
-        String taxaInfo=args[2];
-        LoterMisc.GroupInTaxaInfo groupInTaxaInfo= LoterMisc.GroupInTaxaInfo.valueOf(args[3]);
-        String outDir =args[4];
-        LoterMisc.calculateIndividualSitePercent(inputDir, genotypeDir, taxaInfo, groupInTaxaInfo, outDir);
+//        String inputDir=args[0];
+//        String genotypeDir=args[1];
+//        String taxaInfo=args[2];
+//        LoterMisc.GroupInTaxaInfo groupInTaxaInfo= LoterMisc.GroupInTaxaInfo.valueOf(args[3]);
+//        String outDir =args[4];
+
+//        String inputDir="/Users/xudaxing/Desktop/loter/001_LAI";
+//        String genotypeDir="/Users/xudaxing/Desktop/loter/002_LoterGroupVCF";
+//        String taxaInfo="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/001_GermplasmDetermination/002_aoyue/021_WheatVMap2_GermplasmInfo.txt";
+//        LoterMisc.GroupInTaxaInfo groupInTaxaInfo= LoterMisc.GroupInTaxaInfo.valueOf("Subspecies_by6_TreeValidated");
+//        String outDir ="/Users/xudaxing/Desktop/loter/003_outDir";
+//        LoterMisc.calculateIndividualSitePercent(inputDir, genotypeDir, taxaInfo, groupInTaxaInfo, outDir);
     }
 
     public static void imputation(String inputDir, String outDir){
