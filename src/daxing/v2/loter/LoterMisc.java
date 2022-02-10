@@ -21,12 +21,12 @@ import java.util.stream.IntStream;
 /**
  * this class contain statics methods calculating individual local ancestry size and individual site percent
  */
-public class Misc {
+public class LoterMisc {
     /**
      * AB: WE DE FTT
      * D: ATF ATN
      */
-    public enum AncestryNumber{
+    private enum AncestryNumber{
         A(3), B(3), D(2);
 
         int ancestryNum;

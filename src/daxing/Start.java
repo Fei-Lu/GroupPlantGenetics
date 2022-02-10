@@ -1,11 +1,8 @@
 package daxing;
 
-import daxing.common.PGF;
 import daxing.common.utiles.IOTool;
-import daxing.v2.Misc;
+import daxing.v2.loter.LoterMisc;
 import gnu.trove.list.array.TIntArrayList;
-import pgl.PGLConstraints;
-import pgl.infra.anno.gene.GeneFeature;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
 
@@ -22,9 +19,12 @@ import java.util.stream.IntStream;
 public class Start {
 
     public static void main(String[] args) {
-        System.out.println("ok");
-        PGF pgf = new PGF("");
-        pgf.getGeneNumber();
+        String inputDir=args[0];
+        String genotypeDir=args[1];
+        String taxaInfo=args[2];
+        LoterMisc.GroupInTaxaInfo groupInTaxaInfo= LoterMisc.GroupInTaxaInfo.valueOf(args[3]);
+        String outDir =args[4];
+        LoterMisc.calculateIndividualSitePercent(inputDir, genotypeDir, taxaInfo, groupInTaxaInfo, outDir);
     }
 
     public static void imputation(String inputDir, String outDir){
