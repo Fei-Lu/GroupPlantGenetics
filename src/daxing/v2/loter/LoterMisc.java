@@ -5,6 +5,7 @@ import daxing.common.table.RowTableTool;
 import daxing.common.utiles.ArrayTool;
 import daxing.common.utiles.IOTool;
 import gnu.trove.list.array.TIntArrayList;
+import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
 import java.io.BufferedReader;
@@ -80,6 +81,7 @@ public class LoterMisc {
         Map<String, String> taxaGroupMap = RowTableTool.getMap(taxaInfo, 0, groupInTaxaInfo.getIndex());
         List<String> groupsList = groupInTaxaInfo.getGroup();
         IntStream.range(0, laiFiles.size()).forEach(e->{
+            long start = System.nanoTime();
             try (BufferedReader br = IOTool.getReader(laiFiles.get(e));
                  BufferedReader brGenotype = IOTool.getReader(vcfFiles.get(e));
                  BufferedWriter bw =IOTool.getWriter(new File(outDir, outNames[e]))) {
@@ -151,6 +153,8 @@ public class LoterMisc {
                         }
                     }
                 }
+                System.out.println(new File(outDir, outNames[e]).getName() + " completed in "+ Benchmark.getTimeSpanMinutes(start)+
+                        " minutes");
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
