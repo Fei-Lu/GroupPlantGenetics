@@ -6,6 +6,7 @@ import pgl.infra.dna.genot.GenotypeOperation;
 import pgl.infra.dna.genot.summa.SumTaxaDivergence;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.PStringUtils;
+import pgl.infra.window.SimpleWindow;
 import xiaohan.Assembling.AssemblingMain;
 import xiaohan.eQTL.GeneFeature;
 import xiaohan.utils.Alogrithm;
@@ -32,7 +33,7 @@ public class NewStart {
 
     public NewStart(String[] args) {
 //        this.mergeExpressionTable(args);
-        this.getbedFile(args);
+//        this.getbedFile(args);
 //        this.splitBychr(args);
 //        this.outliersSNP(args);
 //        this.outliersAllSNP(args);
@@ -53,6 +54,80 @@ public class NewStart {
 //        this.getExisting(args);
 //        this.getSlidingMAF(args);
 //        this.getGeneMAF(args);
+        this.getGenomeCount(args);
+    }
+    
+    private void getGenomeCount(String[] args){
+
+        String[] chrABD = {"A","B","D"};
+        // 1A,1B,1D
+        int[] chrlength = {594102056,689851870,495453186,
+                780798557,801256715,651852609,
+                750843639,830829764,615552423,
+                744588157,673617499,509857067,
+                709773743,713149757,566080677,
+                618079260,720988478,473592718,
+                736706236,750620385,638686055
+        };
+        String temp = null;
+        String[] temps = null;
+        int pos = -1;
+        StringBuilder sb = new StringBuilder();
+        try {
+            for (int i = 1; i <= 7; i++) {
+                for (int j = 0; j < chrABD.length; j++) {
+                    String chr = i + chrABD[i];
+                    BufferedReader br = IOUtils.getInFile(new File(args[0],"chr"+i+chrABD[j]+".txt.gz").getAbsolutePath());
+                    BufferedWriter[] bw = new BufferedWriter[5];
+                    for (int k = 0; k < bw.length; k++) {
+                        bw[i] = IOUtils.getOutFile(new File(args[1],"chr"+i+chrABD[j]+".count."+k+"txt").getAbsolutePath());
+                    }
+                    pgl.infra.window.SimpleWindow[] sc = new SimpleWindow[5];
+                    for (int k = 0; k < sc.length; k++) {
+                        sc[i] = new SimpleWindow(chrlength[(i-1)*3 + j], 100000, 100000);
+                    }
+                    while((temp = br.readLine())!=null){
+                        temps = temp.split("\t");
+                        pos = Integer.parseInt(temps[2]);
+                        sc[0].addPositionCount(pos);
+                        double maf = Double.parseDouble(temps[3]);
+                        int index = getindex(maf);
+                        if(index != -1) {
+                            sc[i].addPositionCount(pos);
+                        }
+                    }
+                    br.close();
+                    for (int m = 0; m < sc.length; m++) {
+                        int[] values = sc[m].getWindowValuesInt();
+                        for (int k = 0; k < values.length ; k++) {
+                            sb.setLength(0);
+                            sb.append("k"+"\t"+values[i]+"\n");
+                            bw[m].write(sb.toString());
+                        }
+                    }
+
+                    for (int k = 0; k < bw.length; k++) {
+                        bw[k].flush();
+                        bw[k].close();
+                    }
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    private int getindex(double maf){
+        if(maf < 0.01){
+            return 1;
+        }else if(maf >= 0.01 && maf < 0.05){
+            return 2;
+        }else if(maf >= 0.05 && maf > 0.1){
+            return 3;
+        }else if(maf >= 0.01 && maf < 0.25){
+            return 4;
+        }else return -1;
     }
 
     public void getGeneMAF(String[] args) {
