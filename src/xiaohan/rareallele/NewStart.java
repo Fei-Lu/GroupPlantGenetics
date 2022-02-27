@@ -16,8 +16,10 @@ import xiaohan.utils.chrUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.InputStreamReader;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Random;
 import java.util.concurrent.*;
 
 /**
@@ -54,20 +56,26 @@ public class NewStart {
 //        this.getExisting(args);
 //        this.getSlidingMAF(args);
 //        this.getGeneMAF(args);
-        this.getGenomeCount(args);
+//        this.getGenomeCount(args);
+        this.triads(args);
     }
-    
-    private void getGenomeCount(String[] args){
 
-        String[] chrABD = {"A","B","D"};
+    private void triads(String[] args){
+        new xiaohan.rareallele.Triads(args);
+    }
+
+    private void getGenomeCount(String[] args) {
+
+        int k = Integer.parseInt(args[2]);
+        String[] chrABD = {"A", "B", "D"};
         // 1A,1B,1D
-        int[] chrlength = {594102056,689851870,495453186,
-                780798557,801256715,651852609,
-                750843639,830829764,615552423,
-                744588157,673617499,509857067,
-                709773743,713149757,566080677,
-                618079260,720988478,473592718,
-                736706236,750620385,638686055
+        int[] chrlength = {594102056, 689851870, 495453186,
+                780798557, 801256715, 651852609,
+                750843639, 830829764, 615552423,
+                744588157, 673617499, 509857067,
+                709773743, 713149757, 566080677,
+                618079260, 720988478, 473592718,
+                736706236, 750620385, 638686055
         };
         String temp = null;
         String[] temps = null;
@@ -76,58 +84,48 @@ public class NewStart {
         try {
             for (int i = 1; i <= 7; i++) {
                 for (int j = 0; j < chrABD.length; j++) {
-                    String chr = i + chrABD[i];
-                    BufferedReader br = IOUtils.getInFile(new File(args[0],"chr"+i+chrABD[j]+".txt.gz").getAbsolutePath());
-                    BufferedWriter[] bw = new BufferedWriter[5];
-                    for (int k = 0; k < bw.length; k++) {
-                        bw[i] = IOUtils.getOutFile(new File(args[1],"chr"+i+chrABD[j]+".count."+k+"txt").getAbsolutePath());
-                    }
-                    pgl.infra.window.SimpleWindow[] sc = new SimpleWindow[5];
-                    for (int k = 0; k < sc.length; k++) {
-                        sc[i] = new SimpleWindow(chrlength[(i-1)*3 + j], 100000, 100000);
-                    }
-                    while((temp = br.readLine())!=null){
+                    String chr = i + chrABD[j];
+                    BufferedReader br = IOUtils.getInFile(new File(args[0], "chr" + chr + ".txt.gz").getAbsolutePath());
+                    BufferedWriter bw = IOUtils.getOutFile(new File(args[1], "chr" + chr + ".count." + k + ".txt").getAbsolutePath());
+                    pgl.infra.window.SimpleWindow sc = new SimpleWindow(chrlength[(i - 1) * 3 + j], 100000, 100000);
+                    while ((temp = br.readLine()) != null) {
                         temps = temp.split("\t");
                         pos = Integer.parseInt(temps[2]);
-                        sc[0].addPositionCount(pos);
                         double maf = Double.parseDouble(temps[3]);
                         int index = getindex(maf);
-                        if(index != -1) {
-                            sc[i].addPositionCount(pos);
+                        if (index == k) {
+                            sc.addPositionCount(pos);
                         }
                     }
                     br.close();
-                    for (int m = 0; m < sc.length; m++) {
-                        int[] values = sc[m].getWindowValuesInt();
-                        for (int k = 0; k < values.length ; k++) {
-                            sb.setLength(0);
-                            sb.append("k"+"\t"+values[i]+"\n");
-                            bw[m].write(sb.toString());
-                        }
+
+                    int[] values = sc.getWindowValuesInt();
+                    for (int m = 0; m < values.length; m++) {
+                        sb.setLength(0);
+                        sb.append(m + "\t" + values[m] + "\n");
+                        bw.write(sb.toString());
                     }
 
-                    for (int k = 0; k < bw.length; k++) {
-                        bw[k].flush();
-                        bw[k].close();
-                    }
+                    bw.flush();
+                    bw.close();
                 }
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
 
-    private int getindex(double maf){
-        if(maf < 0.01){
+    private int getindex(double maf) {
+        if (maf < 0.01) {
             return 1;
-        }else if(maf >= 0.01 && maf < 0.05){
+        } else if (maf >= 0.01 && maf < 0.05) {
             return 2;
-        }else if(maf >= 0.05 && maf > 0.1){
+        } else if (maf >= 0.05 && maf > 0.1) {
             return 3;
-        }else if(maf >= 0.01 && maf < 0.25){
+        } else if (maf >= 0.01 && maf < 0.25) {
             return 4;
-        }else return -1;
+        } else return -1;
     }
 
     public void getGeneMAF(String[] args) {
