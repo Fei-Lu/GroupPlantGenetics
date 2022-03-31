@@ -1,16 +1,25 @@
 package daxing.common.vmap2Group;
 
+import daxing.common.factors.WheatLineage;
+
+import java.util.EnumSet;
+
 public enum GroupBySubcontinent implements GroupType{
 
-    WE("Wild_emmer"),DE("Domesticated_emmer"),FT("Free_threshing_tetraploid"),AT("Ae.tauschii"),
-    LR_EU("LR_EU"),
-    LR_WA("LR_WA"),LR_AF("LR_Africa"),LR_CSA("LR_CSA"),LR_AM("LR_America"),
-    LR_EA("LR_EA"), CL("Cultivar");
+    WE("Wild_emmer",0),DE("Domesticated_emmer",1),FT("Free_threshing_tetraploid",2),AT("Ae.tauschii",3),
+    LR_EU("LR_EU",4),
+    LR_WA("LR_WA",5),LR_AF("LR_Africa",6),LR_CSA("LR_CSA",7),LR_AM("LR_America",8),
+    LR_EA("LR_EA",9), CL("Cultivar",10);
 
     String group;
+    int index;
 
     GroupBySubcontinent(String group) {
         this.group=group;
+    }
+    GroupBySubcontinent(String group, int index) {
+        this.group=group;
+        this.index = index;
     }
 
     @Override
@@ -21,6 +30,19 @@ public enum GroupBySubcontinent implements GroupType{
     @Override
     public String getGroupAbbrev() {
         return this.name();
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public static EnumSet<GroupBySubcontinent> getSubgenomeGroupByContinent(WheatLineage subgenome){
+        if (subgenome==WheatLineage.A || subgenome==WheatLineage.B){
+            return EnumSet.complementOf(EnumSet.of(GroupBySubcontinent.AT));
+        }else if (subgenome==WheatLineage.D){
+            return EnumSet.range(GroupBySubcontinent.AT, GroupBySubcontinent.CL);
+        }
+        return null;
     }
 
     public static GroupBySubcontinent newInstanceFrom(String group){
