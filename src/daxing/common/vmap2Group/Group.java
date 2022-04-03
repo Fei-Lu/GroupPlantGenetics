@@ -44,7 +44,7 @@ public enum Group {
                 for (GroupBySubcontinent group : GroupBySubcontinent.values()){
                     if (group.equals(GroupBySubcontinent.WE)) continue;
                     if (group.equals(GroupBySubcontinent.DE)) continue;
-                    if (group.equals(GroupBySubcontinent.FT)) continue;
+                    if (group.equals(GroupBySubcontinent.FTT)) continue;
                     groupDList.add(group.getGroup());
                 }
                 return groupDList;

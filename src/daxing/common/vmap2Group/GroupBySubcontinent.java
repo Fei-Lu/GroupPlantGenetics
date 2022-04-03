@@ -1,25 +1,37 @@
 package daxing.common.vmap2Group;
 
+import daxing.common.factors.SubgenomeCombination;
 import daxing.common.factors.WheatLineage;
-
 import java.util.EnumSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public enum GroupBySubcontinent implements GroupType{
 
-    WE("Wild_emmer",0),DE("Domesticated_emmer",1),FT("Free_threshing_tetraploid",2),AT("Ae.tauschii",3),
-    LR_EU("LR_EU",4),
-    LR_WA("LR_WA",5),LR_AF("LR_Africa",6),LR_CSA("LR_CSA",7),LR_AM("LR_America",8),
-    LR_EA("LR_EA",9), CL("Cultivar",10);
+    WE("Wild_emmer",0, SubgenomeCombination.AB,"WE"),
+    DE("Domesticated_emmer",1, SubgenomeCombination.AB,"DE"),
+    FTT("Free_threshing_tetraploid",2, SubgenomeCombination.AB, "FTT"),
+    AT("Ae.tauschii",3, SubgenomeCombination.D,"AT"),
+    LR_EU("LR_EU",4, SubgenomeCombination.ABD,"BW"),
+    LR_WA("LR_WA",5,SubgenomeCombination.ABD,"BW"),
+    LR_AF("LR_Africa",6,SubgenomeCombination.ABD,"BW"),
+    LR_CSA("LR_CSA",7,SubgenomeCombination.ABD,"BW"),
+    LR_AM("LR_America",8,SubgenomeCombination.ABD,"BW"),
+    LR_EA("LR_EA",9,SubgenomeCombination.ABD,"BW"),
+    CL("Cultivar",10,SubgenomeCombination.ABD,"BW");
 
     String group;
     int index;
+    SubgenomeCombination subgenomeCombination;
+    String group_duplicated;
 
-    GroupBySubcontinent(String group) {
+    GroupBySubcontinent(String group, int index, SubgenomeCombination subgenomeCombination, String group_duplicated) {
         this.group=group;
-    }
-    GroupBySubcontinent(String group, int index) {
-        this.group=group;
-        this.index = index;
+        this.index=index;
+        this.subgenomeCombination=subgenomeCombination;
+        this.group_duplicated = group_duplicated;
     }
 
     @Override
@@ -36,6 +48,14 @@ public enum GroupBySubcontinent implements GroupType{
         return index;
     }
 
+    public String getGroup_duplicated() {
+        return group_duplicated;
+    }
+
+    public SubgenomeCombination getSubgenomeCombination() {
+        return subgenomeCombination;
+    }
+
     public static EnumSet<GroupBySubcontinent> getSubgenomeGroupByContinent(WheatLineage subgenome){
         if (subgenome==WheatLineage.A || subgenome==WheatLineage.B){
             return EnumSet.complementOf(EnumSet.of(GroupBySubcontinent.AT));
@@ -45,31 +65,9 @@ public enum GroupBySubcontinent implements GroupType{
         return null;
     }
 
-    public static GroupBySubcontinent newInstanceFrom(String group){
-        switch (group){
-            case "Wild_emmer":
-                return WE;
-            case "Domesticated_emmer":
-                return DE;
-            case "Free_threshing_tetraploid":
-                return FT;
-            case "Ae.tauschii":
-                return AT;
-            case "LR_EU":
-                return LR_EU;
-            case "LR_WA":
-                return LR_WA;
-            case "LR_Africa":
-                return LR_AF;
-            case "LR_CSA":
-                return LR_CSA;
-            case "LR_America":
-                return LR_AM;
-            case "LR_EA":
-                return LR_EA;
-            case "Cultivar":
-                return CL;
-        }
-        return null;
+    private static Map<String, GroupBySubcontinent> groupToEnumMap= Stream.of(values()).collect(Collectors.toMap(GroupBySubcontinent::getGroup, e->e));
+
+    public static Optional<GroupBySubcontinent> newInstanceFrom(String group){
+        return Optional.ofNullable(groupToEnumMap.get(group));
     }
 }
