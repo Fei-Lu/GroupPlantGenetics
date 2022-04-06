@@ -28,7 +28,7 @@ public class Misc {
                 EnumMap<GroupBySubcontinent, BufferedWriter> groupBWMap= new EnumMap<>(GroupBySubcontinent.class);
                 BufferedWriter bw;
                 for (GroupBySubcontinent group : enumSet){
-                    bw = IOTool.getWriter(new File(outDir, "chr"+chrID+"_vmap2.1_"+group.name()+".phy"));
+                    bw = IOTool.getWriter(new File(outDir, "chr"+PStringUtils.getNDigitNumber(3, chrID)+"_vmap2.1_"+group.name()+".phy"));
                     groupBWMap.put(group, bw);
                 }
                 String line;

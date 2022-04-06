@@ -14,7 +14,7 @@ public enum SubgenomeCombination {
             case AB:
                 return WheatLineage.ablineage();
             case D:
-                return RefV1Utils.getChrIDs();
+                return RefV1Utils.getChrIDsOfSubgenomeD();
         }
         return null;
     }
