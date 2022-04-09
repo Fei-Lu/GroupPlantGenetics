@@ -2,6 +2,8 @@ package daxing.common.vmap2Group;
 
 import daxing.common.factors.SubgenomeCombination;
 import daxing.common.factors.WheatLineage;
+
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Optional;
@@ -54,6 +56,21 @@ public enum GroupBySubcontinent implements GroupType{
 
     public SubgenomeCombination getSubgenomeCombination() {
         return subgenomeCombination;
+    }
+
+    private EnumMap<GroupBySubcontinent, String[]> getGroupRefChrMap(){
+        EnumMap<GroupBySubcontinent,String[]> groupBySubcontinentEnumMap = new EnumMap<>(GroupBySubcontinent.class);
+        String[] refChr;
+        for (GroupBySubcontinent groupBySubcontinent: GroupBySubcontinent.values()){
+            refChr = groupBySubcontinent.subgenomeCombination.getRefChr();
+            groupBySubcontinentEnumMap.put(groupBySubcontinent, refChr);
+        }
+        return groupBySubcontinentEnumMap;
+    }
+
+    public String[] getGroupRefChr(){
+        EnumMap<GroupBySubcontinent,String[]> groupBySubcontinentEnumMap=getGroupRefChrMap();
+        return groupBySubcontinentEnumMap.get(this);
     }
 
     public static EnumSet<GroupBySubcontinent> getSubgenomeGroupByContinent(WheatLineage subgenome){
