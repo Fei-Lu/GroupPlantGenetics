@@ -21,7 +21,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class Misc1 {
+public class Misc {
 
     public static void start(String v2Dir, String taxaInfoFile, String rhoDir, String v2PosAlleleDir, int windowSize,
                              int stepSize,
@@ -31,13 +31,13 @@ public class Misc1 {
         for (int i = 0; i < subDirs.length; i++) {
             new File(outDir, subDirs[i]).mkdir();
         }
-        Misc1.extractSlidingWindow(v2PosAlleleDir, windowSize, stepSize, new File(outDir, subDirs[0]).getAbsolutePath());
-        Misc1.addPosToRho(rhoDir, new File(outDir, subDirs[0]).getAbsolutePath(),
+        Misc.extractSlidingWindow(v2PosAlleleDir, windowSize, stepSize, new File(outDir, subDirs[0]).getAbsolutePath());
+        Misc.addPosToRho(rhoDir, new File(outDir, subDirs[0]).getAbsolutePath(),
                 new File(outDir, subDirs[1]).getAbsolutePath());
-        Misc1.outPutMissingRate(v2Dir, taxaInfoFile, new File(outDir, subDirs[2]).getAbsolutePath());
-        Misc1.slidingWindowMissingRate(new File(outDir, subDirs[2]).getAbsolutePath(), windowSize, stepSize,
+        Misc.outPutMissingRate(v2Dir, taxaInfoFile, new File(outDir, subDirs[2]).getAbsolutePath());
+        Misc.slidingWindowMissingRate(new File(outDir, subDirs[2]).getAbsolutePath(), windowSize, stepSize,
                 new File(outDir, subDirs[3]).getAbsolutePath());
-        Misc1.transformToRefChr(new File(outDir, subDirs[1]).getAbsolutePath(), new File(outDir, subDirs[4]).getAbsolutePath());
+        Misc.transformToRefChr(new File(outDir, subDirs[1]).getAbsolutePath(), new File(outDir, subDirs[4]).getAbsolutePath());
     }
 
     public static void extractPopFromPhylip(String phylipDir, String taxaInfoFile, String outDir){
