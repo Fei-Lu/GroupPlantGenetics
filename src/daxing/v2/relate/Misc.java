@@ -238,7 +238,7 @@ public class Misc {
      * @param vcfLine
      * @return
      */
-    private static EnumMap<GroupBySubcontinent, TIntArrayList> getGroupByContinentMap(String taxaInfo, String vcfLine){
+    public static EnumMap<GroupBySubcontinent, TIntArrayList> getGroupByContinentMap(String taxaInfo, String vcfLine){
         Map<String, String> taxaGroupbyContinentMap=RowTableTool.getMap(taxaInfo, 0, 36);
         EnumMap<GroupBySubcontinent, TIntArrayList> groupByContinentIndexArrayMap = new EnumMap<>(GroupBySubcontinent.class);
         for (GroupBySubcontinent group : GroupBySubcontinent.values()){
