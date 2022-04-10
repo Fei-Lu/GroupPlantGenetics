@@ -1,8 +1,10 @@
 package daxing.common.genotype;
 
 import com.google.common.collect.Table;
+import daxing.common.factors.WheatLineage;
 import daxing.common.utiles.ArrayTool;
 import daxing.common.utiles.IOTool;
+import daxing.common.vmap2Group.GroupBySubcontinent;
 import daxing.common.wheat.PGF;
 import daxing.common.table.RowTableTool;
 import gnu.trove.list.array.TIntArrayList;
@@ -246,6 +248,45 @@ public class VcfSubsetUtils {
 //        });
         writeVariantsNum(variantsNumSummaryFile, chrSnpNumMap);
         System.out.println("extract variants with ancestral state complicated in "+ Benchmark.getTimeSpanHours(start0)+ " hours");
+    }
+
+    public static void transformToHaploid(String v2Dir, String outDir){
+        List<File> files= IOTool.getFileListInDirEndsWith(v2Dir, ".vcf.gz");
+        String[] outNames = files.stream().map(File::getName).map(s->s.replaceAll(".vcf.gz","_haploid.vcf.gz")).toArray(String[]::new);
+        IntStream.range(0, files.size()).parallel().forEach(e->{
+            try (BufferedReader br = IOTool.getReader(files.get(e));
+                 BufferedWriter bw = IOTool.getWriter(new File(outDir, outNames[e]))) {
+                String line;
+                List<String> temp;
+                while ((line=br.readLine()).startsWith("##")){
+                    bw.write(line);
+                    bw.newLine();
+                }
+                bw.write(line);
+                bw.newLine();
+                StringBuilder sb = new StringBuilder();
+                while ((line = br.readLine()) != null) {
+                    temp = PStringUtils.fastSplit(line);
+                    sb.setLength(0);
+                    sb.append(String.join("\t",temp.subList(0,9))).append("\t");
+                    for (int i = 9; i < temp.size(); i++) {
+                        if (temp.get(i).startsWith("0/0")){
+                            sb.append("0").append("\t");
+                        }else if (temp.get(i).startsWith("1/1")){
+                            sb.append("1").append("\t");
+                        }else {
+                            sb.append(".").append("\t");
+                        }
+                    }
+                    sb.deleteCharAt(sb.length()-1);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                    bw.flush();
+                }
+            }catch (Exception exception){
+                exception.printStackTrace();
+            }
+        });
     }
 
     public static void go(String chrSNPNumFile, String vcfInputDir, int variantsNum, String pgfFile,
