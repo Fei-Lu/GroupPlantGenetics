@@ -40,10 +40,10 @@ public class PopulationIndividualFdStart {
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
         String[] outNames = exonVCFFiles.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz",".siteGridLoad" +
                 ".txt.gz")).toArray(String[]::new);
-//        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e-> getSiteGridLoad(exonAnnoFiles.get(e), exonVCFFiles.get(e),
-//                taxa_InfoDBFile, e+1, methodCallDeleterious, new File(subFiles[0], outNames[e])));
+        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e-> getSiteGridLoad(exonAnnoFiles.get(e), exonVCFFiles.get(e),
+                taxa_InfoDBFile, e+1, methodCallDeleterious, new File(subFiles[0], outNames[e])));
         Path siteGridPath = Paths.get(new File(subFiles[1], "siteGrid.txt.gz").getAbsolutePath()).toAbsolutePath();
-//        merge(subFiles[0], siteGridPath.toFile());
+        merge(subFiles[0], siteGridPath.toFile());
         Path introgressionDonorBurdenPath = Paths.get(new File(subFiles[2], "introgressionDonorBurden.txt.gz").getAbsolutePath());
         PopulationIndividualFd.writeWindowSize(popFdFile, individualFdDir, taxa_InfoDBFile,siteGridPath.toString(),
                 introgressionDonorBurdenPath.toString());

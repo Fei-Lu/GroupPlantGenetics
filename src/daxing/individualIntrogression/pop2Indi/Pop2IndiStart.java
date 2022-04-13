@@ -5,7 +5,7 @@ import daxing.common.utiles.DateTime;
 import daxing.common.utiles.IOTool;
 import daxing.individualIntrogression.individual.Donor;
 import daxing.individualIntrogression.individual.IndividualBurden_individualFd;
-import daxing.individualIntrogression.individual.IndividualFd;
+import daxing.individualIntrogression.window.PopulationIndividualFdStart;
 import daxing.load.ancestralSite.ChrSNPAnnoDB;
 import daxing.load.ancestralSite.GeneLoad;
 import daxing.load.ancestralSite.SNPAnnotation;
@@ -23,18 +23,65 @@ import java.util.stream.IntStream;
 
 public class Pop2IndiStart {
 
+    public static void start(String exonSNPAnnoDir, String exonVCFDir, String taxa_InfoDBFile,
+                             SNPAnnotation.MethodCallDeleterious methodCallDeleterious, String popFdFile,
+                             String individualFdDir,
+                             String outDir){
+        System.out.println(DateTime.getDateTimeOfNow());
+        String[] subDirs = {"001_window","002_individual"};
+        for (String subDir : subDirs){
+            new File(outDir, subDir).mkdir();
+        }
+        calculateWindowBasedBurden(exonSNPAnnoDir, exonVCFDir, taxa_InfoDBFile, methodCallDeleterious, popFdFile,
+                individualFdDir, new File(outDir, subDirs[0]).getAbsolutePath());
+        calculateDonorBurdenPerIndividual(individualFdDir, exonSNPAnnoDir, exonVCFDir, new File(outDir, subDirs[1]).getAbsolutePath(),
+                taxa_InfoDBFile, methodCallDeleterious);
+        System.out.println(DateTime.getDateTimeOfNow());
+    }
+
+    /**
+     * window based burden
+     * @param exonSNPAnnoDir
+     * @param exonVCFDir
+     * @param taxa_InfoDBFile
+     * @param methodCallDeleterious
+     * @param popFdFile
+     * @param individualFdDir
+     * @param outDir
+     */
+    public static void calculateWindowBasedBurden(String exonSNPAnnoDir, String exonVCFDir, String taxa_InfoDBFile,
+                             SNPAnnotation.MethodCallDeleterious methodCallDeleterious, String popFdFile,
+                             String individualFdDir,
+                             String outDir){
+        long start = System.nanoTime();
+        PopulationIndividualFdStart.start(exonSNPAnnoDir, exonVCFDir, taxa_InfoDBFile, methodCallDeleterious,
+                popFdFile, individualFdDir, outDir);
+        System.out.println("Window based burden completed in "+Benchmark.getTimeSpanSeconds(start)+ " s");
+    }
+
+    /**
+     * individual based burden
+     * @param individualFdDir
+     * @param exonSNPAnnoDir
+     * @param exonVCFDir
+     * @param outDir
+     * @param taxaInfoFile
+     * @param methodCallDeleterious
+     */
     public static void calculateDonorBurdenPerIndividual(String individualFdDir, String exonSNPAnnoDir,
                                                          String exonVCFDir, String outDir, String taxaInfoFile,
                                                          SNPAnnotation.MethodCallDeleterious methodCallDeleterious){
         System.out.println(DateTime.getDateTimeOfNow());
+        long start = System.nanoTime();
         List<File> exonAnnoFiles= IOUtils.getVisibleFileListInDir(exonSNPAnnoDir);
         List<File> exonVCFFiles= IOUtils.getVisibleFileListInDir(exonVCFDir);
         String[] outNames= exonVCFFiles.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz",
                 "_IndividualFdDonor.txt.gz")).toArray(String[]::new);
         IndividualsFdDxyDonor individualsFdDxyDonor = new IndividualsFdDxyDonor(individualFdDir);
-        IntStream.range(0, exonVCFFiles.size()).forEach(e-> calculateDonorBurdenPerIndividual(individualsFdDxyDonor,
+        IntStream.range(0, exonVCFFiles.size()).parallel().forEach(e-> calculateDonorBurdenPerIndividual(individualsFdDxyDonor,
                 exonAnnoFiles.get(e), exonVCFFiles.get(e), new File(outDir, outNames[e]), e+1, taxaInfoFile,
                 methodCallDeleterious));
+        System.out.println("Individual based burden completed in "+ Benchmark.getTimeSpanSeconds(start)+ " s");
     }
 
     private static void calculateDonorBurdenPerIndividual(IndividualsFdDxyDonor individualsFdDxyDonor, File exonSNPAnnoFile,
