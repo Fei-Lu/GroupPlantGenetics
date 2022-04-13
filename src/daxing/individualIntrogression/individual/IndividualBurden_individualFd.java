@@ -36,6 +36,10 @@ public class IndividualBurden_individualFd {
         this.genotypeCount[donor.getIndex()][indexGenotype[0]].add(indexGenotype[1]);
     }
 
+    public String getTaxon() {
+        return taxon;
+    }
+
     private void calculate(){
         // genotypeCount: dim1: Donor, dim2: loadGroup
         int[][] synNonDelBurdenCount3;
