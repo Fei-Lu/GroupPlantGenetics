@@ -7,8 +7,11 @@ import daxing.common.factors.LoadType;
 import daxing.common.factors.P3;
 import daxing.common.table.RowTableTool;
 import daxing.common.utiles.IOTool;
+import daxing.individualIntrogression.individual.Donor;
 import daxing.individualIntrogression.individual.IfIntrogression;
+import daxing.individualIntrogression.pop2Indi.IndividualsFdDxyDonor;
 import gnu.trove.list.array.TIntArrayList;
+import org.apache.commons.lang3.math.NumberUtils;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
@@ -32,7 +35,7 @@ public class PopulationIndividualFd {
     static Map<String, String> taxaGroupByContinentMap;
 
 
-    static final double threshForIndividualHasNoIntrogression=0.5;
+    static final double threshForIndividualHasNoIntrogression=0;
 
     private static class IndividualFdRecord{
 
@@ -282,7 +285,9 @@ public class PopulationIndividualFd {
         PopulationIndividualFd.taxaNameList=new ArrayList<>();
         List<File> individualFdFiles=IOUtils.getVisibleFileListInDir(individualFdDir);
         for (int i = 0; i < individualFdFiles.size(); i++) {
-            this.addIndividual(individualFdFiles.get(i));
+//            this.addIndividual(individualFdFiles.get(i));
+//            this.addIndividual2(individualFdFiles.get(i));
+            this.addIndividual3(individualFdFiles.get(i));
         }
         PopulationIndividualFd.taxaGroupByContinentMap=RowTableTool.getMap(taxaInfoFile, 35, 36);
     }
@@ -359,6 +364,90 @@ public class PopulationIndividualFd {
                 fd=Double.parseDouble(temp.get(12));
                 miniIBSP3= IfIntrogression.valueOf(temp.get(13)).getDonor().name();
                 individualFdRecord=new IndividualFdRecord(fd, miniIBSP3);
+                chrRange=new ChrRange(chr, start, end+1);
+                rangeIndex=binarySearch(chrRange);
+                individualFdRecords[rangeIndex]=individualFdRecord;
+            }
+            PopulationIndividualFd.individualFdRecords.add(individualFdRecords);
+            PopulationIndividualFd.taxaNameList.add(taxaName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * pop2Individual
+     * 20220321 正确校正PGI之后 version2
+     * @param individualFdFile see follow
+     * scaffold	start	end	mid	sites	fd	DonorPredictedByMindxy_fd_ILS
+     * 1A	1145386	1190606	1167152	200	NA	NONE
+     * 1A	1165848	1211006	1190999	200	NA	NONE
+     * 1A	1190607	1234529	1214521	200	NA	NONE
+     */
+    private void addIndividual2(File individualFdFile){
+        String taxaName=individualFdFile.getName().substring(13, 20);
+        IndividualFdRecord[] individualFdRecords= new IndividualFdRecord[this.getChrRangeNum()];
+        Arrays.fill(individualFdRecords, IndividualFdRecord.DEFAULT);
+        try (BufferedReader br = IOTool.getReader(individualFdFile)) {
+            br.readLine();
+            String line, chr, donor;
+            List<String> temp;
+            int start, end, rangeIndex;
+            double fd;
+            ChrRange chrRange;
+            IndividualFdRecord individualFdRecord;
+            while ((line=br.readLine())!=null){
+                temp= PStringUtils.fastSplit(line);
+                chr=temp.get(0);
+                start=Integer.parseInt(temp.get(1));
+                end=Integer.parseInt(temp.get(2));
+                fd = NumberUtils.isNumber(temp.get(5)) ? Double.parseDouble(temp.get(5)) : -1;
+                donor = Donor.valueOf(temp.get(6)).name();
+                individualFdRecord=new IndividualFdRecord(fd, donor);
+                chrRange=new ChrRange(chr, start, end+1);
+                rangeIndex=binarySearch(chrRange);
+                individualFdRecords[rangeIndex]=individualFdRecord;
+            }
+            PopulationIndividualFd.individualFdRecords.add(individualFdRecords);
+            PopulationIndividualFd.taxaNameList.add(taxaName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * pop2Individual
+     * 20220321 正确校正PGI之后 version3
+     * @param individualFdFile see follow
+     * scaffold	start	end	mid	sites	sitesUsed	ABBA	BABA	D	fd	fdM	fd_mean	IfIntrogressionByfd
+     *                         DonorPredictedByMindxy	RNDMin	RelativeTiming_AC
+     * 1A	1145386	1190606	1167152	200	NA	NA	NA	NA	NA	NA	NA	NA	NONE	0.0724810594762274	0.5955882352941176
+     * 1A	1165848	1211006	1190999	200	NA	NA	NA	NA	NA	NA	NA	NA	NONE	0.07529067920452379	0.4656188605108055
+     * 1A	1190607	1234529	1214521	200	NA	NA	NA	NA	NA	NA	NA	NA	NONE	0.07534909442831467	0.3220088626292466
+     */
+    private void addIndividual3(File individualFdFile){
+        String taxaName=individualFdFile.getName().substring(13, 20);
+        IndividualFdRecord[] individualFdRecords= new IndividualFdRecord[this.getChrRangeNum()];
+        Arrays.fill(individualFdRecords, IndividualFdRecord.DEFAULT);
+        try (BufferedReader br = IOTool.getReader(individualFdFile)) {
+            br.readLine();
+            String line, chr, donor;
+            List<String> temp;
+            int start, end, rangeIndex;
+            double fd;
+            ChrRange chrRange;
+            IndividualFdRecord individualFdRecord;
+            int ifIntrogressionByfd;
+            while ((line=br.readLine())!=null){
+                temp= PStringUtils.fastSplit(line);
+                chr=temp.get(0);
+                start=Integer.parseInt(temp.get(1));
+                end=Integer.parseInt(temp.get(2));
+                fd = NumberUtils.isNumber(temp.get(9)) ? Double.parseDouble(temp.get(5)) : -1;
+                ifIntrogressionByfd = NumberUtils.isNumber(temp.get(12)) ? Integer.parseInt(temp.get(12)) : -1;
+                donor = temp.get(13);
+                donor = ifIntrogressionByfd == 1 ? donor : Donor.NONE.name();
+                individualFdRecord=new IndividualFdRecord(fd, donor);
                 chrRange=new ChrRange(chr, start, end+1);
                 rangeIndex=binarySearch(chrRange);
                 individualFdRecords[rangeIndex]=individualFdRecord;
