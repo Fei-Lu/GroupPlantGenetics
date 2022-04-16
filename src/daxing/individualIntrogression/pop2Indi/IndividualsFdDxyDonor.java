@@ -27,6 +27,7 @@ public class IndividualsFdDxyDonor {
 
     // dim1: taxon
     List<String> taxa;
+    Map<String, Integer> taxonIndexMap;
 
     // dim1: taxon, dim2: ChrRange
     IntList[] siteUsed;
@@ -75,9 +76,15 @@ public class IndividualsFdDxyDonor {
         }
         List<RowTableTool<String>> tables = new ArrayList<>();
         this.taxa = new ArrayList<>();
+        this.taxonIndexMap = new HashMap<>();
+        String taxon;
+        int index = 0;
         for (File file : files){
             tables.add(new RowTableTool<>(file.getAbsolutePath()));
-            this.taxa.add(file.getName().substring(13).replaceAll("_vmap2.1.txt.gz",""));
+            taxon = file.getName().substring(13).replaceAll("_vmap2.1.txt.gz","");
+            this.taxa.add(taxon);
+            this.taxonIndexMap.put(taxon, index);
+            index++;
         }
         this.initializeTaxa(tables);
     }
@@ -189,8 +196,12 @@ public class IndividualsFdDxyDonor {
         return donorPredictedByMindxy_fd;
     }
 
+    public Map<String, Integer> getTaxonIndexMap() {
+        return taxonIndexMap;
+    }
+
     public int getTaxonIndex(String taxon){
-        return this.getTaxa().indexOf(taxon);
+        return this.getTaxonIndexMap().get(taxon);
     }
 
     /**
@@ -212,9 +223,22 @@ public class IndividualsFdDxyDonor {
         return indexList.toArray();
     }
 
+    public boolean containTaxon(String taxon){
+        List<String> taxaList = this.getTaxa();
+        return taxaList.contains(taxon);
+    }
 
+
+    /**
+     * if no introgression, return blank set
+     * @param taxon
+     * @param chr
+     * @param pos
+     * @return
+     */
     public EnumSet<Donor> getDonorFrom(String taxon, String chr, int pos){
         EnumSet<Donor> donorEnumSet= EnumSet.noneOf(Donor.class);
+        if (!this.containTaxon(taxon)) return donorEnumSet;
         int taxonIndex = this.getTaxonIndex(taxon);
         int[] indices=this.getChrRangeIndicesContainsPosition(chr, pos);
         for (int index : indices){

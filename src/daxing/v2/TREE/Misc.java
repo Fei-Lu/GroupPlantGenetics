@@ -7,11 +7,14 @@ import daxing.common.factors.WheatLineage;
 import daxing.common.table.RowTableTool;
 import daxing.common.utiles.IOTool;
 import daxing.common.vmap2Group.GroupBySubcontinent;
+import daxing.individualIntrogression.individual.Donor;
+import daxing.individualIntrogression.pop2Indi.IndividualsFdDxyDonor;
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import pgl.infra.range.Range;
+import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOFileFormat;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
@@ -38,6 +41,78 @@ public class Misc {
         Misc.slidingWindowMissingRate(new File(outDir, subDirs[2]).getAbsolutePath(), windowSize, stepSize,
                 new File(outDir, subDirs[3]).getAbsolutePath());
         Misc.transformToRefChr(new File(outDir, subDirs[1]).getAbsolutePath(), new File(outDir, subDirs[4]).getAbsolutePath());
+    }
+
+    /**
+     * change individual introgression region to ./.
+     * @param v2Dir
+     * @param individualFdDxyDonorDir
+     * @param outDir
+     */
+    public static void changeIntrogressionToMissing(String v2Dir, String individualFdDxyDonorDir, String outDir){
+        List<File> files =IOTool.getFileListInDirEndsWith(v2Dir, ".vcf.gz");
+        String[] outNames = files.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz",
+                "_changeIntrogressionToMissing.vcf.gz")).toArray(String[]::new);
+        IndividualsFdDxyDonor individualsFdDxyDonor = new IndividualsFdDxyDonor(individualFdDxyDonorDir);
+        IntStream.range(0, files.size()).forEach(e->{
+            long start = System.nanoTime();
+            System.out.println("start "+files.get(e).getName());
+            try (BufferedReader br = IOTool.getReader(files.get(e));
+                 BufferedWriter bw  =IOTool.getWriter(new File(outDir, outNames[e]))) {
+                String line, refChr;
+                int refPos;
+                List<String> temp, headerList;
+                while ((line=br.readLine()).startsWith("##")){
+                    bw.write(line);
+                    bw.newLine();
+                }
+                headerList = PStringUtils.fastSplit(line);
+                bw.write(line);
+                bw.newLine();
+                StringBuilder sb = new StringBuilder();
+                EnumSet<Donor> donorEnumSet;
+                int cnt = 0;
+                int count=0;
+                while ((line=br.readLine())!=null){
+                    cnt++;
+                    temp =PStringUtils.fastSplit(line);
+                    refChr = temp.get(0);
+                    refPos = Integer.parseInt(temp.get(1));
+                    sb.setLength(0);
+                    sb.append(String.join("\t", temp.subList(0,9))).append("\t");
+                    int sumGenotype=0;
+                    int genotype=0;
+                    for (int i = 9; i < temp.size(); i++) {
+                        donorEnumSet = individualsFdDxyDonor.getDonorFrom(headerList.get(i), refChr, refPos);
+                        if (donorEnumSet.size()>0){
+                            sb.append(".").append("\t");
+                        }else if (temp.get(i).startsWith(".")){
+                            sb.append(temp.get(i)).append("\t");
+                        }else {
+                            genotype = Integer.parseInt(temp.get(i));
+                            sumGenotype+=genotype;
+                            sb.append(temp.get(i)).append("\t");
+                        }
+                    }
+                    if (sumGenotype == 0) continue;
+                    sb.deleteCharAt(sb.length()-1);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                    count++;
+                    if (count% 1000000==0){
+                        System.out.println("Written "+count+" variants");
+                    }
+                }
+                System.out.println("Total "+count+"（"+cnt+",)"+" variants had been written to "+new File(outDir,
+                        outNames[e]).getName());
+                System.out.println((cnt-count)+" variants had been changed to missing");
+                System.out.println(files.get(e).getName()+ " completed in "+ Benchmark.getTimeSpanSeconds(start)+" " +
+                        "seconds");
+                bw.flush();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        });
     }
 
     public static void extractPopFromPhylip(String phylipDir, String taxaInfoFile, String outDir){
