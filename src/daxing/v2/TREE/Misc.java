@@ -54,7 +54,7 @@ public class Misc {
         String[] outNames = files.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz",
                 "_changeIntrogressionToMissing.vcf.gz")).toArray(String[]::new);
         IndividualsFdDxyDonor individualsFdDxyDonor = new IndividualsFdDxyDonor(individualFdDxyDonorDir);
-        IntStream.range(0, files.size()).forEach(e->{
+        IntStream.range(0, files.size()).parallel().forEach(e->{
             long start = System.nanoTime();
             System.out.println("start "+files.get(e).getName());
             try (BufferedReader br = IOTool.getReader(files.get(e));
