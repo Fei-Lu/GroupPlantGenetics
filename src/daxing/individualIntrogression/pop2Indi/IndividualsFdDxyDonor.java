@@ -29,7 +29,7 @@ public class IndividualsFdDxyDonor {
     List<String> taxa;
     Map<String, Integer> taxonIndexMap;
 
-    // dim1: taxon, dim2: ChrRange
+    // list: taxon, array: ChrRange
     IntList[] siteUsed;
     DoubleList[] abba;
     DoubleList[] baba;
