@@ -103,9 +103,9 @@ public class Misc {
                         System.out.println("Written "+count+" variants");
                     }
                 }
-                System.out.println("Total "+count+"（"+cnt+",)"+" variants had been written to "+new File(outDir,
+                System.out.println("Total "+count+"（"+cnt+")"+" variants had been written to "+new File(outDir,
                         outNames[e]).getName());
-                System.out.println((cnt-count)+" variants had been changed to missing");
+                System.out.println((cnt-count)+" variants had been removed due to introgression");
                 System.out.println(files.get(e).getName()+ " completed in "+ Benchmark.getTimeSpanSeconds(start)+" " +
                         "seconds");
                 bw.flush();
@@ -120,13 +120,13 @@ public class Misc {
         Map<String, String> taxaGroupbyContinentMap= RowTableTool.getMap(taxaInfoFile, 0, 36);
         IntStream.range(0,fileList.size()).forEach(e->{
             try (BufferedReader br = IOTool.getReader(fileList.get(e))) {
-                int chrID = Integer.parseInt(fileList.get(e).getName().substring(3,6));
-                WheatLineage subgenome = WheatLineage.valueOf(RefV1Utils.getSubgenomeFromChrID((short)chrID));
+                String refChr = fileList.get(e).getName().substring(3,5);
+                WheatLineage subgenome = WheatLineage.valueOf(refChr.substring(1));
                 EnumSet<GroupBySubcontinent> enumSet = GroupBySubcontinent.getSubgenomeGroupByContinent(subgenome);
                 EnumMap<GroupBySubcontinent, BufferedWriter> groupBWMap= new EnumMap<>(GroupBySubcontinent.class);
                 BufferedWriter bw;
                 for (GroupBySubcontinent group : enumSet){
-                    bw = IOTool.getWriter(new File(outDir, "chr"+PStringUtils.getNDigitNumber(3, chrID)+"_vmap2.1_"+group.name()+".phy"));
+                    bw = IOTool.getWriter(new File(outDir, "chr"+refChr+"_vmap2.1_"+group.name()+".phy"));
                     groupBWMap.put(group, bw);
                 }
                 String line;
