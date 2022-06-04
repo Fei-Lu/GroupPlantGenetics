@@ -15,7 +15,7 @@ import java.util.stream.IntStream;
 public class Start {
 
     public static void main(String[] args) {
-        runHapScnner(args[0]);
+//        runHapScnner(args[0]);
     }
 
     public static void runHapScnner(String paramerterFileDir){
