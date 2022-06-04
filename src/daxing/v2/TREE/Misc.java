@@ -3,6 +3,7 @@ package daxing.v2.TREE;
 import com.google.common.base.Enums;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import daxing.common.chrrange.ChrRange;
 import daxing.common.factors.WheatLineage;
 import daxing.common.table.RowTableTool;
 import daxing.common.utiles.IOTool;
@@ -26,21 +27,20 @@ import java.util.stream.IntStream;
 
 public class Misc {
 
-    public static void start(String v2Dir, String taxaInfoFile, String rhoDir, String v2PosAlleleDir, int windowSize,
+    public static void start(String rhoDir, String v2PosAlleleDir, int windowSize,
                              int stepSize,
                              String outDir){
-        String[] subDirs={"001_v2_WindowStep","002_rhoWithPos","003_missingRateBySubcontinent",
-                "004_missingRate_slidingWindow200_100","005_rhoWithPos_byRefChr"};
+        String[] subDirs={"001_v2_WindowStep","002_rhoWithPos"};
         for (int i = 0; i < subDirs.length; i++) {
             new File(outDir, subDirs[i]).mkdir();
         }
         Misc.extractSlidingWindow(v2PosAlleleDir, windowSize, stepSize, new File(outDir, subDirs[0]).getAbsolutePath());
         Misc.addPosToRho(rhoDir, new File(outDir, subDirs[0]).getAbsolutePath(),
                 new File(outDir, subDirs[1]).getAbsolutePath());
-        Misc.outPutMissingRate(v2Dir, taxaInfoFile, new File(outDir, subDirs[2]).getAbsolutePath());
-        Misc.slidingWindowMissingRate(new File(outDir, subDirs[2]).getAbsolutePath(), windowSize, stepSize,
-                new File(outDir, subDirs[3]).getAbsolutePath());
-        Misc.transformToRefChr(new File(outDir, subDirs[1]).getAbsolutePath(), new File(outDir, subDirs[4]).getAbsolutePath());
+//        Misc.outPutMissingRate(v2Dir, taxaInfoFile, new File(outDir, subDirs[2]).getAbsolutePath());
+//        Misc.slidingWindowMissingRate(new File(outDir, subDirs[2]).getAbsolutePath(), windowSize, stepSize,
+//                new File(outDir, subDirs[3]).getAbsolutePath());
+//        Misc.transformToRefChr(new File(outDir, subDirs[1]).getAbsolutePath(), new File(outDir, subDirs[4]).getAbsolutePath());
     }
 
     /**
@@ -189,51 +189,54 @@ public class Misc {
      * @param outDir
      */
     public static void extractSlidingWindow(String posAlleleDir, int windowSize, int stepSize, String outDir){
-        List<File> files = IOTool.getFileListInDirEndsWith(posAlleleDir,".txt.gz");
-        String[] outFiles = files.stream().map(File::getName).map(s -> s.replaceAll(".txt.gz",".windowStep.txt.gz")).toArray(String[]::new);
+        List<File> files = IOTool.getFileListInDirEndsWith(posAlleleDir,".vcf.gz");
+        String[] outFiles =
+                files.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz",".windowStep.txt.gz")).toArray(String[]::new);
         IntStream.range(0, files.size()).parallel().forEach(e->{
             try (BufferedReader br = IOTool.getReader(files.get(e));
                  BufferedWriter bw =IOTool.getWriter(new File(outDir, outFiles[e]))) {
                 String line;
                 List<String> temp;
-                List<Range> ranges = new ArrayList<>();
-                Range range;
+                List<ChrRange> chrRanges = new ArrayList<>();
+                ChrRange chrRange;
                 br.readLine();
-                short chrID = -1;
+                String chr = null;
                 int pos;
                 StringBuilder sb = new StringBuilder();
                 Integer[] indexes_Inter = IntStream.range(0,stepSize).boxed().toArray(Integer[]::new);
                 Arrays.sort(indexes_Inter,Collections.reverseOrder());
                 int[] indexes = Arrays.stream(indexes_Inter).mapToInt(inter->inter).toArray();
-                bw.write("chrID\tstart\tend");
+                bw.write("Chr\tStart\tEnd");
                 bw.newLine();
+                while ((line=br.readLine()).startsWith("##")) continue;
                 while ((line=br.readLine())!=null){
-                    if (ranges.size()==windowSize){
+                    if (chrRanges.size()==windowSize){
                         sb.setLength(0);
-                        sb.append(ranges.get(0).chr).append("\t");
-                        sb.append(ranges.get(0).start).append("\t");
-                        sb.append(ranges.get(windowSize-1).start);
+                        sb.append(chrRanges.get(0).getChr()).append("\t");
+                        sb.append(chrRanges.get(0).getStart()).append("\t");
+                        sb.append(chrRanges.get(windowSize-1).getStart());
                         bw.write(sb.toString());
                         bw.newLine();
                         for (int i = 0; i < indexes.length; i++) {
-                            ranges.remove(indexes[i]);
+                            chrRanges.remove(indexes[i]);
                         }
                     }
-                    temp =PStringUtils.fastSplit(line);
-                    chrID = Short.parseShort(temp.get(0));
+                    temp =PStringUtils.fastSplit(line.substring(0,30));
+                    chr = temp.get(0);
                     pos = Integer.parseInt(temp.get(1));
-                    range = new Range(chrID, pos, pos+1);
-                    ranges.add(range);
+                    chrRange = new ChrRange(chr, pos, pos+1);
+                    chrRanges.add(chrRange);
                 }
-//                if (chrID==7 || chrID==35){
-//                    int size = ranges.size();
-//                    sb.setLength(0);
-//                    sb.append(ranges.get(0).chr).append("\t");
-//                    sb.append(ranges.get(0).start).append("\t");
-//                    sb.append(ranges.get(size-1).start);
-//                    bw.write(sb.toString());
-//                    bw.newLine();
-//                }
+                // 6B多一行
+                if (chr.equals("6B")){
+                    int size = chrRanges.size();
+                    sb.setLength(0);
+                    sb.append(chrRanges.get(0).getChr()).append("\t");
+                    sb.append(chrRanges.get(0).getStart()).append("\t");
+                    sb.append(chrRanges.get(size-1).getStart());
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
                 bw.flush();
             } catch (IOException ioException) {
                 ioException.printStackTrace();
@@ -242,35 +245,17 @@ public class Misc {
     }
 
     public static void addPosToRho(String rhoDir, String slidingWindowDir, String outDir){
+        String[] refChrArray = RefV1Utils.getChromosomes();
         List<File> rhoFiles = IOTool.getFileListInDirEndsWith(rhoDir, "all.txt.gz");
-        String[] outNames = rhoFiles.stream().map(File::getName).map(s -> s.replaceAll("all.txt.gz","all_pos.txt.gz")).toArray(String[]::new);
+        String[] outNames = rhoFiles.stream().map(File::getName).map(s -> s.replaceAll("_rhoPred_all.txt.gz","_RefChrPos.txt.gz")).toArray(String[]::new);
         List<File> files = IOTool.getFileListInDirEndsWith(slidingWindowDir, ".txt.gz");
         RowTableTool<String> rowTableToolPos, rowTableToolRho;
-        int chrID;
-        GroupBySubcontinent group;
-        EnumSet<GroupBySubcontinent> enumSet_chr007 = EnumSet.range(GroupBySubcontinent.LR_EU, GroupBySubcontinent.CL);
-        EnumSet<GroupBySubcontinent> enumSet_chr035 = EnumSet.range(GroupBySubcontinent.LR_EU, GroupBySubcontinent.CL);
+        String refChr;
         for (int i = 0; i < rhoFiles.size(); i++) {
             rowTableToolRho = new RowTableTool<>(rhoFiles.get(i).getAbsolutePath());
-            chrID = Integer.parseInt(rhoFiles.get(i).getName().substring(3,6));
-            group = GroupBySubcontinent.valueOf(rhoFiles.get(i).getName().substring(7).replaceAll("_rhoPred_all.txt.gz",""));
-            if (chrID==7 && enumSet_chr007.contains(group)){
-                rowTableToolPos = new RowTableTool<>(files.get(chrID-1).getAbsolutePath());
-                // remove last row of chr007 of LR CL
-                rowTableToolRho.removeRow(rowTableToolRho.getRowNumber()-1);
-                rowTableToolPos.addColumn("Rho", rowTableToolRho.getColumn(0));
-                rowTableToolPos.write(new File(outDir, outNames[i]), IOFileFormat.TextGzip);
-                continue;
-            }
-            if (chrID==35 && enumSet_chr035.contains(group)){
-                rowTableToolPos = new RowTableTool<>(files.get(chrID-1).getAbsolutePath());
-                // remove last row of chr035 of LR CL
-                rowTableToolRho.removeRow(rowTableToolRho.getRowNumber()-1);
-                rowTableToolPos.addColumn("Rho", rowTableToolRho.getColumn(0));
-                rowTableToolPos.write(new File(outDir, outNames[i]), IOFileFormat.TextGzip);
-                continue;
-            }
-            rowTableToolPos = new RowTableTool<>(files.get(chrID-1).getAbsolutePath());
+            refChr = rhoFiles.get(i).getName().substring(3,5);
+            int refChrIndex = Arrays.binarySearch(refChrArray, refChr);
+            rowTableToolPos = new RowTableTool<>(files.get(refChrIndex).getAbsolutePath());
             rowTableToolPos.addColumn("Rho", rowTableToolRho.getColumn(0));
             rowTableToolPos.write(new File(outDir, outNames[i]), IOFileFormat.TextGzip);
         }
