@@ -779,7 +779,7 @@ public class ScriptMethods {
                 end=Integer.parseInt(temp.get(4).trim())+1;
                 chrRange=new ChrRange(chr, start, end);
                 geneNameSet=new HashSet<>();
-                for (int i = chrRange.getVCFStart(); i < chrRange.getVCFEnd(); i++) {
+                for (int i = chrRange.getStartOnChrID(); i < chrRange.getEndOnChrID(); i++) {
                     geneIndex=pgf.getGeneIndex(chrRange.getChrID(), i);
                     if (geneIndex < 0) continue;
                     geneNameSet.add(pgf.getGene(geneIndex).getGeneName());
