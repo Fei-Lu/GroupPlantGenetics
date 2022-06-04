@@ -50,11 +50,11 @@ public class ChrRange implements Comparable<ChrRange>{
         return RefV1Utils.getChrID(chr, start);
     }
 
-    public int getVCFStart(){
+    public int getStartOnChrID(){
         return RefV1Utils.getPosOnChrID(chr, start);
     }
 
-    public int getVCFEnd(){
+    public int getEndOnChrID(){
         return RefV1Utils.getPosOnChrID(chr, end);
     }
 
