@@ -182,8 +182,8 @@ public class NearestIBS {
         }
         List<String> p3s;
         for (int i = 0; i < chrRanges.size(); i++) {
-            startPosVCF=chrRanges.get(i).getVCFStart();
-            endPosVCF=chrRanges.get(i).getVCFEnd()-1;
+            startPosVCF=chrRanges.get(i).getStartOnChrID();
+            endPosVCF=chrRanges.get(i).getEndOnChrID()-1;
             startChrID=chrRanges.get(i).getVCFStartChrID();
             endChrID=chrRanges.get(i).getVCFEndChrID();
             startIndex=chrGenotypeGrid.getSiteIndex(startChrID, startPosVCF);
