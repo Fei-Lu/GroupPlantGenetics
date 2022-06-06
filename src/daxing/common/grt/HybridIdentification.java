@@ -22,7 +22,7 @@ public class HybridIdentification {
         String[] outNames = vcfFiles.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz",".hybrid.txt")).toArray(String[]::new);
         IntStream.range(0,vcfFiles.size()).forEach(e->{
             try (BufferedWriter bw = IOTool.getWriter(new File(outDir, outNames[e]))) {
-                bw.write("SampleID\tHybridID\tP1\tP2\tMinIBSP1\tMinIBSP2\tMinIBS1\tMinsIBS2");
+                bw.write("SampleID\tHybridID\tP1\tP2\tMinIBSP1\tMinIBSP2\tMinIBS1\tMinIBS2");
                 bw.newLine();
                 StringBuilder sb = new StringBuilder();
                 GenoGrid genoGrid = new GenoGrid(vcfFiles.get(e).getAbsolutePath(), GenoIOFormat.VCF_GZ);
