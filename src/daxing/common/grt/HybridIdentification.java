@@ -28,8 +28,8 @@ public class HybridIdentification {
                 GenoGrid genoGrid = new GenoGrid(vcfFiles.get(e).getAbsolutePath(), GenoIOFormat.VCF_GZ);
                 String[] sampleID = nam2Parensts.getSampleID();
                 List<Parent2IBS> parent1ToIBSList, parent2ToIBSList;
-                String[] p1s = Arrays.stream(nam2Parensts.getP1s()).filter(l->!l.equals("NA")).toArray(String[]::new);
-                String[] p2s = Arrays.stream(nam2Parensts.getP2s()).filter(l->!l.equals("NA")).toArray(String[]::new);
+                String[] p1s = nam2Parensts.getP1Set().stream().filter(l->!l.equals("NA")).sorted().toArray(String[]::new);
+                String[] p2s = nam2Parensts.getP2Set().stream().filter(l->!l.equals("NA")).sorted().toArray(String[]::new);
                 for (int i = 0; i < sampleID.length; i++) {
                     int sampleIndex = genoGrid.getTaxonIndex(sampleID[i]);
                     parent1ToIBSList = new ArrayList<>();
@@ -41,7 +41,6 @@ public class HybridIdentification {
                     }
                     for (String parent: p2s){
                         int parentIndex = genoGrid.getTaxonIndex(parent);
-                        if (sampleIndex==parentIndex) continue;
                         double ibs = genoGrid.getIBSDistance(sampleIndex, parentIndex);
                         parent2ToIBSList.add(new Parent2IBS(parent, ibs));
                     }
@@ -53,10 +52,17 @@ public class HybridIdentification {
                     sb.append(nam2Parensts.getP1(i)).append("\t");
                     sb.append(nam2Parensts.getP2(i)).append("\t");
 //                    sb.append(genoGrid.getChromosome(0)).append("\t");
-                    sb.append(parent1ToIBSList.get(0).parents).append("\t");
-                    sb.append(parent2ToIBSList.get(0).parents).append("\t");
-                    sb.append(parent1ToIBSList.get(0).ibs).append("\t");
-                    sb.append(parent2ToIBSList.get(0).ibs).append("\t");
+                    if (parent1ToIBSList.get(0).parents.equals(parent2ToIBSList.get(0).parents)){
+                        sb.append(parent1ToIBSList.get(0).parents).append("\t");
+                        sb.append(parent2ToIBSList.get(1).parents).append("\t");
+                        sb.append(parent1ToIBSList.get(0).ibs).append("\t");
+                        sb.append(parent2ToIBSList.get(1).ibs).append("\t");
+                    }else {
+                        sb.append(parent1ToIBSList.get(0).parents).append("\t");
+                        sb.append(parent2ToIBSList.get(0).parents).append("\t");
+                        sb.append(parent1ToIBSList.get(0).ibs).append("\t");
+                        sb.append(parent2ToIBSList.get(0).ibs).append("\t");
+                    }
                     bw.write(sb.toString());
                     bw.newLine();
                 }
@@ -89,8 +95,26 @@ public class HybridIdentification {
             return p1s;
         }
 
+        public Set<String> getP1Set(){
+            String[] p1s = this.getP1s();
+            Set<String> res = new HashSet<>();
+            for (int i = 0; i < p1s.length; i++) {
+                res.add(p1s[i]);
+            }
+            return res;
+        }
+
         public String[] getP2s() {
             return p2s;
+        }
+
+        public Set<String> getP2Set(){
+            String[] p2s = this.getP2s();
+            Set<String> res = new HashSet<>();
+            for (int i = 0; i < p2s.length; i++) {
+                res.add(p2s[i]);
+            }
+            return res;
         }
 
         public String[] getSampleID() {
