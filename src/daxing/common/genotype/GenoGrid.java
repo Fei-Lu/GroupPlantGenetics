@@ -18,6 +18,7 @@ import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -403,6 +404,56 @@ public class GenoGrid extends AbstractGenotypeTable implements Swapper, IntCompa
             }
             return index+1;
         }
+    }
+
+    public int getIBSDistanceNonMissingSite(int taxonIndex1, int taxonIndex2, int startSiteIndex, int endSiteIndex){
+        BitSet bothMissing = this.genoTaxon[taxonIndex1][2].get(startSiteIndex, endSiteIndex);
+        bothMissing.or(this.genoTaxon[taxonIndex2][2].get(startSiteIndex, endSiteIndex));
+        return (endSiteIndex-startSiteIndex-bothMissing.cardinality());
+    }
+
+    public int getIBSDistanceNonMissingSite(int taxonIndex1, int taxonIndex2){
+        return this.getIBSDistanceNonMissingSite(taxonIndex1, taxonIndex2, 0, this.getSiteNumber());
+    }
+
+    /**
+     * parent1和parent2分离的site总数
+     * @param taxonIndex1
+     * @param taxonIndex2
+     * @param startSiteIndex
+     * @param endSiteIndex
+     * @return
+     */
+    public int[] getSegregatingSitesIndexBetweenParents(int taxonIndex1, int taxonIndex2, int startSiteIndex, int endSiteIndex){
+        BitSet bothHetero = this.genoTaxon[taxonIndex1][0].get(startSiteIndex, endSiteIndex);
+        bothHetero.xor(this.genoTaxon[taxonIndex1][1].get(startSiteIndex, endSiteIndex));
+        BitSet taxon2Hetero = this.genoTaxon[taxonIndex2][0].get(startSiteIndex, endSiteIndex);
+        taxon2Hetero.xor(this.genoTaxon[taxonIndex2][1].get(startSiteIndex, endSiteIndex));
+
+        // both hetero sites
+        bothHetero.or(taxon2Hetero);
+
+        // bothMissing sites
+        BitSet bothMissing = this.genoTaxon[taxonIndex1][2].get(startSiteIndex, endSiteIndex);
+        bothMissing.or(this.genoTaxon[taxonIndex2][2].get(startSiteIndex, endSiteIndex));
+
+        // segregation sites
+        BitSet segregating = this.genoTaxon[taxonIndex1][0].get(startSiteIndex, endSiteIndex);
+        segregating.xor(this.genoTaxon[taxonIndex2][0].get(startSiteIndex, endSiteIndex));
+        segregating.andNot(bothMissing);
+        segregating.andNot(bothHetero);
+
+        return segregating.stream().toArray();
+    }
+
+    /**
+     * parent1和parent2分离的site总数
+     * @param taxonIndex1
+     * @param taxonIndex2
+     * @return
+     */
+    public int[] getSegregatingSitesIndexBetweenParents(int taxonIndex1, int taxonIndex2){
+        return this.getSegregatingSitesIndexBetweenParents(taxonIndex1, taxonIndex2, 0, this.getSiteNumber());
     }
 
     @Override

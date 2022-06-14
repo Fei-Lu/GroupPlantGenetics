@@ -24,8 +24,8 @@ public class PrepateParameterFile {
      * @param outDir
      */
     public static void retainNAMSegregatingSites(String genoDir, String taxon, String outDir){
-        List<File> files = IOTool.getFileListInDirEndsWith(genoDir, ".vcf.gz");
-        String[] outNames  = files.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz","_NAMSegregatingSites" +
+        List<File> files = IOTool.getFileListInDirEndsWith(genoDir, ".vcf");
+        String[] outNames  = files.stream().map(File::getName).map(s -> s.replaceAll(".vcf","_NAMSegregatingSites" +
                 ".vcf.gz")).toArray(String[]::new);
         IntStream.range(0,files.size()).parallel().forEach(e->{
             try (BufferedReader br = IOTool.getReader(files.get(e));

@@ -22,7 +22,7 @@ public class HybridIdentification {
         String[] outNames = vcfFiles.stream().map(File::getName).map(s -> s.replaceAll(".vcf.gz",".hybrid.txt")).toArray(String[]::new);
         IntStream.range(0,vcfFiles.size()).forEach(e->{
             try (BufferedWriter bw = IOTool.getWriter(new File(outDir, outNames[e]))) {
-                bw.write("SampleID\tHybridID\tP1\tP2\tMinIBSP1\tMinIBSP2\tMinIBS1\tMinIBS2");
+                bw.write("SampleID\tHybridID\tP1\tP2\tMinIBSP1\tMinIBSP2\tMinIBS1\tMinIBS2\tSitesUsed1\tSitesUsed2");
                 bw.newLine();
                 StringBuilder sb = new StringBuilder();
                 GenoGrid genoGrid = new GenoGrid(vcfFiles.get(e).getAbsolutePath(), GenoIOFormat.VCF_GZ);
@@ -37,12 +37,14 @@ public class HybridIdentification {
                     for (String parent: p1s){
                         int parentIndex = genoGrid.getTaxonIndex(parent);
                         double ibs = genoGrid.getIBSDistance(sampleIndex, parentIndex);
-                        parent1ToIBSList.add(new Parent2IBS(parent, ibs));
+                        int numNonMissingSite = genoGrid.getIBSDistanceNonMissingSite(sampleIndex, parentIndex);
+                        parent1ToIBSList.add(new Parent2IBS(parent, ibs, numNonMissingSite));
                     }
                     for (String parent: p2s){
                         int parentIndex = genoGrid.getTaxonIndex(parent);
                         double ibs = genoGrid.getIBSDistance(sampleIndex, parentIndex);
-                        parent2ToIBSList.add(new Parent2IBS(parent, ibs));
+                        int numNonMissingSite = genoGrid.getIBSDistanceNonMissingSite(sampleIndex, parentIndex);
+                        parent2ToIBSList.add(new Parent2IBS(parent, ibs, numNonMissingSite));
                     }
                     Collections.sort(parent1ToIBSList, Comparator.comparing(l->l.getIbs()));
                     Collections.sort(parent2ToIBSList, Comparator.comparing(l->l.getIbs()));
@@ -57,12 +59,17 @@ public class HybridIdentification {
                         sb.append(parent2ToIBSList.get(1).parents).append("\t");
                         sb.append(parent1ToIBSList.get(0).ibs).append("\t");
                         sb.append(parent2ToIBSList.get(1).ibs).append("\t");
+                        sb.append(parent1ToIBSList.get(0).numOfNonMissingSite).append("\t");
+                        sb.append(parent2ToIBSList.get(1).numOfNonMissingSite).append("\t");
                     }else {
                         sb.append(parent1ToIBSList.get(0).parents).append("\t");
                         sb.append(parent2ToIBSList.get(0).parents).append("\t");
                         sb.append(parent1ToIBSList.get(0).ibs).append("\t");
                         sb.append(parent2ToIBSList.get(0).ibs).append("\t");
+                        sb.append(parent1ToIBSList.get(0).numOfNonMissingSite).append("\t");
+                        sb.append(parent2ToIBSList.get(0).numOfNonMissingSite).append("\t");
                     }
+                    sb.deleteCharAt(sb.length()-1);
                     bw.write(sb.toString());
                     bw.newLine();
                 }
@@ -203,10 +210,12 @@ public class HybridIdentification {
 
         String parents;
         double ibs;
+        int numOfNonMissingSite;
 
-        public Parent2IBS(String parents, double ibs){
+        public Parent2IBS(String parents, double ibs, int numOfNonMissingSite){
             this.parents=parents;
             this.ibs=ibs;
+            this.numOfNonMissingSite=numOfNonMissingSite;
         }
 
         public double getIbs() {
@@ -215,6 +224,10 @@ public class HybridIdentification {
 
         public String getParents() {
             return parents;
+        }
+
+        public int getNumOfNonMissingSite() {
+            return numOfNonMissingSite;
         }
     }
 }
