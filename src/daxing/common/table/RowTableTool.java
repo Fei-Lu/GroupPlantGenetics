@@ -195,12 +195,14 @@ public class RowTableTool<T> extends RowTable<T> {
         return s;
     }
 
-    public static List<String> getColumnList(String inFile, int columnIndex, String sep){
+    public static List<String> getColumnList(String inFile, int columnIndex, String sep, boolean haveHeader){
         List<String> list=new ArrayList<>();
         try (BufferedReader br = IOTool.getReader(inFile)) {
             String line;
             String[] temp;
-            br.readLine();
+            if (haveHeader){
+                br.readLine();
+            }
             while ((line=br.readLine())!=null){
                 temp= StringUtils.split(line, sep);
                 list.add(temp[columnIndex]);
@@ -211,8 +213,16 @@ public class RowTableTool<T> extends RowTable<T> {
         return list;
     }
 
+    public static List<String> getColumnList(String inFile, int columnIndex, String sep){
+        return getColumnList(inFile, columnIndex, sep, true);
+    }
+
     public static List<String> getColumnList(String inFile, int columnIndex){
         return getColumnList(inFile, columnIndex, "\t");
+    }
+
+    public static List<String> getColumnList(String inFile, int columnIndex, boolean haveHeader){
+        return getColumnList(inFile, columnIndex, "\t", haveHeader);
     }
 
     public static Map<String,String> getMap(String tableFile, int columnIndexA, int columnIndexB, String sep){
@@ -225,8 +235,22 @@ public class RowTableTool<T> extends RowTable<T> {
         return map;
     }
 
+    public static Map<String,String> getMap(String tableFile, int columnIndexA, int columnIndexB, String sep, boolean haveHeader){
+        List<String> listA=getColumnList(tableFile, columnIndexA, sep, haveHeader);
+        List<String> listB=getColumnList(tableFile, columnIndexB, sep, haveHeader);
+        Map<String,String> map=new HashMap<>();
+        for (int i = 0; i < listA.size(); i++) {
+            map.put(listA.get(i), listB.get(i));
+        }
+        return map;
+    }
+
     public static Map<String,String> getMap(String tableFile, int columnIndexA, int columnIndexB){
         return getMap(tableFile, columnIndexA, columnIndexB, "\t");
+    }
+
+    public static Map<String,String> getMap(String tableFile, int columnIndexA, int columnIndexB, boolean haveHeader){
+        return getMap(tableFile, columnIndexA, columnIndexB, "\t", haveHeader);
     }
 
     /**
