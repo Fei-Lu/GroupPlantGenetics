@@ -3,7 +3,6 @@ package daxing.load.ancestralSite;
 import gnu.trove.list.array.TByteArrayList;
 import gnu.trove.list.array.TDoubleArrayList;
 
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,7 +12,7 @@ public class GeneLoad implements Comparable<GeneLoad>{
     String geneName;
     TByteArrayList synGenotype;
     TByteArrayList nonsynGenotype;
-    TByteArrayList hgDeleteriousGenop;
+    TByteArrayList hgDeleteriousGenotype;
     // this is use for reference bias correction
     TDoubleArrayList hgDeleteriousCorrRatio;
 
@@ -41,7 +40,7 @@ public class GeneLoad implements Comparable<GeneLoad>{
         this.geneName=geneName;
         this.synGenotype =new TByteArrayList();
         this.nonsynGenotype=new TByteArrayList();
-        this.hgDeleteriousGenop=new TByteArrayList();
+        this.hgDeleteriousGenotype =new TByteArrayList();
         this.hgDeleteriousCorrRatio =new TDoubleArrayList();
     }
 
@@ -53,7 +52,7 @@ public class GeneLoad implements Comparable<GeneLoad>{
         if (indexGenotype[0]==0){
             this.synGenotype.add(indexGenotype[1]);
         }else if(indexGenotype[0]==2){
-            this.hgDeleteriousGenop.add(indexGenotype[1]);
+            this.hgDeleteriousGenotype.add(indexGenotype[1]);
             this.nonsynGenotype.add(indexGenotype[1]);
         }else if (indexGenotype[0]==1){
             this.nonsynGenotype.add(indexGenotype[1]);
@@ -66,7 +65,7 @@ public class GeneLoad implements Comparable<GeneLoad>{
             if (indexGenotype[0]==0){
                 this.synGenotype.add(indexGenotype[1]);
             }else if(indexGenotype[0]==2){
-                this.hgDeleteriousGenop.add(indexGenotype[1]);
+                this.hgDeleteriousGenotype.add(indexGenotype[1]);
                 this.nonsynGenotype.add(indexGenotype[1]);
             }else if (indexGenotype[0]==1){
                 this.nonsynGenotype.add(indexGenotype[1]);
@@ -75,7 +74,7 @@ public class GeneLoad implements Comparable<GeneLoad>{
             if (indexGenotype[0]==0){
                 this.synGenotype.add(indexGenotype[1]);
             }else if(indexGenotype[0]==2){
-                this.hgDeleteriousGenop.add(indexGenotype[1]);
+                this.hgDeleteriousGenotype.add(indexGenotype[1]);
 //                this.nonsynGenotype.add(indexGenotype[1]);
             }else if (indexGenotype[0]==1){
                 this.nonsynGenotype.add(indexGenotype[1]);
@@ -87,7 +86,7 @@ public class GeneLoad implements Comparable<GeneLoad>{
         if (indexGenotype[0]==0){
             this.synGenotype.add(indexGenotype[1]);
         }else if(indexGenotype[0]==2){
-            this.hgDeleteriousGenop.add(indexGenotype[1]);
+            this.hgDeleteriousGenotype.add(indexGenotype[1]);
             this.nonsynGenotype.add(indexGenotype[1]);
             this.hgDeleteriousCorrRatio.add(corrRatio);
         }else if (indexGenotype[0]==1){
@@ -104,7 +103,7 @@ public class GeneLoad implements Comparable<GeneLoad>{
     }
 
     public int getHGDeleteriousNum(){
-        return this.hgDeleteriousGenop.size();
+        return this.hgDeleteriousGenotype.size();
     }
 
     public int getSynHeterSitesNum(){
@@ -127,8 +126,8 @@ public class GeneLoad implements Comparable<GeneLoad>{
 
     public int getHGDeleteriousHeterSitesNum(){
         int sum=0;
-        for (int i = 0; i < this.hgDeleteriousGenop.size(); i++) {
-            if (this.hgDeleteriousGenop.get(i)!=2) continue;
+        for (int i = 0; i < this.hgDeleteriousGenotype.size(); i++) {
+            if (this.hgDeleteriousGenotype.get(i)!=2) continue;
             sum++;
         }
         return sum;
@@ -154,8 +153,8 @@ public class GeneLoad implements Comparable<GeneLoad>{
 
     public int getHGDeleteriousDerivedNum(){
         int sum=0;
-        for (int i = 0; i < this.hgDeleteriousGenop.size(); i++) {
-            if (this.hgDeleteriousGenop.get(i)!=1) continue;
+        for (int i = 0; i < this.hgDeleteriousGenotype.size(); i++) {
+            if (this.hgDeleteriousGenotype.get(i)!=1) continue;
             sum++;
         }
         return sum;
@@ -163,8 +162,8 @@ public class GeneLoad implements Comparable<GeneLoad>{
 
     public double getCorrectedHGDeleteriousDerivedNum(){
         double sum=0;
-        for (int i = 0; i < this.hgDeleteriousGenop.size(); i++) {
-            if (this.hgDeleteriousGenop.get(i)!=1) continue;
+        for (int i = 0; i < this.hgDeleteriousGenotype.size(); i++) {
+            if (this.hgDeleteriousGenotype.get(i)!=1) continue;
             sum+=this.hgDeleteriousCorrRatio.get(i);
         }
         return sum;
@@ -189,7 +188,7 @@ public class GeneLoad implements Comparable<GeneLoad>{
         sb.append(this.getSynDerivedNum()).append("\t").append(this.getSynHeterSitesNum()).append("\t");
         sb.append(this.nonsynGenotype.size()).append("\t");
         sb.append(this.getNonsynDerivedNum()).append("\t").append(this.getNonsynHeterSitesNum()).append("\t");
-        sb.append(this.hgDeleteriousGenop.size()).append("\t");
+        sb.append(this.hgDeleteriousGenotype.size()).append("\t");
         sb.append(this.getHGDeleteriousDerivedNum()).append("\t").append(this.getHGDeleteriousHeterSitesNum());
         // for correct reference bias
 //        sb.append(this.getCorrectedHGDeleteriousDerivedNum()).append("\t").append(this.getHGDeleteriousHeterSitesNum());
