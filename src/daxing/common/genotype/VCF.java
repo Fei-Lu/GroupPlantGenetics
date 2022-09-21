@@ -186,7 +186,8 @@ public class VCF {
 
     /**
      *
-     * @param inputVcfDir inputVcfDir
+     * @param inputVcfDir inputVcfDir merge chr001 chr002 chr003 chr004 ... to chr.Asubgenome.vcf.gz chr.Bsubgenome
+     *                    .vcf.gz chr.Dsubgenome.vcf.gz
      * @param outDir outDir
      */
     public static void fastMergeVCFtoLineage(String inputVcfDir, String outDir){
@@ -247,6 +248,82 @@ public class VCF {
         System.out.println(DateTime.getDateTimeOfNow()+" end");
     }
 
+    /**
+     *
+     * @param inputVcfDir inputVcfDir merge chr1A chr1B chr1D chr2A ... to chr.Asubgenome.vcf.gz chr.Bsubgenome
+     *                    .vcf.gz chr.Dsubgenome.vcf.gz
+     * @param outDir outDir
+     */
+    public static void fastMergeVCFtoLineage2(String inputVcfDir, String outDir){
+        System.out.println(DateTime.getDateTimeOfNow()+ " start");
+        File[] files=new File(inputVcfDir).listFiles();
+        Predicate<File> hidden=File::isHidden;
+        Predicate<File> p= hidden.negate().and(f->f.getName().toLowerCase().startsWith("chr"));
+        assert files != null;
+        File[] f=Arrays.stream(files).filter(p).sorted().toArray(File[]::new);
+
+        List<String>[] abd=new List[3];
+
+        abd[0]=new ArrayList<>(WheatLineage.valueOf("A").getChr());
+        abd[1]=new ArrayList(WheatLineage.valueOf("B").getChr());
+        abd[2]=new ArrayList(WheatLineage.valueOf("D").getChr());
+
+        Predicate<File> ap=fa->abd[0].contains(fa.getName().substring(3,5));
+        Predicate<File> bp=fa->abd[1].contains(fa.getName().substring(3,5));
+        Predicate<File> dp=fa->abd[2].contains((fa.getName().substring(3,5)));
+
+        File[][] abd_lineageFile=new File[3][];
+
+        abd_lineageFile[0]= Arrays.stream(f).filter(ap).toArray(File[]::new);
+        abd_lineageFile[1]= Arrays.stream(f).filter(bp).toArray(File[]::new);
+        abd_lineageFile[2]= Arrays.stream(f).filter(dp).toArray(File[]::new);
+
+        String[] outNames={"chr.Asubgenome.vcf", "chr.Bsubgenome.vcf", "chr.Dsubgenome.vcf"};
+
+        BufferedWriter[] bws=new BufferedWriter[3];
+        for (int i = 0; i < bws.length; i++) {
+            bws[i]= IOTool.getWriter(new File(outDir, outNames[i]).getAbsolutePath());
+        }
+        try {
+            BufferedReader br;
+            boolean ifFirst=true;
+            StringBuilder sb;
+            for (int i = 0; i < abd_lineageFile.length; i++) {
+                for (int j = 0; j < abd_lineageFile[i].length; j++) {
+                    sb=new StringBuilder(1000);
+                    br=IOTool.getReader(abd_lineageFile[i][j].getAbsolutePath());
+                    String line;
+                    while ((line=br.readLine()).startsWith("##")){
+                        sb.append(line);
+                        sb.append("\n");
+                    }
+                    sb.append(line);
+                    sb.append("\n");
+                    if (ifFirst){
+                        bws[i].write(sb.toString());
+                        ifFirst=false;
+                    }
+                    while ((line=br.readLine())!=null){
+                        bws[i].write(line);
+                        bws[i].newLine();
+                    }
+                    br.close();
+                }
+                bws[i].flush();
+                bws[i].close();
+                ifFirst=true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println(DateTime.getDateTimeOfNow()+" end");
+    }
+
+    /**
+     * inputVcfDir merge chr001 chr002 chr003 chr004 ... to chrAB.vcf.gz
+     * @param inputVcfDir
+     * @param outDir
+     */
     public static void fastMergeVCFtoAB(String inputVcfDir, String outDir){
         List<File> files = IOTool.getFileListInDirEndsWith(inputVcfDir, "vcf.gz");
         int[] abChrID = WheatLineage.ablineage();
@@ -255,11 +332,61 @@ public class VCF {
         BufferedReader br;
         BufferedWriter bw ;
         try {
-            bw = IOTool.getWriter(new File(outDir, "chrAB.vcf.gz"));
+            bw = IOTool.getWriter(new File(outDir, "chrAB.vcf"));
             String line;
             boolean first=true;
             for (int i = 0; i < chrIDArray.length; i++) {
                 int index = Arrays.binarySearch(abChrID, chrIDArray[i]);
+                if (index < 0) continue;
+                br = IOTool.getReader(files.get(i));
+                if (first){
+                    while ((line = br.readLine()).startsWith("##")){
+                        bw.write(line);
+                        bw.newLine();
+                    }
+                    bw.write(line);
+                    bw.newLine();
+                    while ((line=br.readLine())!=null){
+                        bw.write(line);
+                        bw.newLine();
+                    }
+                    first = false;
+                }else {
+                    while ((line = br.readLine()).startsWith("##")) continue;
+                    while ((line=br.readLine())!=null){
+                        bw.write(line);
+                        bw.newLine();
+                    }
+                }
+                br.close();
+            }
+            bw.flush();
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
+     * inputVcfDir merge chr1A chr1B chr1D chr2A ... to chrAB.vcf.gz
+     * @param inputVcfDir
+     * @param outDir
+     */
+    public static void fastMergeVCFtoAB2(String inputVcfDir, String outDir){
+
+        List<File> files = IOTool.getFileListInDirEndsWith(inputVcfDir, "vcf.gz");
+        List<String> abChr = WheatLineage.abLineage();
+        String[] chrArray= files.stream().map(File::getName).map(s -> s.substring(3,5)).toArray(String[]::new);
+
+        BufferedReader br;
+        BufferedWriter bw;
+        try {
+            bw = IOTool.getWriter(new File(outDir, "chrAB2.vcf"));
+            String line;
+            boolean first=true;
+            for (int i = 0; i < chrArray.length; i++) {
+                int index = Collections.binarySearch(abChr, chrArray[i]);
                 if (index < 0) continue;
                 br = IOTool.getReader(files.get(i));
                 if (first){
