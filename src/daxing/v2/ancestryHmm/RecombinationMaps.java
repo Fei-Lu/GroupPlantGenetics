@@ -163,7 +163,7 @@ public class RecombinationMaps{
     public double getGeneticPositions(String refChr, int position){
         int hit = this.findPositionIndex(refChr, position);
         int positionIndex1, positionIndex2;
-        int positionIndex=-1;
+        int positionIndex=hit;
         if (hit < 0){
             if (hit == -1){
                 positionIndex = -hit-1;
@@ -176,6 +176,9 @@ public class RecombinationMaps{
                     positionIndex = positionIndex2;
                 }
             }
+        }
+        if (positionIndex < 0){
+            System.out.println(refChr+" "+position);
         }
         return this.geneticPositions[positionIndex];
     }
