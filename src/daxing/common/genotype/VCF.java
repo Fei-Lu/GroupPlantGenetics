@@ -1681,4 +1681,54 @@ public class VCF {
         }
         System.out.println(outFile.getName()+" completed in "+ Benchmark.getTimeSpanMinutes(start)+" minutes");
     }
+
+    public static void filterVCF(File prunedSNPFile, File vcfFile, File prunedVCFFile){
+        try (BufferedReader br = IOTool.getReader(prunedSNPFile);
+             BufferedReader brGeno = IOTool.getReader(vcfFile);
+             BufferedWriter bw =IOTool.getWriter(prunedVCFFile)) {
+            String line;
+            List<String> temp;
+            List<String> snpIDList = new ArrayList<>(42*1000*1000);
+            long start = System.nanoTime();
+            while ((line=br.readLine())!=null){
+                snpIDList.add(line);
+            }
+            System.out.println("Reading "+prunedSNPFile.getName()+ " take "+Benchmark.getTimeSpanSeconds(start)+ " s");
+            NumberFormat numberFormat = NumberFormat.getNumberInstance();
+            numberFormat.setGroupingUsed(true);
+
+            System.out.println("Total "+numberFormat.format(snpIDList.size())+" SNPs in "+prunedSNPFile.getName());
+
+            Comparator<String> c1 = Comparator.comparing(l->Integer.parseInt(PStringUtils.fastSplit(l,"-").get(0)));
+            Comparator<String> c2 = c1.thenComparing(l->Integer.parseInt(PStringUtils.fastSplit(l, "-").get(1)));
+            Collections.sort(snpIDList, c2);
+
+            int snpIndex;
+            int removedCount_prunedSNP=0, totalCount=0, remainCount=0;
+            while ((line=brGeno.readLine()).startsWith("##")){
+                bw.write(line);
+                bw.newLine();
+            }
+            bw.write(line);
+            bw.newLine();
+            while ((line=brGeno.readLine())!=null){
+                totalCount++;
+                temp =PStringUtils.fastSplit(line.substring(0, 30));
+                snpIndex = Collections.binarySearch(snpIDList, temp.get(2), c2);
+                if (snpIndex < 0){
+                    removedCount_prunedSNP++;
+                    continue;
+                }
+                bw.write(line);
+                bw.newLine();
+                remainCount++;
+            }
+
+            System.out.println("Total "+numberFormat.format(totalCount)+" SNPs in "+vcfFile.getName());
+            System.out.println("Removed "+numberFormat.format(removedCount_prunedSNP)+" SNPs from "+prunedVCFFile.getName());
+            System.out.println("Remained "+numberFormat.format(remainCount)+ " SNPs in "+ prunedVCFFile.getName());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
