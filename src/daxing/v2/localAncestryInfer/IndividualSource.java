@@ -121,9 +121,10 @@ public class IndividualSource {
      * @param conjunctionNum local
      * @return
      */
-    public List<ChrRange> selectCandidateWindow(int conjunctionNum){
-        List<ChrRange> chrRangeList = new ArrayList<>();
+    public WindowSource[] selectCandidateWindow(int conjunctionNum){
+        List<WindowSource> windowSourceList = new ArrayList<>();
         String[] chrs = this.getChr();
+        WindowSource windowSource;
         for (int j = 0; j < chrs.length; j++) {
             // introgression window index set
             WindowSource[] windowSources = this.getSubsetWindowSources(chrs[j]);
@@ -185,16 +186,28 @@ public class IndividualSource {
             // add ChrRange to chrRangeList
             ChrRange chrRange;
             int refStart, refEnd;
+            Set<WindowSource.Source> sourceSet;
+            EnumSet<WindowSource.Source> sourceEnumSet;
             for (int i = 0; i < indexList.size(); i++) {
                 startEnd = indexList.get(i);
+                sourceSet = new HashSet<>();
+                for (int k = startEnd[0]; k < startEnd[1]; k++) {
+                    sourceSet.addAll(windowSources[k].getSourceSet());
+                }
                 refStart=windowSources[startEnd[0]].getChrRange().getStart();
                 refEnd = windowSources[startEnd[1]].getChrRange().getEnd();
                 chrRange = new ChrRange(chrs[j], refStart, refEnd);
-                chrRangeList.add(chrRange);
+                sourceEnumSet=EnumSet.copyOf(sourceSet);
+                windowSource = new WindowSource(chrRange, sourceEnumSet);
+                windowSourceList.add(windowSource);
             }
         }
-
-        return chrRangeList;
+        WindowSource[] windowSources = new WindowSource[windowSourceList.size()];
+        for (int i = 0; i < windowSourceList.size(); i++) {
+            windowSources[i]=windowSourceList.get(i);
+        }
+        Arrays.sort(windowSources);
+        return windowSources;
     }
 
 

@@ -1,10 +1,15 @@
 package daxing;
 
+import com.google.common.collect.Ordering;
 import daxing.common.chrrange.ChrRange;
+import daxing.common.genotype.GenoGrid;
 import daxing.common.utiles.IOTool;
+import daxing.v2.localAncestryInfer.GenotypeTable;
 import daxing.v2.localAncestryInfer.IndividualSource;
+import daxing.v2.localAncestryInfer.WindowSource;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
+import pgl.infra.dna.genot.GenoIOFormat;
 import pgl.infra.utils.PStringUtils;
 
 import java.io.BufferedReader;
@@ -39,11 +44,12 @@ public class Start {
         String fd_dxyFile = "/Users/xudaxing/Desktop/ABBA/chr2A_vmap2.1_test_LR0002_fd_dxy.txt";
         String groupByPop2IndividualFile="";
         String outFile = "";
-        IndividualSource individualSource = new IndividualSource(fd_dxyFile, "LR_0002");
-        TIntList indexList = individualSource.getInconsistentAncestry();
-//        IndividualSource.test(genotypeFile, fd_dxyFile, groupByPop2IndividualFile, outFile);
-        List<ChrRange> chrRangeList=individualSource.selectCandidateWindow(3);
+        int[] taxaIndex={0,1,2,3};
+        GenotypeTable genotypeTable = new GenotypeTable(genotypeFile);
         System.out.println();
+//        IndividualSource individualSource = new IndividualSource(fd_dxyFile, "LR_0002");
+//        WindowSource[] chrRangeList=individualSource.selectCandidateWindow(3);
+//        System.out.println();
 
     }
 

@@ -2,6 +2,8 @@ package daxing.v2.localAncestryInfer;
 
 import daxing.common.chrrange.ChrRange;
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Record the windows and source population
@@ -39,6 +41,15 @@ public class WindowSource implements Comparable<WindowSource>{
 
     public EnumSet<Source> getSources() {
         return sources;
+    }
+
+    public Set<Source> getSourceSet(){
+        Set<Source> set = new HashSet<>();
+        EnumSet<Source> enumSet = this.getSources();
+        for (Source source: enumSet){
+            set.add(source);
+        }
+        return set;
     }
 
     public int getSourceNum(){
