@@ -273,8 +273,8 @@ public class GenotypeTable {
      * @param queryGenotype
      * @return
      */
-    public static List<TIntList> getMiniPath(double[][] srcGenotype, double[] queryGenotype){
-        double switchCostScore= 1.5;
+    public static List<TIntList> getMiniPath(double[][] srcGenotype, double[] queryGenotype, double switchCostScore){
+//        double switchCostScore= 1.5;
 //        int[][] srcGenotype = {{0,1,0,1,0,1,0,0,0,0,1,1},
 //                            {0,0,0,1,0,1,1,0,0,0,1,1},
 //                            {0,0,1,0,1,0,0,0,1,0,1,1},

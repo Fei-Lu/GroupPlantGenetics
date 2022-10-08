@@ -6,14 +6,17 @@ import daxing.common.genotype.GenoGrid;
 import daxing.common.utiles.IOTool;
 import daxing.v2.localAncestryInfer.GenotypeTable;
 import daxing.v2.localAncestryInfer.IndividualSource;
+import daxing.v2.localAncestryInfer.LocalAncestryInferenceStart;
 import daxing.v2.localAncestryInfer.WindowSource;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
+import org.apache.commons.lang3.EnumUtils;
 import pgl.infra.dna.genot.GenoIOFormat;
 import pgl.infra.utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -40,17 +43,20 @@ public class Start {
 //        Panel.preparePanelForAncestryHMM(genotypeDir, sample2PopInfoDir, recombinationMapFile, prunedInSNPFile_AB,
 //                prunedInSNPFile_D, outDirPanel);
 
-        String genotypeFile = "/Users/xudaxing/Desktop/ABBA/chr2A_vmap2.1_test.recode.vcf";
-        String fd_dxyFile = "/Users/xudaxing/Desktop/ABBA/chr2A_vmap2.1_test_LR0002_fd_dxy.txt";
-        String groupByPop2IndividualFile="";
-        String outFile = "";
-        int[] taxaIndex={0,1,2,3};
-        GenotypeTable genotypeTable = new GenotypeTable(genotypeFile);
-        System.out.println();
-//        IndividualSource individualSource = new IndividualSource(fd_dxyFile, "LR_0002");
-//        WindowSource[] chrRangeList=individualSource.selectCandidateWindow(3);
-//        System.out.println();
-
+        String genotypeFile = "/Users/xudaxing/Desktop/ABBA/001_gentotype/chr2A_vmap2.1_test.recode.vcf";
+        String fd_dxyFile = "/Users/xudaxing/Desktop/ABBA/002_dxy_fd";
+        String groupByPop2IndividualFile="/Users/xudaxing/Desktop/ABBA/groupByPop2Indi_indianDwarfToNONE.txt";
+        String outDir="/Users/xudaxing/Desktop/ABBA/003_outDir";
+        int conjunctionNum=2;
+        double switchCostScore=2.5;
+        LocalAncestryInferenceStart.InferLocalAncestry("2A", new File(genotypeFile),
+                new File(groupByPop2IndividualFile), new File(fd_dxyFile), conjunctionNum, switchCostScore,
+                new File(outDir));
+//        if (EnumUtils.isValidEnum(WindowSource.Source.class, "WE")){
+//            System.out.println("ok");
+//        }else {
+//            System.out.println("not");
+//        }
     }
 
     public static void test(String introgressionMapFile, String infoSiteFile, String outFile){

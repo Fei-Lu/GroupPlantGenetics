@@ -1,30 +1,73 @@
 package daxing.v2.localAncestryInfer;
 
+import daxing.common.table.RowTableTool;
 import daxing.common.utiles.IOTool;
 import gnu.trove.list.TIntList;
+import org.apache.commons.lang3.EnumUtils;
+import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 public class LocalAncestryInferenceStart {
 
-    public static void InferLocalAncestry(File genotypeFile, File groupInfoFile, List<File> fd_dxyFiles){
-        GenotypeTable genoGrid = new GenotypeTable(genotypeFile.getAbsolutePath());
+    public static void InferLocalAncestry(String refChr, File genotypeFile, File groupInfoFile, File fd_dxyFileDir,
+                                          int conjunctionNum, double switchCostScore, File outDir){
+        GenotypeTable genoTable = new GenotypeTable(genotypeFile.getAbsolutePath());
         Map<WindowSource.Source, List<String>> srcIndividualMap = getSrcPopMap(groupInfoFile.getAbsolutePath());
-        List<String> queryList = getQuery(groupInfoFile.getAbsolutePath());
-        List<Future<List<TIntList>>> callableList = new ArrayList<>();
+        Map<String, WindowSource.Source> taxaSourceMap = getTaxaSourceMap(groupInfoFile.getAbsolutePath());
+        Map<String, String> introgressionID2VcfIDMap = RowTableTool.getMap(groupInfoFile.getAbsolutePath(), 1,0);
+        List<File> fd_dxyFiles = IOTool.getFileListInDirEndsWith(fd_dxyFileDir.getAbsolutePath(), ".txt");
+        String[] queryTaxa= fd_dxyFiles.stream().map(File::getName).map(s->introgressionID2VcfIDMap.get(s.substring(13,
+                20))).toArray(String[]::new);
+        String[] outFiles = Arrays.stream(queryTaxa).map(s -> "chr"+refChr+"_"+s+"_LAI.txt").toArray(String[]::new);
+
+        List<Callable<Integer>> callableTasks = new ArrayList<>();
+        for (int i = 0; i < fd_dxyFiles.size(); i++) {
+            int k = i;
+//            callableTasks.add(()-> inferLocalAncestry(refChr, genoTable, srcIndividualMap, taxaSourceMap,
+//                    fd_dxyFiles.get(k), queryTaxa[k], new File(outDir, outFiles[k])));
+            inferLocalAncestry(refChr, genoTable, srcIndividualMap, taxaSourceMap,
+                    fd_dxyFiles.get(k), queryTaxa[k], new File(outDir, outFiles[k]), conjunctionNum, switchCostScore);
+        }
+//        ExecutorService executorService = Executors.newFixedThreadPool(1);
+//        List<Integer> exitCodes = new ArrayList<>();
+//        long start = System.nanoTime();
+//        try {
+//            List<Future<Integer>> futureList=executorService.invokeAll(callableTasks);
+//            executorService.shutdown();
+//            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
+//            for (Future<Integer> future : futureList){
+//                exitCodes.add(future.get());
+//            }
+//        } catch (InterruptedException | ExecutionException e) {
+//            e.printStackTrace();
+//        }
+//        List<String> failCommandList= new ArrayList<>();
+//        for (int i = 0; i < exitCodes.size(); i++) {
+//            if (exitCodes.get(i)!=0){
+//                failCommandList.add(fd_dxyFiles.get(i).getName()+ "_"+refChr+" command fail to completed");
+//            }
+//        }
+//        if (failCommandList.size()==0){
+//            System.out.println("all commands had completed in "+ Benchmark.getTimeSpanHours(start)+ " hours");
+//        }else {
+//            System.out.println(failCommandList.size()+ "commands run failed");
+//            System.out.println("Total spend "+Benchmark.getTimeSpanHours(start)+ " hours");
+//        }
     }
 
     public static int inferLocalAncestry(String refChr, GenotypeTable genoTable,
                                                     Map<WindowSource.Source, List<String>> srcIndividualMap,
                                                     Map<String, WindowSource.Source> taxaSourceMap,
-                                                    IndividualSource individualSource,
-                                         File outFile){
-        WindowSource[] toBeInferredWindow = individualSource.selectCandidateWindow(2);
+                                                    File fd_dxyFile, String queryTaxon,
+                                         File outFile, int conjunctionNum, double switchCostScore){
+        IndividualSource queryIndividualSource = new IndividualSource(fd_dxyFile.getAbsolutePath(), queryTaxon);
+        WindowSource[] toBeInferredWindow = queryIndividualSource.selectCandidateWindow(conjunctionNum);
         List<WindowSource> toBeInferredWindowChrList = new ArrayList<>();
         for (WindowSource windowSource: toBeInferredWindow){
             if (windowSource.getChrRange().getChr().equals(refChr)){
@@ -35,15 +78,17 @@ public class LocalAncestryInferenceStart {
         List<String> srcIndiList;
         int[] srcTaxaIndices;
         int[] siteIndex;
-        String queryTaxon;
         int startIndex, endIndex, queryTaxonIndex;
         double[][] srcGenotype;
         double[] queryGenotype;
         List<TIntList> solution;
         try (BufferedWriter bw = IOTool.getWriter(outFile)) {
-            bw.write("Taxon\tChr\tStart\tEnd\tSource");
+            bw.write("Taxon\tChr\tStart\tEnd\tSource\tSolution");
             bw.newLine();
             StringBuilder sb = new StringBuilder();
+            int currentHaplotype;
+            int firstPos;
+            int endPos;
             for (int i = 0; i < toBeInferredWindowChrList.size(); i++) {
                 sourceEnumSet = toBeInferredWindowChrList.get(i).getSources();
                 srcIndiList = new ArrayList<>();
@@ -65,16 +110,43 @@ public class LocalAncestryInferenceStart {
                 siteIndex[1]=endIndex;
 
                 // query taxon index
-                queryTaxon =  individualSource.getIndividualID();
                 queryTaxonIndex = genoTable.getTaxonIndex(queryTaxon);
 
+                // solution of mini distance
                 srcGenotype = genoTable.getSrcGenotypeFrom(srcTaxaIndices, siteIndex);
                 queryGenotype = genoTable.getQueryGenotypeFrom(queryTaxonIndex, siteIndex);
-                solution = GenotypeTable.getMiniPath(srcGenotype, queryGenotype);
+                solution = GenotypeTable.getMiniPath(srcGenotype, queryGenotype, switchCostScore );
 
-                // solution + srcIndiList + siteIndex + taxaSourceMap
-                // final result
-
+                // write
+                for (int j = 0; j < solution.size(); j++) {
+                    currentHaplotype = solution.get(j).get(0);
+                    firstPos=0;
+                    endPos=0;
+                    for (int k = 1; k < solution.get(j).size(); k++) {
+                        sb.setLength(0);
+                        sb.append(queryTaxon).append("\t").append(refChr).append("\t");
+                        if (currentHaplotype==solution.get(j).get(k)){
+                            endPos++;
+                        }else {
+                            sb.append(genoTable.getPosition(siteIndex[firstPos])).append("\t");
+                            sb.append(genoTable.getPosition(siteIndex[endPos])).append("\t");
+                            sb.append(taxaSourceMap.get(srcIndiList.get(currentHaplotype))).append("\t");
+                            sb.append(j);
+                            bw.write(sb.toString());
+                            bw.newLine();
+                            firstPos = k;
+                            endPos=k;
+                        }
+                    }
+                    sb.setLength(0);
+                    sb.append(queryTaxon).append("\t").append(refChr).append("\t");
+                    sb.append(genoTable.getPosition(siteIndex[firstPos])).append("\t");
+                    sb.append(genoTable.getPosition(siteIndex[endPos])).append("\t");
+                    sb.append(taxaSourceMap.get(srcIndiList.get(currentHaplotype))).append("\t");
+                    sb.append(j);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -112,15 +184,40 @@ public class LocalAncestryInferenceStart {
             List<String> temp;
             while ((line=br.readLine())!=null){
                 temp = PStringUtils.fastSplit(line);
-                source = WindowSource.Source.valueOf(temp.get(1));
-                if (srcPopSet.contains(source)){
-                    srcIndividualMap.get(source).add(temp.get(0));
+                if(EnumUtils.isValidEnum(WindowSource.Source.class, temp.get(1))){
+                    source = WindowSource.Source.valueOf(temp.get(1));
+                    if (srcPopSet.contains(source)){
+                        srcIndividualMap.get(source).add(temp.get(0));
+                    }
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
         return srcIndividualMap;
+    }
+
+    public static Map<String, WindowSource.Source> getTaxaSourceMap(String groupInfoFile){
+        Map<String, WindowSource.Source> taxaSourceMap = new HashMap<>();
+        EnumSet<WindowSource.Source> srcPopSet = EnumSet.of(WindowSource.Source.WE, WindowSource.Source.DE,
+                WindowSource.Source.FTT, WindowSource.Source.AT, WindowSource.Source.NONE);
+        WindowSource.Source source;
+        try (BufferedReader br = IOTool.getReader(groupInfoFile)) {
+            String line;
+            List<String> temp;
+            while ((line=br.readLine())!=null){
+                temp = PStringUtils.fastSplit(line);
+                if(EnumUtils.isValidEnum(WindowSource.Source.class, temp.get(1))){
+                    source = WindowSource.Source.valueOf(temp.get(1));
+                    if (srcPopSet.contains(source)){
+                        taxaSourceMap.put(temp.get(0), source);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return taxaSourceMap;
     }
 
 
