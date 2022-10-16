@@ -1,19 +1,11 @@
 package daxing;
 
-import com.google.common.collect.Ordering;
-import daxing.common.chrrange.ChrRange;
-import daxing.common.genotype.GenoGrid;
+import daxing.common.factors.WheatLineage;
 import daxing.common.utiles.IOTool;
 import daxing.v2.localAncestryInfer.GenotypeTable;
-import daxing.v2.localAncestryInfer.IndividualSource;
 import daxing.v2.localAncestryInfer.LocalAncestryInferenceStart;
-import daxing.v2.localAncestryInfer.WindowSource;
-import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
-import org.apache.commons.lang3.EnumUtils;
-import pgl.infra.dna.genot.GenoIOFormat;
 import pgl.infra.utils.PStringUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -52,11 +44,24 @@ public class Start {
         LocalAncestryInferenceStart.InferLocalAncestry("2A", new File(genotypeFile),
                 new File(groupByPop2IndividualFile), new File(fd_dxyFile), conjunctionNum, switchCostScore,
                 new File(outDir));
-//        if (EnumUtils.isValidEnum(WindowSource.Source.class, "WE")){
-//            System.out.println("ok");
-//        }else {
-//            System.out.println("not");
+
+
+//        double switchCostScore= 1.5;
+//        double[][] srcGenotype = {{0,1,0,1,0,1,0,0,0,0,1,1},
+//                            {0,0,0,1,0,1,1,0,0,0,1,1},
+//                            {0,0,1,0,1,0,0,0,1,0,1,1},
+//                            {0,0,0,0,1,0,1,0,1,1,1,1},
+//                            {1,1,0,0,0,0,1,1,1,1,0,0},
+//                            {1,0,0,1,0,0,1,1,1,1,0,0}};
+//        double[] queryGenotype = {1,1,0,0,0,1,0,0,1,1,1,1};
+//        GenotypeTable.getMiniPath3(srcGenotype, queryGenotype, 1.5);
+
+//        List<String> a = WheatLineage.abLineage();
+//        StringBuilder sb = new StringBuilder();
+//        for (int i = 0; i < a.size(); i++) {
+//            sb.append(a.get(i)).append(" ");
 //        }
+//        System.out.println(sb.toString());
     }
 
     public static void test(String introgressionMapFile, String infoSiteFile, String outFile){

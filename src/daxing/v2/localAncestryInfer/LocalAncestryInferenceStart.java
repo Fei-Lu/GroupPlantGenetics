@@ -3,8 +3,8 @@ package daxing.v2.localAncestryInfer;
 import daxing.common.table.RowTableTool;
 import daxing.common.utiles.IOTool;
 import gnu.trove.list.TIntList;
+import gnu.trove.set.TIntSet;
 import org.apache.commons.lang3.EnumUtils;
-import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -81,7 +81,7 @@ public class LocalAncestryInferenceStart {
         int startIndex, endIndex, queryTaxonIndex;
         double[][] srcGenotype;
         double[] queryGenotype;
-        List<TIntList> solution;
+        List<int[]> solution;
         try (BufferedWriter bw = IOTool.getWriter(outFile)) {
             bw.write("Taxon\tChr\tStart\tEnd\tSource\tSolution");
             bw.newLine();
@@ -115,21 +115,24 @@ public class LocalAncestryInferenceStart {
                 // solution of mini distance
                 srcGenotype = genoTable.getSrcGenotypeFrom(srcTaxaIndices, siteIndex);
                 queryGenotype = genoTable.getQueryGenotypeFrom(queryTaxonIndex, siteIndex);
-                solution = GenotypeTable.getMiniPath(srcGenotype, queryGenotype, switchCostScore );
+                solution = GenotypeTable.getMiniPath3(srcGenotype, queryGenotype, switchCostScore );
 
                 // write
                 for (int j = 0; j < solution.size(); j++) {
-                    currentHaplotype = solution.get(j).get(0);
+                    currentHaplotype = solution.get(j)[0];
                     firstPos=0;
                     endPos=0;
-                    for (int k = 1; k < solution.get(j).size(); k++) {
+                    for (int k = 1; k < solution.get(j).length; k++) {
                         sb.setLength(0);
                         sb.append(queryTaxon).append("\t").append(refChr).append("\t");
-                        if (currentHaplotype==solution.get(j).get(k)){
+                        if (currentHaplotype==solution.get(j)[k]){
                             endPos++;
                         }else {
-                            sb.append(genoTable.getPosition(siteIndex[firstPos])).append("\t");
-                            sb.append(genoTable.getPosition(siteIndex[endPos])).append("\t");
+                            sb.append(genoTable.getPosition(siteIndex[0]+firstPos)).append("\t");
+                            sb.append(genoTable.getPosition(siteIndex[0]+endPos)).append("\t");
+                            if (currentHaplotype==-1){
+                                System.out.println(-1);
+                            }
                             sb.append(taxaSourceMap.get(srcIndiList.get(currentHaplotype))).append("\t");
                             sb.append(j);
                             bw.write(sb.toString());
@@ -140,8 +143,8 @@ public class LocalAncestryInferenceStart {
                     }
                     sb.setLength(0);
                     sb.append(queryTaxon).append("\t").append(refChr).append("\t");
-                    sb.append(genoTable.getPosition(siteIndex[firstPos])).append("\t");
-                    sb.append(genoTable.getPosition(siteIndex[endPos])).append("\t");
+                    sb.append(genoTable.getPosition(siteIndex[0]+firstPos)).append("\t");
+                    sb.append(genoTable.getPosition(siteIndex[0]+endPos)).append("\t");
                     sb.append(taxaSourceMap.get(srcIndiList.get(currentHaplotype))).append("\t");
                     sb.append(j);
                     bw.write(sb.toString());
