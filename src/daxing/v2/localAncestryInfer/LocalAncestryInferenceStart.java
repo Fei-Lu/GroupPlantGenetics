@@ -115,7 +115,7 @@ public class LocalAncestryInferenceStart {
                 // solution of mini distance
                 srcGenotype = genoTable.getSrcGenotypeFrom(srcTaxaIndices, siteIndex);
                 queryGenotype = genoTable.getQueryGenotypeFrom(queryTaxonIndex, siteIndex);
-                solution = GenotypeTable.getMiniPath3(srcGenotype, queryGenotype, switchCostScore );
+                solution = GenotypeTable.getMiniPath2(srcGenotype, queryGenotype, switchCostScore );
 
                 // write
                 for (int j = 0; j < solution.size(); j++) {
@@ -123,20 +123,18 @@ public class LocalAncestryInferenceStart {
                     firstPos=0;
                     endPos=0;
                     for (int k = 1; k < solution.get(j).length; k++) {
-                        sb.setLength(0);
-                        sb.append(queryTaxon).append("\t").append(refChr).append("\t");
                         if (currentHaplotype==solution.get(j)[k]){
                             endPos++;
                         }else {
+                            sb.setLength(0);
+                            sb.append(queryTaxon).append("\t").append(refChr).append("\t");
                             sb.append(genoTable.getPosition(siteIndex[0]+firstPos)).append("\t");
                             sb.append(genoTable.getPosition(siteIndex[0]+endPos)).append("\t");
-                            if (currentHaplotype==-1){
-                                System.out.println(-1);
-                            }
                             sb.append(taxaSourceMap.get(srcIndiList.get(currentHaplotype))).append("\t");
                             sb.append(j);
                             bw.write(sb.toString());
                             bw.newLine();
+                            currentHaplotype=solution.get(j)[k];
                             firstPos = k;
                             endPos=k;
                         }

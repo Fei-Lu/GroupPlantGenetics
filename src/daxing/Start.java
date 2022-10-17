@@ -39,7 +39,7 @@ public class Start {
         String fd_dxyFile = "/Users/xudaxing/Desktop/ABBA/002_dxy_fd";
         String groupByPop2IndividualFile="/Users/xudaxing/Desktop/ABBA/groupByPop2Indi_indianDwarfToNONE.txt";
         String outDir="/Users/xudaxing/Desktop/ABBA/003_outDir";
-        int conjunctionNum=2;
+        int conjunctionNum=3;
         double switchCostScore=2.5;
         LocalAncestryInferenceStart.InferLocalAncestry("2A", new File(genotypeFile),
                 new File(groupByPop2IndividualFile), new File(fd_dxyFile), conjunctionNum, switchCostScore,
