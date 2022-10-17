@@ -1,9 +1,11 @@
 package daxing.v2.localAncestryInfer;
 
 import daxing.common.chrrange.ChrRange;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Set;
+import daxing.common.factors.Ploidy;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Record the windows and source population
@@ -18,7 +20,7 @@ public class WindowSource implements Comparable<WindowSource>{
         return this.chrRange.compareTo(o.chrRange);
     }
 
-    public enum Source {
+    public enum Source{
         WE(0), DE(1), FTT(2), AT(3), NONE(4);
         int index;
         Source(int index) {
@@ -27,6 +29,13 @@ public class WindowSource implements Comparable<WindowSource>{
 
         public int getIndex() {
             return index;
+        }
+
+        private static Map<Integer, Source> index2SourceMap=
+                Stream.of(values()).collect(Collectors.toMap(Source::getIndex, e->e));
+
+        public static Optional<Source> getInstanceFromSubNum(int sourceIndex){
+            return Optional.ofNullable(index2SourceMap.get(sourceIndex));
         }
     }
 

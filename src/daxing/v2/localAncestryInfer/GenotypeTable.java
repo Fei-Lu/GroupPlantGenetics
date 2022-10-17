@@ -1,18 +1,10 @@
 package daxing.v2.localAncestryInfer;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.common.primitives.Ints;
 import daxing.common.bisnp.SNP;
 import daxing.common.chrrange.ChrPos;
-import daxing.common.utiles.CollectionTool;
 import daxing.common.utiles.IOTool;
-import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
-import htsjdk.samtools.util.CollectionUtil;
 import it.unimi.dsi.fastutil.ints.*;
 import pgl.PGLConstraints;
 import pgl.infra.utils.Benchmark;
@@ -43,6 +35,11 @@ public class GenotypeTable {
      * Bit genotype by taxon, the first dimension is taxon; the second dimension is genotype(haploid), and missing
      */
     BitSet[][] genoTaxon;
+
+    /**
+     * for optium solution
+     */
+    static int iteration=0;
 
     public GenotypeTable(String haploidGenotypeFile){
         try {
@@ -750,6 +747,237 @@ public class GenotypeTable {
             }
         }
 
+        return optiumSolutionList;
+    }
+
+    /**
+     *
+     * @param srcGenotype the first dimension is haplotype; the second dimension is SNP
+     * @param queryGenotype
+     * @return
+     */
+    public static List<WindowSource.Source[]> getMiniPath3(double[][] srcGenotype, double[] queryGenotype, double switchCostScore,
+                                                           List<String> srcIndiList,
+                                                           Map<String, WindowSource.Source> taxaSourceMap,
+                                                           int maxSolutionCount){
+//        double switchCostScore= 1.5;
+//        int[][] srcGenotype = {{0,1,0,1,0,1,0,0,0,0,1,1},
+//                            {0,0,0,1,0,1,1,0,0,0,1,1},
+//                            {0,0,1,0,1,0,0,0,1,0,1,1},
+//                            {0,0,0,0,1,0,1,0,1,1,1,1},
+//                            {1,1,0,0,0,0,1,1,1,1,0,0},
+//                            {1,0,0,1,0,0,1,1,1,1,0,0}};
+//        int[] queryGenotype =       {1,1,0,0,0,1,0,0,1,1,1,1};
+
+        iteration++;
+        // distance
+        double[][] distance = new double[srcGenotype.length][];
+        for (int i = 0; i < distance.length; i++) {
+            distance[i]= new double[srcGenotype[i].length];
+            Arrays.fill(distance[i], -1);
+        }
+        for (int i = 0; i < distance.length; i++) {
+            for (int j = 0; j < distance[i].length; j++) {
+                distance[i][j]=Math.abs(srcGenotype[i][j]- queryGenotype[j]);
+            }
+        }
+
+        // initialize mini cost score
+        double[][] miniCost = new double[distance.length][];
+        for (int i = 0; i < miniCost.length; i++) {
+            miniCost[i] = new double[distance[0].length];
+            Arrays.fill(miniCost[i], -1);
+            miniCost[i][0] = distance[i][0];
+        }
+
+
+        // i is SNP position
+        // j is haplotype index of source population
+        for (int i = 1; i < distance[0].length; i++) {
+
+            // j-1 SNP位置，单倍型路径发生switch对应的最小Cost
+            double miniCostSwitch=Double.MAX_VALUE;
+            for (int j = 0; j < distance.length; j++) {
+                miniCostSwitch = miniCost[j][i-1] < miniCostSwitch ? miniCost[j][i-1] : miniCostSwitch;
+            }
+
+            for (int j = 0; j < distance.length; j++) {
+                // 最小cost路径对应当前haplotype
+                if (miniCost[j][i-1] < miniCostSwitch+switchCostScore){
+                    miniCost[j][i] = miniCost[j][i-1] + distance[j][i];
+                }else {
+                    // 最小cost路径对应转换单倍型
+                    miniCost[j][i] = miniCostSwitch+switchCostScore+distance[j][i];
+                }
+            }
+        }
+
+        // new solution
+        IntSet[] solution = new IntSet[miniCost[0].length];
+        for (int i = 0; i < solution.length; i++) {
+            solution[i] = new IntOpenHashSet();
+        }
+
+        // initialize solution
+        double currentHaplotypeMiniValue= Double.MAX_VALUE;
+        IntSet currentMiniValueIndexSet = new IntOpenHashSet();
+        for (int i = 0; i < miniCost.length; i++) {
+            currentHaplotypeMiniValue = miniCost[i][queryGenotype.length-1] < currentHaplotypeMiniValue ? miniCost[i][queryGenotype.length-1] :currentHaplotypeMiniValue;
+        }
+        for (int i = 0; i < miniCost.length; i++) {
+            if (currentHaplotypeMiniValue==miniCost[i][queryGenotype.length-1]){
+                currentMiniValueIndexSet.add(i);
+            }
+        }
+        solution[queryGenotype.length-1].addAll(currentMiniValueIndexSet);
+
+        // find all solution
+
+        IntIterator tIntIterator;
+        int index;
+        for (int i = miniCost[0].length-1; i > 0; i--) {
+            tIntIterator = currentMiniValueIndexSet.iterator();
+            while (tIntIterator.hasNext()){
+                index = tIntIterator.nextInt();
+
+                // 当前单倍型
+                if (miniCost[index][i-1] <= miniCost[index][i]){
+                    solution[i-1].add(index);
+                }
+
+                // 转换单倍型
+                for (int k = 0; k < miniCost.length; k++) {
+                    if (k==index) continue;
+                    if ((miniCost[k][i-1]+switchCostScore) <= miniCost[index][i]){
+                        solution[i-1].add(k);
+                    }
+                }
+            }
+            currentMiniValueIndexSet = solution[i-1];
+        }
+        EnumSet<WindowSource.Source>[] solutionSource= new EnumSet[solution.length];
+        for (int i = 0; i < solutionSource.length; i++) {
+            solutionSource[i] = EnumSet.noneOf(WindowSource.Source.class);
+        }
+        for (int i = 0; i < solutionSource.length; i++) {
+            for (int ele:solution[i]){
+                solutionSource[i].add(taxaSourceMap.get(srcIndiList.get(ele)));
+            }
+        }
+        List<WindowSource.Source>[] solutionSourceList = new List[solutionSource.length];
+        for (int i = 0; i < solutionSourceList.length; i++) {
+            solutionSourceList[i]=new ArrayList<>(solutionSource[i]);
+            Collections.sort(solutionSourceList[i]);
+        }
+
+        // transform solution to array
+        List<WindowSource.Source[]> optiumSolutionList = new ArrayList<>();
+        WindowSource.Source[] subSolution = new WindowSource.Source[queryGenotype.length];
+        Arrays.fill(subSolution, null);
+        optiumSolutionList.add(subSolution);
+        int currentSolutionSize, multiplySolutionSize;
+        currentSolutionSize = solutionSourceList[0].size();
+        multiplySolutionSize = currentSolutionSize;
+        for (int i = 0; i < currentSolutionSize-1; i++) {
+            subSolution = new WindowSource.Source[queryGenotype.length];
+            Arrays.fill(subSolution, null);
+            optiumSolutionList.add(subSolution);
+        }
+        for (int i = 0; i < currentSolutionSize; i++) {
+            optiumSolutionList.get(i)[0]=solutionSourceList[0].get(i);
+        }
+
+        for (int i = 1; i < solutionSourceList.length; i++) {
+            currentSolutionSize = solutionSourceList[i].size();
+
+            // {WE}
+            if (currentSolutionSize == 1){
+                for (int j = 0; j < optiumSolutionList.size(); j++) {
+                    optiumSolutionList.get(j)[i] = solutionSourceList[i].get(0);
+                }
+
+                // {WE,DE}, {WE,DE}
+            }else if (solution[i].equals(solution[i-1])){
+                for (int j = 0; j < optiumSolutionList.size(); j++) {
+                    optiumSolutionList.get(j)[i]=optiumSolutionList.get(j)[i-1];
+                }
+            }
+//            else if (CollectionTool.hasIntersection(solution[i], solution[i-1])){
+//
+//                // intersection
+//                IntSet intersectionSet = new IntOpenHashSet(solution[i]);
+//                intersectionSet.retainAll(solution[i-1]);
+//                for (int ele: intersectionSet){
+//                    int eleIndexIMinus1 = Collections.binarySearch(solutionList[i-1], ele);
+//                    for (int j = 0; j < optiumSolutionList.size(); j++) {
+//                        if (optiumSolutionList.get(j)[i-1]!=ele) continue;
+//                        optiumSolutionList.get(j)[i]= solutionList[i-1].getInt(eleIndexIMinus1);
+//                    }
+//                }
+//
+//                // removedAll
+//                IntSet removedAllSet = new IntOpenHashSet(solution[i]);
+//                removedAllSet.removeAll(solution[i-1]);
+//                for (int j = 0; j < (multiplySolutionSize*removedAllSet.size()+intersectionSet.size()-multiplySolutionSize); j++) {
+//                    subSolution = new int[queryGenotype.length];
+//                    Arrays.fill(subSolution, -1);
+//                    optiumSolutionList.add(subSolution);
+//                }
+//                for (int j = 0; j < multiplySolutionSize; j++) {
+//                    for (int k = 0; k < (currentSolutionSize-1); k++) {
+//                        System.arraycopy(optiumSolutionList.get(j),0,optiumSolutionList.get(multiplySolutionSize*(k+1)+j),
+//                                0, i);
+//                    }
+//                }
+//
+//                for (int j = 0; j < currentSolutionSize; j++) {
+//                    for (int k = 0; k < multiplySolutionSize; k++) {
+//                        if ((k+j*multiplySolutionSize)<(intersectionSet.size()*multiplySolutionSize)) continue;
+//                        optiumSolutionList.get(k+j*multiplySolutionSize)[i]=solutionList[i].getInt(j);
+//                    }
+//                }
+//                multiplySolutionSize=optiumSolutionList.size();
+//            }
+            else if (!solution[i].equals(solution[i-1])){
+                // new
+                for (int j = 0; j < (multiplySolutionSize*currentSolutionSize-multiplySolutionSize); j++) {
+                    subSolution = new WindowSource.Source[queryGenotype.length];
+                    Arrays.fill(subSolution, null);
+                    optiumSolutionList.add(subSolution);
+                }
+
+                // 递归调用
+                if (optiumSolutionList.size() > maxSolutionCount){
+                    System.out.println("iteration "+iteration);
+                    System.out.println("Switch cost score is "+switchCostScore);
+                    System.out.println();
+                    return GenotypeTable.getMiniPath3(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList,
+                            taxaSourceMap, maxSolutionCount);
+                }
+
+                // i-1 SNP 赋值
+                for (int j = 0; j < multiplySolutionSize; j++) {
+                    for (int k = 0; k < (currentSolutionSize-1); k++) {
+                        System.arraycopy(optiumSolutionList.get(j),0,optiumSolutionList.get(multiplySolutionSize*(k+1)+j),
+                                0, i);
+                    }
+                }
+
+                // i SNP 赋值
+                for (int j = 0; j < currentSolutionSize; j++) {
+                    for (int k = 0; k < multiplySolutionSize; k++) {
+                        optiumSolutionList.get(k+j*multiplySolutionSize)[i]=solutionSourceList[i].get(j);
+                    }
+                }
+                multiplySolutionSize *=currentSolutionSize;
+            }
+        }
+        System.out.println("iteration "+iteration);
+        System.out.println("Switch cost score is "+switchCostScore);
+        System.out.println();
+
+        System.out.println("optium switch cost score is "+switchCostScore+" solution size is "+optiumSolutionList.size());
+        iteration=0;
         return optiumSolutionList;
     }
 

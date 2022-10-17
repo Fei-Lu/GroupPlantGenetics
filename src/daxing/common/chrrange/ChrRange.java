@@ -114,7 +114,7 @@ public class ChrRange implements Comparable<ChrRange>{
     }
 
     public String toString(){
-        return this.getChr() + ":" + this.getStart() + "," + this.getEnd();
+        return this.getChr() + ":" + this.getStart() + "," + (this.getEnd()-1);
     }
 
     public boolean isOverlapped(ChrRange chrRange){
