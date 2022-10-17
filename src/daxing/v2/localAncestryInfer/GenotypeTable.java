@@ -235,6 +235,25 @@ public class GenotypeTable {
 
     /**
      *
+     * @param taxaIndices taxon可能是不连续的, 也可能是未排序的
+     * @param siteIndices 是连续的range, int[2] [start,end] [include,include]
+     * @return BitSet[], the first dimension is taxa, the bitset dimension is genotype
+     */
+    public BitSet[] getSrcGenotypeBitSetFrom(int[] taxaIndices, int[] siteIndices){
+        BitSet[][] genoTaxa = new BitSet[taxaIndices.length][];
+        for (int i = 0; i < taxaIndices.length; i++) {
+            genoTaxa[i] = new BitSet[2];
+            System.arraycopy(this.genoTaxon[taxaIndices[i]], 0, genoTaxa[i], 0, genoTaxa[0].length);
+        }
+        BitSet[] genoTaxaSite=new BitSet[taxaIndices.length];
+        for (int i = 0; i < genoTaxa.length; i++) {
+            genoTaxaSite[i] = genoTaxa[i][0].get(siteIndices[0],siteIndices[1]);
+        }
+        return genoTaxaSite;
+    }
+
+    /**
+     *
      * @param taxonIndex taxon index
      * @param siteIndices 是连续的range, int[2] [start,end] [include,include]
      * @return double[], genotype (missing = 0.5, alt=1, ref=0)
@@ -259,6 +278,22 @@ public class GenotypeTable {
             }
         }
         return query;
+    }
+
+    /**
+     *
+     * @param taxonIndex taxon index
+     * @param siteIndices 是连续的range, int[2] [start,end] [include,include]
+     * @return double[], genotype (missing = 0.5, alt=1, ref=0)
+     */
+    public BitSet getQueryGenotypeBitSetFrom(int taxonIndex, int[] siteIndices){
+        BitSet[] genoTaxa = new BitSet[2];
+        System.arraycopy(this.genoTaxon[taxonIndex], 0, genoTaxa, 0, genoTaxa.length);
+        BitSet[] genoTaxaSite=new BitSet[2];
+        for (int i = 0; i < genoTaxa.length; i++) {
+            genoTaxaSite[i]=genoTaxa[i].get(siteIndices[0],siteIndices[1]);
+        }
+        return genoTaxaSite[0];
     }
 
     public String[] getSrcTaxaFrom(int[] taxaIndices){
@@ -429,6 +464,7 @@ public class GenotypeTable {
                                                  double switchCostScore, List<String> srcIndiList,
                                                  Map<String, WindowSource.Source> taxaSourceMap,
                                                  int maxSolutionCount, double maxSwitchCostScore) {
+        iteration++;
 //        double switchCostScore = 1.5;
         BitSet[] distance = new BitSet[scrGenotype.length];
         for (int i = 0; i < scrGenotype.length; i++) {

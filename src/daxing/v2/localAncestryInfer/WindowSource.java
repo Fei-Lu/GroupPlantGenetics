@@ -1,7 +1,6 @@
 package daxing.v2.localAncestryInfer;
 
 import daxing.common.chrrange.ChrRange;
-import daxing.common.factors.Ploidy;
 
 import java.util.*;
 import java.util.stream.Collectors;

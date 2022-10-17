@@ -84,8 +84,10 @@ public class LocalAncestryInferenceStart {
         int[] srcTaxaIndices;
         int[] siteIndex;
         int startIndex, endIndex, queryTaxonIndex;
-        double[][] srcGenotype;
-        double[] queryGenotype;
+//        double[][] srcGenotype;
+//        double[] queryGenotype;
+        BitSet[] srcGenotype;
+        BitSet queryGenotype;
         List<WindowSource.Source[]> solution;
         try (BufferedWriter bw = IOTool.getWriter(outFile)) {
             bw.write("Taxon\tChr\tWindowID\tStart\tEnd\tSource\tSolution");
@@ -112,6 +114,12 @@ public class LocalAncestryInferenceStart {
                 siteIndex = new int[2];
                 startIndex=genoTable.getSiteIndex(refChr, toBeInferredWindowChrList.get(i).getChrRange().getStart());
                 endIndex = genoTable.getSiteIndex(refChr, toBeInferredWindowChrList.get(i).getChrRange().getEnd()-1);
+                if (startIndex < 0){
+                    startIndex=-startIndex-2;
+                }
+                if (endIndex < 0){
+                    endIndex=-endIndex-2;
+                }
                 siteIndex[0]=startIndex;
                 siteIndex[1]=endIndex;
 
@@ -119,8 +127,11 @@ public class LocalAncestryInferenceStart {
                 queryTaxonIndex = genoTable.getTaxonIndex(queryTaxon);
 
                 // solution of mini distance
-                srcGenotype = genoTable.getSrcGenotypeFrom(srcTaxaIndices, siteIndex);
-                queryGenotype = genoTable.getQueryGenotypeFrom(queryTaxonIndex, siteIndex);
+//                srcGenotype = genoTable.getSrcGenotypeFrom(srcTaxaIndices, siteIndex);
+//                queryGenotype = genoTable.getQueryGenotypeFrom(queryTaxonIndex, siteIndex);
+                srcGenotype = genoTable.getSrcGenotypeBitSetFrom(srcTaxaIndices, siteIndex);
+                queryGenotype = genoTable.getQueryGenotypeBitSetFrom(queryTaxonIndex, siteIndex);
+
                 System.out.println();
                 System.out.println("********* Start iteration *********");
                 System.out.println(toBeInferredWindowChrList.get(i).getChrRange().toString());
@@ -128,8 +139,10 @@ public class LocalAncestryInferenceStart {
                 log.append("Window sources: ");
                 log.append(String.join("\t",sourceEnumSet.stream().map(source -> source.name()).collect(Collectors.toList())));
                 System.out.println(log);
-                solution = GenotypeTable.getMiniPath2(srcGenotype, queryGenotype, switchCostScore, srcIndiList,
-                        taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
+//                solution = GenotypeTable.getMiniPath2(srcGenotype, queryGenotype,
+//                        switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
+                  solution = GenotypeTable.getMiniCostPath(srcGenotype, queryGenotype, endIndex-startIndex+1,
+                        switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
                 System.out.println("********* End iteration *********");
                 System.out.println();
                 // write

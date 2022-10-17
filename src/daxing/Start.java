@@ -36,13 +36,13 @@ public class Start {
 //                prunedInSNPFile_D, outDirPanel);
 
         String genotypeFile = "/Users/xudaxing/Desktop/ABBA/001_gentotype/chr2A_vmap2.1_onlyGenotype_haploid_imputation.vcf";
-        String fd_dxyFile = "/Users/xudaxing/Desktop/ABBA/002_dxy_fd";
-        String groupByPop2IndividualFile="/Users/xudaxing/Desktop/ABBA/groupByPop2Indi_indianDwarfToNONE.txt";
+        String fd_dxyFile = "/Users/xudaxing/Desktop/ABBA/002_dxy_fd/";
+        String groupByPop2IndividualFile="/Users/xudaxing/Desktop/ABBA/groupByPop2Indi_indianDwarfToNONE_LRClose2IndianDwarf.txt";
         String outDir="/Users/xudaxing/Desktop/ABBA/003_outDir";
-        int conjunctionNum=3;
+        int conjunctionNum=1;
         double switchCostScore=1.5;
         int maxSolutionCount=5;
-        double maxSwitchCostScore= 10;
+        double maxSwitchCostScore= 10.5;
         LocalAncestryInferenceStart.InferLocalAncestry("2A", new File(genotypeFile),
                 new File(groupByPop2IndividualFile), new File(fd_dxyFile), conjunctionNum, switchCostScore,
                 maxSolutionCount, maxSwitchCostScore, new File(outDir));
