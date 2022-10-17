@@ -2,8 +2,6 @@ package daxing.v2.localAncestryInfer;
 
 import daxing.common.table.RowTableTool;
 import daxing.common.utiles.IOTool;
-import gnu.trove.list.TIntList;
-import gnu.trove.set.TIntSet;
 import org.apache.commons.lang3.EnumUtils;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
@@ -18,6 +16,7 @@ public class LocalAncestryInferenceStart {
 
     public static void InferLocalAncestry(String refChr, File genotypeFile, File groupInfoFile, File fd_dxyFileDir,
                                           int conjunctionNum, double initializeSwitchCostScore, int maxSolutionCount,
+                                          double maxSwitchCostScore,
                                           File outDir){
         GenotypeTable genoTable = new GenotypeTable(genotypeFile.getAbsolutePath());
         Map<WindowSource.Source, List<String>> srcIndividualMap = getSrcPopMap(groupInfoFile.getAbsolutePath());
@@ -35,7 +34,7 @@ public class LocalAncestryInferenceStart {
 //                    fd_dxyFiles.get(k), queryTaxa[k], new File(outDir, outFiles[k])));
             inferLocalAncestry(refChr, genoTable, srcIndividualMap, taxaSourceMap,
                     fd_dxyFiles.get(k), queryTaxa[k], new File(outDir, outFiles[k]), conjunctionNum,
-                    initializeSwitchCostScore, maxSolutionCount);
+                    initializeSwitchCostScore, maxSolutionCount, maxSwitchCostScore);
         }
 //        ExecutorService executorService = Executors.newFixedThreadPool(1);
 //        List<Integer> exitCodes = new ArrayList<>();
@@ -68,7 +67,8 @@ public class LocalAncestryInferenceStart {
                                                     Map<WindowSource.Source, List<String>> srcIndividualMap,
                                                     Map<String, WindowSource.Source> taxaSourceMap,
                                                     File fd_dxyFile, String queryTaxon,
-                                         File outFile, int conjunctionNum, double switchCostScore, int maxSolutionCount){
+                                         File outFile, int conjunctionNum, double switchCostScore,
+                                         int maxSolutionCount, double maxSwitchCostScore){
         IndividualSource queryIndividualSource = new IndividualSource(fd_dxyFile.getAbsolutePath(), queryTaxon);
         System.out.println();
         System.out.println("Current taxon and chr: "+queryIndividualSource.getIndividualID()+" "+refChr);
@@ -128,8 +128,8 @@ public class LocalAncestryInferenceStart {
                 log.append("Window sources: ");
                 log.append(String.join("\t",sourceEnumSet.stream().map(source -> source.name()).collect(Collectors.toList())));
                 System.out.println(log);
-                solution = GenotypeTable.getMiniPath3(srcGenotype, queryGenotype, switchCostScore, srcIndiList,
-                        taxaSourceMap, maxSolutionCount);
+                solution = GenotypeTable.getMiniPath2(srcGenotype, queryGenotype, switchCostScore, srcIndiList,
+                        taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
                 System.out.println("********* End iteration *********");
                 System.out.println();
                 // write

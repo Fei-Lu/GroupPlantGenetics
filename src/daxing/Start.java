@@ -42,9 +42,10 @@ public class Start {
         int conjunctionNum=3;
         double switchCostScore=1.5;
         int maxSolutionCount=5;
+        double maxSwitchCostScore= 10;
         LocalAncestryInferenceStart.InferLocalAncestry("2A", new File(genotypeFile),
                 new File(groupByPop2IndividualFile), new File(fd_dxyFile), conjunctionNum, switchCostScore,
-                maxSolutionCount, new File(outDir));
+                maxSolutionCount, maxSwitchCostScore, new File(outDir));
 
 
 //        double switchCostScore= 1.5;
