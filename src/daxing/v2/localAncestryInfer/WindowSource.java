@@ -1,5 +1,6 @@
 package daxing.v2.localAncestryInfer;
 
+import com.sun.org.apache.regexp.internal.RE;
 import daxing.common.chrrange.ChrRange;
 
 import java.util.*;
@@ -35,6 +36,14 @@ public class WindowSource implements Comparable<WindowSource>{
 
         public static Optional<Source> getInstanceFromSubNum(int sourceIndex){
             return Optional.ofNullable(index2SourceMap.get(sourceIndex));
+        }
+
+        public static EnumSet<Source> getABSource(){
+            return EnumSet.of(WE,DE,FTT,NONE);
+        }
+
+        public static EnumSet<Source> getDSource(){
+            return EnumSet.of(AT,NONE);
         }
     }
 

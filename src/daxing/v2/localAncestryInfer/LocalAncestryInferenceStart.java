@@ -32,9 +32,13 @@ public class LocalAncestryInferenceStart {
             int k = i;
 //            callableTasks.add(()-> inferLocalAncestry(refChr, genoTable, srcIndividualMap, taxaSourceMap,
 //                    fd_dxyFiles.get(k), queryTaxa[k], new File(outDir, outFiles[k])));
+
             inferLocalAncestry(refChr, genoTable, srcIndividualMap, taxaSourceMap,
                     fd_dxyFiles.get(k), queryTaxa[k], new File(outDir, outFiles[k]), conjunctionNum,
                     initializeSwitchCostScore, maxSolutionCount, maxSwitchCostScore);
+
+//            inferLAI(refChr, genoTable, srcIndividualMap, taxaSourceMap, queryTaxa[k], new File(outDir, outFiles[k]),
+//                    initializeSwitchCostScore, maxSolutionCount, maxSwitchCostScore);
         }
 //        ExecutorService executorService = Executors.newFixedThreadPool(1);
 //        List<Integer> exitCodes = new ArrayList<>();
@@ -84,10 +88,10 @@ public class LocalAncestryInferenceStart {
         int[] srcTaxaIndices;
         int[] siteIndex;
         int startIndex, endIndex, queryTaxonIndex;
-//        double[][] srcGenotype;
-//        double[] queryGenotype;
-        BitSet[] srcGenotype;
-        BitSet queryGenotype;
+        double[][] srcGenotype;
+        double[] queryGenotype;
+//        BitSet[] srcGenotype;
+//        BitSet queryGenotype;
         List<WindowSource.Source[]> solution;
         try (BufferedWriter bw = IOTool.getWriter(outFile)) {
             bw.write("Taxon\tChr\tWindowID\tStart\tEnd\tSource\tSolution");
@@ -127,10 +131,10 @@ public class LocalAncestryInferenceStart {
                 queryTaxonIndex = genoTable.getTaxonIndex(queryTaxon);
 
                 // solution of mini distance
-//                srcGenotype = genoTable.getSrcGenotypeFrom(srcTaxaIndices, siteIndex);
-//                queryGenotype = genoTable.getQueryGenotypeFrom(queryTaxonIndex, siteIndex);
-                srcGenotype = genoTable.getSrcGenotypeBitSetFrom(srcTaxaIndices, siteIndex);
-                queryGenotype = genoTable.getQueryGenotypeBitSetFrom(queryTaxonIndex, siteIndex);
+                srcGenotype = genoTable.getSrcGenotypeFrom(srcTaxaIndices, siteIndex);
+                queryGenotype = genoTable.getQueryGenotypeFrom(queryTaxonIndex, siteIndex);
+//                srcGenotype = genoTable.getSrcGenotypeBitSetFrom(srcTaxaIndices, siteIndex);
+//                queryGenotype = genoTable.getQueryGenotypeBitSetFrom(queryTaxonIndex, siteIndex);
 
                 System.out.println();
                 System.out.println("********* Start iteration *********");
@@ -139,10 +143,12 @@ public class LocalAncestryInferenceStart {
                 log.append("Window sources: ");
                 log.append(String.join("\t",sourceEnumSet.stream().map(source -> source.name()).collect(Collectors.toList())));
                 System.out.println(log);
+                solution = GenotypeTable.getMiniPath22(srcGenotype, queryGenotype,
+                        switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
 //                solution = GenotypeTable.getMiniPath2(srcGenotype, queryGenotype,
 //                        switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
-                  solution = GenotypeTable.getMiniCostPath(srcGenotype, queryGenotype, endIndex-startIndex+1,
-                        switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
+//                  solution = GenotypeTable.getMiniCostPath(srcGenotype, queryGenotype, endIndex-startIndex+1,
+//                        switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
                 System.out.println("********* End iteration *********");
                 System.out.println();
                 // write
@@ -183,6 +189,108 @@ public class LocalAncestryInferenceStart {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    public static void inferLAI(String refChr, GenotypeTable genoTable,
+                                Map<WindowSource.Source, List<String>> srcIndividualMap,
+                                Map<String, WindowSource.Source> taxaSourceMap, String queryTaxon,
+                                File outFile, double switchCostScore,
+                                int maxSolutionCount, double maxSwitchCostScore){
+        System.out.println();
+
+
+        int[] siteIndex;
+        int startIndex, endIndex, queryTaxonIndex;
+        double[][] srcGenotype;
+        double[] queryGenotype;
+//        BitSet[] srcGenotype;
+//        BitSet queryGenotype;
+        List<WindowSource.Source[]> solution;
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
+            bw.write("Taxon\tChr\tWindowID\tStart\tEnd\tSource\tSolution");
+            bw.newLine();
+            StringBuilder sb = new StringBuilder();
+            WindowSource.Source currentHaplotype;
+            int firstPos;
+            int endPos;
+            StringBuilder log = new StringBuilder();
+            EnumSet<WindowSource.Source> sourceEnumSet = WindowSource.Source.getABSource();
+            List<String> srcIndiList = new ArrayList<>();
+            for (WindowSource.Source source: sourceEnumSet){
+                srcIndiList.addAll(srcIndividualMap.get(source));
+            }
+
+            // src taxa indices;
+            int[] srcTaxaIndices = new int[srcIndiList.size()];
+            for (int j = 0; j < srcTaxaIndices.length; j++) {
+                srcTaxaIndices[j] = genoTable.getTaxonIndex(srcIndiList.get(j));
+            }
+
+            // site start and end index
+            siteIndex = new int[2];
+            startIndex=0;
+            endIndex = genoTable.getSiteNumber()-1;
+            siteIndex[0]=startIndex;
+            siteIndex[1]=endIndex;
+
+            // query taxon index
+            queryTaxonIndex = genoTable.getTaxonIndex(queryTaxon);
+
+            // solution of mini distance
+            srcGenotype = genoTable.getSrcGenotypeFrom(srcTaxaIndices, siteIndex);
+            queryGenotype = genoTable.getQueryGenotypeFrom(queryTaxonIndex, siteIndex);
+//              srcGenotype = genoTable.getSrcGenotypeBitSetFrom(srcTaxaIndices, siteIndex);
+//              queryGenotype = genoTable.getQueryGenotypeBitSetFrom(queryTaxonIndex, siteIndex);
+            System.out.println();
+            System.out.println("********* Start iteration *********");
+            System.out.println();
+            log.setLength(0);
+            log.append("Window sources: ");
+            log.append(String.join("\t",sourceEnumSet.stream().map(source -> source.name()).collect(Collectors.toList())));
+            System.out.println(log);
+            solution = GenotypeTable.getMiniPath22(srcGenotype, queryGenotype,
+                    switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
+//                solution = GenotypeTable.getMiniPath2(srcGenotype, queryGenotype,
+//                        switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
+//                  solution = GenotypeTable.getMiniCostPath(srcGenotype, queryGenotype, endIndex-startIndex+1,
+//                        switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
+
+            System.out.println("********* End iteration *********");
+            System.out.println();
+            // write
+            for (int j = 0; j < solution.size(); j++) {
+                currentHaplotype = solution.get(j)[0];
+                firstPos=0;
+                endPos=0;
+                for (int k = 1; k < solution.get(j).length; k++) {
+                    if (currentHaplotype==solution.get(j)[k]){
+                        endPos++;
+                    }else {
+                        sb.setLength(0);
+                        sb.append(queryTaxon).append("\t").append(refChr).append("\t");
+                        sb.append(genoTable.getPosition(siteIndex[0]+firstPos)).append("\t");
+                        sb.append(genoTable.getPosition(siteIndex[0]+endPos)).append("\t");
+                        sb.append(currentHaplotype).append("\t");
+                        sb.append(j);
+                        bw.write(sb.toString());
+                        bw.newLine();
+                        currentHaplotype=solution.get(j)[k];
+                        firstPos = k;
+                        endPos=k;
+                    }
+                }
+                sb.setLength(0);
+                sb.append(queryTaxon).append("\t").append(refChr).append("\t");
+                sb.append(genoTable.getPosition(siteIndex[0]+firstPos)).append("\t");
+                sb.append(genoTable.getPosition(siteIndex[0]+endPos)).append("\t");
+                sb.append(currentHaplotype).append("\t");
+                sb.append(j);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static List<String> getQuery(String groupInfoFile){
