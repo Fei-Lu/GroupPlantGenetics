@@ -4,7 +4,12 @@ import daxing.common.factors.WheatLineage;
 import daxing.common.utiles.IOTool;
 import daxing.v2.localAncestryInfer.GenotypeTable;
 import daxing.v2.localAncestryInfer.LocalAncestryInferenceStart;
+import daxing.v2.localAncestryInfer.Node;
+import daxing.v2.localAncestryInfer.WindowSource;
+import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -35,14 +40,15 @@ public class Start {
 //        Panel.preparePanelForAncestryHMM(genotypeDir, sample2PopInfoDir, recombinationMapFile, prunedInSNPFile_AB,
 //                prunedInSNPFile_D, outDirPanel);
 
-        String genotypeFile = "/Users/xudaxing/Desktop/ABBA/001_gentotype/chr2A_vmap2.1_onlyGenotype_haploid_imputation.vcf";
+        String genotypeFile = "/Users/xudaxing/Desktop/ABBA/001_gentotype/chr2A_vmap2" +
+                ".1_onlyGenotype_haploid_imputation.vcf";
         String fd_dxyFile = "/Users/xudaxing/Desktop/ABBA/002_dxy_fd/";
         String groupByPop2IndividualFile="/Users/xudaxing/Desktop/ABBA/groupByPop2Indi_indianDwarfToNONE_LRClose2IndianDwarf.txt";
         String outDir="/Users/xudaxing/Desktop/ABBA/003_outDir";
         int conjunctionNum=1;
         double switchCostScore=1.5;
         int maxSolutionCount=5;
-        double maxSwitchCostScore= 10.5;
+        double maxSwitchCostScore= 21;
         LocalAncestryInferenceStart.InferLocalAncestry("2A", new File(genotypeFile),
                 new File(groupByPop2IndividualFile), new File(fd_dxyFile), conjunctionNum, switchCostScore,
                 maxSolutionCount, maxSwitchCostScore, new File(outDir));
@@ -56,7 +62,7 @@ public class Start {
 //                            {1,1,0,0,0,0,1,1,1,1,0,0},
 //                            {1,0,0,1,0,0,1,1,1,1,0,0}};
 //        double[] queryGenotype = {1,1,0,0,0,1,0,0,1,1,1,1};
-//        GenotypeTable.getMiniPath3(srcGenotype, queryGenotype, 1.5);
+//        GenotypeTable.getMiniPath2(srcGenotype, queryGenotype, 1.5, null, null,5,10.5);
 
 //        List<String> a = WheatLineage.abLineage();
 //        StringBuilder sb = new StringBuilder();
@@ -64,6 +70,7 @@ public class Start {
 //            sb.append(a.get(i)).append(" ");
 //        }
 //        System.out.println(sb.toString());
+
     }
 
     public static void test(String introgressionMapFile, String infoSiteFile, String outFile){
