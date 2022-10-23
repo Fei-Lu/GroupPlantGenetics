@@ -90,8 +90,6 @@ public class LocalAncestryInferenceStart {
         int startIndex, endIndex, queryTaxonIndex;
         double[][] srcGenotype;
         double[] queryGenotype;
-//        BitSet[] srcGenotype;
-//        BitSet queryGenotype;
         List<WindowSource.Source[]> solution;
         try (BufferedWriter bw = IOTool.getWriter(outFile)) {
             bw.write("Taxon\tChr\tWindowID\tStart\tEnd\tSource\tSolution");
@@ -133,8 +131,6 @@ public class LocalAncestryInferenceStart {
                 // solution of mini distance
                 srcGenotype = genoTable.getSrcGenotypeFrom(srcTaxaIndices, siteIndex);
                 queryGenotype = genoTable.getQueryGenotypeFrom(queryTaxonIndex, siteIndex);
-//                srcGenotype = genoTable.getSrcGenotypeBitSetFrom(srcTaxaIndices, siteIndex);
-//                queryGenotype = genoTable.getQueryGenotypeBitSetFrom(queryTaxonIndex, siteIndex);
 
                 System.out.println();
                 System.out.println("********* Start iteration *********");
@@ -145,10 +141,6 @@ public class LocalAncestryInferenceStart {
                 System.out.println(log);
                 solution = GenotypeTable.getMiniPath(srcGenotype, queryGenotype,
                         switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
-//                solution = GenotypeTable.getMiniPath2(srcGenotype, queryGenotype,
-//                        switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
-//                  solution = GenotypeTable.getMiniCostPath(srcGenotype, queryGenotype, endIndex-startIndex+1,
-//                        switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
                 System.out.println("********* End iteration *********");
                 System.out.println();
                 // write

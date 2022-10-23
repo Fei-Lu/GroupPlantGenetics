@@ -369,8 +369,8 @@ public class GenotypeTable {
     /**
      * 考虑单倍型所属的群体, 进行罚分
      * @param srcGenotype the first dim is haplotype, the second dim is SNP position
-     * @param queryGenotype
-     * @param switchCostScore
+     * @param queryGenotype genotype
+     * @param switchCostScore λ
      * @param srcIndiList 单倍型的样本名称
      * @param taxaSourceMap 样本对应群体的映射
      * @return mini cost score matrix, the first dim is haplotype, the second dim is SNP position
@@ -458,7 +458,8 @@ public class GenotypeTable {
     /**
      *
      * @param miniCost the first dim is haplotype, the second dim is SNP position
-     * @return candidateSolution
+     * @param switchCostScore λ
+     * @return candidate solution, the first dim is mini cost sum haplotype index, the second dim is SNP position
      */
     public static IntSet[][] getCandidateSolution(double[][] miniCost, double switchCostScore){
 
@@ -521,25 +522,25 @@ public class GenotypeTable {
         return solution;
     }
 
+
     /**
      *
-     * @param srcGenotype the first dimension is haplotype; the second dimension is SNP
-     * @param queryGenotype
-     * @return
+     * @param miniCost the first dim is haplotype, the second dim is SNP position
+     * @param switchCostScore λ
+     * @param srcIndiList 单倍型的样本名称
+     * @param taxaSourceMap 样本对应群体的映射
+     * @return candidate source solution, the first dim is mini cost sum haplotype index, the second dim is SNP position
      */
-    public static List<WindowSource.Source[]> getMiniPath(double[][] srcGenotype, double[] queryGenotype,
-                                                          double switchCostScore,
-                                                          List<String> srcIndiList,
-                                                          Map<String, WindowSource.Source> taxaSourceMap,
-                                                          int maxSolutionCount, double maxSwitchCostScore){
+    public static List<WindowSource.Source>[][] getCandidateSourceSolution(double[][] miniCost, double switchCostScore,
+                                                  List<String> srcIndiList,
+                                                  Map<String, WindowSource.Source> taxaSourceMap){
+        int haplotypeLen=miniCost[0].length;
 
-        iteration++;
-        // distance
-        double[][] miniCost = GenotypeTable.getMiniCostScore(srcGenotype, queryGenotype, switchCostScore);
         IntSet[][] solution = GenotypeTable.getCandidateSolution(miniCost, switchCostScore);
+
         EnumSet<WindowSource.Source>[][] solutionSource= new EnumSet[solution.length][];
         for (int i = 0; i < solutionSource.length; i++) {
-            solutionSource[i] = new EnumSet[queryGenotype.length];
+            solutionSource[i] = new EnumSet[haplotypeLen];
             for (int j = 0; j < solutionSource[i].length; j++) {
                 solutionSource[i][j] = EnumSet.noneOf(WindowSource.Source.class);
             }
@@ -553,10 +554,9 @@ public class GenotypeTable {
             }
         }
 
-
         List<WindowSource.Source>[][] solutionSourceList = new List[solution.length][];
         for (int i = 0; i < solutionSourceList.length; i++) {
-            solutionSourceList[i] = new List[queryGenotype.length];
+            solutionSourceList[i] = new List[haplotypeLen];
             for (int j = 0; j < solutionSource[i].length; j++) {
                 solutionSourceList[i][j]=new ArrayList<>(solutionSource[i][j]);
                 Collections.sort(solutionSourceList[i][j]);
@@ -578,21 +578,42 @@ public class GenotypeTable {
         List<List<List<WindowSource.Source>>> listRemovedDup= new ArrayList<>(set);
         List<WindowSource.Source>[][] solutionSourceListRemovedDup= new List[listRemovedDup.size()][];
         for (int i = 0; i < solutionSourceListRemovedDup.length; i++) {
-            solutionSourceListRemovedDup[i] = new List[queryGenotype.length];
+            solutionSourceListRemovedDup[i] = new List[haplotypeLen];
             for (int j = 0; j < solutionSourceListRemovedDup[i].length; j++) {
                 solutionSourceListRemovedDup[i][j] = listRemovedDup.get(i).get(j);
+                Collections.sort(solutionSourceListRemovedDup[i][j]);
             }
         }
+        return solutionSourceListRemovedDup;
+    }
+
+    /**
+     *
+     * @param srcGenotype the first dimension is haplotype; the second dimension is SNP
+     * @param queryGenotype
+     * @return
+     */
+    public static List<WindowSource.Source[]> getMiniPath(double[][] srcGenotype, double[] queryGenotype,
+                                                          double switchCostScore,
+                                                          List<String> srcIndiList,
+                                                          Map<String, WindowSource.Source> taxaSourceMap,
+                                                          int maxSolutionCount, double maxSwitchCostScore){
+
+        iteration++;
+        // distance
+        double[][] miniCost = GenotypeTable.getMiniCostScore(srcGenotype, queryGenotype, switchCostScore);
+        List<WindowSource.Source>[][] solutionSource =
+                GenotypeTable.getCandidateSourceSolution(miniCost, switchCostScore, srcIndiList, taxaSourceMap);
 
         // transform solution to array
         List<WindowSource.Source[]> optiumSolutionList = new ArrayList<>();
 
         WindowSource.Source[] subSolution;
         int cumSize=0;
-        for (int m = 0; m < solutionSourceListRemovedDup.length; m++) {
+        for (int m = 0; m < solutionSource.length; m++) {
 
             int currentSolutionSize, multiplySolutionSize;
-            currentSolutionSize = solutionSourceListRemovedDup[m][0].size();
+            currentSolutionSize = solutionSource[m][0].size();
             multiplySolutionSize = currentSolutionSize;
 
             for (int i = 0; i < currentSolutionSize; i++) {
@@ -602,20 +623,20 @@ public class GenotypeTable {
             }
 
             for (int i = 0; i < currentSolutionSize; i++) {
-                optiumSolutionList.get(cumSize+i)[0]=solutionSourceListRemovedDup[m][0].get(i);
+                optiumSolutionList.get(cumSize+i)[0]=solutionSource[m][0].get(i);
             }
 
-            for (int i = 1; i < solutionSourceListRemovedDup[m].length; i++) {
-                currentSolutionSize = solutionSourceListRemovedDup[m][i].size();
+            for (int i = 1; i < solutionSource[m].length; i++) {
+                currentSolutionSize = solutionSource[m][i].size();
 
                 // {WE}
                 if (currentSolutionSize == 1){
                     for (int j = cumSize; j < optiumSolutionList.size(); j++) {
-                        optiumSolutionList.get(j)[i] = solutionSourceListRemovedDup[m][i].get(0);
+                        optiumSolutionList.get(j)[i] = solutionSource[m][i].get(0);
                     }
 
                     // {WE,DE}, {WE,DE}
-                }else if (solutionSourceListRemovedDup[m][i].equals(solutionSourceListRemovedDup[m][i-1])){
+                }else if (solutionSource[m][i].equals(solutionSource[m][i-1])){
                     for (int j = cumSize; j < optiumSolutionList.size(); j++) {
                         optiumSolutionList.get(j)[i]=optiumSolutionList.get(j)[i-1];
                     }
@@ -655,7 +676,7 @@ public class GenotypeTable {
 //                }
 //                multiplySolutionSize=optiumSolutionList.size();
 //            }
-                else if (!solutionSourceListRemovedDup[m][i].equals(solutionSourceListRemovedDup[m][i-1])){
+                else if (!solutionSource[m][i].equals(solutionSource[m][i-1])){
                     // new
                     for (int j = 0; j < (multiplySolutionSize*currentSolutionSize-multiplySolutionSize); j++) {
                         subSolution = new WindowSource.Source[queryGenotype.length];
@@ -683,7 +704,7 @@ public class GenotypeTable {
                     // i SNP 赋值
                     for (int j = 0; j < currentSolutionSize; j++) {
                         for (int k = 0; k < multiplySolutionSize; k++) {
-                            optiumSolutionList.get(k+j*multiplySolutionSize+cumSize)[i]=solutionSourceListRemovedDup[m][i].get(j);
+                            optiumSolutionList.get(k+j*multiplySolutionSize+cumSize)[i]=solutionSource[m][i].get(j);
                         }
                     }
                     multiplySolutionSize *=currentSolutionSize;
@@ -715,53 +736,8 @@ public class GenotypeTable {
 //        iteration++;
 //
 //        double[][] miniCost = GenotypeTable.getMiniCostScore(srcGenotype, queryGenotype, switchCostScore);
-//        IntSet[][] solution = GenotypeTable.getCandidateSolution(miniCost, switchCostScore);
-//
-//        EnumSet<WindowSource.Source>[][] solutionSource= new EnumSet[solution.length][];
-//        for (int i = 0; i < solutionSource.length; i++) {
-//            solutionSource[i] = new EnumSet[queryGenotype.length];
-//            for (int j = 0; j < solutionSource[i].length; j++) {
-//                solutionSource[i][j] = EnumSet.noneOf(WindowSource.Source.class);
-//            }
-//        }
-//
-//        for (int i = 0; i < solutionSource.length; i++) {
-//            for (int j = 0; j < solutionSource[i].length; j++) {
-//                for (int ele:solution[i][j]){
-//                    solutionSource[i][j].add(taxaSourceMap.get(srcIndiList.get(ele)));
-//                }
-//            }
-//        }
-//
-//        List<WindowSource.Source>[][] solutionSourceList = new List[solution.length][];
-//        for (int i = 0; i < solutionSourceList.length; i++) {
-//            solutionSourceList[i] = new List[queryGenotype.length];
-//            for (int j = 0; j < solutionSource[i].length; j++) {
-//                solutionSourceList[i][j]=new ArrayList<>(solutionSource[i][j]);
-//                Collections.sort(solutionSourceList[i][j]);
-//            }
-//        }
-//
-//
-//        // 从单倍型solution到Source solution的转变过程中, 会有重复的solution
-//        Set<List<List<WindowSource.Source>>> set= new HashSet<>();
-//        List<List<WindowSource.Source>> list;
-//        for (int i = 0; i < solutionSourceList.length; i++) {
-//            list = new ArrayList<>();
-//            for (int j = 0; j < solutionSourceList[i].length; j++) {
-//                list.add(solutionSourceList[i][j]);
-//            }
-//            set.add(list);
-//        }
-//
-//        List<List<List<WindowSource.Source>>> listRemovedDup= new ArrayList<>(set);
-//        List<WindowSource.Source>[][] solutionSourceListRemovedDup= new List[listRemovedDup.size()][];
-//        for (int i = 0; i < solutionSourceListRemovedDup.length; i++) {
-//            solutionSourceListRemovedDup[i] = new List[queryGenotype.length];
-//            for (int j = 0; j < solutionSourceListRemovedDup[i].length; j++) {
-//                solutionSourceListRemovedDup[i][j] = listRemovedDup.get(i).get(j);
-//            }
-//        }
+//        List<WindowSource.Source>[][] solutionSourceListRemovedDup =
+//                GenotypeTable.getCandidateSourceSolution(miniCost, switchCostScore, srcIndiList, taxaSourceMap);
 //
 //        // transform solution to array
 //        List<List<SolutionElement>> optiumSolutionList = new ArrayList<>();
@@ -860,6 +836,6 @@ public class GenotypeTable {
 //        iteration=0;
 //        return optiumSolutionList;
 //    }
-
+//
 
 }
