@@ -143,7 +143,7 @@ public class LocalAncestryInferenceStart {
                 log.append("Window sources: ");
                 log.append(String.join("\t",sourceEnumSet.stream().map(source -> source.name()).collect(Collectors.toList())));
                 System.out.println(log);
-                solution = GenotypeTable.getMiniPath22(srcGenotype, queryGenotype,
+                solution = GenotypeTable.getMiniPath(srcGenotype, queryGenotype,
                         switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
 //                solution = GenotypeTable.getMiniPath2(srcGenotype, queryGenotype,
 //                        switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
@@ -248,7 +248,7 @@ public class LocalAncestryInferenceStart {
             log.append("Window sources: ");
             log.append(String.join("\t",sourceEnumSet.stream().map(source -> source.name()).collect(Collectors.toList())));
             System.out.println(log);
-            solution = GenotypeTable.getMiniPath22(srcGenotype, queryGenotype,
+            solution = GenotypeTable.getMiniPath(srcGenotype, queryGenotype,
                     switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
 //                solution = GenotypeTable.getMiniPath2(srcGenotype, queryGenotype,
 //                        switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
