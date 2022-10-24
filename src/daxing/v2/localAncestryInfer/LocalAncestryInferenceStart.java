@@ -147,6 +147,7 @@ public class LocalAncestryInferenceStart {
                 System.out.println(log);
                 solution = GenotypeTable.getMiniPath2(srcGenotype, queryGenotype,
                         switchCostScore, srcIndiList, taxaSourceMap);
+
                 System.out.println(Benchmark.getTimeSpanSeconds(start)+" seconds");
                 System.out.println("********* End iteration *********");
                 System.out.println();

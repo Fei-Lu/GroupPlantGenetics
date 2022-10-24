@@ -616,9 +616,9 @@ public class GenotypeTable {
     }
 
     private static int getSolutionSize(List<WindowSource.Source>[][] solution){
-        int res=1;
+        int res=GenotypeTable.getSolutionSize(solution[0], solution.length);
         int size;
-        for (int i = 0; i < solution.length; i++) {
+        for (int i = 1; i < solution.length; i++) {
             size= GenotypeTable.getSolutionSize(solution[i], solution.length);
             if (size==Integer.MAX_VALUE){
                 return Integer.MAX_VALUE;
