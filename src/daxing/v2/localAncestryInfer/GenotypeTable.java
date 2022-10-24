@@ -767,7 +767,7 @@ public class GenotypeTable {
 
         int[] solutionSize = GenotypeTable.getSolutionSize(solutionSource);
         Arrays.sort(solutionSize);
-        if (solutionSize[0] > 1000){
+        if (solutionSize[solutionSize.length-1] > 1000){
             System.out.println();
             System.out.println("iteration "+iteration);
             System.out.println("Switch cost score is "+switchCostScore);
