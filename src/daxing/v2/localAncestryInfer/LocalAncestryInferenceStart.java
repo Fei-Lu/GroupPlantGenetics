@@ -17,7 +17,7 @@ public class LocalAncestryInferenceStart {
 
     public static void InferLocalAncestry(String refChr, File genotypeFile, File groupInfoFile, File fd_dxyFileDir,
                                           int conjunctionNum, double initializeSwitchCostScore,
-                                          File outDir){
+                                          File outDir, int maxSolutionCount){
         GenotypeTable genoTable = new GenotypeTable(genotypeFile.getAbsolutePath());
         Map<WindowSource.Source, List<String>> srcIndividualMap = getSrcPopMap(groupInfoFile.getAbsolutePath());
         Map<String, WindowSource.Source> taxaSourceMap = getTaxaSourceMap(groupInfoFile.getAbsolutePath());
@@ -35,7 +35,7 @@ public class LocalAncestryInferenceStart {
 
             inferLocalAncestry(refChr, genoTable, srcIndividualMap, taxaSourceMap,
                     fd_dxyFiles.get(k), queryTaxa[k], new File(outDir, outFiles[k]), conjunctionNum,
-                    initializeSwitchCostScore);
+                    initializeSwitchCostScore, maxSolutionCount);
 
 //            inferLAI(refChr, genoTable, srcIndividualMap, taxaSourceMap, queryTaxa[k], new File(outDir, outFiles[k]),
 //                    initializeSwitchCostScore, maxSolutionCount, maxSwitchCostScore);
@@ -71,7 +71,7 @@ public class LocalAncestryInferenceStart {
                                                     Map<WindowSource.Source, List<String>> srcIndividualMap,
                                                     Map<String, WindowSource.Source> taxaSourceMap,
                                                     File fd_dxyFile, String queryTaxon,
-                                         File outFile, int conjunctionNum, double switchCostScore){
+                                         File outFile, int conjunctionNum, double switchCostScore, int maxSolutionCount){
         long start0 =System.nanoTime();
         IndividualSource queryIndividualSource = new IndividualSource(fd_dxyFile.getAbsolutePath(), queryTaxon);
         System.out.println();
@@ -146,7 +146,7 @@ public class LocalAncestryInferenceStart {
                 log.append(String.join("\t",sourceEnumSet.stream().map(source -> source.name()).collect(Collectors.toList())));
                 System.out.println(log);
                 solution = GenotypeTable.getMiniPath2(srcGenotype, queryGenotype,
-                        switchCostScore, srcIndiList, taxaSourceMap);
+                        switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount);
 
                 System.out.println(Benchmark.getTimeSpanSeconds(start)+" seconds");
                 System.out.println("********* End iteration *********");
@@ -192,7 +192,7 @@ public class LocalAncestryInferenceStart {
     public static void inferLAI(String refChr, GenotypeTable genoTable,
                                 Map<WindowSource.Source, List<String>> srcIndividualMap,
                                 Map<String, WindowSource.Source> taxaSourceMap, String queryTaxon,
-                                File outFile, double switchCostScore){
+                                File outFile, double switchCostScore, int maxSolutionCount){
         System.out.println();
 
 
@@ -247,7 +247,7 @@ public class LocalAncestryInferenceStart {
             log.append(String.join("\t",sourceEnumSet.stream().map(source -> source.name()).collect(Collectors.toList())));
             System.out.println(log);
             solution = GenotypeTable.getMiniPath2(srcGenotype, queryGenotype,
-                    switchCostScore, srcIndiList, taxaSourceMap);
+                    switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount);
 
             System.out.println("********* End iteration *********");
             System.out.println();

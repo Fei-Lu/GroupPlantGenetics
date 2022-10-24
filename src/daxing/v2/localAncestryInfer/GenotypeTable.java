@@ -633,6 +633,14 @@ public class GenotypeTable {
         return res;
     }
 
+    private static int[] getSolutionSizeArray(List<WindowSource.Source>[][] solution){
+        int[] res = new int[solution.length];
+        for (int i = 0; i < solution.length; i++) {
+            res[i] = getSolutionSize(solution[i], solution.length);
+        }
+        return res;
+    }
+
     /**
      *
      * @param srcGenotype the first dimension is haplotype; the second dimension is SNP
@@ -777,7 +785,8 @@ public class GenotypeTable {
                                                                           double[] queryGenotype,
                                                             double switchCostScore,
                                                             List<String> srcIndiList,
-                                                            Map<String, WindowSource.Source> taxaSourceMap){
+                                                            Map<String, WindowSource.Source> taxaSourceMap,
+                                                           int maxSolutionCount){
 
         iteration++;
         double[][] miniCostCurrent, miniCostNext;
@@ -794,15 +803,29 @@ public class GenotypeTable {
         int totalSolutionSizeCurrent = GenotypeTable.getSolutionSize(solutionSourceCurrent);
         int totalSolutionSizeNext = GenotypeTable.getSolutionSize(solutionSourceNext);
 
-        if (totalSolutionSizeNext <= totalSolutionSizeCurrent/2){
+
+        if (totalSolutionSizeNext < totalSolutionSizeCurrent/2){
             System.out.println();
             System.out.println("iteration "+iteration );
             System.out.println("Switch cost score is "+switchCostScore);
+            System.out.println("Total solution size is "+totalSolutionSizeCurrent);
             System.out.println();
-            return GenotypeTable.getMiniPath2(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList, taxaSourceMap);
+            return GenotypeTable.getMiniPath2(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList,
+                    taxaSourceMap, maxSolutionCount);
         }
 
-        System.out.println("Total solution size is "+totalSolutionSizeCurrent);
+        if (totalSolutionSizeCurrent > maxSolutionCount){
+            System.out.println();
+            System.out.println("iteration "+iteration);
+            System.out.println("Switch cost score is "+switchCostScore);
+            System.out.println("Total solution size is "+totalSolutionSizeCurrent);
+            System.out.println("Total solution size greater than maxSolutionCount "+maxSolutionCount);
+            System.out.println("do not calculate");
+            System.out.println();
+            iteration=0;
+            return null;
+        }
+
 
         // transform solution to array
         List<List<SolutionElement>> optiumSolutionList = new ArrayList<>();
@@ -915,8 +938,10 @@ public class GenotypeTable {
         System.out.println();
         System.out.println("iteration "+iteration);
         System.out.println("Switch cost score is "+switchCostScore);
+        System.out.println("Total solution size is "+totalSolutionSizeCurrent);
         System.out.println();
-        System.out.println("optium switch cost score is "+switchCostScore+", solution count is "+list.size());
+        System.out.println("optium switch cost score is "+switchCostScore+", solution count after removing redundancy" +
+                " is "+list.size());
         iteration =0;
         return list;
     }

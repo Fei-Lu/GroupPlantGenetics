@@ -39,9 +39,9 @@ public class Start {
         String outDir="/Users/xudaxing/Desktop/ABBA/003_outDir";
 //
 //
-        int conjunctionNum=4; // 2
+        int conjunctionNum=2; // 2
         double switchCostScore=1.5; // 1.5
-//        int maxSolutionCount=5; // 100
+        int maxSolutionCount=100; // 100
 //        double maxSwitchCostScore= 10;
 
 
@@ -49,15 +49,16 @@ public class Start {
 //        String fd_dxyFile = args[1];
 //        String groupByPop2IndividualFile=args[2];
 //        String outDir=args[3];
-
+//
 //        int conjunctionNum=Integer.parseInt(args[4]); // 2
 //        double switchCostScore=Double.parseDouble(args[5]); // 1.5
 //        int maxSolutionCount=Integer.parseInt(args[6]); // 100
-//        double maxSwitchCostScore= Double.parseDouble(args[7]);
-//
-//
+////        double maxSwitchCostScore= Double.parseDouble(args[7]);
+
+
         LocalAncestryInferenceStart.InferLocalAncestry("2A", new File(genotypeFile),
-                new File(groupByPop2IndividualFile), new File(fd_dxyFile), conjunctionNum, switchCostScore, new File(outDir));
+                new File(groupByPop2IndividualFile), new File(fd_dxyFile), conjunctionNum, switchCostScore,
+                new File(outDir), maxSolutionCount);
 
 //        List<SolutionElement> solutionElementList = new ArrayList<>();
 //        solutionElementList.add(new SolutionElement(WindowSource.Source.WE, 0, 1));
