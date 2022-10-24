@@ -3,6 +3,7 @@ package daxing.v2.localAncestryInfer;
 import daxing.common.table.RowTableTool;
 import daxing.common.utiles.IOTool;
 import org.apache.commons.lang3.EnumUtils;
+import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -15,8 +16,7 @@ import java.util.stream.Collectors;
 public class LocalAncestryInferenceStart {
 
     public static void InferLocalAncestry(String refChr, File genotypeFile, File groupInfoFile, File fd_dxyFileDir,
-                                          int conjunctionNum, double initializeSwitchCostScore, int maxSolutionCount,
-                                          double maxSwitchCostScore,
+                                          int conjunctionNum, double initializeSwitchCostScore,
                                           File outDir){
         GenotypeTable genoTable = new GenotypeTable(genotypeFile.getAbsolutePath());
         Map<WindowSource.Source, List<String>> srcIndividualMap = getSrcPopMap(groupInfoFile.getAbsolutePath());
@@ -35,7 +35,7 @@ public class LocalAncestryInferenceStart {
 
             inferLocalAncestry(refChr, genoTable, srcIndividualMap, taxaSourceMap,
                     fd_dxyFiles.get(k), queryTaxa[k], new File(outDir, outFiles[k]), conjunctionNum,
-                    initializeSwitchCostScore, maxSolutionCount, maxSwitchCostScore);
+                    initializeSwitchCostScore);
 
 //            inferLAI(refChr, genoTable, srcIndividualMap, taxaSourceMap, queryTaxa[k], new File(outDir, outFiles[k]),
 //                    initializeSwitchCostScore, maxSolutionCount, maxSwitchCostScore);
@@ -71,11 +71,18 @@ public class LocalAncestryInferenceStart {
                                                     Map<WindowSource.Source, List<String>> srcIndividualMap,
                                                     Map<String, WindowSource.Source> taxaSourceMap,
                                                     File fd_dxyFile, String queryTaxon,
-                                         File outFile, int conjunctionNum, double switchCostScore,
-                                         int maxSolutionCount, double maxSwitchCostScore){
+                                         File outFile, int conjunctionNum, double switchCostScore){
+        long start0 =System.nanoTime();
         IndividualSource queryIndividualSource = new IndividualSource(fd_dxyFile.getAbsolutePath(), queryTaxon);
         System.out.println();
         System.out.println("Current taxon and chr: "+queryIndividualSource.getIndividualID()+" "+refChr);
+        System.out.println();
+        System.out.println("Current option");
+        System.out.println("conjunctionNum: "+ conjunctionNum);
+        System.out.println("switchCostScore: "+ switchCostScore);
+//        System.out.println("maxSolutionCount: "+maxSolutionCount);
+//        System.out.println("maxSwitchCostScore: "+maxSwitchCostScore);
+        System.out.println();
         WindowSource[] toBeInferredWindow = queryIndividualSource.selectCandidateWindow(conjunctionNum);
         List<WindowSource> toBeInferredWindowChrList = new ArrayList<>();
         for (WindowSource windowSource: toBeInferredWindow){
@@ -130,6 +137,7 @@ public class LocalAncestryInferenceStart {
                 srcGenotype = genoTable.getSrcGenotypeFrom(srcTaxaIndices, siteIndex);
                 queryGenotype = genoTable.getQueryGenotypeFrom(queryTaxonIndex, siteIndex);
 
+                long start = System.nanoTime();
                 System.out.println();
                 System.out.println("********* Start iteration *********");
                 System.out.println(toBeInferredWindowChrList.get(i).getChrRange().toString());
@@ -138,22 +146,37 @@ public class LocalAncestryInferenceStart {
                 log.append(String.join("\t",sourceEnumSet.stream().map(source -> source.name()).collect(Collectors.toList())));
                 System.out.println(log);
                 solution = GenotypeTable.getMiniPath2(srcGenotype, queryGenotype,
-                        switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
+                        switchCostScore, srcIndiList, taxaSourceMap);
+                System.out.println(Benchmark.getTimeSpanSeconds(start)+" seconds");
                 System.out.println("********* End iteration *********");
                 System.out.println();
                 // write
-                for (int j = 0; j < solution.size(); j++) {
-                    for (int k = 0; k < solution.get(j).size(); k++) {
-                        sb.setLength(0);
-                        sb.append(queryTaxon).append("\t").append(refChr).append("\t");
-                        sb.append(toBeInferredWindowChrList.get(i).getChrRange().toString()).append("\t");
-                        sb.append(solution.get(j).get(k).getSource()).append("\t");
-                        startPos = genoTable.getPosition(solution.get(j).get(k).getStart()+startIndex);
-                        endPos = genoTable.getPosition((solution.get(j).get(k).getEnd())-1+startIndex);
-                        sb.append(startPos).append("\t").append(endPos).append("\t");
-                        sb.append(j);
-                        bw.write(sb.toString());
-                        bw.newLine();
+
+                if (solution==null){
+                    sb.setLength(0);
+                    sb.append(queryTaxon).append("\t").append(refChr).append("\t");
+                    sb.append(toBeInferredWindowChrList.get(i).getChrRange().toString()).append("\t");
+                    sb.append("NONE").append("\t");
+                    startPos = -1;
+                    endPos = -1;
+                    sb.append(startPos).append("\t").append(endPos).append("\t");
+                    sb.append(-1);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }else {
+                    for (int j = 0; j < solution.size(); j++) {
+                        for (int k = 0; k < solution.get(j).size(); k++) {
+                            sb.setLength(0);
+                            sb.append(queryTaxon).append("\t").append(refChr).append("\t");
+                            sb.append(toBeInferredWindowChrList.get(i).getChrRange().toString()).append("\t");
+                            sb.append(solution.get(j).get(k).getSource()).append("\t");
+                            startPos = genoTable.getPosition(solution.get(j).get(k).getStart()+startIndex);
+                            endPos = genoTable.getPosition((solution.get(j).get(k).getEnd())-1+startIndex);
+                            sb.append(startPos).append("\t").append(endPos).append("\t");
+                            sb.append(j);
+                            bw.write(sb.toString());
+                            bw.newLine();
+                        }
                     }
                 }
             }
@@ -161,14 +184,14 @@ public class LocalAncestryInferenceStart {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println(queryTaxon+" "+refChr+" completed in "+Benchmark.getTimeSpanMinutes(start0)+ " minutes");
         return 0;
     }
 
     public static void inferLAI(String refChr, GenotypeTable genoTable,
                                 Map<WindowSource.Source, List<String>> srcIndividualMap,
                                 Map<String, WindowSource.Source> taxaSourceMap, String queryTaxon,
-                                File outFile, double switchCostScore,
-                                int maxSolutionCount, double maxSwitchCostScore){
+                                File outFile, double switchCostScore){
         System.out.println();
 
 
@@ -223,7 +246,7 @@ public class LocalAncestryInferenceStart {
             log.append(String.join("\t",sourceEnumSet.stream().map(source -> source.name()).collect(Collectors.toList())));
             System.out.println(log);
             solution = GenotypeTable.getMiniPath2(srcGenotype, queryGenotype,
-                    switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
+                    switchCostScore, srcIndiList, taxaSourceMap);
 
             System.out.println("********* End iteration *********");
             System.out.println();
