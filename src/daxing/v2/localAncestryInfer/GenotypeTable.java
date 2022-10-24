@@ -617,6 +617,7 @@ public class GenotypeTable {
 
     private static int getSolutionSize(List<WindowSource.Source>[][] solution){
         int res=GenotypeTable.getSolutionSize(solution[0], solution.length);
+        if (res==Integer.MAX_VALUE) return Integer.MAX_VALUE;
         int size;
         for (int i = 1; i < solution.length; i++) {
             size= GenotypeTable.getSolutionSize(solution[i], solution.length);
@@ -790,16 +791,18 @@ public class GenotypeTable {
         solutionSourceNext = GenotypeTable.getCandidateSourceSolution(miniCostNext, switchCostScore+1, srcIndiList,
                 taxaSourceMap);
 
-        int solutionSizeCurrent = GenotypeTable.getSolutionSize(solutionSourceCurrent);
-        int solutionSizeNext = GenotypeTable.getSolutionSize(solutionSourceNext);
+        int totalSolutionSizeCurrent = GenotypeTable.getSolutionSize(solutionSourceCurrent);
+        int totalSolutionSizeNext = GenotypeTable.getSolutionSize(solutionSourceNext);
 
-        if (solutionSizeNext < solutionSizeCurrent/2){
+        if (totalSolutionSizeNext <= totalSolutionSizeCurrent/2){
             System.out.println();
             System.out.println("iteration "+iteration );
             System.out.println("Switch cost score is "+switchCostScore);
             System.out.println();
             return GenotypeTable.getMiniPath2(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList, taxaSourceMap);
         }
+
+        System.out.println("Total solution size is "+totalSolutionSizeCurrent);
 
         // transform solution to array
         List<List<SolutionElement>> optiumSolutionList = new ArrayList<>();
