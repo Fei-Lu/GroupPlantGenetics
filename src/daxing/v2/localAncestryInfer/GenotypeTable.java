@@ -613,8 +613,8 @@ public class GenotypeTable {
             if (candidateSourceSolution[i].size() == 1) continue;
             if (candidateSourceSolution[i-1].equals(candidateSourceSolution[i])) continue;
             size *=candidateSourceSolution[i].size();
-            if (size > (Integer.MAX_VALUE/count)){
-                return Integer.MAX_VALUE;
+            if (size > ((Integer.MAX_VALUE)/count)){
+                return (Integer.MAX_VALUE)/count;
             }
         }
         return size;
@@ -638,7 +638,6 @@ public class GenotypeTable {
         int[] size = GenotypeTable.getOptimalSolutionsSize(candidateSourceSolutions);
         int sum = 0;
         for (int i = 0; i < size.length; i++) {
-            if (size[i]==Integer.MAX_VALUE) return -1;
             sum+=size[i];
         }
         return sum;
@@ -1009,7 +1008,8 @@ public class GenotypeTable {
         int totalSolutionSizeNext = GenotypeTable.getTotalOptimalSolutionSize(candidateSolutionsSourceNext);
 
 
-        if (totalSolutionSizeNext < totalSolutionSizeCurrent/2){
+        //  totalSolutionSizeCurrent < 0 是因为 两个Int相乘的结果大于Int max
+        if (totalSolutionSizeNext < totalSolutionSizeCurrent/2 || totalSolutionSizeCurrent < 0){
             System.out.println();
             System.out.println("iteration "+iteration );
             System.out.println("Switch cost score is "+switchCostScore);
@@ -1044,10 +1044,9 @@ public class GenotypeTable {
          * fragment is represented by 3 consecutive int, source, start(Inclusive), end(Exclusive)
          */
         int[] cumSizeForOptimalSolutions = GenotypeTable.getOptimalSolutionsSize(candidateSolutionsSourceCurrent);
-        int optimalSolutionTotalSize = GenotypeTable.getTotalOptimalSolutionSize(candidateSolutionsSourceCurrent);
         int maxFragmentCount = GenotypeTable.getMaxFragmentCountAmongCandidateSolutions(candidateSolutionsSourceCurrent);
 
-        int[][] optimalSolutions = new int[optimalSolutionTotalSize][];
+        int[][] optimalSolutions = new int[totalSolutionSizeCurrent][];
         for (int i = 0; i < optimalSolutions.length; i++) {
             optimalSolutions[i] = new int[maxFragmentCount * 3];
             Arrays.fill(optimalSolutions[i], -1);

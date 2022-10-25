@@ -44,25 +44,27 @@ public class Start {
 //        int maxSolutionCount=100; // 100
 //        double maxSwitchCostScore= 10;
 
-        int a = Integer.MAX_VALUE;
-        int b = Integer.MAX_VALUE;
-        System.out.println(a+b);
+//        int a = Integer.MAX_VALUE/8;
+//        int b = Integer.MAX_VALUE/8;
+//        System.out.println(a+b);
+//        System.out.println(a*b);
 
 
-//        String genotypeFile = args[0];
-//        String fd_dxyFile = args[1];
-//        String groupByPop2IndividualFile=args[2];
-//        String outDir=args[3];
-//
-//        int conjunctionNum=Integer.parseInt(args[4]); // 2
-//        double switchCostScore=Double.parseDouble(args[5]); // 1.5
-//        int maxSolutionCount=Integer.parseInt(args[6]); // 100
-////        double maxSwitchCostScore= Double.parseDouble(args[7]);
-//
-//
-//        LocalAncestryInferenceStart.InferLocalAncestry("2A", new File(genotypeFile),
-//                new File(groupByPop2IndividualFile), new File(fd_dxyFile), conjunctionNum, switchCostScore,
-//                new File(outDir), maxSolutionCount);
+
+        String genotypeFile = args[0];
+        String fd_dxyFile = args[1];
+        String groupByPop2IndividualFile=args[2];
+        String outDir=args[3];
+
+        int conjunctionNum=Integer.parseInt(args[4]); // 2
+        double switchCostScore=Double.parseDouble(args[5]); // 1.5
+        int maxSolutionCount=Integer.parseInt(args[6]); // 100
+//        double maxSwitchCostScore= Double.parseDouble(args[7]);
+
+
+        LocalAncestryInferenceStart.InferLocalAncestry("2A", new File(genotypeFile),
+                new File(groupByPop2IndividualFile), new File(fd_dxyFile), conjunctionNum, switchCostScore,
+                new File(outDir), maxSolutionCount);
 
 //        List<SolutionElement> solutionElementList = new ArrayList<>();
 //        solutionElementList.add(new SolutionElement(WindowSource.Source.WE, 0, 1));
