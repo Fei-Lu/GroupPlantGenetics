@@ -826,6 +826,11 @@ public class GenotypeTable {
             return null;
         }
 
+        System.out.println();
+        System.out.println("iteration "+iteration);
+        System.out.println("Switch cost score is "+switchCostScore);
+        System.out.println("Total solution size is "+totalSolutionSizeCurrent);
+
 
         // transform solution to array
         List<List<SolutionElement>> optiumSolutionList = new ArrayList<>();
@@ -935,10 +940,6 @@ public class GenotypeTable {
 //                    taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
 //        }
 
-        System.out.println();
-        System.out.println("iteration "+iteration);
-        System.out.println("Switch cost score is "+switchCostScore);
-        System.out.println("Total solution size is "+totalSolutionSizeCurrent);
         System.out.println();
         System.out.println("optium switch cost score is "+switchCostScore+", solution count after removing redundancy" +
                 " is "+list.size());
