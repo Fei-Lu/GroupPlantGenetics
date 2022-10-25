@@ -9,7 +9,6 @@ import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;
 
-import javax.swing.text.html.HTMLDocument;
 import java.io.BufferedReader;
 import java.text.NumberFormat;
 import java.util.*;
@@ -602,12 +601,18 @@ public class GenotypeTable {
         return solutionSourceListRemovedDup;
     }
 
-    private static int getSolutionSize(List<WindowSource.Source>[] solution, int count){
-        int size=solution[0].size();
-        for (int i = 1; i < solution.length; i++) {
-            if (solution[i].size() == 1) continue;
-            if (solution[i-1].size() == solution[i].size()) continue;
-            size *=solution[i].size();
+    /**
+     *
+     * @param candidateSourceSolution the first dim is SNP position
+     * @param count the count of mini cost score index, to prevent the sum of these paths from being greater than Integer.MAX_VALUE
+     * @return the total number of optimal solutions corresponding to a mini cost score
+     */
+    public static int getOptimalSolutionsSize(List<WindowSource.Source>[] candidateSourceSolution, int count){
+        int size=candidateSourceSolution[0].size();
+        for (int i = 1; i < candidateSourceSolution.length; i++) {
+            if (candidateSourceSolution[i].size() == 1) continue;
+            if (candidateSourceSolution[i-1].equals(candidateSourceSolution[i])) continue;
+            size *=candidateSourceSolution[i].size();
             if (size > (Integer.MAX_VALUE/count)){
                 return Integer.MAX_VALUE;
             }
@@ -615,30 +620,50 @@ public class GenotypeTable {
         return size;
     }
 
-    private static int getSolutionSize(List<WindowSource.Source>[][] solution){
-        int res=GenotypeTable.getSolutionSize(solution[0], solution.length);
-        if (res==Integer.MAX_VALUE) return Integer.MAX_VALUE;
-        int size;
-        for (int i = 1; i < solution.length; i++) {
-            size= GenotypeTable.getSolutionSize(solution[i], solution.length);
-            if (size==Integer.MAX_VALUE){
-                return Integer.MAX_VALUE;
-            }
-            res+=size;
-            if (res > (Integer.MAX_VALUE/4)){
-                return Integer.MAX_VALUE;
-            }
-        }
+    /**
+     *
+     * @param candidateSourceSolutions the first dim is mini cost score index, the second dim is SNP position
+     * @return the total number of optimal candidateSourceSolutions corresponding to all mini cost scores
+     */
+    public static int[] getOptimalSolutionsSize(List<WindowSource.Source>[][] candidateSourceSolutions){
 
-        return res;
+        int[] size = new int[candidateSourceSolutions.length];
+        for (int i = 0; i < candidateSourceSolutions.length; i++) {
+            size[i]= GenotypeTable.getOptimalSolutionsSize(candidateSourceSolutions[i], candidateSourceSolutions.length);
+        }
+        return size;
     }
 
-    private static int[] getSolutionSizeArray(List<WindowSource.Source>[][] solution){
-        int[] res = new int[solution.length];
-        for (int i = 0; i < solution.length; i++) {
-            res[i] = getSolutionSize(solution[i], solution.length);
+    public static int getTotalOptimalSolutionSize(List<WindowSource.Source>[][] candidateSourceSolutions){
+        int[] size = GenotypeTable.getOptimalSolutionsSize(candidateSourceSolutions);
+        int sum = 0;
+        for (int i = 0; i < size.length; i++) {
+            if (size[i]==Integer.MAX_VALUE) return -1;
+            sum+=size[i];
         }
-        return res;
+        return sum;
+    }
+
+    public static int getMaxFragmentCount(List<WindowSource.Source>[] candidateSourceSolutions){
+        int maxFragmentCount = 1;
+        List<WindowSource.Source> pastSource = candidateSourceSolutions[0];
+        for (int i = 1; i < candidateSourceSolutions.length; i++) {
+            if (!candidateSourceSolutions[i].equals(pastSource)){
+                maxFragmentCount++;
+                pastSource = candidateSourceSolutions[i];
+            }
+        }
+        return maxFragmentCount;
+    }
+
+    public static int getMaxFragmentCountAmongCandidateSolutions(List<WindowSource.Source>[][] candidateSourceSolutions){
+        int max=Integer.MIN_VALUE;
+        int maxFragmentCount;
+        for (int i = 0; i < candidateSourceSolutions.length; i++) {
+            maxFragmentCount = GenotypeTable.getMaxFragmentCount(candidateSourceSolutions[i]);
+            max = maxFragmentCount > max ? maxFragmentCount : max;
+        }
+        return max;
     }
 
     /**
@@ -800,8 +825,8 @@ public class GenotypeTable {
         solutionSourceNext = GenotypeTable.getCandidateSourceSolution(miniCostNext, switchCostScore+1, srcIndiList,
                 taxaSourceMap);
 
-        int totalSolutionSizeCurrent = GenotypeTable.getSolutionSize(solutionSourceCurrent);
-        int totalSolutionSizeNext = GenotypeTable.getSolutionSize(solutionSourceNext);
+        int totalSolutionSizeCurrent = GenotypeTable.getTotalOptimalSolutionSize(solutionSourceCurrent);
+        int totalSolutionSizeNext = GenotypeTable.getTotalOptimalSolutionSize(solutionSourceNext);
 
 
         if (totalSolutionSizeNext < totalSolutionSizeCurrent/2){
@@ -945,6 +970,186 @@ public class GenotypeTable {
                 " is "+list.size());
         iteration =0;
         return list;
+    }
+
+    private static int minusStartIndex(int[] a){
+        for (int i = 0; i < a.length; i++) {
+            if (a[i] < 0) return i;
+        }
+        return a.length;
+    }
+
+
+    /**
+     *
+     * @param srcGenotype the first dimension is haplotype; the second dimension is SNP
+     * @param queryGenotype
+     * @return
+     */
+    public static List<int[]> getMiniPath22(double[][] srcGenotype,
+                                                           double[] queryGenotype,
+                                                           double switchCostScore,
+                                                           List<String> srcIndiList,
+                                                           Map<String, WindowSource.Source> taxaSourceMap,
+                                                           int maxSolutionCount){
+
+        iteration++;
+        double[][] miniCostCurrent, miniCostNext;
+        List<WindowSource.Source>[][] candidateSolutionsSourceCurrent, candidateSolutionsSourceNext;
+
+        miniCostCurrent = GenotypeTable.getMiniCostScore(srcGenotype, queryGenotype, switchCostScore);
+        candidateSolutionsSourceCurrent = GenotypeTable.getCandidateSourceSolution(miniCostCurrent, switchCostScore, srcIndiList,
+                taxaSourceMap);
+
+        miniCostNext =  GenotypeTable.getMiniCostScore(srcGenotype, queryGenotype, switchCostScore+1);
+        candidateSolutionsSourceNext = GenotypeTable.getCandidateSourceSolution(miniCostNext, switchCostScore+1, srcIndiList,
+                taxaSourceMap);
+
+        int totalSolutionSizeCurrent = GenotypeTable.getTotalOptimalSolutionSize(candidateSolutionsSourceCurrent);
+        int totalSolutionSizeNext = GenotypeTable.getTotalOptimalSolutionSize(candidateSolutionsSourceNext);
+
+
+        if (totalSolutionSizeNext < totalSolutionSizeCurrent/2){
+            System.out.println();
+            System.out.println("iteration "+iteration );
+            System.out.println("Switch cost score is "+switchCostScore);
+            System.out.println("Total solution size is "+totalSolutionSizeCurrent);
+            System.out.println();
+            return GenotypeTable.getMiniPath22(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList,
+                    taxaSourceMap, maxSolutionCount);
+        }
+
+        if (totalSolutionSizeCurrent > maxSolutionCount){
+            System.out.println();
+            System.out.println("iteration "+iteration);
+            System.out.println("Switch cost score is "+switchCostScore);
+            System.out.println("Total solution size is "+totalSolutionSizeCurrent);
+            System.out.println("Total solution size greater than maxSolutionCount "+maxSolutionCount);
+            System.out.println("do not calculate");
+            System.out.println();
+            iteration=0;
+            return null;
+        }
+
+        System.out.println();
+        System.out.println("iteration "+iteration);
+        System.out.println("Switch cost score is "+switchCostScore);
+        System.out.println("Total solution size is "+totalSolutionSizeCurrent);
+        System.out.println();
+
+
+        /**
+         * use two dim array to represent optimal solutions
+         * the first dim is mini cost score index, the second dim is fragment
+         * fragment is represented by 3 consecutive int, source, start(Inclusive), end(Exclusive)
+         */
+        int[] cumSizeForOptimalSolutions = GenotypeTable.getOptimalSolutionsSize(candidateSolutionsSourceCurrent);
+        int optimalSolutionTotalSize = GenotypeTable.getTotalOptimalSolutionSize(candidateSolutionsSourceCurrent);
+        int maxFragmentCount = GenotypeTable.getMaxFragmentCountAmongCandidateSolutions(candidateSolutionsSourceCurrent);
+
+        int[][] optimalSolutions = new int[optimalSolutionTotalSize][];
+        for (int i = 0; i < optimalSolutions.length; i++) {
+            optimalSolutions[i] = new int[maxFragmentCount * 3];
+            Arrays.fill(optimalSolutions[i], -1);
+        }
+
+        int cumSize=0;
+        WindowSource.Source currentSource;
+        int start=0, end=1;
+        int minusStartIndex;
+        int[] subSolution;
+        for (int m = 0; m < candidateSolutionsSourceCurrent.length; m++) {
+
+            int currentSolutionSize, multiplySolutionSize;
+            currentSolutionSize = candidateSolutionsSourceCurrent[m][0].size();
+            multiplySolutionSize = currentSolutionSize;
+
+            for (int i = 0; i < currentSolutionSize; i++) {
+                currentSource = candidateSolutionsSourceCurrent[m][0].get(i);
+                optimalSolutions[cumSize+i][0]=currentSource.getIndex();
+                optimalSolutions[cumSize+i][1]=start;
+                optimalSolutions[cumSize+i][2]=end;
+            }
+
+            for (int i = 1; i < candidateSolutionsSourceCurrent[m].length; i++) {
+                currentSolutionSize = candidateSolutionsSourceCurrent[m][i].size();
+                currentSource = candidateSolutionsSourceCurrent[m][i].get(0);
+
+                // {WE}
+                if (currentSolutionSize == 1){
+                    for (int j = cumSize; j < optimalSolutions.length; j++) {
+                        minusStartIndex = minusStartIndex(optimalSolutions[j]);
+                        if(optimalSolutions[j][0]<0) break;
+
+                        if (optimalSolutions[j][minusStartIndex-3] == currentSource.getIndex()){
+                            optimalSolutions[j][minusStartIndex-1]++;
+                        }else {
+                            optimalSolutions[j][minusStartIndex]= currentSource.getIndex();
+                            optimalSolutions[j][minusStartIndex+1]= i;
+                            optimalSolutions[j][minusStartIndex+2]= i+1;
+                        }
+                    }
+
+
+                }
+
+                // {WE,DE}, {WE,DE}
+                else if (candidateSolutionsSourceCurrent[m][i].equals(candidateSolutionsSourceCurrent[m][i-1])){
+
+                    for (int j = cumSize; j < optimalSolutions.length; j++) {
+                        minusStartIndex = minusStartIndex(optimalSolutions[j]);
+                        if(optimalSolutions[j][0]<0) break;
+                        // 最后一个fragment进行延伸, 即end+1
+                        optimalSolutions[j][minusStartIndex-1]++;
+                    }
+                }
+                else if (!candidateSolutionsSourceCurrent[m][i].equals(candidateSolutionsSourceCurrent[m][i-1])){
+
+                    // i-1 SNP 赋值
+                    for (int j = 0; j < multiplySolutionSize; j++) {
+                        for (int k = 0; k < (currentSolutionSize-1); k++) {
+                            System.arraycopy(optimalSolutions[cumSize+j], 0,
+                                    optimalSolutions[multiplySolutionSize*(k+1)+j+cumSize], 0, maxFragmentCount * 3);
+                        }
+                    }
+
+//                    // i SNP 赋值
+                    for (int j = 0; j < currentSolutionSize; j++) {
+                        for (int k = 0; k < multiplySolutionSize; k++) {
+                            subSolution = optimalSolutions[(k+j*multiplySolutionSize+cumSize)];
+                            currentSource = candidateSolutionsSourceCurrent[m][i].get(j);
+                            minusStartIndex = minusStartIndex(subSolution);
+                            if (currentSource.getIndex()==subSolution[minusStartIndex-3]){
+                                optimalSolutions[(k+j*multiplySolutionSize+cumSize)][minusStartIndex-1]++;
+                            }else {
+                                optimalSolutions[(k+j*multiplySolutionSize+cumSize)][minusStartIndex]=
+                                        currentSource.getIndex();
+                                optimalSolutions[(k+j*multiplySolutionSize+cumSize)][minusStartIndex+1]= i;
+                                optimalSolutions[(k+j*multiplySolutionSize+cumSize)][minusStartIndex+2]= i+1;
+                            }
+                        }
+                    }
+                    multiplySolutionSize *=currentSolutionSize;
+                }
+            }
+            cumSize += cumSizeForOptimalSolutions[m];
+        }
+
+
+        /**
+         * 由candidateSolutionsSourceCurrent生成的optimalSolutions存在相同的路径, 使用set去重
+         */
+        Set<int[]> optimalSolutionsSet = new HashSet<>();
+        for (int i = 0; i < optimalSolutions.length; i++) {
+            optimalSolutionsSet.add(optimalSolutions[i]);
+        }
+        List<int[]> optimalSolutionsList = new ArrayList<>(optimalSolutionsSet);
+
+        System.out.println();
+        System.out.println("optium switch cost score is "+switchCostScore+", solution count after removing redundancy" +
+                " is "+optimalSolutionsList.size());
+        iteration =0;
+        return optimalSolutionsList;
     }
 
 }
