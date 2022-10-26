@@ -38,7 +38,7 @@ public class LocalAncestryInferenceStart {
                     initializeSwitchCostScore, maxSolutionCount);
 
 //            inferLAI(refChr, genoTable, srcIndividualMap, taxaSourceMap, queryTaxa[k], new File(outDir, outFiles[k]),
-//                    initializeSwitchCostScore, maxSolutionCount, maxSwitchCostScore);
+//                    initializeSwitchCostScore, maxSolutionCount);
         }
 //        ExecutorService executorService = Executors.newFixedThreadPool(1);
 //        List<Integer> exitCodes = new ArrayList<>();
@@ -146,8 +146,7 @@ public class LocalAncestryInferenceStart {
                 log.append("Window sources: ");
                 log.append(String.join("\t",sourceEnumSet.stream().map(source -> source.name()).collect(Collectors.toList())));
                 System.out.println(log);
-//                solution = GenotypeTable.getMiniPath22(srcGenotype, queryGenotype,
-//                        switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount);
+
                 solution = GenotypeTable.getMiniPath22(srcGenotype, queryGenotype,
                 switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount);
 
@@ -210,9 +209,10 @@ public class LocalAncestryInferenceStart {
 //        BitSet queryGenotype;
         int startPos;
         int endPos;
-        List<List<SolutionElement>> solution;
+//        List<List<SolutionElement>> solution;
+        List<int[]> solution;
         try (BufferedWriter bw = IOTool.getWriter(outFile)) {
-            bw.write("Taxon\tChr\tWindowID\tStart\tEnd\tSource\tSolution");
+            bw.write("Taxon\tChr\tSource\tStart\tEnd\tSolution");
             bw.newLine();
             StringBuilder sb = new StringBuilder();
             WindowSource.Source currentHaplotype;
@@ -252,23 +252,38 @@ public class LocalAncestryInferenceStart {
             log.append("Window sources: ");
             log.append(String.join("\t",sourceEnumSet.stream().map(source -> source.name()).collect(Collectors.toList())));
             System.out.println(log);
-            solution = GenotypeTable.getMiniPath2(srcGenotype, queryGenotype,
+            solution = GenotypeTable.getMiniPath22(srcGenotype, queryGenotype,
                     switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount);
 
             System.out.println("********* End iteration *********");
             System.out.println();
             // write
-            for (int j = 0; j < solution.size(); j++) {
-                for (int k = 0; k < solution.get(j).size(); k++) {
-                    sb.setLength(0);
-                    sb.append(queryTaxon).append("\t").append(refChr).append("\t");
-                    sb.append(solution.get(j).get(k).getSource()).append("\t");
-                    startPos = genoTable.getPosition(solution.get(j).get(k).getStart()+startIndex);
-                    endPos = genoTable.getPosition((solution.get(j).get(k).getEnd())-1+startIndex);
-                    sb.append(startPos).append("\t").append(endPos).append("\t");
-                    sb.append(j);
-                    bw.write(sb.toString());
-                    bw.newLine();
+            if (solution==null){
+                sb.setLength(0);
+                sb.append(queryTaxon).append("\t").append(refChr).append("\t");
+                sb.append("NONE").append("\t");
+                startPos = -1;
+                endPos = -1;
+                sb.append(startPos).append("\t").append(endPos).append("\t");
+                sb.append(-1);
+                bw.write(sb.toString());
+                bw.newLine();
+            }else {
+                WindowSource.Source source;
+                for (int j = 0; j < solution.size(); j++) {
+                    for (int k = 0; k < solution.get(j).length; k=k+3) {
+                        if (solution.get(j)[k]==-1) continue;
+                        sb.setLength(0);
+                        sb.append(queryTaxon).append("\t").append(refChr).append("\t");
+                        source = WindowSource.Source.getInstanceFromSubNum(solution.get(j)[k]).get();
+                        sb.append(source.name()).append("\t");
+                        startPos = genoTable.getPosition(solution.get(j)[k+1]+startIndex);
+                        endPos = genoTable.getPosition((solution.get(j)[k+2]-1+startIndex));
+                        sb.append(startPos).append("\t").append(endPos).append("\t");
+                        sb.append(j);
+                        bw.write(sb.toString());
+                        bw.newLine();
+                    }
                 }
             }
             bw.flush();

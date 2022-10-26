@@ -665,312 +665,6 @@ public class GenotypeTable {
         return max;
     }
 
-    /**
-     *
-     * @param srcGenotype the first dimension is haplotype; the second dimension is SNP
-     * @param queryGenotype
-     * @return
-     */
-    public static List<WindowSource.Source[]> getMiniPath(double[][] srcGenotype, double[] queryGenotype,
-                                                          double switchCostScore,
-                                                          List<String> srcIndiList,
-                                                          Map<String, WindowSource.Source> taxaSourceMap,
-                                                          int maxSolutionCount, double maxSwitchCostScore){
-
-        iteration++;
-        // distance
-        double[][] miniCost = GenotypeTable.getMiniCostScore(srcGenotype, queryGenotype, switchCostScore);
-        List<WindowSource.Source>[][] solutionSource =
-                GenotypeTable.getCandidateSourceSolution(miniCost, switchCostScore, srcIndiList, taxaSourceMap);
-
-        // transform solution to array
-        List<WindowSource.Source[]> optiumSolutionList = new ArrayList<>();
-
-        WindowSource.Source[] subSolution;
-        int cumSize=0;
-        for (int m = 0; m < solutionSource.length; m++) {
-
-            int currentSolutionSize, multiplySolutionSize;
-            currentSolutionSize = solutionSource[m][0].size();
-            multiplySolutionSize = currentSolutionSize;
-
-            for (int i = 0; i < currentSolutionSize; i++) {
-                subSolution = new WindowSource.Source[queryGenotype.length];
-                Arrays.fill(subSolution, null);
-                optiumSolutionList.add(subSolution);
-            }
-
-            for (int i = 0; i < currentSolutionSize; i++) {
-                optiumSolutionList.get(cumSize+i)[0]=solutionSource[m][0].get(i);
-            }
-
-            for (int i = 1; i < solutionSource[m].length; i++) {
-                currentSolutionSize = solutionSource[m][i].size();
-
-                // {WE}
-                if (currentSolutionSize == 1){
-                    for (int j = cumSize; j < optiumSolutionList.size(); j++) {
-                        optiumSolutionList.get(j)[i] = solutionSource[m][i].get(0);
-                    }
-
-                    // {WE,DE}, {WE,DE}
-                }else if (solutionSource[m][i].equals(solutionSource[m][i-1])){
-                    for (int j = cumSize; j < optiumSolutionList.size(); j++) {
-                        optiumSolutionList.get(j)[i]=optiumSolutionList.get(j)[i-1];
-                    }
-                }//            else if (CollectionTool.hasIntersection(solution[i], solution[i-1])){
-//
-//                // intersection
-//                IntSet intersectionSet = new IntOpenHashSet(solution[i]);
-//                intersectionSet.retainAll(solution[i-1]);
-//                for (int ele: intersectionSet){
-//                    int eleIndexIMinus1 = Collections.binarySearch(solutionList[i-1], ele);
-//                    for (int j = 0; j < optiumSolutionList.size(); j++) {
-//                        if (optiumSolutionList.get(j)[i-1]!=ele) continue;
-//                        optiumSolutionList.get(j)[i]= solutionList[i-1].getInt(eleIndexIMinus1);
-//                    }
-//                }
-//
-//                // removedAll
-//                IntSet removedAllSet = new IntOpenHashSet(solution[i]);
-//                removedAllSet.removeAll(solution[i-1]);
-//                for (int j = 0; j < (multiplySolutionSize*removedAllSet.size()+intersectionSet.size()-multiplySolutionSize); j++) {
-//                    subSolution = new int[queryGenotype.length];
-//                    Arrays.fill(subSolution, -1);
-//                    optiumSolutionList.add(subSolution);
-//                }
-//                for (int j = 0; j < multiplySolutionSize; j++) {
-//                    for (int k = 0; k < (currentSolutionSize-1); k++) {
-//                        System.arraycopy(optiumSolutionList.get(j),0,optiumSolutionList.get(multiplySolutionSize*(k+1)+j),
-//                                0, i);
-//                    }
-//                }
-//
-//                for (int j = 0; j < currentSolutionSize; j++) {
-//                    for (int k = 0; k < multiplySolutionSize; k++) {
-//                        if ((k+j*multiplySolutionSize)<(intersectionSet.size()*multiplySolutionSize)) continue;
-//                        optiumSolutionList.get(k+j*multiplySolutionSize)[i]=solutionList[i].getInt(j);
-//                    }
-//                }
-//                multiplySolutionSize=optiumSolutionList.size();
-//            }
-                else if (!solutionSource[m][i].equals(solutionSource[m][i-1])){
-                    // new
-                    for (int j = 0; j < (multiplySolutionSize*currentSolutionSize-multiplySolutionSize); j++) {
-                        subSolution = new WindowSource.Source[queryGenotype.length];
-                        Arrays.fill(subSolution, null);
-                        optiumSolutionList.add(subSolution);
-                    }
-
-                    // 递归调用
-                    if (optiumSolutionList.size() > maxSolutionCount && switchCostScore < maxSwitchCostScore){
-                        System.out.println("iteration "+iteration);
-                        System.out.println("Switch cost score is "+switchCostScore);
-                        System.out.println();
-                        return GenotypeTable.getMiniPath(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList,
-                                taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
-                    }
-
-                    // i-1 SNP 赋值
-                    for (int j = 0; j < multiplySolutionSize; j++) {
-                        for (int k = 0; k < (currentSolutionSize-1); k++) {
-                            System.arraycopy(optiumSolutionList.get(cumSize+j),0,
-                                    optiumSolutionList.get(multiplySolutionSize*(k+1)+j+cumSize),0, i);
-                        }
-                    }
-
-                    // i SNP 赋值
-                    for (int j = 0; j < currentSolutionSize; j++) {
-                        for (int k = 0; k < multiplySolutionSize; k++) {
-                            optiumSolutionList.get(k+j*multiplySolutionSize+cumSize)[i]=solutionSource[m][i].get(j);
-                        }
-                    }
-                    multiplySolutionSize *=currentSolutionSize;
-                }
-            }
-            cumSize = optiumSolutionList.size();
-        }
-
-        System.out.println("iteration "+iteration);
-        System.out.println("Switch cost score is "+switchCostScore);
-        System.out.println();
-        System.out.println("optium switch cost score is "+switchCostScore+", solution size is "+optiumSolutionList.size());
-        iteration=0;
-        return optiumSolutionList;
-    }
-
-    /**
-     *
-     * @param srcGenotype the first dimension is haplotype; the second dimension is SNP
-     * @param queryGenotype
-     * @return
-     */
-    public static List<List<SolutionElement>> getMiniPath2(double[][] srcGenotype,
-                                                                          double[] queryGenotype,
-                                                            double switchCostScore,
-                                                            List<String> srcIndiList,
-                                                            Map<String, WindowSource.Source> taxaSourceMap,
-                                                           int maxSolutionCount){
-
-        iteration++;
-        double[][] miniCostCurrent, miniCostNext;
-        List<WindowSource.Source>[][] solutionSourceCurrent, solutionSourceNext;
-
-        miniCostCurrent = GenotypeTable.getMiniCostScore(srcGenotype, queryGenotype, switchCostScore);
-        solutionSourceCurrent = GenotypeTable.getCandidateSourceSolution(miniCostCurrent, switchCostScore, srcIndiList,
-                taxaSourceMap);
-
-        miniCostNext =  GenotypeTable.getMiniCostScore(srcGenotype, queryGenotype, switchCostScore+1);
-        solutionSourceNext = GenotypeTable.getCandidateSourceSolution(miniCostNext, switchCostScore+1, srcIndiList,
-                taxaSourceMap);
-
-        int totalSolutionSizeCurrent = GenotypeTable.getTotalOptimalSolutionSize(solutionSourceCurrent);
-        int totalSolutionSizeNext = GenotypeTable.getTotalOptimalSolutionSize(solutionSourceNext);
-
-
-        if (totalSolutionSizeNext < totalSolutionSizeCurrent/2){
-            System.out.println();
-            System.out.println("iteration "+iteration );
-            System.out.println("Switch cost score is "+switchCostScore);
-            System.out.println("Total solution size is "+totalSolutionSizeCurrent);
-            System.out.println();
-            return GenotypeTable.getMiniPath2(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList,
-                    taxaSourceMap, maxSolutionCount);
-        }
-
-        if (totalSolutionSizeCurrent > maxSolutionCount){
-            System.out.println();
-            System.out.println("iteration "+iteration);
-            System.out.println("Switch cost score is "+switchCostScore);
-            System.out.println("Total solution size is "+totalSolutionSizeCurrent);
-            System.out.println("Total solution size greater than maxSolutionCount "+maxSolutionCount);
-            System.out.println("do not calculate");
-            System.out.println();
-            iteration=0;
-            return null;
-        }
-
-        System.out.println();
-        System.out.println("iteration "+iteration);
-        System.out.println("Switch cost score is "+switchCostScore);
-        System.out.println("Total solution size is "+totalSolutionSizeCurrent);
-
-
-        // transform solution to array
-        List<List<SolutionElement>> optiumSolutionList = new ArrayList<>();
-
-        List<SolutionElement> subSolution;
-        int cumSize=0;
-        WindowSource.Source currentSource;
-        SolutionElement solutionElement;
-        int start=0, end=1;
-        Iterator<SolutionElement> iterator;
-        for (int m = 0; m < solutionSourceCurrent.length; m++) {
-
-            int currentSolutionSize, multiplySolutionSize;
-            currentSolutionSize = solutionSourceCurrent[m][0].size();
-            multiplySolutionSize = currentSolutionSize;
-
-
-            for (int i = 0; i < currentSolutionSize; i++) {
-                subSolution = new ArrayList<>();
-                optiumSolutionList.add(subSolution);
-            }
-
-            for (int i = 0; i < currentSolutionSize; i++) {
-                currentSource = solutionSourceCurrent[m][0].get(i);
-                solutionElement = new SolutionElement(currentSource, start, end);
-                optiumSolutionList.get(cumSize+i).add(solutionElement);
-            }
-
-            for (int i = 1; i < solutionSourceCurrent[m].length; i++) {
-                currentSolutionSize = solutionSourceCurrent[m][i].size();
-
-                // {WE}
-                if (currentSolutionSize == 1){
-                    for (int j = cumSize; j < optiumSolutionList.size(); j++) {
-                        subSolution = optiumSolutionList.get(j);
-
-                        // 最后一个solutionElement进行延伸
-                        solutionElement = subSolution.get(subSolution.size()-1);
-                        solutionElement.extend();
-                    }
-
-                    // {WE,DE}, {WE,DE}
-                }else if (solutionSourceCurrent[m][i].equals(solutionSourceCurrent[m][i-1])){
-                    for (int j = cumSize; j < optiumSolutionList.size(); j++) {
-                        subSolution = optiumSolutionList.get(j);
-                        // 最后一个solutionElement进行延伸
-                        solutionElement = subSolution.get(subSolution.size()-1);
-                        solutionElement.extend();
-                    }
-                }
-                else if (!solutionSourceCurrent[m][i].equals(solutionSourceCurrent[m][i-1])){
-                    // new
-                    for (int j = 0; j < (multiplySolutionSize*currentSolutionSize-multiplySolutionSize); j++) {
-                        subSolution = new ArrayList<>();
-                        optiumSolutionList.add(subSolution);
-                    }
-
-//                     // 递归调用
-//                    if (optiumSolutionList.size() > 10000 && switchCostScore < maxSwitchCostScore){
-//                        System.out.println();
-//                        System.out.println("iteration "+iteration);
-//                        System.out.println("Switch cost score is "+switchCostScore);
-//                        System.out.println();
-//                        return GenotypeTable.getMiniPath2(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList,
-//                                taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
-//                    }
-
-                    // i-1 SNP 赋值
-                    for (int j = 0; j < multiplySolutionSize; j++) {
-                        for (int k = 0; k < (currentSolutionSize-1); k++) {
-                            iterator = optiumSolutionList.get(cumSize+j).iterator();
-                            while (iterator.hasNext()){
-                                optiumSolutionList.get(multiplySolutionSize*(k+1)+j+cumSize).add(iterator.next().clone());
-                            }
-                        }
-                    }
-
-//                    // i SNP 赋值
-                    for (int j = 0; j < currentSolutionSize; j++) {
-                        for (int k = 0; k < multiplySolutionSize; k++) {
-                            subSolution = optiumSolutionList.get(k+j*multiplySolutionSize+cumSize);
-                            currentSource = solutionSourceCurrent[m][i].get(j);
-                            if (subSolution.get(subSolution.size()-1).source==currentSource){
-                                subSolution.get(subSolution.size()-1).extend();
-                            }else {
-                                solutionElement = new SolutionElement(currentSource, i, i+1);
-                                subSolution.add(solutionElement);
-                            }
-                        }
-                    }
-                    multiplySolutionSize *=currentSolutionSize;
-                }
-            }
-            cumSize = optiumSolutionList.size();
-        }
-
-        // 由solutionSource生成的optiumSolutionList会存在相同的路径
-        Set<List<SolutionElement>> set = new HashSet<>(optiumSolutionList);
-        List<List<SolutionElement>> list = new ArrayList<>(set);
-
-//        if (list.size() > maxSolutionCount && switchCostScore < maxSwitchCostScore){
-//            System.out.println();
-//            System.out.println("iteration "+iteration);
-//            System.out.println("Switch cost score is "+switchCostScore);
-//            System.out.println();
-//            return GenotypeTable.getMiniPath2(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList,
-//                    taxaSourceMap, maxSolutionCount, maxSwitchCostScore);
-//        }
-
-        System.out.println();
-        System.out.println("optium switch cost score is "+switchCostScore+", solution count after removing redundancy" +
-                " is "+list.size());
-        iteration =0;
-        return list;
-    }
-
     private static int minusStartIndex(int[] a){
         for (int i = 0; i < a.length; i++) {
             if (a[i] < 0) return i;
@@ -1008,25 +702,26 @@ public class GenotypeTable {
         int totalSolutionSizeNext = GenotypeTable.getTotalOptimalSolutionSize(candidateSolutionsSourceNext);
 
 
+        StringBuilder log = new StringBuilder();
         //  totalSolutionSizeCurrent < 0 是因为 两个Int相乘的结果大于Int max
-        if (totalSolutionSizeNext < totalSolutionSizeCurrent/2 || totalSolutionSizeCurrent < 0){
-            System.out.println();
-            System.out.println("iteration "+iteration );
-            System.out.println("Switch cost score is "+switchCostScore);
-            System.out.println("Total solution size is "+totalSolutionSizeCurrent);
-            System.out.println();
+        if ((totalSolutionSizeCurrent > 16 && totalSolutionSizeNext < totalSolutionSizeCurrent/2) || totalSolutionSizeCurrent < 0){
+            log.setLength(0);
+            log.append("\n").append("iteration "+iteration).append("\n");
+            log.append("Switch cost score is "+switchCostScore).append("\n");
+            log.append("Total solution size is "+totalSolutionSizeCurrent).append("\n").append("\n");
+            System.out.println(log);
             return GenotypeTable.getMiniPath22(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList,
                     taxaSourceMap, maxSolutionCount);
         }
 
         if (totalSolutionSizeCurrent > maxSolutionCount){
-            System.out.println();
-            System.out.println("iteration "+iteration);
-            System.out.println("Switch cost score is "+switchCostScore);
-            System.out.println("Total solution size is "+totalSolutionSizeCurrent);
-            System.out.println("Total solution size greater than maxSolutionCount "+maxSolutionCount);
-            System.out.println("do not calculate");
-            System.out.println();
+            log.setLength(0);
+            log.append("\n").append("iteration "+iteration).append("\n");
+            log.append("Switch cost score is "+switchCostScore).append("\n");
+            log.append("Total solution size is "+totalSolutionSizeCurrent).append("\n");
+            log.append("Total solution size greater than maxSolutionCount "+maxSolutionCount).append("\n");
+            log.append("do not calculate").append("\n");
+            System.out.println(log);
             iteration=0;
             return null;
         }
@@ -1138,17 +833,20 @@ public class GenotypeTable {
         /**
          * 由candidateSolutionsSourceCurrent生成的optimalSolutions存在相同的路径, 使用set去重
          */
-        Set<int[]> optimalSolutionsSet = new HashSet<>();
+        Set<IntList> optimalSolutionsSet = new HashSet<>();
         for (int i = 0; i < optimalSolutions.length; i++) {
-            optimalSolutionsSet.add(optimalSolutions[i]);
+            optimalSolutionsSet.add(new IntArrayList(optimalSolutions[i]));
         }
-        List<int[]> optimalSolutionsList = new ArrayList<>(optimalSolutionsSet);
-
+        List<IntList> optimalSolutionsList = new ArrayList<>(optimalSolutionsSet);
+        List<int[]> res = new ArrayList<>();
+        for (IntList intList : optimalSolutionsList){
+            res.add(intList.toArray(new int[intList.size()]));
+        }
         System.out.println();
         System.out.println("optium switch cost score is "+switchCostScore+", solution count after removing redundancy" +
                 " is "+optimalSolutionsList.size());
         iteration =0;
-        return optimalSolutionsList;
+        return res;
     }
 
 }
