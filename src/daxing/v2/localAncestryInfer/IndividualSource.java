@@ -210,6 +210,70 @@ public class IndividualSource {
         return windowSources;
     }
 
+    private int[] getStartPos(String refChr){
+        WindowSource[] refChrWindowSource = this.getSubsetWindowSources(refChr);
+        int[] startPoss=new int[refChrWindowSource.length];
+        for (int i = 0; i < startPoss.length; i++) {
+            startPoss[i]=refChrWindowSource[i].getChrRange().getStart();
+        }
+        return startPoss;
+    }
+
+    private int[] getEndPos(String refChr){
+        WindowSource[] refChrWindowSource = this.getSubsetWindowSources(refChr);
+        int[] endPoss = new int[refChrWindowSource.length];
+        for (int i = 0; i < endPoss.length; i++) {
+            endPoss[i]= refChrWindowSource[i].getChrRange().getEnd();
+        }
+        return endPoss;
+    }
+
+    /**
+     * start target source指的是在一个windowSource区间内首次出现的非NONE的source
+     * @param windowSource
+     * @return start target source
+     */
+    public EnumSet<WindowSource.Source> getStartTargetSourceFrom(WindowSource windowSource){
+        String refChr = windowSource.getChrRange().getChr();
+        int[] startPoss = this.getStartPos(refChr);
+        int[] endPoss = this.getEndPos(refChr);
+        int queryStart=windowSource.getChrRange().getStart();
+        int queryEnd = windowSource.getChrRange().getEnd();
+        int startIndex = Arrays.binarySearch(startPoss, queryStart);
+        int endIndex = Arrays.binarySearch(endPoss, queryEnd);
+        WindowSource[] refChrWindowSource = this.getSubsetWindowSources(refChr);
+        EnumSet<WindowSource.Source> sources = EnumSet.range(WindowSource.Source.WE, WindowSource.Source.AT);
+        for (int i = startIndex; i <= endIndex; i++) {
+            if (refChrWindowSource[i].containAnySourceIn(sources)){
+                return refChrWindowSource[i].getSources();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * end target source指的是在一个windowSource区间内最后一次出现的非NONE的source
+     * @param windowSource
+     * @return end target source
+     */
+    public EnumSet<WindowSource.Source> getEndTargetSourceFrom(WindowSource windowSource){
+        String refChr = windowSource.getChrRange().getChr();
+        int[] startPoss = this.getStartPos(refChr);
+        int[] endPoss = this.getEndPos(refChr);
+        int queryStart=windowSource.getChrRange().getStart();
+        int queryEnd = windowSource.getChrRange().getEnd();
+        int startIndex = Arrays.binarySearch(startPoss, queryStart);
+        int endIndex = Arrays.binarySearch(endPoss, queryEnd);
+        WindowSource[] refChrWindowSource = this.getSubsetWindowSources(refChr);
+        EnumSet<WindowSource.Source> sources = EnumSet.range(WindowSource.Source.WE, WindowSource.Source.AT);
+        for (int i = endIndex; i >= startIndex; i--) {
+            if (refChrWindowSource[i].containAnySourceIn(sources)){
+                return refChrWindowSource[i].getSources();
+            }
+        }
+        return null;
+    }
+
 
     public static void test(String genotypeFile, String fd_dxyFile, String groupByPop2IndividualFile, String outFile){
         String individualID="LR_0002";

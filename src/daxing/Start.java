@@ -35,15 +35,15 @@ public class Start {
 //        Panel.preparePanelForAncestryHMM(genotypeDir, sample2PopInfoDir, recombinationMapFile, prunedInSNPFile_AB,
 //                prunedInSNPFile_D, outDirPanel);
 
-//        String genotypeFile = "/Users/xudaxing/Desktop/ABBA/001_gentotype/chr2A_vmap2.1_onlyGenotype_haploid_imputation.vcf";
-//        String fd_dxyFile = "/Users/xudaxing/Desktop/ABBA/002_dxy_fd";
-//        String groupByPop2IndividualFile="/Users/xudaxing/Desktop/ABBA/groupByPop2Indi_indianDwarfToNONE_LRClose2IndianDwarf.txt";
-//        String outDir="/Users/xudaxing/Desktop/ABBA/003_outDir";
-////
-////
-//        int conjunctionNum=2; // 2
-//        double switchCostScore=1.5; // 1.5
-//        int maxSolutionCount=100; // 100
+        String genotypeFile = "/Users/xudaxing/Desktop/ABBA/001_gentotype/chr2A_vmap2.1_onlyGenotype_haploid_imputation.vcf";
+        String fd_dxyFile = "/Users/xudaxing/Desktop/ABBA/002_dxy_fd";
+        String groupByPop2IndividualFile="/Users/xudaxing/Desktop/ABBA/groupByPop2Indi_indianDwarfToNONE_LRClose2IndianDwarf.txt";
+        String outDir="/Users/xudaxing/Desktop/ABBA/003_outDir";
+//
+//
+        int conjunctionNum=2; // 2
+        double switchCostScore=1.5; // 1.5
+        int maxSolutionCount=100; // 100
 //        double maxSwitchCostScore= 10;
 
 //        int a = Integer.MAX_VALUE/8;
@@ -53,14 +53,14 @@ public class Start {
 
 
 
-        String genotypeFile = args[0];
-        String fd_dxyFile = args[1];
-        String groupByPop2IndividualFile=args[2];
-        String outDir=args[3];
-
-        int conjunctionNum=Integer.parseInt(args[4]); // 2
-        double switchCostScore=Double.parseDouble(args[5]); // 1.5
-        int maxSolutionCount=Integer.parseInt(args[6]); // 100
+//        String genotypeFile = args[0];
+//        String fd_dxyFile = args[1];
+//        String groupByPop2IndividualFile=args[2];
+//        String outDir=args[3];
+//
+//        int conjunctionNum=Integer.parseInt(args[4]); // 2
+//        double switchCostScore=Double.parseDouble(args[5]); // 1.5
+//        int maxSolutionCount=Integer.parseInt(args[6]); // 100
 //        double maxSwitchCostScore= Double.parseDouble(args[7]);
 
 

@@ -533,19 +533,10 @@ public class GenotypeTable {
         return solution;
     }
 
-
-    /**
-     *
-     * @param miniCost the first dim is haplotype, the second dim is SNP position
-     * @param switchCostScore λ
-     * @param srcIndiList 单倍型的样本名称
-     * @param taxaSourceMap 样本对应群体的映射
-     * @return candidate source solution, the first dim is mini cost sum haplotype index, the second dim is SNP position
-     */
-    public static List<WindowSource.Source>[][] getCandidateSourceSolution(double[][] miniCost, double switchCostScore,
-                                                  List<String> srcIndiList,
-                                                  Map<String, WindowSource.Source> taxaSourceMap){
-//        long start = System.nanoTime();
+    public static EnumSet<WindowSource.Source>[][] getCandidateSourceSolutionEnumSet(double[][] miniCost,
+                                                                               double switchCostScore,
+                                                                              List<String> srcIndiList,
+                                                                              Map<String, WindowSource.Source> taxaSourceMap){
         int haplotypeLen=miniCost[0].length;
 
         IntSet[][] solution = GenotypeTable.getCandidateSolution(miniCost, switchCostScore);
@@ -565,8 +556,28 @@ public class GenotypeTable {
                 }
             }
         }
+        return solutionSource;
+    }
 
-        List<WindowSource.Source>[][] solutionSourceList = new List[solution.length][];
+
+    /**
+     *
+     * @param miniCost the first dim is haplotype, the second dim is SNP position
+     * @param switchCostScore λ
+     * @param srcIndiList 单倍型的样本名称
+     * @param taxaSourceMap 样本对应群体的映射
+     * @return candidate source solution, the first dim is mini cost sum haplotype index, the second dim is SNP position
+     */
+    public static List<WindowSource.Source>[][] getCandidateSourceSolutionList(double[][] miniCost, double switchCostScore,
+                                                                               List<String> srcIndiList,
+                                                                               Map<String, WindowSource.Source> taxaSourceMap){
+//        long start = System.nanoTime();
+        int haplotypeLen=miniCost[0].length;
+
+        EnumSet<WindowSource.Source>[][] solutionSource= GenotypeTable.getCandidateSourceSolutionEnumSet(miniCost,
+                switchCostScore, srcIndiList, taxaSourceMap);
+
+        List<WindowSource.Source>[][] solutionSourceList = new List[solutionSource.length][];
         for (int i = 0; i < solutionSourceList.length; i++) {
             solutionSourceList[i] = new List[haplotypeLen];
             for (int j = 0; j < solutionSource[i].length; j++) {
@@ -691,11 +702,11 @@ public class GenotypeTable {
         List<WindowSource.Source>[][] candidateSolutionsSourceCurrent, candidateSolutionsSourceNext;
 
         miniCostCurrent = GenotypeTable.getMiniCostScore(srcGenotype, queryGenotype, switchCostScore);
-        candidateSolutionsSourceCurrent = GenotypeTable.getCandidateSourceSolution(miniCostCurrent, switchCostScore, srcIndiList,
+        candidateSolutionsSourceCurrent = GenotypeTable.getCandidateSourceSolutionList(miniCostCurrent, switchCostScore, srcIndiList,
                 taxaSourceMap);
 
         miniCostNext =  GenotypeTable.getMiniCostScore(srcGenotype, queryGenotype, switchCostScore+1);
-        candidateSolutionsSourceNext = GenotypeTable.getCandidateSourceSolution(miniCostNext, switchCostScore+1, srcIndiList,
+        candidateSolutionsSourceNext = GenotypeTable.getCandidateSourceSolutionList(miniCostNext, switchCostScore+1, srcIndiList,
                 taxaSourceMap);
 
         int totalSolutionSizeCurrent = GenotypeTable.getTotalOptimalSolutionSize(candidateSolutionsSourceCurrent);
@@ -847,6 +858,40 @@ public class GenotypeTable {
                 " is "+optimalSolutionsList.size());
         iteration =0;
         return res;
+    }
+
+    /**
+     *
+     * @param srcGenotype the first dim is haplotype, the second dim is SNP position
+     * @return 反向序列
+     */
+    public static double[][] reverseSrcGenotype(double[][] srcGenotype){
+        double[][] reverseGenotype = new double[srcGenotype.length][];
+        for (int i = 0; i < reverseGenotype.length; i++) {
+            reverseGenotype[i] = new double[srcGenotype[0].length];
+            Arrays.fill(reverseGenotype[i], -1);
+        }
+
+        for (int i = 0; i < srcGenotype.length; i++) {
+            for (int j = 0; j < srcGenotype[i].length; j++) {
+                reverseGenotype[i][srcGenotype[i].length-1-j]=srcGenotype[i][j];
+            }
+        }
+        return reverseGenotype;
+    }
+
+    /**
+     *
+     * @param genotype
+     * @return 反向序列
+     */
+    public static double[] reverseGenotype(double[] genotype){
+        double[] reverseGenotype = new double[genotype.length];
+        Arrays.fill(reverseGenotype, -1);
+        for (int i = 0; i < genotype.length; i++) {
+            reverseGenotype[genotype.length-1-i]=genotype[i];
+        }
+        return reverseGenotype;
     }
 
 }
