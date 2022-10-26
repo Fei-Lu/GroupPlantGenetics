@@ -679,12 +679,12 @@ public class GenotypeTable {
      * @param queryGenotype
      * @return
      */
-    public static List<int[]> getMiniPath22(double[][] srcGenotype,
-                                                           double[] queryGenotype,
-                                                           double switchCostScore,
-                                                           List<String> srcIndiList,
-                                                           Map<String, WindowSource.Source> taxaSourceMap,
-                                                           int maxSolutionCount){
+    public static List<int[]> getMiniPath(double[][] srcGenotype,
+                                          double[] queryGenotype,
+                                          double switchCostScore,
+                                          List<String> srcIndiList,
+                                          Map<String, WindowSource.Source> taxaSourceMap,
+                                          int maxSolutionCount){
 
         iteration++;
         double[][] miniCostCurrent, miniCostNext;
@@ -704,13 +704,13 @@ public class GenotypeTable {
 
         StringBuilder log = new StringBuilder();
         //  totalSolutionSizeCurrent < 0 是因为 两个Int相乘的结果大于Int max
-        if ((totalSolutionSizeCurrent > 16 && totalSolutionSizeNext < totalSolutionSizeCurrent/2) || totalSolutionSizeCurrent < 0){
+        if ((totalSolutionSizeCurrent > 16 && totalSolutionSizeNext < totalSolutionSizeCurrent/2) || totalSolutionSizeCurrent <= 0){
             log.setLength(0);
             log.append("\n").append("iteration "+iteration).append("\n");
             log.append("Switch cost score is "+switchCostScore).append("\n");
             log.append("Total solution size is "+totalSolutionSizeCurrent).append("\n").append("\n");
             System.out.println(log);
-            return GenotypeTable.getMiniPath22(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList,
+            return GenotypeTable.getMiniPath(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList,
                     taxaSourceMap, maxSolutionCount);
         }
 
