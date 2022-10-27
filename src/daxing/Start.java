@@ -46,11 +46,6 @@ public class Start {
         int maxSolutionCount=100; // 100
 //        double maxSwitchCostScore= 10;
 
-//        int a = Integer.MAX_VALUE/8;
-//        int b = Integer.MAX_VALUE/8;
-//        System.out.println(a+b);
-//        System.out.println(a*b);
-
 
 
 //        String genotypeFile = args[0];
@@ -95,6 +90,7 @@ public class Start {
 //            sb.append(a.get(i)).append(" ");
 //        }
 //        System.out.println(sb.toString());
+
 
     }
 
