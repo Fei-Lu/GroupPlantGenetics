@@ -35,16 +35,16 @@ public class Start {
 //        Panel.preparePanelForAncestryHMM(genotypeDir, sample2PopInfoDir, recombinationMapFile, prunedInSNPFile_AB,
 //                prunedInSNPFile_D, outDirPanel);
 
-        String genotypeFile = "/Users/xudaxing/Desktop/ABBA/001_gentotype/chr2A_vmap2.1_onlyGenotype_haploid_imputation.vcf";
-        String fd_dxyFile = "/Users/xudaxing/Desktop/ABBA/002_dxy_fd";
+        String genotypeFile = "/Users/xudaxing/Desktop/ABBA/005_genotype/chr2A_vmap2.1_onlyGenotype_haploid_imputation.vcf.gz";
+        String fd_dxyFile = "/Users/xudaxing/Desktop/ABBA/006_dxy_fd";
         String groupByPop2IndividualFile="/Users/xudaxing/Desktop/ABBA/groupByPop2Indi_indianDwarfToNONE_LRClose2IndianDwarf.txt";
-        String outDir="/Users/xudaxing/Desktop/ABBA/003_outDir";
+        String outDir="/Users/xudaxing/Desktop/ABBA/007_outDir";
 //
 //
         int conjunctionNum=2; // 2
         double switchCostScore=1.5; // 1.5
-        int maxSolutionCount=100; // 100
-//        double maxSwitchCostScore= 10;
+        int maxSolutionCount=20; // 100
+        double maxSwitchCostScore= 10;
 
 
 

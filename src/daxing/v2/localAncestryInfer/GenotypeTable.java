@@ -709,6 +709,16 @@ public class GenotypeTable {
         candidateSolutionsSourceNext = GenotypeTable.getCandidateSourceSolutionList(miniCostNext, switchCostScore+1, srcIndiList,
                 taxaSourceMap);
 
+//        miniCostCurrent = GenotypeTable.getMiniCostScore(reverseSrcGenotype(srcGenotype), reverseGenotype(queryGenotype),
+//                switchCostScore);
+//        candidateSolutionsSourceCurrent = GenotypeTable.getCandidateSourceSolutionList(miniCostCurrent, switchCostScore, srcIndiList,
+//                taxaSourceMap);
+//
+//        miniCostNext =  GenotypeTable.getMiniCostScore(reverseSrcGenotype(srcGenotype), reverseGenotype(queryGenotype),
+//                switchCostScore+1);
+//        candidateSolutionsSourceNext = GenotypeTable.getCandidateSourceSolutionList(miniCostNext, switchCostScore+1, srcIndiList,
+//                taxaSourceMap);
+
         int totalSolutionSizeCurrent = GenotypeTable.getTotalOptimalSolutionSize(candidateSolutionsSourceCurrent);
         int totalSolutionSizeNext = GenotypeTable.getTotalOptimalSolutionSize(candidateSolutionsSourceNext);
 
@@ -857,6 +867,23 @@ public class GenotypeTable {
         System.out.println("optium switch cost score is "+switchCostScore+", solution count after removing redundancy" +
                 " is "+optimalSolutionsList.size());
         iteration =0;
+
+        List<int[]> resReverse=new ArrayList<>();
+        int[] ele;
+        int seqLen= queryGenotype.length;
+        for (int i = 0; i < res.size(); i++) {
+            ele = new int[res.get(i).length];
+            Arrays.fill(ele, -1);
+            int minStartIndex = GenotypeTable.minusStartIndex(res.get(i));
+            for (int j = 0; j < res.get(i).length; j=j+3) {
+                if (res.get(i)[j] < 0) break;
+                ele[minStartIndex-1-(j+2)]=res.get(i)[j];
+                ele[minStartIndex-1-(j+0)]=seqLen-res.get(i)[j+1];
+                ele[minStartIndex-1-(j+1)]=seqLen-res.get(i)[j+2];
+
+            }
+            resReverse.add(ele);
+        }
         return res;
     }
 
