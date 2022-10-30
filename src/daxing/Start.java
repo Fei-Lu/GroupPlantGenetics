@@ -3,8 +3,6 @@ package daxing;
 import daxing.common.utiles.IOTool;
 import daxing.v2.localAncestryInfer.*;
 import gnu.trove.list.array.TIntArrayList;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -35,16 +33,16 @@ public class Start {
 //        Panel.preparePanelForAncestryHMM(genotypeDir, sample2PopInfoDir, recombinationMapFile, prunedInSNPFile_AB,
 //                prunedInSNPFile_D, outDirPanel);
 
-        String genotypeFile = "/Users/xudaxing/Desktop/ABBA/005_genotype/chr2A_vmap2.1_onlyGenotype_haploid_imputation.vcf.gz";
-        String fd_dxyFile = "/Users/xudaxing/Desktop/ABBA/006_dxy_fd";
-        String groupByPop2IndividualFile="/Users/xudaxing/Desktop/ABBA/groupByPop2Indi_indianDwarfToNONE_LRClose2IndianDwarf.txt";
-        String outDir="/Users/xudaxing/Desktop/ABBA/007_outDir";
-//
-//
-        int conjunctionNum=2; // 2
-        double switchCostScore=1.5; // 1.5
-        int maxSolutionCount=20; // 100
-        double maxSwitchCostScore= 10;
+//        String genotypeFile = "/Users/xudaxing/Desktop/ABBA/001_gentotype/chr2A_vmap2.1_onlyGenotype_haploid_imputation.vcf";
+//        String fd_dxyFile = "/Users/xudaxing/Desktop/ABBA/002_dxy_fd";
+//        String groupByPop2IndividualFile="/Users/xudaxing/Desktop/ABBA/groupByPop2Indi_indianDwarfToNONE_LRClose2IndianDwarf.txt";
+//        String outDir="/Users/xudaxing/Desktop/ABBA/003_outDir";
+////
+////
+//        int conjunctionNum=2; // 2
+//        double switchCostScore=1.5; // 1.5
+//        int maxSolutionCount=20; // 100
+//        int threadNum= 10;
 
 
 
@@ -56,12 +54,25 @@ public class Start {
 //        int conjunctionNum=Integer.parseInt(args[4]); // 2
 //        double switchCostScore=Double.parseDouble(args[5]); // 1.5
 //        int maxSolutionCount=Integer.parseInt(args[6]); // 100
-//        double maxSwitchCostScore= Double.parseDouble(args[7]);
+//        int threadNum= Integer.parseInt(args[7]);
 
 
-        LocalAncestryInferenceStart.InferLocalAncestry("2A", new File(genotypeFile),
-                new File(groupByPop2IndividualFile), new File(fd_dxyFile), conjunctionNum, switchCostScore,
-                new File(outDir), maxSolutionCount);
+//        LocalAncestryInferenceStart.inferLocalAncestry("2A", new File(genotypeFile),
+//                new File(groupByPop2IndividualFile), new File(fd_dxyFile), conjunctionNum, switchCostScore,
+//                new File(outDir), maxSolutionCount, threadNum);
+
+        String genotypeDir = args[0];
+        String fd_dxyFileDir = args[1];
+        String groupInfoFile = args[2];
+        int conjunctionNum = Integer.parseInt(args[3]);
+        double initializeSwitchCostScore  =Double.parseDouble(args[4]);
+        String outDir = args[5];
+        int maxSolutionCount = Integer.parseInt(args[6]);
+        int threadNum = Integer.parseInt(args[7]);
+
+
+        LocalAncestryInferenceStart.inferStart(genotypeDir, fd_dxyFileDir, groupInfoFile,conjunctionNum,
+                initializeSwitchCostScore,outDir,maxSolutionCount,threadNum);
 
 //        List<SolutionElement> solutionElementList = new ArrayList<>();
 //        solutionElementList.add(new SolutionElement(WindowSource.Source.WE, 0, 1));

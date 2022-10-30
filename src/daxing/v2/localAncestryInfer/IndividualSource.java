@@ -27,7 +27,7 @@ public class IndividualSource {
             String line;
             List<String> temp1, temp2;
             br.readLine();
-            String refChr;
+            String refChr, currentChr=null;
             int refStart, refEnd, lastEnd = -1;
             String lastRefChr = null;
             EnumSet<WindowSource.Source> sourceEnumSet;
@@ -39,27 +39,43 @@ public class IndividualSource {
                 temp2 = PStringUtils.fastSplit(line);
                 if (ifFirstLine){
                     refChr = temp1.get(0);
+                    currentChr = refChr;
                     refStart = Integer.parseInt(temp1.get(1));
                     refEnd = Integer.parseInt(temp2.get(1)) + 1;
                     chrRange = new ChrRange(refChr, refStart, refEnd);
-                    sourceEnumSet = EnumSet.of(WindowSource.Source.valueOf(temp1.get(4)));
+                    sourceEnumSet = EnumSet.of(WindowSource.Source.valueOf(temp1.get(13)));
                     windowSource = new WindowSource(chrRange, sourceEnumSet);
                     windowSourceList.add(windowSource);
                     ifFirstLine=false;
                 }
                 refChr = temp2.get(0);
-                refStart = Integer.parseInt(temp2.get(1));
-                refEnd = Integer.parseInt(temp1.get(2))+1;
-                chrRange = new ChrRange(refChr, refStart, refEnd);
-                sourceEnumSet = EnumSet.of(WindowSource.Source.valueOf(temp1.get(4)), WindowSource.Source.valueOf(temp2.get(4)));
-                windowSource = new WindowSource(chrRange, sourceEnumSet);
-                windowSourceList.add(windowSource);
-                lastRefChr = temp1.get(0);
-                lastEnd = Integer.parseInt(temp1.get(2));
-                temp1 = temp2;
+                if (refChr.equals(currentChr)){
+                    refStart = Integer.parseInt(temp2.get(1));
+                    refEnd = Integer.parseInt(temp1.get(2))+1;
+                    chrRange = new ChrRange(refChr, refStart, refEnd);
+                    sourceEnumSet = EnumSet.of(WindowSource.Source.valueOf(temp1.get(13)),
+                            WindowSource.Source.valueOf(temp2.get(13)));
+                    windowSource = new WindowSource(chrRange, sourceEnumSet);
+                    windowSourceList.add(windowSource);
+                    lastRefChr = temp1.get(0);
+                    lastEnd = Integer.parseInt(temp1.get(2));
+                    temp1 = temp2;
+                }else {
+                    refStart = windowSourceList.get(windowSourceList.size()-1).getChrRange().getEnd();
+                    refEnd = Integer.parseInt(temp1.get(2))+1;
+                    chrRange = new ChrRange(currentChr, refStart, refEnd);
+                    sourceEnumSet = EnumSet.of(WindowSource.Source.valueOf(temp1.get(13)),
+                            WindowSource.Source.valueOf(temp2.get(13)));
+                    windowSource = new WindowSource(chrRange, sourceEnumSet);
+                    windowSourceList.add(windowSource);
+                    temp1 = temp2;
+                    ifFirstLine=true;
+                    currentChr = refChr;
+                }
+
             }
-            chrRange = new ChrRange(lastRefChr, lastEnd, Integer.parseInt(temp1.get(2))+1);
-            sourceEnumSet = EnumSet.of(WindowSource.Source.valueOf(temp1.get(4)));
+            chrRange = new ChrRange(lastRefChr, lastEnd+1, Integer.parseInt(temp1.get(2))+1);
+            sourceEnumSet = EnumSet.of(WindowSource.Source.valueOf(temp1.get(13)));
             windowSource = new WindowSource(chrRange, sourceEnumSet);
             windowSourceList.add(windowSource);
         } catch (IOException e) {
@@ -154,8 +170,16 @@ public class IndividualSource {
                         resultIndexSet.add(index+i);
                         i++;
                     }
+                }else if (index == 0){
+                    int i = 0;
+                    while (i < conjunctionNum){
+                        resultIndexSet.add(i);
+                        i++;
+                    }
                 }
             }
+
+            if (resultIndexSet.size()==0) continue;
 
             // introgression window index set to sorted arrat
             int[] resultIndexArray = resultIndexSet.toArray();
@@ -190,6 +214,7 @@ public class IndividualSource {
             EnumSet<WindowSource.Source> sourceEnumSet;
             for (int i = 0; i < indexList.size(); i++) {
                 startEnd = indexList.get(i);
+                if (startEnd[0] == startEnd[1]) continue;
                 sourceSet = new HashSet<>();
                 for (int k = startEnd[0]; k < startEnd[1]; k++) {
                     sourceSet.addAll(windowSources[k].getSourceSet());

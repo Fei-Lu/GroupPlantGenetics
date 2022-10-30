@@ -294,7 +294,7 @@ public class SolutionUtils {
 
         StringBuilder log = new StringBuilder();
         //  totalSolutionSizeCurrent < 0 是因为 两个Int相乘的结果大于Int max
-        if ((totalSolutionSizeCurrent > 16 && totalSolutionSizeNext < totalSolutionSizeCurrent/2) || totalSolutionSizeCurrent <= 0){
+        if ((totalSolutionSizeCurrent > maxSolutionCount && totalSolutionSizeNext < totalSolutionSizeCurrent/2) || totalSolutionSizeCurrent <= 0){
             log.setLength(0);
             log.append("\n").append("iteration "+iteration).append("\n");
             log.append("Switch cost score is "+switchCostScore).append("\n");
@@ -310,10 +310,10 @@ public class SolutionUtils {
             log.append("Switch cost score is "+switchCostScore).append("\n");
             log.append("Total solution size is "+totalSolutionSizeCurrent).append("\n");
             log.append("Total solution size greater than maxSolutionCount "+maxSolutionCount).append("\n");
-            log.append("do not calculate").append("\n");
+            log.append("continue iterate").append("\n");
             System.out.println(log);
-            iteration=0;
-            return null;
+            return SolutionUtils.getCandidateSourceSolution(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList,
+                    taxaSourceMap, maxSolutionCount);
         }
 
 
