@@ -2,7 +2,6 @@ package daxing.v2.localAncestryInfer;
 
 import it.unimi.dsi.fastutil.ints.*;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 
@@ -281,7 +280,7 @@ public class SolutionUtils {
                                                                                 List<String> srcIndiList,
                                                                                 Map<String, WindowSource.Source> taxaSourceMap,
                                                                                                            int maxSolutionCount){
-        iteration++;
+
         EnumSet<WindowSource.Source>[][] forwardCandidateSolutionCurrent =
                 SolutionUtils.getCandidateSourceSolutionEnumSet(srcGenotype, queryGenotype, switchCostScore,
                         srcIndiList, taxaSourceMap);
@@ -296,7 +295,7 @@ public class SolutionUtils {
         //  totalSolutionSizeCurrent < 0 是因为 两个Int相乘的结果大于Int max
         if ((totalSolutionSizeCurrent > maxSolutionCount && totalSolutionSizeNext < totalSolutionSizeCurrent/2) || totalSolutionSizeCurrent <= 0){
             log.setLength(0);
-            log.append("\n").append("iteration "+iteration).append("\n");
+//            log.append("\n").append("iteration "+iteration).append("\n");
             log.append("Switch cost score is "+switchCostScore).append("\n");
             log.append("Total solution size is "+totalSolutionSizeCurrent).append("\n").append("\n");
             System.out.println(log);
@@ -306,7 +305,7 @@ public class SolutionUtils {
 
         if (totalSolutionSizeCurrent > maxSolutionCount){
             log.setLength(0);
-            log.append("\n").append("iteration "+iteration).append("\n");
+//            log.append("\n").append("iteration "+iteration).append("\n");
             log.append("Switch cost score is "+switchCostScore).append("\n");
             log.append("Total solution size is "+totalSolutionSizeCurrent).append("\n");
             log.append("Total solution size greater than maxSolutionCount "+maxSolutionCount).append("\n");
@@ -318,11 +317,11 @@ public class SolutionUtils {
 
 
         System.out.println();
-        System.out.println("iteration "+iteration);
+//        System.out.println("iteration "+iteration);
         System.out.println("Switch cost score is "+switchCostScore);
         System.out.println("Total solution size is "+totalSolutionSizeCurrent);
         System.out.println();
-        iteration =0;
+//        iteration =0;
         EnumSet<WindowSource.Source>[][] reverseCandidateSolution =
                 SolutionUtils.getCandidateSourceSolutionEnumSet(SolutionUtils.reverseSrcGenotype(srcGenotype),
                         SolutionUtils.reverseGenotype(queryGenotype),switchCostScore, srcIndiList, taxaSourceMap);

@@ -61,18 +61,18 @@ public class Start {
 //                new File(groupByPop2IndividualFile), new File(fd_dxyFile), conjunctionNum, switchCostScore,
 //                new File(outDir), maxSolutionCount, threadNum);
 
-        String genotypeDir = args[0];
-        String fd_dxyFileDir = args[1];
-        String groupInfoFile = args[2];
-        int conjunctionNum = Integer.parseInt(args[3]);
-        double initializeSwitchCostScore  =Double.parseDouble(args[4]);
-        String outDir = args[5];
-        int maxSolutionCount = Integer.parseInt(args[6]);
-        int threadNum = Integer.parseInt(args[7]);
-
-
-        LocalAncestryInferenceStart.inferStart(genotypeDir, fd_dxyFileDir, groupInfoFile,conjunctionNum,
-                initializeSwitchCostScore,outDir,maxSolutionCount,threadNum);
+//        String genotypeDir = args[0];
+//        String fd_dxyFileDir = args[1];
+//        String groupInfoFile = args[2];
+//        String outDir = args[3];
+//        int conjunctionNum = Integer.parseInt(args[4]);
+//        double initializeSwitchCostScore  =Double.parseDouble(args[5]);
+//        int maxSolutionCount = Integer.parseInt(args[6]);
+////        int threadNum = Integer.parseInt(args[7]);
+//
+//
+//        LocalAncestryInferenceStart.inferStart(genotypeDir, fd_dxyFileDir, groupInfoFile,conjunctionNum,
+//                initializeSwitchCostScore,outDir,maxSolutionCount);
 
 //        List<SolutionElement> solutionElementList = new ArrayList<>();
 //        solutionElementList.add(new SolutionElement(WindowSource.Source.WE, 0, 1));
@@ -85,15 +85,15 @@ public class Start {
 //            copy.add(iterator.next().clone());
 //        }
 //        System.out.println();
-//        double switchCostScore= 1.5;
-//        double[][] srcGenotype = {{0,1,0,1,0,1,0,0,0,0,1,1},
-//                            {0,0,0,1,0,1,1,0,0,0,1,1},
-//                            {0,0,1,0,1,0,0,0,1,0,1,1},
-//                            {0,0,0,0,1,0,1,0,1,1,1,1},
-//                            {1,1,0,0,0,0,1,1,1,1,0,0},
-//                            {1,0,0,1,0,0,1,1,1,1,0,0}};
-//        double[] queryGenotype = {1,1,0,0,0,1,0,0,1,1,1,1};
-//        GenotypeTable.getMiniPath2(srcGenotype, queryGenotype, 1.5, null, null,5,10.5);
+        double switchCostScore= 1.5;
+        double[][] srcGenotype = {{0,1,0,1,0,1,0,0,0,0,1,1},
+                            {0,0,0,1,0,1,1,0,0,0,1,1},
+                            {0,0,1,0,1,0,0,0,1,0,1,1},
+                            {0,0,0,0,1,0,1,0,1,1,1,1},
+                            {1,1,0,0,0,0,1,1,1,1,0,0},
+                            {1,0,0,1,0,0,1,1,1,1,0,0}};
+        double[] queryGenotype = {1,1,0,0,0,1,0,0,1,1,1,1};
+        GenotypeTable.getMiniCostScore(srcGenotype, queryGenotype, switchCostScore);
 
 //        List<String> a = WheatLineage.abLineage();
 //        StringBuilder sb = new StringBuilder();
