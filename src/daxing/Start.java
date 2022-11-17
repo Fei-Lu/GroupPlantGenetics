@@ -1,8 +1,12 @@
 package daxing;
 
+import daxing.common.chrrange.ChrRange;
 import daxing.common.utiles.IOTool;
 import daxing.v2.localAncestryInfer.*;
 import gnu.trove.list.array.TIntArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -32,34 +36,32 @@ public class Start {
 //
 //        Panel.preparePanelForAncestryHMM(genotypeDir, sample2PopInfoDir, recombinationMapFile, prunedInSNPFile_AB,
 //                prunedInSNPFile_D, outDirPanel);
-
+////
 //        String genotypeFile = "/Users/xudaxing/Desktop/ABBA/001_gentotype/chr2A_vmap2.1_onlyGenotype_haploid_imputation.vcf";
 //        String fd_dxyFile = "/Users/xudaxing/Desktop/ABBA/002_dxy_fd";
 //        String groupByPop2IndividualFile="/Users/xudaxing/Desktop/ABBA/groupByPop2Indi_indianDwarfToNONE_LRClose2IndianDwarf.txt";
 //        String outDir="/Users/xudaxing/Desktop/ABBA/003_outDir";
-////
-////
-//        int conjunctionNum=2; // 2
+//////
+//////
+//        int conjunctionNum=3; // 2
 //        double switchCostScore=1.5; // 1.5
 //        int maxSolutionCount=20; // 100
 //        int threadNum= 10;
-
-
-
-//        String genotypeFile = args[0];
-//        String fd_dxyFile = args[1];
-//        String groupByPop2IndividualFile=args[2];
-//        String outDir=args[3];
 //
-//        int conjunctionNum=Integer.parseInt(args[4]); // 2
-//        double switchCostScore=Double.parseDouble(args[5]); // 1.5
-//        int maxSolutionCount=Integer.parseInt(args[6]); // 100
-//        int threadNum= Integer.parseInt(args[7]);
-
-
+////        String genotypeFile = args[0];
+////        String fd_dxyFile = args[1];
+////        String groupByPop2IndividualFile=args[2];
+////        String outDir=args[3];
+////
+////        int conjunctionNum=Integer.parseInt(args[4]); // 2
+////        double switchCostScore=Double.parseDouble(args[5]); // 1.5
+////        int maxSolutionCount=Integer.parseInt(args[6]); // 100
+////        int threadNum= Integer.parseInt(args[7]);
+//
+//
 //        LocalAncestryInferenceStart.inferLocalAncestry("2A", new File(genotypeFile),
 //                new File(groupByPop2IndividualFile), new File(fd_dxyFile), conjunctionNum, switchCostScore,
-//                new File(outDir), maxSolutionCount, threadNum);
+//                new File(outDir), maxSolutionCount);
 
 //        String genotypeDir = args[0];
 //        String fd_dxyFileDir = args[1];
@@ -85,15 +87,18 @@ public class Start {
 //            copy.add(iterator.next().clone());
 //        }
 //        System.out.println();
-        double switchCostScore= 1.5;
-        double[][] srcGenotype = {{0,1,0,1,0,1,0,0,0,0,1,1},
-                            {0,0,0,1,0,1,1,0,0,0,1,1},
-                            {0,0,1,0,1,0,0,0,1,0,1,1},
-                            {0,0,0,0,1,0,1,0,1,1,1,1},
-                            {1,1,0,0,0,0,1,1,1,1,0,0},
-                            {1,0,0,1,0,0,1,1,1,1,0,0}};
-        double[] queryGenotype = {1,1,0,0,0,1,0,0,1,1,1,1};
-        GenotypeTable.getMiniCostScore(srcGenotype, queryGenotype, switchCostScore);
+
+//        double switchCostScore= 1.5;
+//        double[][] srcGenotype = {{0,1,0,1,0,1,0,0,0,0,1,1},
+//                            {0,0,0,1,0,1,1,0,0,0,1,1},
+//                            {0,0,1,0,1,0,0,0,1,0,1,1},
+//                            {0,0,0,0,1,0,1,0,1,1,1,1},
+//                            {1,1,0,0,0,0,1,1,1,1,0,0},
+//                            {1,0,0,1,0,0,1,1,1,1,0,0}};
+//        double[] queryGenotype = {1,1,0,0,0,1,0,0,1,1,1,1};
+//        double[][] miniCost = SolutionUtils.getMiniCostScore(srcGenotype, queryGenotype, switchCostScore);
+//        IntSet[][] candidateSolution = SolutionUtils.getCandidateSolution2(miniCost, 1.5, );
+//        System.out.println();
 
 //        List<String> a = WheatLineage.abLineage();
 //        StringBuilder sb = new StringBuilder();
@@ -102,7 +107,15 @@ public class Start {
 //        }
 //        System.out.println(sb.toString());
 
-
+        String genotypeDir = args[0];
+        String fd_dxyFileDir = args[1];
+        String groupInfoFile = args[2];
+        int conjunctionNum = Integer.parseInt(args[3]);
+        double initializeSwitchCostScore = Double.parseDouble(args[4]);
+        String outDir = args[5];
+        int maxSolutionCount = Integer.parseInt(args[6]);
+        LocalAncestryInferenceStart.inferStart(genotypeDir, fd_dxyFileDir, groupInfoFile, conjunctionNum,
+                initializeSwitchCostScore, outDir, maxSolutionCount);
     }
 
     public static void test(String introgressionMapFile, String infoSiteFile, String outFile){

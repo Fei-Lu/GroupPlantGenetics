@@ -1,6 +1,7 @@
 package daxing.v2.localAncestryInfer;
 
 import it.unimi.dsi.fastutil.ints.*;
+import org.omg.CORBA.PUBLIC_MEMBER;
 
 import java.util.*;
 import java.util.List;
@@ -383,37 +384,37 @@ public class SolutionUtils {
         int totalSolutionSizeCurrent = SolutionUtils.getMiniOptimalSolutionSize(forwardCandidateSolutionCurrent);
         int totalSolutionSizeNext = SolutionUtils.getMiniOptimalSolutionSize(forwardCandidateSolutionNext);
 
-        StringBuilder log = new StringBuilder();
+//        StringBuilder log = new StringBuilder();
 
         //  totalSolutionSizeCurrent < 0 是因为 两个Int相乘的结果大于Int max
         if ((totalSolutionSizeCurrent > maxSolutionCount && totalSolutionSizeNext < totalSolutionSizeCurrent/2) || totalSolutionSizeCurrent <= 0){
-            log.setLength(0);
-//            log.append("\n").append("iteration "+iteration).append("\n");
-            log.append("Switch cost score is "+switchCostScore).append("\n");
-            log.append("Total solution size is "+totalSolutionSizeCurrent).append("\n").append("\n");
-            System.out.println(log);
+//            log.setLength(0);
+////            log.append("\n").append("iteration "+iteration).append("\n");
+//            log.append("Switch cost score is "+switchCostScore).append("\n");
+//            log.append("Total solution size is "+totalSolutionSizeCurrent).append("\n").append("\n");
+//            System.out.println(log);
             return SolutionUtils.getCandidateSourceSolution2(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList,
                     taxaSourceMap, maxSolutionCount);
         }
 
         if (totalSolutionSizeCurrent > maxSolutionCount){
-            log.setLength(0);
-//            log.append("\n").append("iteration "+iteration).append("\n");
-            log.append("Switch cost score is "+switchCostScore).append("\n");
-            log.append("Total solution size is "+totalSolutionSizeCurrent).append("\n");
-            log.append("Total solution size greater than maxSolutionCount "+maxSolutionCount).append("\n");
-            log.append("continue iterate").append("\n");
-            System.out.println(log);
-            return SolutionUtils.getCandidateSourceSolution2(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList,
-                    taxaSourceMap, maxSolutionCount);
+//            log.setLength(0);
+////            log.append("\n").append("iteration "+iteration).append("\n");
+//            log.append("Switch cost score is "+switchCostScore).append("\n");
+//            log.append("Total solution size is "+totalSolutionSizeCurrent).append("\n");
+//            log.append("Total solution size greater than maxSolutionCount "+maxSolutionCount).append("\n");
+//            log.append("continue iterate").append("\n");
+//            System.out.println(log);
+//            return SolutionUtils.getCandidateSourceSolution2(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList,
+//                    taxaSourceMap, maxSolutionCount);
+            return new EnumMap<>(Solution.Direction.class);
         }
 
-        System.out.println();
-//        System.out.println("iteration "+iteration);
-        System.out.println("Switch cost score is "+switchCostScore);
-        System.out.println("Total solution size is "+totalSolutionSizeCurrent);
-        System.out.println();
-//        iteration =0;
+//        System.out.println();
+////        System.out.println("iteration "+iteration);
+//        System.out.println("Switch cost score is "+switchCostScore);
+//        System.out.println("Total solution size is "+totalSolutionSizeCurrent);
+//        System.out.println();
         IntList[] reverseCandidateSolution =
                 SolutionUtils.getCandidateSolution2(SolutionUtils.reverseSrcGenotype(srcGenotype),
                         SolutionUtils.reverseGenotype(queryGenotype),switchCostScore, srcIndiList, taxaSourceMap);
@@ -519,6 +520,7 @@ public class SolutionUtils {
     }
 
     public static IntList calculateBreakPoint(EnumMap<Solution.Direction, IntList[]> candidateSolutions){
+        if (candidateSolutions.size()==0) return new IntArrayList();
         IntList forwardSolution = SolutionUtils.coalescentForward(candidateSolutions.get(Solution.Direction.F));
         if (forwardSolution.size()==0) return new IntArrayList();
         IntList singleSourceFeatureList = SourceType.getSingleSourceFeatureList();
@@ -541,7 +543,28 @@ public class SolutionUtils {
                 }
             }
         }
-        return forwardSolution;
+        IntList engravedSolution = SolutionUtils.engrave(forwardSolution);
+        return engravedSolution;
+    }
+
+    public static IntList engrave(IntList solution){
+        IntList res = new IntArrayList(solution);
+        IntList singleSourceFeatureList = SourceType.getSingleSourceFeatureList();
+        int preFeature, currentFeature, nextFeature;
+        for (int i = 3; i < res.size()-3; i=i+3) {
+            preFeature = res.getInt(i-3);
+            currentFeature = res.getInt(i);
+            nextFeature = res.getInt(i+3);
+            if (preFeature!=nextFeature) continue;
+            if (singleSourceFeatureList.contains(preFeature)){
+                if (currentFeature==preFeature+16){
+                    res.set(i-1, res.getInt(i+5));
+                    res.removeElements(i, i+6);
+                    i=i-3;
+                }
+            }
+        }
+        return res;
     }
 
     public static EnumSet<WindowSource.Source>[][] getCandidateSourceSolutionEnumSet(double[][] srcGenotype, double[] queryGenotype,
