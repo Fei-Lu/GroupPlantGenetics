@@ -6,12 +6,13 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import org.apache.commons.lang3.EnumUtils;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
+import sun.jvm.hotspot.opto.InlineTree;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public class LocalAncestryInferenceStart {
@@ -40,13 +41,15 @@ public class LocalAncestryInferenceStart {
         String[] outFiles = Arrays.stream(queryTaxa).map(s -> "chr"+refChr+"_"+s+"_LAI.txt").toArray(String[]::new);
 
 //        List<Callable<Integer>> callableTasks = new ArrayList<>();
+
         for (int i = 0; i < fd_dxyFiles.size(); i++) {
             int k = i;
+
 //            callableTasks.add(()-> inferLocalAncestry2(refChr, genoTable, srcIndividualMap, taxaSourceMap,
 //                    fd_dxyFiles.get(k), queryTaxa[k], new File(outDir, outFiles[k]), conjunctionNum,
 //                    initializeSwitchCostScore, maxSolutionCount));
 
-            inferLocalAncestry2(refChr, genoTable, srcIndividualMap, taxaSourceMap,
+            inferLocalAncestry3(refChr, genoTable, srcIndividualMap, taxaSourceMap,
                     fd_dxyFiles.get(k), queryTaxa[k], new File(outDir, outFiles[k]), conjunctionNum,
                     initializeSwitchCostScore, maxSolutionCount);
 
@@ -318,6 +321,132 @@ public class LocalAncestryInferenceStart {
                         sb.append(source.name()).append("\t");
                         startPos = genoTable.getPosition(solution.getSolutionElements()[index].startIndex+startIndex);
                         endPos = genoTable.getPosition((solution.getSolutionElements()[index].endIndex-1+startIndex));
+                        sb.append(startPos).append("\t").append(endPos);
+                        bw.write(sb.toString());
+                        bw.newLine();
+                    }
+                }
+            }
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println(queryTaxon+" "+refChr+" completed in "+Benchmark.getTimeSpanMinutes(start0)+ " minutes");
+        return 0;
+    }
+
+    public static int inferLocalAncestry3(String refChr, GenotypeTable genoTable,
+                                          Map<WindowSource.Source, List<String>> srcIndividualMap,
+                                          Map<String, WindowSource.Source> taxaSourceMap,
+                                          File fd_dxyFile, String queryTaxon,
+                                          File outFile, int conjunctionNum, double switchCostScore, int maxSolutionCount){
+        long start0 =System.nanoTime();
+        IndividualSource queryIndividualSource = new IndividualSource(fd_dxyFile.getAbsolutePath(), queryTaxon);
+        System.out.println();
+        System.out.println("Current taxon and chr: "+queryIndividualSource.getIndividualID()+" "+refChr);
+        System.out.println();
+        System.out.println("Current option");
+        System.out.println("conjunctionNum: "+ conjunctionNum);
+        System.out.println("switchCostScore: "+ switchCostScore);
+//        System.out.println("maxSolutionCount: "+maxSolutionCount);
+//        System.out.println("maxSwitchCostScore: "+maxSwitchCostScore);
+        System.out.println();
+        WindowSource[] toBeInferredWindow = queryIndividualSource.selectCandidateWindow(conjunctionNum);
+        List<WindowSource> toBeInferredWindowChrList = new ArrayList<>();
+        for (WindowSource windowSource: toBeInferredWindow){
+            if (windowSource.getChrRange().getChr().equals(refChr)){
+                toBeInferredWindowChrList.add(windowSource);
+            }
+        }
+        EnumSet<WindowSource.Source> sourceEnumSet;
+        List<String> srcIndiList;
+        int[] srcTaxaIndices;
+        int[] siteIndex;
+        int startIndex, endIndex, queryTaxonIndex;
+        double[][] srcGenotype;
+        double[] queryGenotype;
+        int startPos, endPos;
+        IntList solution;
+        EnumMap<Solution.Direction, IntList[]> candidateSolution;
+        EnumSet<WindowSource.Source> sources;
+        try (BufferedWriter bw = IOTool.getWriter(outFile)) {
+            bw.write("Taxon\tChr\tWindowID\tSource\tStart\tEnd");
+            bw.newLine();
+            StringBuilder sb = new StringBuilder();
+            StringBuilder log = new StringBuilder();
+            for (int i = 0; i < toBeInferredWindowChrList.size(); i++) {
+                sourceEnumSet = toBeInferredWindowChrList.get(i).getSources();
+                srcIndiList = new ArrayList<>();
+                for (WindowSource.Source source: sourceEnumSet){
+                    srcIndiList.addAll(srcIndividualMap.get(source));
+                }
+
+                // src taxa indices;
+                srcTaxaIndices = new int[srcIndiList.size()];
+                for (int j = 0; j < srcTaxaIndices.length; j++) {
+                    srcTaxaIndices[j] = genoTable.getTaxonIndex(srcIndiList.get(j));
+                }
+
+                // site start and end index
+                siteIndex = new int[2];
+                startIndex=genoTable.getSiteIndex(refChr, toBeInferredWindowChrList.get(i).getChrRange().getStart());
+                endIndex = genoTable.getSiteIndex(refChr, toBeInferredWindowChrList.get(i).getChrRange().getEnd()-1);
+                if (startIndex < 0){
+                    startIndex=-startIndex-2;
+                }
+                if (endIndex < 0){
+                    endIndex=-endIndex-2;
+                }
+                siteIndex[0]=startIndex;
+                siteIndex[1]=endIndex;
+
+                // query taxon index
+                queryTaxonIndex = genoTable.getTaxonIndex(queryTaxon);
+
+                // solution of mini distance
+                srcGenotype = genoTable.getSrcGenotypeFrom(srcTaxaIndices, siteIndex);
+                queryGenotype = genoTable.getQueryGenotypeFrom(queryTaxonIndex, siteIndex);
+
+                long start = System.nanoTime();
+                System.out.println();
+                System.out.println("********* Start iteration *********");
+                System.out.println(toBeInferredWindowChrList.get(i).getChrRange().toString());
+                log.setLength(0);
+                log.append("Window sources: ");
+                log.append(String.join("\t",sourceEnumSet.stream().map(source -> source.name()).collect(Collectors.toList())));
+                System.out.println(log);
+
+                candidateSolution = SolutionUtils.getCandidateSourceSolution2(srcGenotype,
+                        queryGenotype, switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount);
+                solution =SolutionUtils.calculateBreakPoint(candidateSolution);
+
+                System.out.println(Benchmark.getTimeSpanSeconds(start)+" seconds");
+                System.out.println("********* End iteration *********");
+                System.out.println();
+                // write
+                if (solution.size()==0){
+                    sb.setLength(0);
+                    sb.append(queryTaxon).append("\t").append(refChr).append("\t");
+                    sb.append(toBeInferredWindowChrList.get(i).getChrRange().toString()).append("\t");
+                    sb.append("NONE").append("\t");
+                    startPos = -1;
+                    endPos = -1;
+                    sb.append(startPos).append("\t").append(endPos);
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }else {
+                    for (int j = 0; j < solution.size(); j=j+3) {
+                        sb.setLength(0);
+                        sb.append(queryTaxon).append("\t").append(refChr).append("\t");
+                        sb.append(toBeInferredWindowChrList.get(i).getChrRange().toString()).append("\t");
+                        sources = SourceType.getSourcesFrom(solution.getInt(j));
+                        for (WindowSource.Source source1: sources){
+                            sb.append(source1.name()).append(",");
+                        }
+                        sb.deleteCharAt(sb.length()-1);
+                        sb.append("\t");
+                        startPos = genoTable.getPosition(solution.getInt(j+1)+startIndex);
+                        endPos = genoTable.getPosition(solution.getInt(j+2)+startIndex);
                         sb.append(startPos).append("\t").append(endPos);
                         bw.write(sb.toString());
                         bw.newLine();

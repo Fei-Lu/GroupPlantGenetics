@@ -238,6 +238,312 @@ public class SolutionUtils {
         return solution;
     }
 
+    public static IntList[] getCandidateSolution2(double[][] srcGenotype, double[] queryGenotype, double switchCostScore, List<String> srcIndiList,
+                                                  Map<String, WindowSource.Source> taxaSourceMap){
+
+        double[][] miniCost = SolutionUtils.getMiniCostScore(srcGenotype, queryGenotype, switchCostScore);
+
+//        long start = System.nanoTime();
+        int haplotypeLen=miniCost[0].length;
+
+        // miniCost score indexList
+        double miniCostScore= Double.MAX_VALUE;
+        IntList miniCostScoreIndexList = new IntArrayList();
+        for (int i = 0; i < miniCost.length; i++) {
+            miniCostScore = miniCost[i][haplotypeLen-1] < miniCostScore ? miniCost[i][haplotypeLen-1] :miniCostScore;
+        }
+        for (int i = 0; i < miniCost.length; i++) {
+            if (miniCostScore==miniCost[i][haplotypeLen-1]){
+                miniCostScoreIndexList.add(i);
+            }
+        }
+
+        // new solution, the first dim is miniCostScoreList, the second dim is SNP
+        IntList[] solutions = new IntList[miniCostScoreIndexList.size()];
+
+        WindowSource.Source source;
+        for (int i = 0; i < solutions.length; i++) {
+            solutions[i] = new IntArrayList();
+            source = taxaSourceMap.get(srcIndiList.get(miniCostScoreIndexList.getInt(i)));
+            solutions[i].add(SourceType.valueOf(source.name()).getSourceFeature());
+            solutions[i].add(haplotypeLen-1);
+            solutions[i].add(haplotypeLen-1);
+        }
+
+        // find all solution
+        IntSet currentIndexSet, nextIndexSet;
+        int currentSourceFeature, nextSourceFeature;
+        IntIterator tIntIterator;
+        int index, currentSolutionElementIndex;
+
+        for (int i = 0; i < solutions.length; i++) {
+            index = miniCostScoreIndexList.getInt(i);
+            currentIndexSet = new IntOpenHashSet();
+            currentIndexSet.add(index);
+
+            currentSolutionElementIndex=0;
+            for (int j = haplotypeLen - 1; j > 0; j--) {
+                tIntIterator = currentIndexSet.iterator();
+                nextIndexSet = new IntOpenHashSet();
+                while (tIntIterator.hasNext()){
+
+                    index = tIntIterator.nextInt();
+
+                    // 当前单倍型
+                    if (miniCost[index][j-1] <= miniCost[index][j]){
+                        nextIndexSet.add(index);
+                    }
+
+                    // 转换单倍型
+                    for (int k = 0; k < miniCost.length; k++) {
+                        if (k==index) continue;
+                        if ((miniCost[k][j-1]+switchCostScore) <= miniCost[index][j]){
+                            nextIndexSet.add(k);
+                        }
+                    }
+                }
+
+                currentSourceFeature = SolutionUtils.getSourceFutureFrom(currentIndexSet, srcIndiList, taxaSourceMap);
+                nextSourceFeature = SolutionUtils.getSourceFutureFrom(nextIndexSet, srcIndiList, taxaSourceMap);
+                if (currentSourceFeature==nextSourceFeature){
+                    solutions[i].set(currentSolutionElementIndex*3+2, j-1);
+                }else {
+                    solutions[i].add(nextSourceFeature);
+                    solutions[i].add(j-1);
+                    solutions[i].add(j-1);
+                    currentSolutionElementIndex++;
+                }
+
+                currentIndexSet = nextIndexSet;
+            }
+        }
+        return solutions;
+    }
+
+
+
+    private static int getSourceFutureFrom(IntSet sourceIndexSet, List<String> srcIndiList,
+                                                                 Map<String, WindowSource.Source> taxaSourceMap){
+        EnumSet<WindowSource.Source> sourceEnumSet = EnumSet.noneOf(WindowSource.Source.class);
+        for (int index : sourceIndexSet){
+            sourceEnumSet.add(taxaSourceMap.get(srcIndiList.get(index)));
+        }
+
+        return SourceType.getSourceFeature(sourceEnumSet);
+    }
+
+    public static int getMiniOptimalSolutionSize(IntList[] solutions){
+        int[] size = SolutionUtils.getOptimalSolutionsSize(solutions);
+        int mini = Integer.MAX_VALUE;
+        for (int i = 0; i < size.length; i++) {
+            mini = size[i] < mini ? size[i] : mini;
+        }
+        return mini;
+    }
+
+    public static int[] getOptimalSolutionsSize(IntList[] solutions){
+        int[] sizes = new int[solutions.length];
+        Arrays.fill(sizes, -1);
+        int cumSize=1;
+        EnumSet<WindowSource.Source> sources;
+        for (int i = 0; i < solutions.length; i++) {
+            for (int j = solutions[i].size()-1; j > 0; j=j-3) {
+                sources = SourceType.getSourcesFrom(solutions[i].getInt(j-2));
+                if (sources.size()==1) continue;
+                cumSize*=sources.size();
+            }
+            sizes[i] = cumSize;
+            cumSize = 1;
+        }
+        return sizes;
+    }
+
+    /**
+     *
+     * @param srcGenotype
+     * @param queryGenotype
+     * @param switchCostScore
+     * @param srcIndiList
+     * @param taxaSourceMap
+     * @return
+     */
+    public static EnumMap<Solution.Direction, IntList[]> getCandidateSourceSolution2(double[][] srcGenotype,
+                                                                                                           double[] queryGenotype,
+                                                                                                           double switchCostScore,
+                                                                                                           List<String> srcIndiList,
+                                                                                                           Map<String, WindowSource.Source> taxaSourceMap,
+                                                                                                           int maxSolutionCount){
+
+        IntList[] forwardCandidateSolutionCurrent = SolutionUtils.getCandidateSolution2(srcGenotype, queryGenotype, switchCostScore,
+                        srcIndiList, taxaSourceMap);
+        IntList[] forwardCandidateSolutionNext =
+                SolutionUtils.getCandidateSolution2(srcGenotype, queryGenotype, switchCostScore+1,
+                        srcIndiList, taxaSourceMap);
+
+        int totalSolutionSizeCurrent = SolutionUtils.getMiniOptimalSolutionSize(forwardCandidateSolutionCurrent);
+        int totalSolutionSizeNext = SolutionUtils.getMiniOptimalSolutionSize(forwardCandidateSolutionNext);
+
+        StringBuilder log = new StringBuilder();
+
+        //  totalSolutionSizeCurrent < 0 是因为 两个Int相乘的结果大于Int max
+        if ((totalSolutionSizeCurrent > maxSolutionCount && totalSolutionSizeNext < totalSolutionSizeCurrent/2) || totalSolutionSizeCurrent <= 0){
+            log.setLength(0);
+//            log.append("\n").append("iteration "+iteration).append("\n");
+            log.append("Switch cost score is "+switchCostScore).append("\n");
+            log.append("Total solution size is "+totalSolutionSizeCurrent).append("\n").append("\n");
+            System.out.println(log);
+            return SolutionUtils.getCandidateSourceSolution2(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList,
+                    taxaSourceMap, maxSolutionCount);
+        }
+
+        if (totalSolutionSizeCurrent > maxSolutionCount){
+            log.setLength(0);
+//            log.append("\n").append("iteration "+iteration).append("\n");
+            log.append("Switch cost score is "+switchCostScore).append("\n");
+            log.append("Total solution size is "+totalSolutionSizeCurrent).append("\n");
+            log.append("Total solution size greater than maxSolutionCount "+maxSolutionCount).append("\n");
+            log.append("continue iterate").append("\n");
+            System.out.println(log);
+            return SolutionUtils.getCandidateSourceSolution2(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList,
+                    taxaSourceMap, maxSolutionCount);
+        }
+
+        System.out.println();
+//        System.out.println("iteration "+iteration);
+        System.out.println("Switch cost score is "+switchCostScore);
+        System.out.println("Total solution size is "+totalSolutionSizeCurrent);
+        System.out.println();
+//        iteration =0;
+        IntList[] reverseCandidateSolution =
+                SolutionUtils.getCandidateSolution2(SolutionUtils.reverseSrcGenotype(srcGenotype),
+                        SolutionUtils.reverseGenotype(queryGenotype),switchCostScore, srcIndiList, taxaSourceMap);
+        EnumMap<Solution.Direction, IntList[]> enumMap = new EnumMap<>(Solution.Direction.class);
+        enumMap.put(Solution.Direction.F, forwardCandidateSolutionCurrent);
+        enumMap.put(Solution.Direction.R, reverseCandidateSolution);
+        return enumMap;
+    }
+
+    public static IntList coalescentForward(IntList[] solutions){
+        int[] miniSolutionSizeArray = SolutionUtils.getOptimalSolutionsSize(solutions);
+        int miniSolutionSize = SolutionUtils.getMiniOptimalSolutionSize(solutions);
+        int solutionEleCount;
+        Set<IntList> solutionSet = new HashSet<>();
+        for (int i = 0; i < solutions.length; i++) {
+            if (miniSolutionSizeArray[i]!=miniSolutionSize) continue;
+            solutionEleCount =  solutions[i].size();
+            // filter Source is NONE
+            if (solutionEleCount==3 && (solutions[i].getInt(0)==16)) continue;
+            solutionSet.add(solutions[i]);
+        }
+        List<IntList> solutionList = new ArrayList<>(solutionSet);
+        if (solutionList.size()==0) return new IntArrayList();
+        IntList singleSourceFeatureList = SourceType.getSingleSourceFeatureList();
+        int sourceFeature;
+        IntList solutionRes = new IntArrayList();
+        int singleSourceStart, singleSourceEnd, mutipleSourceStart, mutipleSouceEnd;
+        for (int i = solutionList.get(0).size()-1; i > 0 ; i=i-3) {
+            singleSourceStart = Integer.MIN_VALUE;
+            singleSourceEnd = Integer.MAX_VALUE;
+            mutipleSourceStart = Integer.MAX_VALUE;
+            mutipleSouceEnd = Integer.MIN_VALUE;
+            sourceFeature = solutionList.get(0).getInt(i-2);
+            if (singleSourceFeatureList.contains(sourceFeature)){
+                for (int j = 0; j < solutionList.size(); j++) {
+                    singleSourceStart = solutionList.get(j).getInt(i) > singleSourceStart ? solutionList.get(j).getInt(i): singleSourceStart;
+                    singleSourceEnd = solutionList.get(j).getInt(i-1) < singleSourceEnd ? solutionList.get(j).getInt(i-1) : singleSourceEnd;
+                }
+                solutionRes.add(sourceFeature);
+                solutionRes.add(singleSourceStart);
+                solutionRes.add(singleSourceEnd);
+            }else {
+                for (int j = 0; j < solutionList.size(); j++) {
+                    mutipleSourceStart = solutionList.get(j).getInt(i) < mutipleSourceStart ? solutionList.get(j).getInt(i): mutipleSourceStart;
+                    mutipleSouceEnd = solutionList.get(j).getInt(i-1) > mutipleSouceEnd ? solutionList.get(j).getInt(i-1) : mutipleSouceEnd;
+                }
+                solutionRes.add(sourceFeature);
+                solutionRes.add(mutipleSourceStart);
+                solutionRes.add(mutipleSouceEnd);
+            }
+        }
+        return solutionRes;
+    }
+
+    public static IntList coalescentReverse(IntList[] solutions){
+        int[] miniSolutionSizeArray = SolutionUtils.getOptimalSolutionsSize(solutions);
+        int miniSolutionSize = SolutionUtils.getMiniOptimalSolutionSize(solutions);
+        int solutionEleCount;
+        Set<IntList> solutionSet = new HashSet<>();
+        for (int i = 0; i < solutions.length; i++) {
+            if (miniSolutionSizeArray[i]!=miniSolutionSize) continue;
+            solutionEleCount =  solutions[i].size();
+            // filter Source is NONE
+            if (solutionEleCount==3 && (solutions[i].getInt(0)==16)) continue;
+            solutionSet.add(solutions[i]);
+        }
+        List<IntList> solutionList = new ArrayList<>(solutionSet);
+        if (solutionList.size()==0) return new IntArrayList();
+        IntList singleSourceFeatureList = SourceType.getSingleSourceFeatureList();
+        int sourceFeature;
+        IntList solutionRes = new IntArrayList();
+        int singleSourceStart, singleSourceEnd, mutipleSourceStart, mutipleSouceEnd;
+        int seqLen = solutionList.get(0).getInt(1);
+        for (int i = 0; i < solutionList.get(0).size(); i=i+3) {
+            singleSourceStart = Integer.MIN_VALUE;
+            singleSourceEnd = Integer.MAX_VALUE;
+            mutipleSourceStart = Integer.MAX_VALUE;
+            mutipleSouceEnd = Integer.MIN_VALUE;
+            sourceFeature = solutionList.get(0).getInt(i);
+            if (singleSourceFeatureList.contains(sourceFeature)){
+                for (int j = 0; j < solutionList.size(); j++) {
+                    singleSourceStart = seqLen-solutionList.get(j).getInt(i+1) > singleSourceStart ?
+                            seqLen-solutionList.get(j).getInt(i+1): singleSourceStart;
+                    singleSourceEnd = seqLen-solutionList.get(j).getInt(i+2) < singleSourceEnd ?
+                            seqLen-solutionList.get(j).getInt(i+2) : singleSourceEnd;
+                }
+                solutionRes.add(sourceFeature);
+                solutionRes.add(singleSourceStart);
+                solutionRes.add(singleSourceEnd);
+            }else {
+                for (int j = 0; j < solutionList.size(); j++) {
+                    mutipleSourceStart = seqLen-solutionList.get(j).getInt(i+1) < mutipleSourceStart ?
+                            seqLen-solutionList.get(j).getInt(i+1): mutipleSourceStart;
+                    mutipleSouceEnd = seqLen-solutionList.get(j).getInt(i+2) > mutipleSouceEnd ?
+                            seqLen-solutionList.get(j).getInt(i+2) : mutipleSouceEnd;
+                }
+                solutionRes.add(sourceFeature);
+                solutionRes.add(mutipleSourceStart);
+                solutionRes.add(mutipleSouceEnd);
+            }
+        }
+        return solutionRes;
+    }
+
+    public static IntList calculateBreakPoint(EnumMap<Solution.Direction, IntList[]> candidateSolutions){
+        IntList forwardSolution = SolutionUtils.coalescentForward(candidateSolutions.get(Solution.Direction.F));
+        if (forwardSolution.size()==0) return new IntArrayList();
+        IntList singleSourceFeatureList = SourceType.getSingleSourceFeatureList();
+        int forwardCount, reverseCount;
+        forwardCount = forwardSolution.size()/3;
+        int forwardLastSourceFeature = forwardSolution.getInt(forwardSolution.size()-3);
+        IntList reverseSolution;
+        if (singleSourceFeatureList.contains(forwardLastSourceFeature)){
+            reverseSolution = SolutionUtils.coalescentReverse(candidateSolutions.get(Solution.Direction.R));
+            if (reverseSolution.size()==0) return forwardSolution;
+            reverseCount = reverseSolution.size()/3;
+            if (forwardCount==1 || reverseCount==1) return forwardSolution;
+            if (reverseSolution.getInt(reverseSolution.size()-6)==(forwardLastSourceFeature)){
+                if((reverseSolution.getInt(reverseSolution.size()-6)!=(reverseSolution.getInt(reverseSolution.size()-3)))){
+                    forwardSolution.set((forwardCount-1)*3+2, reverseSolution.getInt((reverseCount-2)*3+2));
+                    forwardSolution.add(reverseSolution.getInt((reverseCount-1)*3+0));
+                    forwardSolution.add(reverseSolution.getInt((reverseCount-1)*3+1));
+                    forwardSolution.add(reverseSolution.getInt((reverseCount-1)*3+2));
+                    return forwardSolution;
+                }
+            }
+        }
+        return forwardSolution;
+    }
+
     public static EnumSet<WindowSource.Source>[][] getCandidateSourceSolutionEnumSet(double[][] srcGenotype, double[] queryGenotype,
                                                                                      double switchCostScore,
                                                                                      List<String> srcIndiList,
