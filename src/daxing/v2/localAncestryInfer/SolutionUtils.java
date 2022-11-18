@@ -1,14 +1,10 @@
 package daxing.v2.localAncestryInfer;
 
 import it.unimi.dsi.fastutil.ints.*;
-import org.omg.CORBA.PUBLIC_MEMBER;
-
 import java.util.*;
 import java.util.List;
 
 public class SolutionUtils {
-
-    static int iteration=0;
 
     /**
      *
@@ -556,8 +552,8 @@ public class SolutionUtils {
             currentFeature = res.getInt(i);
             nextFeature = res.getInt(i+3);
             if (preFeature!=nextFeature) continue;
-            if (singleSourceFeatureList.contains(preFeature)){
-                if (currentFeature==preFeature+16){
+            if (singleSourceFeatureList.contains(preFeature) && (!singleSourceFeatureList.contains(currentFeature))){
+                if ((preFeature & currentFeature) == preFeature){
                     res.set(i-1, res.getInt(i+5));
                     res.removeElements(i, i+6);
                     i=i-3;
