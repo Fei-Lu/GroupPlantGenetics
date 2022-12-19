@@ -355,6 +355,16 @@ public class SolutionUtils {
         return sizes;
     }
 
+    public static int getMiniSolutionEleCount(IntList[] solutions){
+        int miniSolutionEleCount = Integer.MAX_VALUE;
+        for (int i = 0; i < solutions.length; i++) {
+            miniSolutionEleCount = solutions[i].size() < miniSolutionEleCount ? solutions[i].size() :
+                    miniSolutionEleCount;
+
+        }
+        return miniSolutionEleCount;
+    }
+
     /**
      *
      * @param srcGenotype
@@ -383,7 +393,7 @@ public class SolutionUtils {
 //        StringBuilder log = new StringBuilder();
 
         //  totalSolutionSizeCurrent < 0 是因为 两个Int相乘的结果大于Int max
-        if ((totalSolutionSizeCurrent > maxSolutionCount && totalSolutionSizeNext < totalSolutionSizeCurrent/2) || totalSolutionSizeCurrent <= 0){
+        if ((totalSolutionSizeCurrent > maxSolutionCount && totalSolutionSizeNext <= totalSolutionSizeCurrent/2) || totalSolutionSizeCurrent <= 0){
 //            log.setLength(0);
 ////            log.append("\n").append("iteration "+iteration).append("\n");
 //            log.append("Switch cost score is "+switchCostScore).append("\n");
@@ -401,9 +411,9 @@ public class SolutionUtils {
 //            log.append("Total solution size greater than maxSolutionCount "+maxSolutionCount).append("\n");
 //            log.append("continue iterate").append("\n");
 //            System.out.println(log);
-//            return SolutionUtils.getCandidateSourceSolution2(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList,
-//                    taxaSourceMap, maxSolutionCount);
-            return new EnumMap<>(Solution.Direction.class);
+            return SolutionUtils.getCandidateSourceSolution2(srcGenotype, queryGenotype, switchCostScore+1, srcIndiList,
+                    taxaSourceMap, maxSolutionCount);
+//            return new EnumMap<>(Solution.Direction.class);
         }
 
 //        System.out.println();
@@ -423,10 +433,12 @@ public class SolutionUtils {
     public static IntList coalescentForward(IntList[] solutions){
         int[] miniSolutionSizeArray = SolutionUtils.getOptimalSolutionsSize(solutions);
         int miniSolutionSize = SolutionUtils.getMiniOptimalSolutionSize(solutions);
+        int miniSolutionEleCount = SolutionUtils.getMiniSolutionEleCount(solutions);
         int solutionEleCount;
         Set<IntList> solutionSet = new HashSet<>();
         for (int i = 0; i < solutions.length; i++) {
             if (miniSolutionSizeArray[i]!=miniSolutionSize) continue;
+            if (solutions[i].size()!=miniSolutionEleCount) continue;
             solutionEleCount =  solutions[i].size();
             // filter Source is NONE
             if (solutionEleCount==3 && (solutions[i].getInt(0)==16)) continue;
@@ -468,10 +480,12 @@ public class SolutionUtils {
     public static IntList coalescentReverse(IntList[] solutions){
         int[] miniSolutionSizeArray = SolutionUtils.getOptimalSolutionsSize(solutions);
         int miniSolutionSize = SolutionUtils.getMiniOptimalSolutionSize(solutions);
+        int miniSolutionEleCount = SolutionUtils.getMiniSolutionEleCount(solutions);
         int solutionEleCount;
         Set<IntList> solutionSet = new HashSet<>();
         for (int i = 0; i < solutions.length; i++) {
             if (miniSolutionSizeArray[i]!=miniSolutionSize) continue;
+            if (solutions[i].size()!=miniSolutionEleCount) continue;
             solutionEleCount =  solutions[i].size();
             // filter Source is NONE
             if (solutionEleCount==3 && (solutions[i].getInt(0)==16)) continue;
@@ -529,18 +543,24 @@ public class SolutionUtils {
             if (reverseSolution.size()==0) return forwardSolution;
             reverseCount = reverseSolution.size()/3;
             if (forwardCount==1 || reverseCount==1) return forwardSolution;
+            if (reverseCount < forwardCount) return reverseSolution;
             if (reverseSolution.getInt(reverseSolution.size()-6)==(forwardLastSourceFeature)){
                 if((reverseSolution.getInt(reverseSolution.size()-6)!=(reverseSolution.getInt(reverseSolution.size()-3)))){
-                    forwardSolution.set((forwardCount-1)*3+2, reverseSolution.getInt((reverseCount-2)*3+2));
-                    forwardSolution.add(reverseSolution.getInt((reverseCount-1)*3+0));
-                    forwardSolution.add(reverseSolution.getInt((reverseCount-1)*3+1));
-                    forwardSolution.add(reverseSolution.getInt((reverseCount-1)*3+2));
-                    return forwardSolution;
+
+                    // make sure final range is right
+                    if (reverseSolution.getInt(reverseSolution.size()-4) > forwardSolution.getInt(forwardSolution.size()-2)){
+                        forwardSolution.set((forwardCount-1)*3+2, reverseSolution.getInt((reverseCount-2)*3+2));
+                        forwardSolution.add(reverseSolution.getInt((reverseCount-1)*3+0));
+                        forwardSolution.add(reverseSolution.getInt((reverseCount-1)*3+1));
+                        forwardSolution.add(reverseSolution.getInt((reverseCount-1)*3+2));
+                        return forwardSolution;
+                    }
+
                 }
             }
         }
-        IntList engravedSolution = SolutionUtils.engrave(forwardSolution);
-        return engravedSolution;
+//        IntList engravedSolution = SolutionUtils.engrave(forwardSolution);
+        return forwardSolution;
     }
 
     public static IntList engrave(IntList solution){

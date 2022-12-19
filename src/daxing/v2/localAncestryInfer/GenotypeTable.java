@@ -104,7 +104,7 @@ public class GenotypeTable {
             e.printStackTrace();
         }
         this.transposeSiteToTaxon();
-//        this.sortByTaxa();
+        this.sortByTaxa();
     }
 
     public SNP[] getSnps() {

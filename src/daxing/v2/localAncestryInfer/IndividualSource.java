@@ -22,6 +22,8 @@ public class IndividualSource {
     }
 
     public static WindowSource[] getWindowSourceFrom(String fd_dxyFile){
+        boolean containSimulate=fd_dxyFile.contains("simulate");
+        int donorIndex = containSimulate ? 7 : 13;
         List<WindowSource> windowSourceList = new ArrayList<>();
         try (BufferedReader br = IOTool.getReader(fd_dxyFile)) {
             String line;
@@ -43,7 +45,9 @@ public class IndividualSource {
                     refStart = Integer.parseInt(temp1.get(1));
                     refEnd = Integer.parseInt(temp2.get(1)) + 1;
                     chrRange = new ChrRange(refChr, refStart, refEnd);
-                    sourceEnumSet = EnumSet.of(WindowSource.Source.valueOf(temp1.get(13)));
+                    sourceEnumSet = containSimulate ?
+                            EnumSet.of(WindowSource.Source.getInstanceFromSubNum(Integer.parseInt(temp1.get(donorIndex))).get()) :
+                            EnumSet.of(WindowSource.Source.valueOf(temp1.get(donorIndex)));
                     windowSource = new WindowSource(chrRange, sourceEnumSet);
                     windowSourceList.add(windowSource);
                     ifFirstLine=false;
@@ -53,8 +57,11 @@ public class IndividualSource {
                     refStart = Integer.parseInt(temp2.get(1));
                     refEnd = Integer.parseInt(temp1.get(2))+1;
                     chrRange = new ChrRange(refChr, refStart, refEnd);
-                    sourceEnumSet = EnumSet.of(WindowSource.Source.valueOf(temp1.get(13)),
-                            WindowSource.Source.valueOf(temp2.get(13)));
+                    sourceEnumSet = containSimulate ?
+                            EnumSet.of(WindowSource.Source.getInstanceFromSubNum(Integer.parseInt(temp1.get(donorIndex))).get()
+                                    , WindowSource.Source.getInstanceFromSubNum(Integer.parseInt(temp2.get(donorIndex))).get()):
+                            EnumSet.of(WindowSource.Source.valueOf(temp1.get(donorIndex)),
+                            WindowSource.Source.valueOf(temp2.get(donorIndex)));
                     windowSource = new WindowSource(chrRange, sourceEnumSet);
                     windowSourceList.add(windowSource);
                     lastRefChr = temp1.get(0);
@@ -64,8 +71,11 @@ public class IndividualSource {
                     refStart = windowSourceList.get(windowSourceList.size()-1).getChrRange().getEnd();
                     refEnd = Integer.parseInt(temp1.get(2))+1;
                     chrRange = new ChrRange(currentChr, refStart, refEnd);
-                    sourceEnumSet = EnumSet.of(WindowSource.Source.valueOf(temp1.get(13)),
-                            WindowSource.Source.valueOf(temp2.get(13)));
+                    sourceEnumSet = containSimulate ?
+                            EnumSet.of(WindowSource.Source.getInstanceFromSubNum(Integer.parseInt(temp1.get(donorIndex))).get()
+                            , WindowSource.Source.getInstanceFromSubNum(Integer.parseInt(temp2.get(donorIndex))).get()):
+                            EnumSet.of(WindowSource.Source.valueOf(temp1.get(donorIndex)),
+                            WindowSource.Source.valueOf(temp2.get(donorIndex)));
                     windowSource = new WindowSource(chrRange, sourceEnumSet);
                     windowSourceList.add(windowSource);
                     temp1 = temp2;
@@ -75,7 +85,9 @@ public class IndividualSource {
 
             }
             chrRange = new ChrRange(lastRefChr, lastEnd+1, Integer.parseInt(temp1.get(2))+1);
-            sourceEnumSet = EnumSet.of(WindowSource.Source.valueOf(temp1.get(13)));
+            sourceEnumSet = containSimulate ?
+                    EnumSet.of(WindowSource.Source.getInstanceFromSubNum(Integer.parseInt(temp1.get(donorIndex))).get()):
+                    EnumSet.of(WindowSource.Source.valueOf(temp1.get(donorIndex)));
             windowSource = new WindowSource(chrRange, sourceEnumSet);
             windowSourceList.add(windowSource);
         } catch (IOException e) {

@@ -4,6 +4,7 @@ import daxing.common.table.RowTableTool;
 import daxing.common.utiles.IOTool;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
@@ -35,51 +36,53 @@ public class LocalAncestryInferenceStart {
         Map<String, WindowSource.Source> taxaSourceMap = getTaxaSourceMap(groupInfoFile.getAbsolutePath());
         Map<String, String> introgressionID2VcfIDMap = RowTableTool.getMap(groupInfoFile.getAbsolutePath(), 1,0);
         List<File> fd_dxyFiles = IOTool.getFileListInDirEndsWith(fd_dxyFileDir.getAbsolutePath(), ".txt.gz");
+        boolean containSimulate = fd_dxyFiles.get(0).getName().contains("simulate");
+        int taxonIndexLength = containSimulate ? 6 : 7;
         String[] queryTaxa= fd_dxyFiles.stream().map(File::getName).map(s->introgressionID2VcfIDMap.get(s.substring(13,
-                20))).toArray(String[]::new);
+                13+taxonIndexLength))).toArray(String[]::new);
         String[] outFiles = Arrays.stream(queryTaxa).map(s -> "chr"+refChr+"_"+s+"_LAI.txt").toArray(String[]::new);
 
-        List<Callable<Integer>> callableTasks = new ArrayList<>();
+//        List<Callable<Integer>> callableTasks = new ArrayList<>();
 
         for (int i = 0; i < fd_dxyFiles.size(); i++) {
             int k = i;
 
-            callableTasks.add(()-> inferLocalAncestry3(refChr, genoTable, srcIndividualMap, taxaSourceMap,
-                    fd_dxyFiles.get(k), queryTaxa[k], new File(outDir, outFiles[k]), conjunctionNum,
-                    initializeSwitchCostScore, maxSolutionCount));
-
-//            inferLocalAncestry3(refChr, genoTable, srcIndividualMap, taxaSourceMap,
+//            callableTasks.add(()-> inferLocalAncestry3(refChr, genoTable, srcIndividualMap, taxaSourceMap,
 //                    fd_dxyFiles.get(k), queryTaxa[k], new File(outDir, outFiles[k]), conjunctionNum,
-//                    initializeSwitchCostScore, maxSolutionCount);
+//                    initializeSwitchCostScore, maxSolutionCount));
+
+            inferLocalAncestry3(refChr, genoTable, srcIndividualMap, taxaSourceMap,
+                    fd_dxyFiles.get(k), queryTaxa[k], new File(outDir, outFiles[k]), conjunctionNum,
+                    initializeSwitchCostScore, maxSolutionCount);
 
 //            inferLAI(refChr, genoTable, srcIndividualMap, taxaSourceMap, queryTaxa[k], new File(outDir, outFiles[k]),
 //                    initializeSwitchCostScore, maxSolutionCount);
         }
-        ExecutorService executorService = Executors.newFixedThreadPool(32);
-        List<Integer> exitCodes = new ArrayList<>();
-        long start = System.nanoTime();
-        try {
-            List<Future<Integer>> futureList=executorService.invokeAll(callableTasks);
-            executorService.shutdown();
-            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
-            for (Future<Integer> future : futureList){
-                exitCodes.add(future.get());
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-        List<String> failCommandList= new ArrayList<>();
-        for (int i = 0; i < exitCodes.size(); i++) {
-            if (exitCodes.get(i)!=0){
-                failCommandList.add(fd_dxyFiles.get(i).getName()+ "_"+refChr+" command fail to completed");
-            }
-        }
-        if (failCommandList.size()==0){
-            System.out.println("all commands had completed in "+ Benchmark.getTimeSpanHours(start)+ " hours");
-        }else {
-            System.out.println(failCommandList.size()+ "commands run failed");
-            System.out.println("Total spend "+Benchmark.getTimeSpanHours(start)+ " hours");
-        }
+//        ExecutorService executorService = Executors.newFixedThreadPool(32);
+//        List<Integer> exitCodes = new ArrayList<>();
+//        long start = System.nanoTime();
+//        try {
+//            List<Future<Integer>> futureList=executorService.invokeAll(callableTasks);
+//            executorService.shutdown();
+//            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
+//            for (Future<Integer> future : futureList){
+//                exitCodes.add(future.get());
+//            }
+//        } catch (InterruptedException | ExecutionException e) {
+//            e.printStackTrace();
+//        }
+//        List<String> failCommandList= new ArrayList<>();
+//        for (int i = 0; i < exitCodes.size(); i++) {
+//            if (exitCodes.get(i)!=0){
+//                failCommandList.add(fd_dxyFiles.get(i).getName()+ "_"+refChr+" command fail to completed");
+//            }
+//        }
+//        if (failCommandList.size()==0){
+//            System.out.println("all commands had completed in "+ Benchmark.getTimeSpanHours(start)+ " hours");
+//        }else {
+//            System.out.println(failCommandList.size()+ "commands run failed");
+//            System.out.println("Total spend "+Benchmark.getTimeSpanHours(start)+ " hours");
+//        }
     }
 
     public static int inferLocalAncestry(String refChr, GenotypeTable genoTable,
@@ -415,6 +418,7 @@ public class LocalAncestryInferenceStart {
 //                log.append(String.join("\t",sourceEnumSet.stream().map(source -> source.name()).collect(Collectors.toList())));
 //                System.out.println(log);
 
+//                System.out.println(i);
                 candidateSolution = SolutionUtils.getCandidateSourceSolution2(srcGenotype,
                         queryGenotype, switchCostScore, srcIndiList, taxaSourceMap, maxSolutionCount);
                 solution =SolutionUtils.calculateBreakPoint(candidateSolution);
@@ -589,7 +593,12 @@ public class LocalAncestryInferenceStart {
             List<String> temp;
             while ((line=br.readLine())!=null){
                 temp = PStringUtils.fastSplit(line);
-                if(EnumUtils.isValidEnum(WindowSource.Source.class, temp.get(1))){
+                if (NumberUtils.isNumber(temp.get(1))){
+                    source = WindowSource.Source.getInstanceFromSubNum(Integer.parseInt(temp.get(1))).get();
+                    if (srcPopSet.contains(source)){
+                        srcIndividualMap.get(source).add(temp.get(0));
+                    }
+                }else if(EnumUtils.isValidEnum(WindowSource.Source.class, temp.get(1))){
                     source = WindowSource.Source.valueOf(temp.get(1));
                     if (srcPopSet.contains(source)){
                         srcIndividualMap.get(source).add(temp.get(0));
@@ -612,7 +621,13 @@ public class LocalAncestryInferenceStart {
             List<String> temp;
             while ((line=br.readLine())!=null){
                 temp = PStringUtils.fastSplit(line);
-                if(EnumUtils.isValidEnum(WindowSource.Source.class, temp.get(1))){
+                if (NumberUtils.isNumber(temp.get(1))){
+                    source = WindowSource.Source.getInstanceFromSubNum(Integer.parseInt(temp.get(1))).get();
+                    if (srcPopSet.contains(source)){
+                        taxaSourceMap.put(temp.get(0), source);
+                    }
+                }
+                else if(EnumUtils.isValidEnum(WindowSource.Source.class, temp.get(1))){
                     source = WindowSource.Source.valueOf(temp.get(1));
                     if (srcPopSet.contains(source)){
                         taxaSourceMap.put(temp.get(0), source);
