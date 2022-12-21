@@ -1,8 +1,6 @@
 package daxing.v2.localAncestryInfer;
 
-import com.sun.org.apache.regexp.internal.RE;
 import daxing.common.chrrange.ChrRange;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;

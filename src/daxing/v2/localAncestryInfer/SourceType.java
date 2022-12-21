@@ -1,9 +1,7 @@
 package daxing.v2.localAncestryInfer;
 
-import com.google.common.base.Enums;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
