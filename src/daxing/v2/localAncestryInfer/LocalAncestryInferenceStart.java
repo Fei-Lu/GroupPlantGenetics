@@ -432,7 +432,8 @@ public class LocalAncestryInferenceStart {
                     sb.setLength(0);
                     sb.append(queryTaxon).append("\t").append(refChr).append("\t");
                     sb.append(toBeInferredWindowChrList.get(i).getChrRange().toString()).append("\t");
-                    sb.append("NONE").append("\t");
+//                    sb.append("NONE").append("\t");
+                    sb.append("4").append("\t");
                     startPos = -1;
                     endPos = -1;
                     sb.append(startPos).append("\t").append(endPos);
@@ -445,7 +446,8 @@ public class LocalAncestryInferenceStart {
                         sb.append(toBeInferredWindowChrList.get(i).getChrRange().toString()).append("\t");
                         sources = SourceType.getSourcesFrom(solution.getInt(j));
                         for (WindowSource.Source source1: sources){
-                            sb.append(source1.name()).append(",");
+//                            sb.append(source1.name()).append(",");
+                            sb.append(source1.getIndex()).append(",");
                         }
                         sb.deleteCharAt(sb.length()-1);
                         sb.append("\t");

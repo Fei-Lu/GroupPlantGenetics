@@ -1,6 +1,9 @@
 package daxing.v2.localAncestryInfer;
 
+import daxing.common.utiles.ArrayTool;
 import it.unimi.dsi.fastutil.ints.*;
+import org.apache.commons.lang.ArrayUtils;
+
 import java.util.*;
 import java.util.List;
 
@@ -430,6 +433,19 @@ public class SolutionUtils {
         return enumMap;
     }
 
+    public static int[] getTargetSourceCumLen(List<IntList> solutions){
+        int[] cumLen = new int[solutions.size()];
+        IntList singleSourceFeatureList = SourceType.getSingleSourceFeatureList();
+        for (int i = 0; i < solutions.size(); i++) {
+            for (int j = 0; j < solutions.get(i).size(); j=j+3) {
+                if (singleSourceFeatureList.contains(solutions.get(i).getInt(j))){
+                    cumLen[i]+=(solutions.get(i).getInt(j+1)) - (solutions.get(i).getInt(j+2));
+                }
+            }
+        }
+        return cumLen;
+    }
+
     public static IntList coalescentForward(IntList[] solutions){
         int[] miniSolutionSizeArray = SolutionUtils.getOptimalSolutionsSize(solutions);
         int miniSolutionSize = SolutionUtils.getMiniOptimalSolutionSize(solutions);
@@ -446,33 +462,25 @@ public class SolutionUtils {
         }
         List<IntList> solutionList = new ArrayList<>(solutionSet);
         if (solutionList.size()==0) return new IntArrayList();
-        IntList singleSourceFeatureList = SourceType.getSingleSourceFeatureList();
-        int sourceFeature;
-        IntList solutionRes = new IntArrayList();
-        int singleSourceStart, singleSourceEnd, mutipleSourceStart, mutipleSouceEnd;
-        for (int i = solutionList.get(0).size()-1; i > 0 ; i=i-3) {
-            singleSourceStart = Integer.MIN_VALUE;
-            singleSourceEnd = Integer.MAX_VALUE;
-            mutipleSourceStart = Integer.MAX_VALUE;
-            mutipleSouceEnd = Integer.MIN_VALUE;
-            sourceFeature = solutionList.get(0).getInt(i-2);
-            if (singleSourceFeatureList.contains(sourceFeature)){
-                for (int j = 0; j < solutionList.size(); j++) {
-                    singleSourceStart = solutionList.get(j).getInt(i) > singleSourceStart ? solutionList.get(j).getInt(i): singleSourceStart;
-                    singleSourceEnd = solutionList.get(j).getInt(i-1) < singleSourceEnd ? solutionList.get(j).getInt(i-1) : singleSourceEnd;
-                }
-                solutionRes.add(sourceFeature);
-                solutionRes.add(singleSourceStart);
-                solutionRes.add(singleSourceEnd);
-            }else {
-                for (int j = 0; j < solutionList.size(); j++) {
-                    mutipleSourceStart = solutionList.get(j).getInt(i) < mutipleSourceStart ? solutionList.get(j).getInt(i): mutipleSourceStart;
-                    mutipleSouceEnd = solutionList.get(j).getInt(i-1) > mutipleSouceEnd ? solutionList.get(j).getInt(i-1) : mutipleSouceEnd;
-                }
-                solutionRes.add(sourceFeature);
-                solutionRes.add(mutipleSourceStart);
-                solutionRes.add(mutipleSouceEnd);
+        int[] targetSourceCumLen = SolutionUtils.getTargetSourceCumLen(solutionList);
+        int miniTargetSourceCumLen = Integer.MAX_VALUE;
+        for (int i = 0; i < targetSourceCumLen.length; i++) {
+            miniTargetSourceCumLen = targetSourceCumLen[i] < miniTargetSourceCumLen ? targetSourceCumLen[i] :
+                    miniTargetSourceCumLen;
+        }
+        IntList miniTargetSourceCumLenSolution=null;
+        for (int i = 0; i < targetSourceCumLen.length; i++) {
+            if (targetSourceCumLen[i] == miniTargetSourceCumLen){
+                miniTargetSourceCumLenSolution = solutionList.get(i);
+                break;
             }
+        }
+
+        IntList solutionRes = new IntArrayList();
+        for (int i = miniTargetSourceCumLenSolution.size()-1; i > 0; i=i-3) {
+            solutionRes.add(miniTargetSourceCumLenSolution.getInt(i-2));
+            solutionRes.add(miniTargetSourceCumLenSolution.getInt(i));
+            solutionRes.add(miniTargetSourceCumLenSolution.getInt(i-1));
         }
         return solutionRes;
     }
@@ -493,38 +501,25 @@ public class SolutionUtils {
         }
         List<IntList> solutionList = new ArrayList<>(solutionSet);
         if (solutionList.size()==0) return new IntArrayList();
-        IntList singleSourceFeatureList = SourceType.getSingleSourceFeatureList();
-        int sourceFeature;
-        IntList solutionRes = new IntArrayList();
-        int singleSourceStart, singleSourceEnd, mutipleSourceStart, mutipleSouceEnd;
-        int seqLen = solutionList.get(0).getInt(1);
-        for (int i = 0; i < solutionList.get(0).size(); i=i+3) {
-            singleSourceStart = Integer.MIN_VALUE;
-            singleSourceEnd = Integer.MAX_VALUE;
-            mutipleSourceStart = Integer.MAX_VALUE;
-            mutipleSouceEnd = Integer.MIN_VALUE;
-            sourceFeature = solutionList.get(0).getInt(i);
-            if (singleSourceFeatureList.contains(sourceFeature)){
-                for (int j = 0; j < solutionList.size(); j++) {
-                    singleSourceStart = seqLen-solutionList.get(j).getInt(i+1) > singleSourceStart ?
-                            seqLen-solutionList.get(j).getInt(i+1): singleSourceStart;
-                    singleSourceEnd = seqLen-solutionList.get(j).getInt(i+2) < singleSourceEnd ?
-                            seqLen-solutionList.get(j).getInt(i+2) : singleSourceEnd;
-                }
-                solutionRes.add(sourceFeature);
-                solutionRes.add(singleSourceStart);
-                solutionRes.add(singleSourceEnd);
-            }else {
-                for (int j = 0; j < solutionList.size(); j++) {
-                    mutipleSourceStart = seqLen-solutionList.get(j).getInt(i+1) < mutipleSourceStart ?
-                            seqLen-solutionList.get(j).getInt(i+1): mutipleSourceStart;
-                    mutipleSouceEnd = seqLen-solutionList.get(j).getInt(i+2) > mutipleSouceEnd ?
-                            seqLen-solutionList.get(j).getInt(i+2) : mutipleSouceEnd;
-                }
-                solutionRes.add(sourceFeature);
-                solutionRes.add(mutipleSourceStart);
-                solutionRes.add(mutipleSouceEnd);
+        int[] targetSourceCumLen = SolutionUtils.getTargetSourceCumLen(solutionList);
+        int miniTargetSourceCumLen = Integer.MAX_VALUE;
+        for (int i = 0; i < targetSourceCumLen.length; i++) {
+            miniTargetSourceCumLen = targetSourceCumLen[i] < miniTargetSourceCumLen ? targetSourceCumLen[i] :
+                    miniTargetSourceCumLen;
+        }
+        IntList miniTargetSourceCumLenSolution=null;
+        for (int i = 0; i < targetSourceCumLen.length; i++) {
+            if (targetSourceCumLen[i] == miniTargetSourceCumLen){
+                miniTargetSourceCumLenSolution = solutionList.get(i);
+                break;
             }
+        }
+        IntList solutionRes = new IntArrayList();
+        int seqLen = solutionList.get(0).getInt(1);
+        for (int i = 0; i < miniTargetSourceCumLenSolution.size(); i=i+3) {
+            solutionRes.add(miniTargetSourceCumLenSolution.getInt(i));
+            solutionRes.add(seqLen-miniTargetSourceCumLenSolution.getInt(i+1));
+            solutionRes.add(seqLen-miniTargetSourceCumLenSolution.getInt(i+2));
         }
         return solutionRes;
     }
@@ -543,6 +538,8 @@ public class SolutionUtils {
             if (reverseSolution.size()==0) return forwardSolution;
             reverseCount = reverseSolution.size()/3;
             if (forwardCount==1 || reverseCount==1) return forwardSolution;
+
+            // 双向动态规划的末端调整需要满足reverseCount > forwardCount的条件
             if (reverseCount < forwardCount) return reverseSolution;
             if (reverseSolution.getInt(reverseSolution.size()-6)==(forwardLastSourceFeature)){
                 if((reverseSolution.getInt(reverseSolution.size()-6)!=(reverseSolution.getInt(reverseSolution.size()-3)))){
