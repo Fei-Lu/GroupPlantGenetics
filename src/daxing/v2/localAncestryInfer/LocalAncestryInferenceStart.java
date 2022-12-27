@@ -125,8 +125,10 @@ public class LocalAncestryInferenceStart {
                 siteIndex = new int[2];
                 startIndex=genoTable.getSiteIndex(refChr, toBeInferredWindowChrList.get(i).getChrRange().getStart());
                 endIndex = genoTable.getSiteIndex(refChr, toBeInferredWindowChrList.get(i).getChrRange().getEnd()-1);
-                if (startIndex < 0){
+                if (startIndex < -1){
                     startIndex=-startIndex-2;
+                }else if (startIndex == -1){
+                    startIndex = 0;
                 }
                 if (endIndex < 0){
                     endIndex=-endIndex-2;

@@ -112,7 +112,7 @@ public class Evaluation {
      * @return predicted value, dim1 is taxa, dim2 is variants source
      * variants source equal WindowSource.Source.getIndex()
      */
-    public int[][] getPredictedValue(String laidpResDir){
+    public int[][] getPredictedValue_laidp(String laidpResDir){
         List<File> files = IOTool.getFileListInDirEndsWith(laidpResDir, ".txt");
         String[] taxa = files.stream().map(File::getName).map(s -> s.substring(9, 11)).toArray(String[]::new);
         int[][] predictedDonors = new int[taxa.length][];
@@ -217,11 +217,36 @@ public class Evaluation {
         return contingency;
     }
 
+    public int[][] getPredictedValue_loter(String loterResFile){
+        String line;
+        List<String> temp;
+        int[][] predictedValue= new int[this.getTaxa().length][];
+        for (int i = 0; i < predictedValue.length; i++) {
+            predictedValue[i] = new int[this.getVariantsNum()];
+            Arrays.fill(predictedValue[i], -1);
+        }
+        int taxaIndex=0;
+        try (BufferedReader br = IOTool.getReader(loterResFile)) {
+            while ((line=br.readLine())!=null){
+                temp =PStringUtils.fastSplit(line, " ");
+                assert this.getVariantsNum() == temp.size() : "check loter results file";
+                for (int i = 0; i < temp.size(); i++) {
+                    predictedValue[taxaIndex][i]=Integer.parseInt(temp.get(i)) == 0 ? 0 : 4;
+                }
+                br.readLine();
+                taxaIndex++;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return predictedValue;
+    }
+
     public static void write_accuracy_recall_precision(String simulatedTractDir, String genotypeTableFile, String laidpResDir,
                                                        String outFile_accuracy){
         GenotypeTable genotypeTable = new GenotypeTable(genotypeTableFile);
         Evaluation evaluation = new Evaluation(simulatedTractDir, genotypeTable);
-        int[][] predictedValue = evaluation.getPredictedValue(laidpResDir);
+        int[][] predictedValue = evaluation.getPredictedValue_laidp(laidpResDir);
         int[][] actualValue = evaluation.getActualValue();
         double[][] accuracyRecallPrecision = evaluation.calculateAccuracyRecallPrecision(predictedValue, actualValue);
         try (BufferedWriter bw = IOTool.getWriter(outFile_accuracy)) {
@@ -250,34 +275,45 @@ public class Evaluation {
     }
 
     public static void write_ContingencyTable(String simulatedTractDir, String genotypeTableFile, String laidpResDir,
+                                              String loterResFile,
                                               String outFile_ContingencyTable){
         GenotypeTable genotypeTable = new GenotypeTable(genotypeTableFile);
         Evaluation evaluation = new Evaluation(simulatedTractDir, genotypeTable);
-        int[][] predictedValue = evaluation.getPredictedValue(laidpResDir);
+        int[][] predictedValue_laidp = evaluation.getPredictedValue_laidp(laidpResDir);
+        int[][] predictedValue_loter = evaluation.getPredictedValue_loter(loterResFile);
         int[][] actualValue = evaluation.getActualValue();
-        int[][] contingencyTable = evaluation.calculateContingencyTable(predictedValue, actualValue);
+        int[][] contingencyTable_laidp = evaluation.calculateContingencyTable(predictedValue_laidp, actualValue);
+        int[][] contingencyTable_loter = evaluation.calculateContingencyTable(predictedValue_loter, actualValue);
         try (BufferedWriter bw = IOTool.getWriter(outFile_ContingencyTable)) {
             StringBuilder sb = new StringBuilder();
-            sb.append("Taxa\tTruePositive\tFalseNegative\tFalsePositive\tTrueNegative");
+            sb.append("Taxa\tMethod\tTruePositive\tFalseNegative\tFalsePositive\tTrueNegative");
             bw.write(sb.toString());
             bw.newLine();
-            NumberFormat numberFormat = NumberFormat.getNumberInstance();
-            numberFormat.setGroupingUsed(false);
-            numberFormat.setMaximumFractionDigits(5);
-            String[] taxa = evaluation.getTaxa();
-            for (int i = 0; i < contingencyTable[0].length; i++) {
-                sb.setLength(0);
-                sb.append(taxa[i]).append("\t").append(numberFormat.format(contingencyTable[0][i])).append("\t");
-                sb.append(numberFormat.format(contingencyTable[1][i])).append("\t");
-                sb.append(numberFormat.format(contingencyTable[2][i])).append("\t");
-                sb.append(numberFormat.format(contingencyTable[3][i]));
-                bw.write(sb.toString());
-                bw.newLine();
-            }
+            bw.write(evaluation.getContingencyTableMultipleLines(contingencyTable_laidp, "laidp"));
+            bw.newLine();
+            bw.write(evaluation.getContingencyTableMultipleLines(contingencyTable_loter, "loter"));
+            bw.newLine();
             bw.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private String getContingencyTableMultipleLines(int[][] contingencyTable, String method){
+        String[] taxa = this.getTaxa();
+        NumberFormat numberFormat = NumberFormat.getNumberInstance();
+        numberFormat.setGroupingUsed(false);
+        numberFormat.setMaximumFractionDigits(5);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < contingencyTable[0].length; i++) {
+            sb.append(taxa[i]).append("\t").append(method).append("\t");
+            sb.append(numberFormat.format(contingencyTable[0][i])).append("\t");
+            sb.append(numberFormat.format(contingencyTable[1][i])).append("\t");
+            sb.append(numberFormat.format(contingencyTable[2][i])).append("\t");
+            sb.append(numberFormat.format(contingencyTable[3][i])).append("\n");
+        }
+        sb.deleteCharAt(sb.length()-1);
+        return sb.toString();
     }
 
 }

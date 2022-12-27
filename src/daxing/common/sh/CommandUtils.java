@@ -89,4 +89,50 @@ public class CommandUtils {
             System.out.println(shFile+" total spend "+Benchmark.getTimeSpanHours(start)+ " hours");
         }
     }
+
+    /**
+     *
+     * @param title log title
+     * @param commandList sh script, one command per line
+     * @param workingDirectory current working dir
+     * @param logDir log dir of commands in sh script
+     * @param threadsNum thread number
+     */
+    public static void runSH(String title, List<String> commandList, String workingDirectory, String logDir,
+                             int threadsNum){
+        System.out.println(DateTime.getDateTimeOfNow());
+        long start=System.nanoTime();
+        List<File> logFiles= IOTool.getLogFile(title, logDir, commandList.size());
+        List<Callable<Integer>> callableList = new ArrayList<>();
+        for (int i = 0; i < commandList.size(); i++) {
+            int finalI = i;
+            callableList.add(()-> runOneCommand(commandList.get(finalI), workingDirectory, logFiles.get(finalI)));
+        }
+        ExecutorService executorService = Executors.newFixedThreadPool(threadsNum);
+        List<Integer> exitCodes = new ArrayList<>();
+        try {
+            List<Future<Integer>> futureList=executorService.invokeAll(callableList);
+            executorService.shutdown();
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
+            for (Future<Integer> future : futureList){
+                exitCodes.add(future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        List<String> failCommandList= new ArrayList<>();
+        for (int i = 0; i < exitCodes.size(); i++) {
+            if (exitCodes.get(i)!=0){
+                failCommandList.add(commandList.get(i));
+            }
+        }
+        if (failCommandList.size()==0){
+            System.out.println(" all commands had completed in "+ Benchmark.getTimeSpanHours(start)+ " hours");
+        }else {
+            IOTool.writeAllLines(new File(logDir, title+".failedRunCommands.sh"), failCommandList);
+            System.out.println(failCommandList.size()+ "commands run failed");
+            System.out.println("Commands run failed had been written to "+logDir);
+            System.out.println(" total spend "+Benchmark.getTimeSpanHours(start)+ " hours");
+        }
+    }
 }
