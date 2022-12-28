@@ -10,19 +10,21 @@ import os
 
 graphFile = sys.argv[1]
 outFile_simulateGenotype = sys.argv[2]
-outFile_recombinationMap = sys.argv[3]
-outDir_tracts = sys.argv[4]
-sequence_length = sys.argv[5]
-random_seed = sys.argv[6]
-mutation_rate = sys.argv[7]
-recombination_rate = sys.argv[8]
+taxaPopInfo = sys.argv[3]
+outFile_recombinationMap = sys.argv[4]
+outDir_tracts = sys.argv[5]
+sequence_length = sys.argv[6]
+random_seed = sys.argv[7]
+mutation_rate = sys.argv[8]
+recombination_rate = sys.argv[9]
 
 
-# graphFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/004_twoWay_proportion0.05_generation100/001_deme/two_way_admixture_proportion0.05_genetration100.yaml"
-# outFile_simulateGenotype = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/004_twoWay_proportion0.05_generation100/temp_genotype/simulate.vcf"
-# outFile_recombinationMap = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/000_simulatedGenotype_recombinationMap/simulate_two_way_admixture_proportion0.1_genetration100_P1P2_divergence0.1Ne_recombinationMap.txt"
-# outDir_tracts = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/004_twoWay_proportion0.05_generation100/temp"
-# sequence_length = 100_000_000
+# graphFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/000_graphs/01_two_way_admixture_proportion0.2_genetration100_P1P2_divergence0.9Ne.yaml"
+# outFile_simulateGenotype = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/temp_genotype/simulate.vcf"
+# taxaPopInfo = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/temp/taxaInfo.txt"
+# outFile_recombinationMap = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/temp_genotype/simulate_two_way_admixture_proportion0.1_genetration100_P1P2_divergence0.1Ne_recombinationMap.txt"
+# outDir_tracts = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/temp_tracts"
+# sequence_length = 1_000_000
 # random_seed = 1
 # mutation_rate = 7.1e-9
 # recombination_rate = 1e-8
@@ -73,7 +75,6 @@ def get_coalescing_tracts(ts, sourcePopID, targetIndividualID):
         coalescing_tracts.append((tract_left, ts.sequence_length))
     return np.array(coalescing_tracts)
 
-
 print("start sim mutation")
 mts = msprime.sim_mutations(ts, rate=mutation_rate, random_seed=random_seed)
 print(str(mts.num_mutations) + " mutations")
@@ -94,7 +95,14 @@ print("write recombination map completed, and start write simulated vcf")
 with open(outFile_simulateGenotype, "wt") as vcf_file:
     mts.write_vcf(vcf_file)
 
-print("simulated vcf completed, and start write tracts")
+individualPop = ts.individuals_population
+with open(taxaPopInfo, "wt") as taxaPopInfoFile:
+    taxaPopInfoFile.write("Taxon\tPopulation\tPopulationName\n")
+    for indi, pop in enumerate(ts.individuals_population):
+        popName = ts.tables.populations[pop].metadata['name']
+        taxaPopInfoFile.write("tsk_"+str(indi)+"\t"+str(pop)+"\t"+popName+"\n")
+
+print("simulated vcf and taxaInfo completed, and start write tracts")
 sourceIndividuals = [indi for indi, pop in enumerate(ts.individuals_population) if pop == 4]
 for i in sourceIndividuals:
     tracts = get_coalescing_tracts(ts, sourcePopID=2, targetIndividualID=i)
