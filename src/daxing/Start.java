@@ -1,18 +1,12 @@
 package daxing;
 
-import daxing.common.sh.CommandUtils;
-import daxing.v2.localAncestryInfer.Evaluation;
-import daxing.v2.localAncestryInfer.GenotypeTable;
-import daxing.v2.localAncestryInfer.LocalAncestryInferenceStart;
-import daxing.v2.localAncestryInfer.Simulation;
-import daxing.v2.simulate.Utils;
-import pgl.infra.utils.Benchmark;
+import daxing.v2.mosaic.Mosaic_utils;
 
-import java.io.File;
+import java.io.IOException;
 
 public class Start {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, InterruptedException {
 
 //        String genotypeFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/001_simulatedGenotype/simulate_two_way_admixture_proportion0.1_genetration100_P1P2_divergence0.1Ne_ancestral.vcf";
 //        String fd_dxyFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/003_fd/003_individualLocalAncestry/06_two_way_admixture_proportion0.1_genetration100_P1P2_divergence0.1Ne";
@@ -42,15 +36,15 @@ public class Start {
 //        System.out.println(Benchmark.getTimeSpanSeconds(start)+" seconds");
 
 //
-        String simulatedTractDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/002_tracts/06_two_way_admixture_proportion0.1_genetration100_P1P2_divergence0.1Ne";
-        String genotypeTableFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/001_simulatedGenotype/simulate_two_way_admixture_proportion0.1_genetration100_P1P2_divergence0.1Ne_ancestral.vcf";
-        String laidpResDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/004_laidpRes/06_two_way_admixture_proportion0.1_genetration100_P1P2_divergence0.1Ne";
-        String loterFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/005_loterFile/simulate_two_way_admixture_proportion0.1_genetration100_P1P2_divergence0.1Ne_LAI.txt";
-        String outFile_accuracy = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt" +
-                "/021_Simulation/005_twoWay/006_evaluation/contingencyTable_proportion0.1_genetration100_P1P2_divergence0.1Ne.txt";
-//        Evaluation.write_accuracy_recall_precision(simulatedTractDir, genotypeTableFile, laidpResDir, outFile_accuracy);
-        Evaluation.write_ContingencyTable(simulatedTractDir, genotypeTableFile, laidpResDir, loterFile,
-                outFile_accuracy);
+//        String simulatedTractDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/002_tracts/06_two_way_admixture_proportion0.1_genetration100_P1P2_divergence0.1Ne";
+//        String genotypeTableFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/001_simulatedGenotype/simulate_two_way_admixture_proportion0.1_genetration100_P1P2_divergence0.1Ne_ancestral.vcf";
+//        String laidpResDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/004_laidpRes/06_two_way_admixture_proportion0.1_genetration100_P1P2_divergence0.1Ne";
+//        String loterFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/005_loterFile/simulate_two_way_admixture_proportion0.1_genetration100_P1P2_divergence0.1Ne_LAI.txt";
+//        String outFile_accuracy = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt" +
+//                "/021_Simulation/005_twoWay/006_evaluation/contingencyTable_proportion0.1_genetration100_P1P2_divergence0.1Ne.txt";
+////        Evaluation.write_accuracy_recall_precision(simulatedTractDir, genotypeTableFile, laidpResDir, outFile_accuracy);
+//        Evaluation.write_ContingencyTable(simulatedTractDir, genotypeTableFile, laidpResDir, loterFile,
+//                outFile_accuracy);
 
 //        String simulatedTractDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/002_twoWay_proportion0.1_generation500/003_simulatedTract";
 //        String genotypeFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/002_twoWay_proportion0.1_generation500/002_simulatedGenotype/simulate_proportion0.1_generation500.vcf";
@@ -102,6 +96,25 @@ public class Start {
 //        String logDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/log";
 //        int threadsNum = 6;
 //        Simulation.plot_deme(pythonInterpreterPath, demeFilesDir, demesPy, graph_outDir, workingDirectory, logDir, threadsNum);
+
+
+//        String genotypeFileDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/001_simulatedGenotype";
+//        String taxaInfoFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/taxaInfo.txt";
+//        String recombinationMapDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/000_simulatedGenotype_recombinationMap";
+//        String outDir_Mosaic = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/007_mosaic";
+//        Mosaic_utils.transformVCF_to_Mosaic_inputFormat(genotypeFileDir,taxaInfoFile, recombinationMapDir, outDir_Mosaic);
+
+        String fastFilePath = "/Users/xudaxing/Desktop/fastFiles/";
+        String admixedPop = "French";
+        String mosaicRunDir = "/Users/xudaxing/Desktop/mosaic/";
+        String logFile = "/Users/xudaxing/Desktop/log.txt";
+        int admixedIndividualNumber = 56;
+        int variantsNum = 14863;
+        double[][][] res= Mosaic_utils.build_mosaic_sh(fastFilePath, admixedPop, mosaicRunDir, logFile,
+                admixedIndividualNumber,
+                variantsNum, 2, 6, 18);
+        System.out.println();
+
     }
 
 

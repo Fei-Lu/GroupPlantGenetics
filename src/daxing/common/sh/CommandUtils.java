@@ -16,19 +16,19 @@ import java.util.concurrent.*;
 public class CommandUtils {
 
     /**
-     * when standard output is result.txt (using > result.txt), the log will be result
+     * Standard output and standard error will be redirected to different destination
      * @param command one simple linux command with or without options, can't be a compound command: et al. ls | wc
      * @param workingDirectory current working dir
      * @param logFile contain command log and error log
      * @return 0 indicates normal termination
      */
-    private static Integer runOneCommand(String command,
-                                         String workingDirectory, File logFile){
+    public static Integer runOneCommand(String command,
+                                         String workingDirectory, File logFile, File standOutFile){
         String[] commands= StringUtils.split(command, " ");
         ProcessBuilder processBuilder = new ProcessBuilder(commands);
         processBuilder.directory(new File(workingDirectory));
-        processBuilder.redirectErrorStream(true);
-        processBuilder.redirectOutput(logFile);
+        processBuilder.redirectError(ProcessBuilder.Redirect.to(logFile));
+        processBuilder.redirectOutput(ProcessBuilder.Redirect.to(standOutFile));
         Process process;
         int exitCode=-1;
         try {
@@ -42,6 +42,35 @@ public class CommandUtils {
         }
         return exitCode;
     }
+
+    /**
+     * Standard output and standard error will be redirected to same destination
+     * @param command one simple linux command with or without options, can't be a compound command: et al. ls | wc
+     * @param workingDirectory current working dir
+     * @param logFile contain command log and error log
+     * @return 0 indicates normal termination
+     */
+    public static Integer runOneCommand(String command,
+                                        String workingDirectory, File logFile){
+        String[] commands= StringUtils.split(command, " ");
+        ProcessBuilder processBuilder = new ProcessBuilder(commands);
+        processBuilder.directory(new File(workingDirectory));
+        processBuilder.redirectErrorStream(true);
+        processBuilder.redirectOutput(ProcessBuilder.Redirect.to(logFile));
+        Process process;
+        int exitCode=-1;
+        try {
+            process = processBuilder.start();
+            exitCode = process.waitFor();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        if (exitCode==0){
+            System.out.println(command+" completed");
+        }
+        return exitCode;
+    }
+
 
     /**
      *
