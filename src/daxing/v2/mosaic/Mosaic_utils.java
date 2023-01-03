@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.doubles.DoubleList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import pgl.infra.utils.PStringUtils;
+
 import java.io.*;
 import java.util.*;
 import java.util.stream.IntStream;
@@ -103,10 +104,10 @@ public class Mosaic_utils {
             Map<String,BufferedWriter> pop2BWMap = new HashMap<>();
             File genoFile;
             BufferedWriter bw;
-            for (int i = 0; i < popList.size(); i++) {
-                genoFile = new File(subDirFile[0], popList.get(i)+"genofile.1");
+            for (String s : popList) {
+                genoFile = new File(subDirFile[0], s + "genofile.1");
                 bw = IOTool.getWriter(genoFile);
-                pop2BWMap.put(popList.get(i), bw);
+                pop2BWMap.put(s, bw);
             }
             IntList indexesList;
             while ((line=brGenotype.readLine())!=null){
@@ -192,55 +193,65 @@ public class Mosaic_utils {
                 Arrays.fill(mosaicDir_taxa_variants_localAncestry[i][j], -1);
             }
         }
+
+        // make sure logFile will be create from first call
+        new File(logFile).delete();
         IntStream.range(0, mosaicDirs.size()).forEach(i->{
             File currentWorkingDir = mosaicDirs.get(i);
             File mosaicInputDataDir = currentWorkingDir.listFiles(dir -> dir.getName().equals("mosaicData"))[0];
             try {
-                // build and run mosaic command
                 StringBuilder sb = new StringBuilder();
-                sb.setLength(0);
-                sb.append("/usr/local/bin/Rscript ").append(mosaicRpath).append(" ");
-                sb.append(admixedPop).append(" ").append(mosaicInputDataDir.getPath()).append("/ ");
-                sb.append("-f ").append(fastFilePath).append(" ");
-                sb.append("-a ").append(nWayAdmixture).append(" ");
-                sb.append("-m ").append(coresNum).append(" ");
-                sb.append("-c ").append(chrID).append(":").append(chrID);
-                ProcessBuilder processBuilder = new ProcessBuilder(sb.toString());
-                processBuilder.directory(currentWorkingDir);
-                processBuilder.redirectError(ProcessBuilder.Redirect.appendTo(new File(logFile)));
+                List<String> command;
+                ProcessBuilder processBuilder;
                 Process process;
-                String line;
-                List<String> temp;
-                process = processBuilder.start();
-                int exitCode = process.waitFor();
-                assert exitCode == 0 : currentWorkingDir.getName()+" mosaic command run failed";
+                int exitCode;
+
+//                // build and run mosaic command
+//                sb.setLength(0);
+//                sb.append("Rscript ").append(mosaicRpath).append(" ");
+//                sb.append(admixedPop).append(" ").append(mosaicInputDataDir.getPath()).append("/ ");
+//                sb.append("-f ").append(fastFilePath).append(" ");
+//                sb.append("-a ").append(nWayAdmixture).append(" ");
+//                sb.append("-m ").append(coresNum).append(" ");
+//                sb.append("-c ").append(chrID).append(":").append(chrID);
+//                command = PStringUtils.fastSplit(sb.toString(), " ");
+//                processBuilder = new ProcessBuilder(command);
+//                processBuilder.directory(currentWorkingDir);
+//                processBuilder.redirectErrorStream(true);
+//                processBuilder.redirectOutput(ProcessBuilder.Redirect.appendTo(new File(logFile)));
+//                process = processBuilder.start();
+//                exitCode = process.waitFor();
+//                assert exitCode == 0 : currentWorkingDir.getName()+" mosaic command run failed";
 
                 // extract mosaic local ancestry result
-//                File mosaicResDir = currentWorkingDir.listFiles(dir -> dir.getName().startsWith("MOSAIC_RESULTS"))[0];
-//                File[] rDataFiles = mosaicResDir.listFiles(dir -> dir.getName().endsWith("RData"));
-//                String modelParametersRData = Arrays.stream(rDataFiles).filter(file -> !file.getName().startsWith("localanc")).toArray(File[]::new)[0].getAbsolutePath();
-//                String localAncestryRData = Arrays.stream(rDataFiles).filter(file -> file.getName().startsWith("localanc")).toArray(File[]::new)[0].getAbsolutePath();
-//                sb.setLength(0);
-//                sb.append("Rscript ").append(extractMosaicLocalAncestryRpath).append(" ");
-//                sb.append(modelParametersRData).append(" ").append(localAncestryRData).append(" ");
-//                sb.append(mosaicInputDataDir);
-//                processBuilder = new ProcessBuilder(sb.toString());
-//                processBuilder.directory(currentWorkingDir);
-//                processBuilder.redirectError(ProcessBuilder.Redirect.appendTo(new File(logFile)));
-//                process = processBuilder.start();
-//
-//                BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-//                int variantsIndex = 0;
-//                while ((line=br.readLine())!=null){
-//                    temp =PStringUtils.fastSplit(line);
-//                    for (int j = 0; j < temp.size(); j++) {
-//                        mosaicDir_taxa_variants_localAncestry[i][j][variantsIndex] = Double.parseDouble(temp.get(j));
-//                    }
-//                    variantsIndex++;
-//                }
-//                br.close();
-//                exitCode = process.waitFor();
-//                assert exitCode == 0 : currentWorkingDir.getName()+" extract mosaic local ancestry failed";
+                File mosaicResDir = currentWorkingDir.listFiles(dir -> dir.getName().startsWith("MOSAIC_RESULTS"))[0];
+                File[] rDataFiles = mosaicResDir.listFiles(dir -> dir.getName().endsWith("RData"));
+                String modelParametersRData = Arrays.stream(rDataFiles).filter(file -> !file.getName().startsWith("localanc")).toArray(File[]::new)[0].getAbsolutePath();
+                String localAncestryRData = Arrays.stream(rDataFiles).filter(file -> file.getName().startsWith("localanc")).toArray(File[]::new)[0].getAbsolutePath();
+                sb.setLength(0);
+                sb.append("Rscript ").append(extractMosaicLocalAncestryRpath).append(" ");
+                sb.append(modelParametersRData).append(" ").append(localAncestryRData).append(" ");
+                sb.append(mosaicInputDataDir).append("/");
+                command = PStringUtils.fastSplit(sb.toString(), " ");
+                processBuilder = new ProcessBuilder(command);
+                processBuilder.directory(currentWorkingDir);
+                processBuilder.redirectError(ProcessBuilder.Redirect.appendTo(new File(logFile)));
+                process = processBuilder.start();
+                BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                int variantsIndex = 0;
+                String line;
+                List<String> temp;
+                br.readLine();
+                while ((line=br.readLine())!=null){
+                    temp =PStringUtils.fastSplit(line);
+                    for (int j = 0; j < temp.size(); j++) {
+                        mosaicDir_taxa_variants_localAncestry[i][j][variantsIndex] = Double.parseDouble(temp.get(j));
+                    }
+                    variantsIndex++;
+                }
+                br.close();
+                exitCode = process.waitFor();
+                assert exitCode == 0 : currentWorkingDir.getName()+" extract mosaic local ancestry failed";
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }

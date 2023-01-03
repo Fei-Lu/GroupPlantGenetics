@@ -42,4 +42,4 @@ chr1_ancestry1 = t(chr1[2,,])
 #     geom_histogram()
 
 # write_tsv(ancestry1, outFileAncestry0,col_names = F)
-write_tsv(as_tibble(chr1_ancestry0),path=stdout())
+write_tsv(as_tibble(chr1_ancestry0),file=stdout())
