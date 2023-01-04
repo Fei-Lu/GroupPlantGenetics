@@ -1,6 +1,6 @@
 package daxing;
 
-import daxing.v2.mosaic.Mosaic_utils;
+import daxing.v2.mosaic.Mosaic_runner;
 
 import java.io.IOException;
 
@@ -98,23 +98,26 @@ public class Start {
 //        Simulation.plot_deme(pythonInterpreterPath, demeFilesDir, demesPy, graph_outDir, workingDirectory, logDir, threadsNum);
 
 
-//        String genotypeFileDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/001_simulatedGenotype";
+//        String simulatedGenotypeDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/001_simulatedGenotype";
+//        String simulatedRecombinationMapDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/000_simulatedGenotype_recombinationMap";
+//        String parameterFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/007_mosaic/001_parameterFile/ParameterFile.txt";
+//        String genotypeRecombinationMap = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/007_mosaic/001_parameterFile/genotypeRecombinationMap.txt";
+//        int[] chrID = IntStream.generate(()->1).limit(9).toArray();
 //        String taxaInfoFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/taxaInfo.txt";
-//        String recombinationMapDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/000_simulatedGenotype_recombinationMap";
-//        String outDir_Mosaic = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/007_mosaic";
-//        Mosaic_utils.transformVCF_to_Mosaic_inputFormat(genotypeFileDir,taxaInfoFile, recombinationMapDir, outDir_Mosaic);
+//        String fastDirPath = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/007_mosaic/FastFileDir";
+//        String logFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/007_mosaic/log/log.txt";
+//        String outDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/007_mosaic/002_multipleRun";
+//        int[] nWayAdmixture = IntStream.generate(()->2).limit(9).toArray();
+//        int coresNumber = 6;
+//        String[] admixPop = {"E","E","E","E","E","E","E","E","E"};
+//        Mosaic_runner.writeParameterFile(simulatedGenotypeDir, simulatedRecombinationMapDir, parameterFile,
+//                genotypeRecombinationMap, chrID, taxaInfoFile, fastDirPath, logFile, outDir, nWayAdmixture,
+//                coresNumber, admixPop);
 
-        String fastFilePath = "/Users/xudaxing/Desktop/fastFiles/";
-        String admixedPop = "French";
-        String mosaicRunDir = "/Users/xudaxing/Desktop/mosaic/";
-        String logFile = "/Users/xudaxing/Desktop/log.txt";
-        int admixedIndividualNumber = 56;
-        int variantsNum = 14863;
-        double[][][] res= Mosaic_utils.build_mosaic_sh(fastFilePath, admixedPop, mosaicRunDir, logFile,
-                admixedIndividualNumber,
-                variantsNum, 2, 6, 18);
-        System.out.println();
-
+        String parameterFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/007_mosaic/001_parameterFile/ParameterFile.txt";
+        Mosaic_runner mosaicRunner = new Mosaic_runner(parameterFile);
+        double[][][] mosaicDir_taxa_variants_localAncestry = mosaicRunner.getLocalAncestry();
+        System.out.println("ok");
     }
 
 
