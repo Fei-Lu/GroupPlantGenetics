@@ -13,10 +13,16 @@ import it.unimi.dsi.fastutil.doubles.DoubleList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import pgl.infra.utils.PStringUtils;
+
 import java.io.*;
 import java.util.*;
 import java.util.stream.IntStream;
 
+/**
+ * usage example
+ * Mosaic_runner mosaic_runner = new Mosaic_runner(ParameterFile)
+ * double[][][] localAncestry = mosaic_runner.getLocalAncestry()
+ */
 public class Mosaic_runner {
 
     String subDirName = "mosaicData";
@@ -154,9 +160,12 @@ public class Mosaic_runner {
             subDir_simulations[i] = new File(this.outDir, outDirNames[i]);
             subDir_simulations[i].mkdir();
         }
-        for (int i = 0; i < outDirNames.length; i++) {
-            this.transformVCF_to_Mosaic_inputFormat(this.getGenotypeFile(i), this.getRecombinationMap(i), subDir_simulations[i]);
-        }
+//        long start = System.nanoTime();
+//        System.out.println("transform genotype to mosaic input format...");
+//        for (int i = 0; i < outDirNames.length; i++) {
+//            this.transformVCF_to_Mosaic_inputFormat(this.getGenotypeFile(i), this.getRecombinationMap(i), subDir_simulations[i]);
+//        }
+//        System.out.println("transformation completed in "+ Benchmark.getTimeSpanMinutes(start)+ " minutes");
         return this.runMosaicGetLocalAncestry(subDir_simulations);
     }
 
@@ -310,21 +319,21 @@ public class Mosaic_runner {
                 int exitCode;
 
                 // build and run mosaic command
-                sb.setLength(0);
-                sb.append("Rscript ").append(mosaicRpath).append(" ");
-                sb.append(this.getAdmixedPopulation(i)).append(" ").append(mosaicInputDataDir.getPath()).append("/ ");
-                sb.append("-f ").append(this.fastDirPath).append(" ");
-                sb.append("-a ").append(this.getNWayAdmixture(i)).append(" ");
-                sb.append("-m ").append(this.coresNumber).append(" ");
-                sb.append("-c ").append(this.getChrID(i)).append(":").append(this.getChrID(i));
-                command = PStringUtils.fastSplit(sb.toString(), " ");
-                processBuilder = new ProcessBuilder(command);
-                processBuilder.directory(currentWorkingDir);
-                processBuilder.redirectErrorStream(true);
-                processBuilder.redirectOutput(ProcessBuilder.Redirect.appendTo(new File(this.logFile)));
-                process = processBuilder.start();
-                exitCode = process.waitFor();
-                assert exitCode == 0 : currentWorkingDir.getName()+" mosaic command run failed";
+//                sb.setLength(0);
+//                sb.append("Rscript ").append(mosaicRpath).append(" ");
+//                sb.append(this.getAdmixedPopulation(i)).append(" ").append(mosaicInputDataDir.getPath()).append("/ ");
+//                sb.append("-f ").append(this.fastDirPath).append(" ");
+//                sb.append("-a ").append(this.getNWayAdmixture(i)).append(" ");
+//                sb.append("-m ").append(this.coresNumber).append(" ");
+//                sb.append("-c ").append(this.getChrID(i)).append(":").append(this.getChrID(i));
+//                command = PStringUtils.fastSplit(sb.toString(), " ");
+//                processBuilder = new ProcessBuilder(command);
+//                processBuilder.directory(currentWorkingDir);
+//                processBuilder.redirectErrorStream(true);
+//                processBuilder.redirectOutput(ProcessBuilder.Redirect.appendTo(new File(this.logFile)));
+//                process = processBuilder.start();
+//                exitCode = process.waitFor();
+//                assert exitCode == 0 : currentWorkingDir.getName()+" mosaic command run failed";
 
                 // extract mosaic local ancestry result
                 File mosaicResDir = currentWorkingDir.listFiles(dir -> dir.getName().startsWith("MOSAIC_RESULTS"))[0];
@@ -345,6 +354,9 @@ public class Mosaic_runner {
                 List<String> temp;
                 br.readLine();
                 DoubleArrayList[] taxa_variants_localAncestry_list = new DoubleArrayList[this.getAdmixedSampleSize(i)];
+                for (int j = 0; j < taxa_variants_localAncestry_list.length; j++) {
+                    taxa_variants_localAncestry_list[j] = new DoubleArrayList();
+                }
                 while ((line=br.readLine())!=null){
                     temp =PStringUtils.fastSplit(line);
                     for (int j = 0; j < temp.size(); j++) {
@@ -420,6 +432,24 @@ public class Mosaic_runner {
             throw new RuntimeException(e);
         }
     }
+
+//    public static void main(String[] args) {
+//        String simulatedGenotypeDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/001_simulatedGenotype";
+//        String simulatedRecombinationMapDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/000_simulatedGenotype_recombinationMap";
+//        String parameterFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/007_mosaic/001_parameterFile/ParameterFile.txt";
+//        String genotypeRecombinationMap = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/007_mosaic/001_parameterFile/genotypeRecombinationMap.txt";
+//        int[] chrID = IntStream.generate(()->1).limit(9).toArray();
+//        String taxaInfoFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/taxaInfo.txt";
+//        String fastDirPath = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/007_mosaic/FastFileDir";
+//        String logFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/007_mosaic/log/log.txt";
+//        String outDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/007_mosaic/002_multipleRun";
+//        int[] nWayAdmixture = IntStream.generate(()->2).limit(9).toArray();
+//        int coresNumber = 6;
+//        String[] admixPop = {"E","E","E","E","E","E","E","E","E"};
+//        Mosaic_runner.writeParameterFile(simulatedGenotypeDir, simulatedRecombinationMapDir, parameterFile,
+//                genotypeRecombinationMap, chrID, taxaInfoFile, fastDirPath, logFile, outDir, nWayAdmixture,
+//                coresNumber, admixPop);
+//    }
 
 
 }
