@@ -12,9 +12,11 @@ import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
-
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -306,36 +308,51 @@ public class Mosaic_runner {
         String extractMosaicLocalAncestryRpath = Simulation.class.getResource("extractMosaicLocalAncestry.R").getPath();
         double[][][] mosaicDir_taxa_variants_localAncestry = new double[subDir_simulations.length][][];
         // make sure logFile will be create from first call
-        new File(this.logFile).delete();
-        new File(this.logFile);
+        File logFile = new File(this.logFile);
+        try {
+            if (logFile.exists()){
+                logFile.delete();
+            }else {
+                logFile.createNewFile();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         IntStream.range(0, subDir_simulations.length).forEach(i->{
             File currentWorkingDir = subDir_simulations[i];
             File mosaicInputDataDir = currentWorkingDir.listFiles(dir -> dir.getName().equals(this.subDirName))[0];
             try {
                 StringBuilder sb = new StringBuilder();
+                sb.append("***************************************************************************************").append("\n");
+                sb.append(subDir_simulations[i].getName()).append("\n");
+                sb.append("***************************************************************************************").append("\n");
+                Files.write(logFile.toPath(), sb.toString().getBytes(), StandardOpenOption.APPEND);
                 List<String> command;
                 ProcessBuilder processBuilder;
                 Process process;
                 int exitCode;
 
                 // build and run mosaic command
-//                sb.setLength(0);
-//                sb.append("Rscript ").append(mosaicRpath).append(" ");
-//                sb.append(this.getAdmixedPopulation(i)).append(" ").append(mosaicInputDataDir.getPath()).append("/ ");
-//                sb.append("-f ").append(this.fastDirPath).append(" ");
-//                sb.append("-a ").append(this.getNWayAdmixture(i)).append(" ");
-//                sb.append("-m ").append(this.coresNumber).append(" ");
-//                sb.append("-c ").append(this.getChrID(i)).append(":").append(this.getChrID(i));
-//                command = PStringUtils.fastSplit(sb.toString(), " ");
-//                processBuilder = new ProcessBuilder(command);
-//                processBuilder.directory(currentWorkingDir);
-//                processBuilder.redirectErrorStream(true);
-//                processBuilder.redirectOutput(ProcessBuilder.Redirect.appendTo(new File(this.logFile)));
-//                process = processBuilder.start();
-//                exitCode = process.waitFor();
-//                assert exitCode == 0 : currentWorkingDir.getName()+" mosaic command run failed";
+                long start = System.nanoTime();
+                sb.setLength(0);
+                sb.append("Rscript ").append(mosaicRpath).append(" ");
+                sb.append(this.getAdmixedPopulation(i)).append(" ").append(mosaicInputDataDir.getPath()).append("/ ");
+                sb.append("-f ").append(this.fastDirPath).append(" ");
+                sb.append("-a ").append(this.getNWayAdmixture(i)).append(" ");
+                sb.append("-m ").append(this.coresNumber).append(" ");
+                sb.append("-c ").append(this.getChrID(i)).append(":").append(this.getChrID(i));
+                command = PStringUtils.fastSplit(sb.toString(), " ");
+                processBuilder = new ProcessBuilder(command);
+                processBuilder.directory(currentWorkingDir);
+                processBuilder.redirectErrorStream(true);
+                processBuilder.redirectOutput(ProcessBuilder.Redirect.appendTo(logFile));
+                process = processBuilder.start();
+                exitCode = process.waitFor();
+                assert exitCode == 0 : currentWorkingDir.getName()+" mosaic command run failed";
+                System.out.println("mosaic completed in "+ Benchmark.getTimeSpanMinutes(start)+" minutes");
 
                 // extract mosaic local ancestry result
+                start = System.nanoTime();
                 File mosaicResDir = currentWorkingDir.listFiles(dir -> dir.getName().startsWith("MOSAIC_RESULTS"))[0];
                 File[] rDataFiles = mosaicResDir.listFiles(dir -> dir.getName().endsWith("RData"));
                 String modelParametersRData = Arrays.stream(rDataFiles).filter(file -> !file.getName().startsWith("localanc")).toArray(File[]::new)[0].getAbsolutePath();
@@ -347,7 +364,7 @@ public class Mosaic_runner {
                 command = PStringUtils.fastSplit(sb.toString(), " ");
                 processBuilder = new ProcessBuilder(command);
                 processBuilder.directory(currentWorkingDir);
-                processBuilder.redirectError(ProcessBuilder.Redirect.appendTo(new File(this.logFile)));
+                processBuilder.redirectError(ProcessBuilder.Redirect.appendTo(logFile));
                 process = processBuilder.start();
                 BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 String line;
@@ -366,6 +383,8 @@ public class Mosaic_runner {
                 br.close();
                 exitCode = process.waitFor();
                 assert exitCode == 0 : currentWorkingDir.getName()+" extract mosaic local ancestry failed";
+                System.out.println("extract mosaic local ancestry completed in "+ Benchmark.getTimeSpanMinutes(start)+
+                        " minutes");
 
                 // assign double[][] to taxa_variant_localAncestry[][][]
                 double[][] taxa_variant_localAncestry = new double[this.getAdmixedSampleSize(i)][];
