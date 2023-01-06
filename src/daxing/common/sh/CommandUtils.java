@@ -37,9 +37,6 @@ public class CommandUtils {
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
-        if (exitCode==0){
-            System.out.println(command+" completed");
-        }
         return exitCode;
     }
 
@@ -56,7 +53,7 @@ public class CommandUtils {
         ProcessBuilder processBuilder = new ProcessBuilder(commands);
         processBuilder.directory(new File(workingDirectory));
         processBuilder.redirectErrorStream(true);
-        processBuilder.redirectOutput(ProcessBuilder.Redirect.to(logFile));
+        processBuilder.redirectOutput(ProcessBuilder.Redirect.appendTo(logFile));
         Process process;
         int exitCode=-1;
         try {
@@ -64,9 +61,6 @@ public class CommandUtils {
             exitCode = process.waitFor();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
-        }
-        if (exitCode==0){
-            System.out.println(command+" completed");
         }
         return exitCode;
     }
