@@ -3,15 +3,14 @@ package daxing.v2.localAncestryInfer;
 import daxing.common.sh.CommandUtils;
 import daxing.common.utiles.IOTool;
 import org.apache.commons.lang3.StringUtils;
-import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
 
 public class Simulation {
 
@@ -48,7 +47,7 @@ public class Simulation {
             commands.add(Simulation.plot_deme(new File(pythonInterpreterPath), demeFiles.get(i), new File(demesPy),
                     new File(graph_outDir, outFileNames[i])));
         }
-        CommandUtils.runSH("plot_demes", commands, workingDirectory, logDir, threadsNum);
+        CommandUtils.runSH_OneCommand("plot_demes", commands, workingDirectory, logDir, threadsNum);
     }
 
     public static String simulate_genotype_tract(String pythonInterpreterPath, String laidp_simulatePy,
