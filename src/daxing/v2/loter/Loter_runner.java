@@ -86,8 +86,8 @@ public class Loter_runner {
             this.subDirFile[i] = new File(this.outDir, this.subDir[i]);
             this.subDirFile[i].mkdir();
         }
-        this.preparePop();
-        this.splitPopGenotype();
+//        this.preparePop();
+//        this.splitPopGenotype();
         this.run_loter();
     }
 
@@ -153,19 +153,22 @@ public class Loter_runner {
         int exitCode;
         for (Map.Entry<String, String> entry:this.genotypeID2PathMap.entrySet()){
             sb.setLength(0);
+            sb.append("source /Users/xudaxing/anaconda3/bin/activate loter && ");
             sb.append("loter_cli -r ");
             sbRef.setLength(0);
             for (String refPop : this.referencePopList){
                 sbRef.append(new File(this.subDirFile[1], entry.getKey()+"_"+refPop+".recode.vcf").getAbsolutePath());
+                sbRef.append(" ");
             }
             sb.append(sbRef).append(" -a ").append(new File(this.subDirFile[1], entry.getKey()+"_"+this.admixedPop+".recode.vcf").getAbsolutePath());
             sb.append(" -f vcf -o ").append(new File(this.subDirFile[2], entry.getKey()+".lai.txt"));
-            exitCode = CommandUtils.runOneCommand(sb.toString(), this.outDir, new File(this.logFile));
+            exitCode = CommandUtils.runMultipleCommands(sb.toString(), this.outDir, new File(this.logFile));
             assert exitCode == 0 : sb+" run failed";
         }
     }
 
     public double[][][] extractLocalAncestry(){
+
         return null;
     }
 
