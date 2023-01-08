@@ -89,7 +89,7 @@ public class Loter_runner {
         }
 //        this.preparePop();
 //        this.splitPopGenotype();
-        this.run_loter();
+//        this.run_loter();
     }
 
     /**
@@ -194,7 +194,7 @@ public class Loter_runner {
         for (Map.Entry<String, String> entry:this.genotypeID2PathMap.entrySet()){
             sb.setLength(0);
             sb.append(entry.getKey()).append(".lai.txt");
-            laiFile = new File(this.subDir[2], sb.toString());
+            laiFile = new File(this.subDirFile[2], sb.toString());
             laiFiles.add(laiFile);
         }
         double[][][] genotype_taxa_variants_localAncestry = new double[this.getGenotypeCount()][][];
