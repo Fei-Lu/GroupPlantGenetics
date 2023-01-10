@@ -3,9 +3,9 @@ package daxing.v2.localAncestryInfer;
 import daxing.common.bisnp.SNP;
 import daxing.common.chrrange.ChrPos;
 import daxing.common.utiles.IOTool;
+import org.apache.commons.lang.ArrayUtils;
 import pgl.PGLConstraints;
 import pgl.infra.utils.Benchmark;
-import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.text.NumberFormat;
@@ -105,7 +105,7 @@ public class GenotypeTable {
             e.printStackTrace();
         }
         this.transposeSiteToTaxon();
-        this.sortByTaxa();
+//        this.sortByTaxa();
     }
 
     public SNP[] getSnps() {
@@ -133,7 +133,8 @@ public class GenotypeTable {
     }
 
     public int getTaxonIndex(String taxon) {
-        return Arrays.binarySearch(taxa, taxon);
+        return ArrayUtils.indexOf(this.taxa, taxon);
+//        return Arrays.binarySearch(taxa, taxon);
     }
 
     public int getSiteIndex(String chromosome, int position) {
@@ -162,19 +163,19 @@ public class GenotypeTable {
         System.out.println("Transpose genoSite to genoTaxon takes " + Benchmark.getTimeSpanSeconds(start) + " seconds.");
     }
 
-    public void sortByTaxa() {
-        System.out.println("Start sorting genotype table by taxon");
-        long start = System.nanoTime();
-        int[] indices = PArrayUtils.getIndicesByAscendingValue(this.taxa);
-        Arrays.sort(this.taxa);
-        BitSet[][] nGenoTaxon = new BitSet[this.getTaxaNumber()][];
-        for (int i = 0; i < this.getTaxaNumber(); i++) {
-            nGenoTaxon[i] = this.genoTaxon[indices[i]];
-        }
-        this.genoTaxon = nGenoTaxon;
-        System.out.println("Sorting finished in " + Benchmark.getTimeSpanSeconds(start) + " seconds.");
-        this.transposeTaxonToSite();
-    }
+//    public void sortByTaxa() {
+//        System.out.println("Start sorting genotype table by taxon");
+//        long start = System.nanoTime();
+//        int[] indices = PArrayUtils.getIndicesByAscendingValue(this.taxa);
+//        Arrays.sort(this.taxa);
+//        BitSet[][] nGenoTaxon = new BitSet[this.getTaxaNumber()][];
+//        for (int i = 0; i < this.getTaxaNumber(); i++) {
+//            nGenoTaxon[i] = this.genoTaxon[indices[i]];
+//        }
+//        this.genoTaxon = nGenoTaxon;
+//        System.out.println("Sorting finished in " + Benchmark.getTimeSpanSeconds(start) + " seconds.");
+//        this.transposeTaxonToSite();
+//    }
 
     public void transposeTaxonToSite () {
         long start = System.nanoTime();
