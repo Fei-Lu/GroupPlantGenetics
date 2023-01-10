@@ -18,7 +18,7 @@ public class TaxaInfo {
         this.popName = new ArrayList<>();
         this.taxaPopNameMap = new HashMap<>();
         for (Table.Cell<String,String,String> cell : this.taxon_Pop_PopName.cellSet()){
-            this.taxaPopNameMap.put(cell.getColumnKey(), cell.getValue());
+            this.taxaPopNameMap.put(cell.getRowKey(), cell.getValue());
             this.popName.add(cell.getValue());
         }
         this.popTaxaListMap = new HashMap<>();
@@ -26,7 +26,7 @@ public class TaxaInfo {
             this.popTaxaListMap.put(pop, new ArrayList<>());
         }
         for (Table.Cell<String,String,String> cell : this.taxon_Pop_PopName.cellSet()){
-            this.popTaxaListMap.get(cell.getValue()).add(cell.getColumnKey());
+            this.popTaxaListMap.get(cell.getValue()).add(cell.getRowKey());
         }
     }
 
@@ -44,5 +44,9 @@ public class TaxaInfo {
 
     public int getPopSampleSize(String popName){
         return this.getPopTaxaListMap().get(popName).size();
+    }
+
+    public List<String> getTaxaListOf(String popName){
+        return this.popTaxaListMap.get(popName);
     }
 }
