@@ -322,9 +322,9 @@ public class GenotypeTable {
     }
 
     public GenotypeTable getSubGenotypeTableByTaxa(int[] taxaIndices){
-        BitSet[][] genoTaxa = new BitSet[taxaIndices.length][];
+        BitSet[][] genoTaxa = new BitSet[taxaIndices.length][2];
         for (int i = 0; i < taxaIndices.length; i++) {
-            System.arraycopy(this.getGenoTaxon()[taxaIndices[i]], 0, genoTaxa[i], 0, this.genoTaxon[0].length);
+            System.arraycopy(this.getGenoTaxon()[taxaIndices[i]], 0, genoTaxa[i], 0, genoTaxa[0].length);
         }
         String[] taxa = new String[taxaIndices.length];
         for (int i = 0; i < taxaIndices.length; i++) {
