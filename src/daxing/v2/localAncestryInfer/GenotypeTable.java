@@ -5,6 +5,7 @@ import daxing.common.chrrange.ChrPos;
 import daxing.common.utiles.IOTool;
 import org.apache.commons.lang.ArrayUtils;
 import pgl.PGLConstraints;
+import pgl.infra.dna.allele.AlleleEncoder;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
@@ -20,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 记得改BitSet loop
+ * instance of this class is for haploid
  */
 public class GenotypeTable {
 
@@ -214,6 +216,26 @@ public class GenotypeTable {
             }
         }
         System.out.println("Transpose genoTaxon to genoSite takes " + Benchmark.getTimeSpanSeconds(start) + " seconds.");
+    }
+
+    public boolean isMissing(int siteIndex, int taxonIndex) {
+        return this.genoSite[siteIndex][1].get(taxonIndex);
+    }
+
+    public boolean isAlternativeAllele(int siteIndex, int taxonIndex){
+        return this.genoSite[siteIndex][0].get(taxonIndex);
+    }
+
+    public byte getAlleleByte(int siteIndex, int taxonIndex){
+        if(this.isMissing(siteIndex, taxonIndex)) return AlleleEncoder.genotypeMissingByte;
+        byte referenceAlleleByte = this.getSnps()[siteIndex].getReferenceAlleleByte();
+        byte alternativeAlleleByte = this.getSnps()[siteIndex].getAlternativeAlleleByte();
+        return isAlternativeAllele(siteIndex, taxonIndex) ? alternativeAlleleByte : referenceAlleleByte;
+    }
+
+    public char getAlleleBase(int siteIndex, int taxonIndex){
+        byte alleleByte = this.getAlleleByte(siteIndex, taxonIndex);
+        return AlleleEncoder.getAlleleBaseFromByte(alleleByte);
     }
 
     /**
