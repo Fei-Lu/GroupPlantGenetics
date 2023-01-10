@@ -18,6 +18,8 @@ public class SNP extends ChrPos {
      * The alternative allele
      */
     public Allele alternative = null;
+
+    public String snpID = null;
     /**
      * Annotation information of SNP
      */
@@ -31,11 +33,13 @@ public class SNP extends ChrPos {
      * @param altBase
      * @param info
      */
-    public SNP(String chr, int pos, char refBase, char altBase, String info) {
+    public SNP(String chr, int pos, char refBase, char altBase, String snpID, String info) {
         super(chr, pos);
         this.initializeRefAllele(refBase);
         this.initializeAltAllele(altBase);
+        this.SetSNP_ID(snpID);
         this.setSNPInfo(info);
+
     }
 
     /**
@@ -176,6 +180,22 @@ public class SNP extends ChrPos {
     }
 
     /**
+     *
+     * @return the snpID of current snp
+     */
+    public String getSnpID(){
+        return this.snpID;
+    }
+
+    /**
+     * set the snpID of current snp
+     * @param snpID
+     */
+    public void SetSNP_ID(String snpID){
+        this.snpID=snpID;
+    }
+
+    /**
      * Return the annotation information of the SNP
      * @return
      */
@@ -197,7 +217,7 @@ public class SNP extends ChrPos {
      */
     public SNP replicateWithoutFeature() {
         return new SNP(this.getChr(), this.getPos(), this.getReferenceAlleleBase(), this.getAlternativeAlleleBase(),
-                this.getSNPInfo());
+                this.getSnpID(), this.getSNPInfo());
     }
 
     /**

@@ -1,7 +1,6 @@
 package daxing.v2.localAncestryInfer;
 
 import daxing.common.bisnp.SNP;
-import pgl.infra.dna.snp.BiSNP;
 import pgl.infra.utils.Dyad;
 import pgl.infra.utils.PStringUtils;
 import java.util.BitSet;
@@ -59,7 +58,7 @@ public class BlockLines implements Callable<BlockLines> {
         int pos = Integer.parseInt(l.get(1));
         char refBase = l.get(3).charAt(0);
         char altBase = l.get(4).charAt(0);
-        SNP snp = new SNP(chr, pos, refBase, altBase, null);
+        SNP snp = new SNP(chr, pos, refBase, altBase, l.get(2), null);
         int taxaNumber = l.size()-9;
         BitSet[] genoSite = new BitSet[2];
         genoSite[0] = new BitSet(taxaNumber);
