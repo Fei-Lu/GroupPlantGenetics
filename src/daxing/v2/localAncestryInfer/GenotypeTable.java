@@ -36,11 +36,6 @@ public class GenotypeTable {
      */
     BitSet[][] genoTaxon;
 
-    /**
-     * for optium solution
-     */
-    static int iteration=0;
-
     public GenotypeTable(String haploidGenotypeFile){
         try {
             List<String> vcfAnnotationList = new ArrayList<>();
@@ -108,12 +103,35 @@ public class GenotypeTable {
 //        this.sortByTaxa();
     }
 
+    private GenotypeTable(String[] taxa, SNP[] snps, BitSet[][] genoSite, BitSet[][] genoTaxon){
+        this.taxa=taxa;
+        this.snps=snps;
+        this.genoSite=genoSite;
+        this.genoTaxon=genoTaxon;
+    }
+
+    public static GenotypeTable newInstanceFromGenoTaxon(String[] taxa, SNP[] snps, BitSet[][] genoTaxon){
+       GenotypeTable genotypeTable = new GenotypeTable(taxa, snps, null, genoTaxon);
+       genotypeTable.transposeTaxonToSite();
+       return genotypeTable;
+    }
+
+    public static GenotypeTable newInstanceFromGenoSite(String[] taxa, SNP[] snps, BitSet[][] genoSite){
+        GenotypeTable genotypeTable = new GenotypeTable(taxa, snps, genoSite, null);
+        genotypeTable.transposeSiteToTaxon();
+        return genotypeTable;
+    }
+
     public SNP[] getSnps() {
         return snps;
     }
 
     public BitSet[][] getGenoSite() {
         return genoSite;
+    }
+
+    public BitSet[][] getGenoTaxon() {
+        return genoTaxon;
     }
 
     public String[] getTaxa() {
@@ -279,6 +297,22 @@ public class GenotypeTable {
             }
         }
         return query;
+    }
+
+    public GenotypeTable getSubGenotypeTableByTaxa(int[] taxaIndices){
+        BitSet[][] genoTaxa = new BitSet[taxaIndices.length][];
+        for (int i = 0; i < taxaIndices.length; i++) {
+            System.arraycopy(this.getGenoTaxon()[taxaIndices[i]], 0, genoTaxa[i], 0, this.genoTaxon[0].length);
+        }
+        String[] taxa = new String[taxaIndices.length];
+        for (int i = 0; i < taxaIndices.length; i++) {
+            taxa[i]=this.getTaxa()[taxaIndices[i]];
+        }
+        SNP[] snps = new SNP[this.getSiteNumber()];
+        for (int i = 0; i < this.getSiteNumber(); i++) {
+            snps[i] = this.getSnps()[i].replicateWithoutFeature();
+        }
+        return GenotypeTable.newInstanceFromGenoTaxon(taxa, snps, genoTaxa);
     }
 
 }
