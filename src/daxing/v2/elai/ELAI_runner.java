@@ -3,32 +3,128 @@ package daxing.v2.elai;
 import daxing.common.utiles.IOTool;
 import daxing.v2.localAncestryInfer.GenotypeTable;
 import daxing.v2.localAncestryInfer.TaxaInfo;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import pgl.infra.utils.PStringUtils;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ELAI_runner {
 
     String eLaiPath;
-    IntList nWayAdmixture;
-    List<String> referencePopList;
-    String admixedPop;
 
-    String posFile;
+    String[] genotypeID;
+
+    String[] genotypePath;
+
+    TaxaInfo taxaInfo;
+
+    String logFilePath;
+
+    String outDir_multipleRun;
+
+    int[] nWayAdmixture;
+    List<String>[] referencePopList;
+    String[] admixedPop;
 
     int expectationMaximizationSteps;
 
-    IntList lowerLayerClusters;
+    int threadsNum;
 
-    String preﬁx_outFile;
+    File[] subDir;
 
-    public static void prepareInputFile(String genotypeFile, String taxaInfoFile, String admixedPop,
-                                        List<String> referencePopList, String outDirBimBam,
-                                        String posFile){
+    public ELAI_runner(String parameterFile){
+        this.initialize(parameterFile);
+        this.makeSubDir();
+        this.prepareFile();
+    }
+
+    private void initialize(String parameterFile){
+        List<String> genotypeIDList = new ArrayList<>();
+        List<String> genotypePathList=new ArrayList<>();
+        IntList nWayAdmixtureList = new IntArrayList();
+        List<String> admixedPopList = new ArrayList<>();
+        List<List<String>> refPopList = new ArrayList<>();
+        try (BufferedReader br = IOTool.getReader(parameterFile)) {
+            String line, line_genotype;
+            List<String> temp, temp_genotype, tem;
+            BufferedReader brGenotype;
+            while ((line=br.readLine())!=null){
+                if (line.startsWith("##")) continue;
+                temp = PStringUtils.fastSplit(line, ":");
+                if (line.startsWith("ELAI")){
+                    this.eLaiPath=temp.get(1);
+                    continue;
+                }
+                if (line.startsWith("GenotypePath")){
+                    brGenotype = IOTool.getReader(temp.get(1));
+                    brGenotype.readLine();
+                    while ((line_genotype=brGenotype.readLine())!=null){
+                        temp_genotype = PStringUtils.fastSplit(line_genotype);
+                        genotypeIDList.add(temp_genotype.get(0));
+                        genotypePathList.add(temp_genotype.get(1));
+                        nWayAdmixtureList.add(Integer.parseInt(temp_genotype.get(2)));
+                        admixedPopList.add(temp_genotype.get(3));
+                        tem = PStringUtils.fastSplit(temp_genotype.get(4), ",");
+                        refPopList.add(tem);
+                    }
+                    brGenotype.close();
+                    this.genotypeID = genotypeIDList.toArray(new String[0]);
+                    this.genotypePath = genotypePathList.toArray(new String[0]);
+                    this.nWayAdmixture=nWayAdmixtureList.toIntArray();
+                    this.admixedPop = admixedPopList.toArray(new String[0]);
+                    this.referencePopList = refPopList.toArray(new List[0]);
+                    continue;
+                }
+                if (line.startsWith("TaxaInfoPath")){
+                    this.taxaInfo = new TaxaInfo(temp.get(1));
+                    continue;
+                }
+                if (line.startsWith("LogFilePath")){
+                    this.logFilePath = temp.get(1);
+                    continue;
+                }
+                if (line.startsWith("OutDir")){
+                    this.outDir_multipleRun = temp.get(1);
+                    continue;
+                }
+                if (line.startsWith("EMSteps")){
+                    this.expectationMaximizationSteps=Integer.parseInt(temp.get(1));
+                    continue;
+                }
+                if (line.startsWith("threadsNum")){
+                    this.threadsNum=Integer.parseInt(temp.get(1));
+                }
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void makeSubDir(){
+        this.subDir = new File[this.genotypeID.length];
+        for (int i = 0; i < this.genotypeID.length; i++) {
+            this.subDir[i] = new File(this.outDir_multipleRun, this.genotypeID[i]);
+            this.subDir[i].mkdir();
+        }
+    }
+
+    private void prepareFile(){
+        for (int i = 0; i < this.genotypePath.length; i++) {
+            ELAI_runner.prepareInputFile(genotypePath[i], genotypeID[i], this.taxaInfo, this.admixedPop[i],
+                    referencePopList[i], subDir[i], new File(subDir[i], this.genotypeID[i]+".pos.txt"));
+        }
+    }
+
+    public static void prepareInputFile(String genotypeFile, String genotypeID, TaxaInfo taxaInfo, String admixedPop,
+                                        List<String> referencePopList, File outDirBimBam,
+                                        File posFile){
         GenotypeTable genotypeTable = new GenotypeTable(genotypeFile);
-        TaxaInfo taxaInfo = new TaxaInfo(taxaInfoFile);
         String[] allPopOutName = new String[referencePopList.size()+1];
         allPopOutName[0] = admixedPop;
         for (int i = 0; i < referencePopList.size(); i++) {
@@ -49,7 +145,7 @@ public class ELAI_runner {
         }
         BufferedWriter[] bwBimBams = new BufferedWriter[allPopOutName.length];
         for (int i = 0; i < bwBimBams.length; i++) {
-            bwBimBams[i] = IOTool.getWriter(new File(outDirBimBam, allPopOutName[i]+".inp"));
+            bwBimBams[i] = IOTool.getWriter(new File(outDirBimBam, genotypeID+"."+allPopOutName[i]+".inp"));
         }
         try {
             StringBuilder sb = new StringBuilder();
