@@ -5,8 +5,6 @@ import daxing.common.utiles.IOTool;
 import daxing.v2.localAncestryInfer.GenotypeTable;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -23,22 +21,7 @@ public class ELAI_runner implements LocalAncestry {
      */
     String softPath;
 
-
-    /**
-     * genotypePath file
-     */
-    String[] genotypeID;
-
-    String[] genotypePath;
-
-    int[] nWayAdmixture;
-
-    String[] admixedPop;
-
-    List<String>[] referencePopList;
-
-    int[] timeSinceAdmixture;   // -1 means unknown
-
+    GenotypeMetaData genotypeMetaData;
 
     /**
      * taxaInfo file
@@ -81,16 +64,9 @@ public class ELAI_runner implements LocalAncestry {
     }
 
     private void initialize(String parameterFile){
-        List<String> genotypeIDList = new ArrayList<>();
-        List<String> genotypePathList=new ArrayList<>();
-        IntList nWayAdmixtureList = new IntArrayList();
-        List<String> admixedPopList = new ArrayList<>();
-        List<List<String>> refPopList = new ArrayList<>();
-        IntList timeSinceAdmixture=new IntArrayList();
         try (BufferedReader br = IOTool.getReader(parameterFile)) {
-            String line, line_genotype;
-            List<String> temp, temp_genotype, tem;
-            BufferedReader brGenotype;
+            String line;
+            List<String> temp;
             while ((line=br.readLine())!=null){
                 if (line.startsWith("##")) continue;
                 temp = PStringUtils.fastSplit(line, ":");
@@ -99,26 +75,7 @@ public class ELAI_runner implements LocalAncestry {
                     continue;
                 }
                 if (line.startsWith("GenotypePath")){
-                    brGenotype = IOTool.getReader(temp.get(1));
-                    brGenotype.readLine();
-                    while ((line_genotype=brGenotype.readLine())!=null){
-                        temp_genotype = PStringUtils.fastSplit(line_genotype);
-                        genotypeIDList.add(temp_genotype.get(0));
-                        genotypePathList.add(temp_genotype.get(1));
-                        nWayAdmixtureList.add(Integer.parseInt(temp_genotype.get(2)));
-                        admixedPopList.add(temp_genotype.get(3));
-                        tem = PStringUtils.fastSplit(temp_genotype.get(4), ",");
-                        refPopList.add(tem);
-                        int time = Integer.parseInt(temp_genotype.get(5));
-                        timeSinceAdmixture.add(time < 0 ? -1 : time);
-                    }
-                    brGenotype.close();
-                    this.genotypeID = genotypeIDList.toArray(new String[0]);
-                    this.genotypePath = genotypePathList.toArray(new String[0]);
-                    this.nWayAdmixture=nWayAdmixtureList.toIntArray();
-                    this.admixedPop = admixedPopList.toArray(new String[0]);
-                    this.referencePopList = refPopList.toArray(new List[0]);
-                    this.timeSinceAdmixture = timeSinceAdmixture.toIntArray();
+                    this.genotypeMetaData=new GenotypeMetaData(temp.get(1));
                     continue;
                 }
                 if (line.startsWith("TaxaInfoPath")){
@@ -149,17 +106,18 @@ public class ELAI_runner implements LocalAncestry {
     }
 
     private void makeSubDir(){
-        this.workingDir = new File[this.genotypeID.length];
-        for (int i = 0; i < this.genotypeID.length; i++) {
-            this.workingDir[i] = new File(this.outDir, this.genotypeID[i]);
+        this.workingDir = new File[genotypeMetaData.genotypeID.length];
+        for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
+            this.workingDir[i] = new File(this.outDir, genotypeMetaData.genotypeID[i]);
             this.workingDir[i].mkdir();
         }
     }
 
     private void prepareFile(){
-        for (int i = 0; i < this.genotypePath.length; i++) {
-            ELAI_runner.prepareInputFile(genotypePath[i], genotypeID[i], this.taxaInfo, this.admixedPop[i],
-                    referencePopList[i], workingDir[i], new File(workingDir[i], this.genotypeID[i]+".pos.txt"));
+        for (int i = 0; i < genotypeMetaData.genotypePath.length; i++) {
+            ELAI_runner.prepareInputFile(genotypeMetaData.genotypePath[i], genotypeMetaData.genotypeID[i], this.taxaInfo,
+                    genotypeMetaData.admixedPop[i], genotypeMetaData.referencePopList[i], workingDir[i],
+                    new File(workingDir[i], genotypeMetaData.genotypeID[i]+".pos.txt"));
         }
     }
 
@@ -238,25 +196,25 @@ public class ELAI_runner implements LocalAncestry {
     private void runELAI(){
         new File(logFilePath).delete();
         List<Callable<Integer>> callableList = new ArrayList<>();
-        for (int i = 0; i < this.genotypeID.length; i++) {
+        for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
             StringBuilder sb = new StringBuilder();
             sb.setLength(0);
             sb.append(this.softPath).append(" ");
             int refPopBaseNum = 10;
-            for (int j = 0; j < this.referencePopList[i].size(); j++) {
-                sb.append("-g ").append(new File(workingDir[i], genotypeID[i])+"."+referencePopList[i].get(j)+".inp ");
+            for (int j = 0; j < genotypeMetaData.referencePopList[i].size(); j++) {
+                sb.append("-g ").append(new File(workingDir[i], genotypeMetaData.genotypeID[i])+"."+genotypeMetaData.referencePopList[i].get(j)+".inp ");
                 sb.append("-p ").append(refPopBaseNum).append(" ");
                 refPopBaseNum++;
             }
-            sb.append("-g ").append(new File(workingDir[i], genotypeID[i]+"."+admixedPop[i]+".inp")).append(" ");
+            sb.append("-g ").append(new File(workingDir[i], genotypeMetaData.genotypeID[i]+"."+genotypeMetaData.admixedPop[i]+".inp")).append(" ");
             sb.append("-p 1 -pos ");
-            sb.append(new File(workingDir[i], genotypeID[i]+".pos.txt "));
+            sb.append(new File(workingDir[i], genotypeMetaData.genotypeID[i]+".pos.txt "));
             sb.append("-s ").append(expectationMaximizationSteps).append(" ");
-            sb.append("-o ").append(genotypeID[i]).append(" ");
-            sb.append("-C ").append(nWayAdmixture[i]).append(" ");
-            sb.append("-c ").append(nWayAdmixture[i]*5).append(" ");
-            if (timeSinceAdmixture[i] > 0){
-                sb.append("-mg ").append(timeSinceAdmixture[i]);
+            sb.append("-o ").append(genotypeMetaData.genotypeID[i]).append(" ");
+            sb.append("-C ").append(genotypeMetaData.nWayAdmixture[i]).append(" ");
+            sb.append("-c ").append(genotypeMetaData.nWayAdmixture[i]*5).append(" ");
+            if (genotypeMetaData.timeSinceAdmixture[i] > 0){
+                sb.append("-mg ").append(genotypeMetaData.timeSinceAdmixture[i]);
             }
             int finalI = i;
             callableList.add(()-> CommandUtils.runOneCommand(sb.toString(), workingDir[finalI].getAbsolutePath(), new File(logFilePath)));
@@ -266,17 +224,17 @@ public class ELAI_runner implements LocalAncestry {
         for (int i = 0; i < results.size(); i++) {
             if (results.get(i)!=0){
                 System.out.println(results.get(i));
-                System.out.println(genotypeID[i]+" run failed");
+                System.out.println(genotypeMetaData.genotypeID[i]+" run failed");
             }
         }
     }
 
     public double[][][][] extractLocalAncestry(){
-        double[][][][] localAncestry = new double[genotypeID.length][][][];
+        double[][][][] localAncestry = new double[genotypeMetaData.genotypeID.length][][][];
         for (int i = 0; i < localAncestry.length; i++) {
-            localAncestry[i] = new double[this.taxaInfo.getPopSampleSize(admixedPop[i])][][];
+            localAncestry[i] = new double[this.taxaInfo.getPopSampleSize(genotypeMetaData.admixedPop[i])][][];
             for (int j = 0; j < localAncestry[i].length; j++) {
-                localAncestry[i][j] = new double[this.nWayAdmixture[i]][];
+                localAncestry[i][j] = new double[genotypeMetaData.nWayAdmixture[i]][];
             }
         }
         BufferedReader br;
@@ -285,25 +243,25 @@ public class ELAI_runner implements LocalAncestry {
             List<String> temp;
             int ancestryPopIndex, snpIndex;
             File outputFile;
-            DoubleList[][][] localAnc = new DoubleList[genotypeID.length][][];
+            DoubleList[][][] localAnc = new DoubleList[genotypeMetaData.genotypeID.length][][];
             for (int i = 0; i < localAnc.length; i++) {
-                localAnc[i] = new DoubleList[taxaInfo.getPopSampleSize(admixedPop[i])][];
+                localAnc[i] = new DoubleList[taxaInfo.getPopSampleSize(genotypeMetaData.admixedPop[i])][];
                 for (int j = 0; j < localAncestry[i].length; j++) {
-                    localAnc[i][j] = new DoubleList[nWayAdmixture[i]];
+                    localAnc[i][j] = new DoubleList[genotypeMetaData.nWayAdmixture[i]];
                     for (int k = 0; k < localAnc[i][j].length; k++) {
                         localAnc[i][j][k] = new DoubleArrayList();
                     }
                 }
             }
-            for (int i = 0; i < this.genotypeID.length; i++) {
+            for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
                 outputFile = new File(workingDir[i], "output");
-                br = IOTool.getReader(new File(outputFile, genotypeID[i]+".ps21.txt"));
+                br = IOTool.getReader(new File(outputFile, genotypeMetaData.genotypeID[i]+".ps21.txt"));
                 int haplotypeIndex=0;
                 while ((line=br.readLine())!=null){
                     temp =PStringUtils.fastSplit(line, " ");
                     for (int j = 0; j < temp.size()-1; j++) {
-                        ancestryPopIndex = j % this.nWayAdmixture[i];
-                        snpIndex  = j / this.nWayAdmixture[i];
+                        ancestryPopIndex = j % genotypeMetaData.nWayAdmixture[i];
+                        snpIndex  = j / genotypeMetaData.nWayAdmixture[i];
                         localAnc[i][haplotypeIndex][ancestryPopIndex].add(Double.parseDouble(temp.get(j)));
                     }
                     br.readLine();

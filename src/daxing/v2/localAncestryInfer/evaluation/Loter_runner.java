@@ -4,8 +4,6 @@ import daxing.common.sh.CommandUtils;
 import daxing.common.utiles.IOTool;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -26,17 +24,7 @@ public class Loter_runner implements LocalAncestry{
     /**
      * genotypePath file
      */
-    String[] genotypeID;
-
-    String[] genotypePath;
-
-    int[] nWayAdmixture;
-
-    String[] admixedPop;
-
-    List<String>[] referencePopList;
-
-    int[] timeSinceAdmixture;   // -1 means unknown
+    GenotypeMetaData genotypeMetaData;
 
     /**
      * taxaInfo file
@@ -69,16 +57,9 @@ public class Loter_runner implements LocalAncestry{
     }
 
     private void initialize(String parameterFile){
-        List<String> genotypeIDList = new ArrayList<>();
-        List<String> genotypePathList=new ArrayList<>();
-        IntList nWayAdmixtureList = new IntArrayList();
-        List<String> admixedPopList = new ArrayList<>();
-        List<List<String>> refPopList = new ArrayList<>();
-        IntList timeSinceAdmixture=new IntArrayList();
         try (BufferedReader br = IOTool.getReader(parameterFile)) {
-            String line, line_genotype;
-            List<String> temp, temp_genotype, tem;
-            BufferedReader brGenotype;
+            String line;
+            List<String> temp;
             while ((line=br.readLine())!=null){
                 if (line.startsWith("##")) continue;
                 temp = PStringUtils.fastSplit(line, ":");
@@ -91,26 +72,7 @@ public class Loter_runner implements LocalAncestry{
                     continue;
                 }
                 if (line.startsWith("GenotypePath")){
-                    brGenotype = IOTool.getReader(temp.get(1));
-                    brGenotype.readLine();
-                    while ((line_genotype=brGenotype.readLine())!=null){
-                        temp_genotype = PStringUtils.fastSplit(line_genotype);
-                        genotypeIDList.add(temp_genotype.get(0));
-                        genotypePathList.add(temp_genotype.get(1));
-                        nWayAdmixtureList.add(Integer.parseInt(temp_genotype.get(2)));
-                        admixedPopList.add(temp_genotype.get(3));
-                        tem = PStringUtils.fastSplit(temp_genotype.get(4), ",");
-                        refPopList.add(tem);
-                        int time = Integer.parseInt(temp_genotype.get(5));
-                        timeSinceAdmixture.add(time < 0 ? -1 : time);
-                    }
-                    brGenotype.close();
-                    this.genotypeID = genotypeIDList.toArray(new String[0]);
-                    this.genotypePath = genotypePathList.toArray(new String[0]);
-                    this.nWayAdmixture=nWayAdmixtureList.toIntArray();
-                    this.admixedPop = admixedPopList.toArray(new String[0]);
-                    this.referencePopList = refPopList.toArray(new List[0]);
-                    this.timeSinceAdmixture = timeSinceAdmixture.toIntArray();
+                    this.genotypeMetaData = new GenotypeMetaData(temp.get(1));
                     continue;
                 }
                 if (line.startsWith("TaxaInfoPath")){
@@ -149,18 +111,18 @@ public class Loter_runner implements LocalAncestry{
         String admixedPop;
         BufferedWriter bw;
         try {
-            for (int i = 0; i < this.genotypeID.length; i++) {
-                referencePopList = this.referencePopList[i];
+            for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
+                referencePopList = genotypeMetaData.referencePopList[i];
                 for (String refPop:referencePopList){
                     taxaList = taxaInfo.getTaxaListOf(refPop);
-                    bw = IOTool.getWriter(new File(subDirFile[0], genotypeID[i]+"."+refPop+".txt"));
+                    bw = IOTool.getWriter(new File(subDirFile[0], genotypeMetaData.genotypeID[i]+"."+refPop+".txt"));
                     bw.write(String.join("\n", taxaList));
                     bw.newLine();
                     bw.flush();
                     bw.close();
                 }
-                admixedPop = this.admixedPop[i];
-                bw = IOTool.getWriter(new File(subDirFile[0], genotypeID[i]+"."+admixedPop+".txt"));
+                admixedPop = genotypeMetaData.admixedPop[i];
+                bw = IOTool.getWriter(new File(subDirFile[0], genotypeMetaData.genotypeID[i]+"."+admixedPop+".txt"));
                 taxaList = taxaInfo.getTaxaListOf(admixedPop);
                 bw.write(String.join("\n", taxaList));
                 bw.newLine();
@@ -177,16 +139,16 @@ public class Loter_runner implements LocalAncestry{
         StringBuilder sb = new StringBuilder();
         List<String> commandList = new ArrayList<>();
         List<String> refPop_admixedPop;
-        for (int i = 0; i < this.genotypeID.length; i++) {
+        for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
             refPop_admixedPop = new ArrayList<>();
-            refPop_admixedPop.addAll(this.referencePopList[i]);
-            refPop_admixedPop.add(admixedPop[i]);
+            refPop_admixedPop.addAll(genotypeMetaData.referencePopList[i]);
+            refPop_admixedPop.add(genotypeMetaData.admixedPop[i]);
             for (String pop:refPop_admixedPop){
                 sb.setLength(0);
-                sb.append(vcftools).append(" --gzvcf ").append(genotypePath[i]).append(" ");
-                sb.append("--keep ").append(new File(this.subDirFile[0], genotypeID[i]+"."+pop+".txt").getAbsolutePath());
+                sb.append(vcftools).append(" --gzvcf ").append(genotypeMetaData.genotypePath[i]).append(" ");
+                sb.append("--keep ").append(new File(this.subDirFile[0], genotypeMetaData.genotypeID[i]+"."+pop+".txt").getAbsolutePath());
                 sb.append(" ");
-                sb.append("--recode --out ").append(new File(this.subDirFile[1], genotypeID[i]+"."+pop).getAbsolutePath());
+                sb.append("--recode --out ").append(new File(this.subDirFile[1], genotypeMetaData.genotypeID[i]+"."+pop).getAbsolutePath());
                 commandList.add(sb.toString());
             }
 
@@ -200,40 +162,40 @@ public class Loter_runner implements LocalAncestry{
 
     private void run_loter(){
         List<Callable<Integer>> callableList = new ArrayList<>();
-        for (int i = 0; i < this.genotypeID.length; i++) {
+        for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
             StringBuilder sb = new StringBuilder();
             StringBuilder sbRef = new StringBuilder();
             sb.setLength(0);
             sb.append("source ").append(condaActivatePath).append(" loter && ");
             sb.append("loter_cli -r ");
             sbRef.setLength(0);
-            for (String refPop : this.referencePopList[i]){
-                sbRef.append(new File(this.subDirFile[1], genotypeID[i]+"."+refPop+".recode.vcf").getAbsolutePath());
+            for (String refPop : genotypeMetaData.referencePopList[i]){
+                sbRef.append(new File(this.subDirFile[1], genotypeMetaData.genotypeID[i]+"."+refPop+".recode.vcf").getAbsolutePath());
                 sbRef.append(" ");
             }
-            sb.append(sbRef).append(" -a ").append(new File(this.subDirFile[1], genotypeID[i]+"."+this.admixedPop[i]+
+            sb.append(sbRef).append(" -a ").append(new File(this.subDirFile[1], genotypeMetaData.genotypeID[i]+"."+genotypeMetaData.admixedPop[i]+
                     ".recode.vcf").getAbsolutePath());
-            sb.append(" -f vcf -o ").append(new File(this.subDirFile[2], genotypeID[i]+".lai.txt"));
+            sb.append(" -f vcf -o ").append(new File(this.subDirFile[2], genotypeMetaData.genotypeID[i]+".lai.txt"));
             callableList.add(()->CommandUtils.runMultipleCommands(sb.toString(), this.outDir, new File(this.logFilePath)));
         }
         CommandUtils.run_commands(callableList, threadsNum);
     }
 
     public double[][][][] extractLocalAncestry(){
-        double[][][][] localAncestry = new double[genotypeID.length][][][];
+        double[][][][] localAncestry = new double[genotypeMetaData.genotypeID.length][][][];
         for (int i = 0; i < localAncestry.length; i++) {
-            localAncestry[i] = new double[taxaInfo.getPopSampleSize(admixedPop[i])][][];
+            localAncestry[i] = new double[taxaInfo.getPopSampleSize(genotypeMetaData.admixedPop[i])][][];
             for (int j = 0; j < localAncestry[i].length; j++) {
-                localAncestry[i][j] = new double[nWayAdmixture[i]][];
+                localAncestry[i][j] = new double[genotypeMetaData.nWayAdmixture[i]][];
             }
         }
         BufferedReader br;
         try {
-            DoubleList[][][] localAnc = new DoubleList[genotypeID.length][][];
+            DoubleList[][][] localAnc = new DoubleList[genotypeMetaData.genotypeID.length][][];
             for (int i = 0; i < localAnc.length; i++) {
-                localAnc[i] = new DoubleList[taxaInfo.getPopSampleSize(admixedPop[i])][];
+                localAnc[i] = new DoubleList[taxaInfo.getPopSampleSize(genotypeMetaData.admixedPop[i])][];
                 for (int j = 0; j < localAncestry[i].length; j++) {
-                    localAnc[i][j] = new DoubleList[nWayAdmixture[i]];
+                    localAnc[i][j] = new DoubleList[genotypeMetaData.nWayAdmixture[i]];
                     for (int k = 0; k < localAnc[i][j].length; k++) {
                         localAnc[i][j][k] = new DoubleArrayList();
                     }
@@ -242,11 +204,11 @@ public class Loter_runner implements LocalAncestry{
             String line;
             List<String> temp;
             int haplotypeIndex=0;
-            for (int i = 0; i < genotypeID.length; i++) {
-                br = IOTool.getReader(new File(subDirFile[2], genotypeID[i]+".lai.txt"));
+            for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
+                br = IOTool.getReader(new File(subDirFile[2], genotypeMetaData.genotypeID[i]+".lai.txt"));
                 while ((line=br.readLine())!=null){
                     temp =PStringUtils.fastSplit(line, " ");
-                    for (int j = 0; j < referencePopList[i].size(); j++) {
+                    for (int j = 0; j < genotypeMetaData.referencePopList[i].size(); j++) {
                         for (int k = 0; k < temp.size(); k++) {
                             if (Integer.parseInt(temp.get(k))==j){
                                 localAnc[i][haplotypeIndex][j].add(1);
