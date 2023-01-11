@@ -1,4 +1,4 @@
-package daxing.v2.localAncestryInfer;
+package daxing.v2.localAncestryInfer.evaluation;
 
 import com.google.common.collect.Table;
 import daxing.common.table.RowTableTool;
