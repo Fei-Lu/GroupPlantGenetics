@@ -58,19 +58,14 @@ public class Loter_runner implements LocalAncestry{
      */
     int threadsNum;
 
-//    /**
-//     * working dir for single run
-//     */
-//    File[] workingDir;
-
     String[] subDir = {"loterGroup", "loterGroupVCF", "LAI"};
     File[] subDirFile;
 
     public Loter_runner(String parameterFile){
         this.initialize(parameterFile);
-//        this.preparePop();
-//        this.splitPopGenotype();
-//        this.run_loter();
+        this.preparePop();
+        this.splitPopGenotype();
+        this.run_loter();
     }
 
     private void initialize(String parameterFile){
@@ -274,33 +269,6 @@ public class Loter_runner implements LocalAncestry{
         }
         return localAncestry;
     }
-
-//    private double[][] extractLocalAncestry(File laiFile){
-//        String line;
-//        List<String> temp;
-//        DoubleArrayList[] localAncestry = new DoubleArrayList[];
-//        for (int i = 0; i < localAncestry.length; i++) {
-//            localAncestry[i] = new DoubleArrayList();
-//        }
-//        int taxaIndex=0;
-//        try (BufferedReader br = IOTool.getReader(laiFile)) {
-//            while ((line=br.readLine())!=null){
-//                temp =PStringUtils.fastSplit(line, " ");
-//                for (int i = 0; i < temp.size(); i++) {
-//                    localAncestry[taxaIndex].add(Integer.parseInt(temp.get(i)) == 0 ? 0 : 4);
-//                }
-//                br.readLine();
-//                taxaIndex++;
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        double[][] localAnc = new double[this.getAdmixedPopSampleSize()][];
-//        for (int i = 0; i < localAnc.length; i++) {
-//            localAnc[i] = localAncestry[i].toDoubleArray();
-//        }
-//        return localAnc;
-//    }
 
 
 }
