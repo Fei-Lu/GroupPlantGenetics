@@ -290,5 +290,21 @@ public class CommandUtils {
         }
     }
 
+    public static <V> List<V> run_commands(List<Callable<V>> callableList, int threadsNum){
+        ExecutorService executorService = Executors.newFixedThreadPool(threadsNum);
+        List<V> results = new ArrayList<>();
+        try {
+            List<Future<V>> futureList=executorService.invokeAll(callableList);
+            executorService.shutdown();
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
+            for (Future<V> future : futureList){
+                results.add(future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        return results;
+    }
+
 
 }
