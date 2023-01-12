@@ -290,6 +290,13 @@ public class CommandUtils {
         }
     }
 
+    /**
+     *
+     * @param callableList
+     * @param threadsNum
+     * @return
+     * @param <V> the result type of callable task
+     */
     public static <V> List<V> run_commands(List<Callable<V>> callableList, int threadsNum){
         ExecutorService executorService = Executors.newFixedThreadPool(threadsNum);
         List<V> results = new ArrayList<>();
