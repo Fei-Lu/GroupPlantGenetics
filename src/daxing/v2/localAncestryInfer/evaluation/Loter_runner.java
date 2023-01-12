@@ -71,7 +71,7 @@ public class Loter_runner implements LocalAncestry{
                     this.vcftools=temp.get(1);
                     continue;
                 }
-                if (line.startsWith("GenotypePath")){
+                if (line.startsWith("GenotypeMetaDataPath")){
                     this.genotypeMetaData = new GenotypeMetaData(temp.get(1));
                     continue;
                 }
