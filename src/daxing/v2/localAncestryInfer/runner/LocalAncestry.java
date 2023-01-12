@@ -1,4 +1,4 @@
-package daxing.v2.localAncestryInfer.evaluation;
+package daxing.v2.localAncestryInfer.runner;
 
 public interface LocalAncestry {
 

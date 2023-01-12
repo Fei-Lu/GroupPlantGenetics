@@ -1,4 +1,4 @@
-package daxing.v2.localAncestryInfer.evaluation;
+package daxing.v2.localAncestryInfer.runner;
 
 import daxing.common.utiles.IOTool;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
