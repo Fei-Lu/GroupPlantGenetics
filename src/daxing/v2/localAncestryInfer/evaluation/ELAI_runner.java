@@ -176,8 +176,8 @@ public class ELAI_runner implements LocalAncestry {
                 for (int j = 0; j < genotypeTables[i].getSiteNumber(); j++) {
                     sb.setLength(0);
                     sb.append(genotypeTables[i].getSnps()[j].getSnpID()).append(",");
-                    for (int k = 0; k < pop_sampleList.size(); k++) {
-                        taxonIndex = genotypeTables[i].getTaxonIndex(pop_sampleList.get(k));
+                    for (String s : pop_sampleList) {
+                        taxonIndex = genotypeTables[i].getTaxonIndex(s);
                         alleleBase = genotypeTables[i].getAlleleBase(j, taxonIndex);
                         sb.append(alleleBase).append(alleleBase).append(",");
                     }
@@ -202,7 +202,7 @@ public class ELAI_runner implements LocalAncestry {
             sb.append(this.softPath).append(" ");
             int refPopBaseNum = 10;
             for (int j = 0; j < genotypeMetaData.referencePopList[i].size(); j++) {
-                sb.append("-g ").append(new File(workingDir[i], genotypeMetaData.genotypeID[i])+"."+genotypeMetaData.referencePopList[i].get(j)+".inp ");
+                sb.append("-g ").append(new File(workingDir[i], genotypeMetaData.genotypeID[i])).append(".").append(genotypeMetaData.referencePopList[i].get(j)).append(".inp ");
                 sb.append("-p ").append(refPopBaseNum).append(" ");
                 refPopBaseNum++;
             }
@@ -229,6 +229,7 @@ public class ELAI_runner implements LocalAncestry {
         }
     }
 
+    @Override
     public double[][][][] extractLocalAncestry(){
         double[][][][] localAncestry = new double[genotypeMetaData.genotypeID.length][][][];
         for (int i = 0; i < localAncestry.length; i++) {

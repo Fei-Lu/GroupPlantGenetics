@@ -49,4 +49,8 @@ public class TaxaInfo {
     public List<String> getTaxaListOf(String popName){
         return this.popTaxaListMap.get(popName);
     }
+
+    public String getTaxonPop(String taxon){
+        return this.taxaPopNameMap.get(taxon);
+    }
 }

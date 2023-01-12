@@ -140,8 +140,7 @@ public class Loter_runner implements LocalAncestry{
         List<String> commandList = new ArrayList<>();
         List<String> refPop_admixedPop;
         for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
-            refPop_admixedPop = new ArrayList<>();
-            refPop_admixedPop.addAll(genotypeMetaData.referencePopList[i]);
+            refPop_admixedPop = new ArrayList<>(genotypeMetaData.referencePopList[i]);
             refPop_admixedPop.add(genotypeMetaData.admixedPop[i]);
             for (String pop:refPop_admixedPop){
                 sb.setLength(0);
@@ -178,9 +177,17 @@ public class Loter_runner implements LocalAncestry{
             sb.append(" -f vcf -o ").append(new File(this.subDirFile[2], genotypeMetaData.genotypeID[i]+".lai.txt"));
             callableList.add(()->CommandUtils.runMultipleCommands(sb.toString(), this.outDir, new File(this.logFilePath)));
         }
-        CommandUtils.run_commands(callableList, threadsNum);
+
+        List<Integer> results = CommandUtils.run_commands(callableList, threadsNum);
+        for (int i = 0; i < results.size(); i++) {
+            if (results.get(i)!=0){
+                System.out.println(results.get(i));
+                System.out.println(genotypeMetaData.genotypeID[i]+" run failed");
+            }
+        }
     }
 
+    @Override
     public double[][][][] extractLocalAncestry(){
         double[][][][] localAncestry = new double[genotypeMetaData.genotypeID.length][][][];
         for (int i = 0; i < localAncestry.length; i++) {
@@ -209,10 +216,10 @@ public class Loter_runner implements LocalAncestry{
                 while ((line=br.readLine())!=null){
                     temp =PStringUtils.fastSplit(line, " ");
                     for (int j = 0; j < genotypeMetaData.referencePopList[i].size(); j++) {
-                        for (int k = 0; k < temp.size(); k++) {
-                            if (Integer.parseInt(temp.get(k))==j){
+                        for (String s : temp) {
+                            if (Integer.parseInt(s) == j) {
                                 localAnc[i][haplotypeIndex][j].add(1);
-                            }else {
+                            } else {
                                 localAnc[i][haplotypeIndex][j].add(0);
                             }
                         }
