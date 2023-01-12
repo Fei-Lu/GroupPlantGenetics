@@ -1,14 +1,13 @@
 package daxing.common.utiles;
 
+import daxing.common.sh.CommandUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,9 +15,7 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
+import java.util.concurrent.Callable;
 
 /**
  *
@@ -50,8 +47,8 @@ public class MD5 {
             fis.close();
             byte[] digest=md.digest();
             StringBuilder sb=new StringBuilder();
-            for(int i=0;i<digest.length;i++){
-                sb.append(Integer.toString((digest[i] & 0xff) + 0x100, 16).substring(1));
+            for (byte b : digest) {
+                sb.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
             }
             md5Value=sb.toString();
         }
@@ -61,51 +58,42 @@ public class MD5 {
         return md5Value;
     }
 
+
+    private static Pair<Path, String> calculateMD5(String inputDir, File file){
+        Path absolutePath = file.toPath();
+        Path reaPath = absolutePath.subpath(Paths.get(inputDir).getNameCount(), absolutePath.getNameCount());
+        String md5Value = MD5.getMD5FromFile(file.getAbsolutePath());
+        return new ImmutablePair<>(reaPath, md5Value);
+    }
+
     /**
      * 以标准MD5文件的形式返回一个目录下所有文件的MD5值。在服务器上默认使用32个核；在个人电脑上默认使用全部核
      * @param inputDir 输入目录的绝对路径
      */
     public static void getMD5FromDir(String inputDir){
         long start = System.nanoTime();
-        int numThreads = 32;
-        if(Runtime.getRuntime().availableProcessors()<32) {
-            numThreads=Runtime.getRuntime().availableProcessors();
+        int numThreads = Math.min(Runtime.getRuntime().availableProcessors(), 32);
+        List<File> files = IOTool.getVisibleFileRecursiveDir(inputDir);
+        if(files.size()<numThreads){
+            numThreads=files.size();
         }
-        File[] files = IOUtils.listRecursiveFiles(new File(inputDir));
-        Predicate<File> p=e->e.getName().contains(".DS_Store");
-        File[] fileArray= Arrays.stream(files).filter(p.negate()).toArray(File[]::new);
-        if(fileArray.length<numThreads){
-            numThreads=fileArray.length;
+        List<Callable<Pair<Path, String>>> callableList = new ArrayList<>();
+        for (File file : files){
+            callableList.add(()->MD5.calculateMD5(inputDir, file));
         }
-        ConcurrentHashMap<String,String> md5PathValueMap=new ConcurrentHashMap<>();
-        BufferedWriter bw=null;
-        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(fileArray.length, numThreads);
-        for (int i = 0; i < indices.length; i++) {
-            Integer[] subLibIndices = new Integer[indices[i][1]-indices[i][0]];
-            for (int j = 0; j < subLibIndices.length; j++) {
-                subLibIndices[j] = indices[i][0]+j;
-            }
-            List<Integer> integerList=Arrays.asList(subLibIndices);
-            integerList.parallelStream()
-                    .forEach(index-> {
-                        String md5Value=MD5.getMD5FromFile(fileArray[index].getAbsolutePath());
-                        Path AbsolutePath = fileArray[index].toPath();
-                        Path relPath=AbsolutePath.subpath(Paths.get(inputDir).getNameCount(), AbsolutePath.getNameCount());
-                        md5PathValueMap.put(relPath.toString(), md5Value);
-                    });
-            System.out.println(integerList.size()*(i+1)+" files had been calculated md5checksum");
-        }
-        try{
-            bw=IOUtils.getTextWriter(inputDir+"/md5.txt");
-            for(Map.Entry<String,String> entry:md5PathValueMap.entrySet()){
-                //System.out.println(entry.getKey()+"  "+entry.getValue());
-                bw.write(entry.getValue()+"  "+entry.getKey());
+        System.out.println("using "+numThreads+" threads in parallel");
+        List<Pair<Path, String>> results = CommandUtils.run_commands(callableList, numThreads);
+        StringBuilder sb = new StringBuilder();
+        try (BufferedWriter bw = IOTool.getWriter(new File(inputDir, "md5.txt"))) {
+            for (Pair<Path, String> pair : results){
+                sb.setLength(0);
+                sb.append(pair.getValue()).append("  ").append(pair.getKey().toString());
+                bw.write(sb.toString());
                 bw.newLine();
             }
-            bw.flush();bw.close();
-        }
-        catch(Exception e){
-            e.printStackTrace();
+            bw.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         System.out.println("completed in " + String.format("%.4f", Benchmark.getTimeSpanMinutes(start)) + " minutes");
     }
@@ -122,6 +110,11 @@ public class MD5 {
         return fileHash.equals(hash);
     }
 
+    private static Pair<File, Boolean> getCheckMD5Res(String inputFile, String hash){
+        boolean res = MD5.checkMD5(inputFile, hash);
+        return new ImmutablePair<>(new File(inputFile), res);
+    }
+
     /**
      * 对标准MD5文件进行校验(MD5文件需在等待检测MD5值的文件目录下)。在服务器上默认使用32个核；在个人电脑上默认使用全部核
      * @param inputMD5File 输入的标准MD5文件的绝对路径
@@ -129,10 +122,7 @@ public class MD5 {
     public static void checkMD5(String inputMD5File){
         String inputDir=new File(inputMD5File).getParent();
         long start = System.nanoTime();
-        int numThreads = 32;
-        if(Runtime.getRuntime().availableProcessors()<32) {
-            numThreads=Runtime.getRuntime().availableProcessors();
-        }
+        int numThreads = Math.min(Runtime.getRuntime().availableProcessors(), 32);
         List<String> md5ValuePath=new ArrayList<>();
         String line;
         try(BufferedReader br=IOUtils.getTextReader(inputMD5File)){
@@ -168,6 +158,51 @@ public class MD5 {
             });
             System.out.println(integerList.size()*(i+1)+" files had been checked");
         }
+        System.out.println("completed in " + String.format("%.4f", Benchmark.getTimeSpanMinutes(start)) + " minutes");
+    }
+
+    /**
+     * 对标准MD5文件进行校验(MD5文件需在等待检测MD5值的文件目录下)。在服务器上默认使用32个核；在个人电脑上默认使用全部核
+     * @param inputMD5File 输入的标准MD5文件的绝对路径
+     */
+    public static void checkMD5_2(String inputMD5File){
+        String inputDir=new File(inputMD5File).getParent();
+        long start = System.nanoTime();
+        int numThreads = Math.min(Runtime.getRuntime().availableProcessors(), 32);
+        List<String> md5ValuePath=new ArrayList<>();
+        String line;
+        try(BufferedReader br=IOUtils.getTextReader(inputMD5File)){
+            while((line=br.readLine())!=null){
+                md5ValuePath.add(line);
+            }
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        if(md5ValuePath.size()<numThreads){
+            numThreads=md5ValuePath.size();
+        }
+        List<Callable<Pair<File, Boolean>>> callableList = new ArrayList<>();
+        List<String> temp;
+        for (String md5Path : md5ValuePath){
+            temp = PStringUtils.fastSplit(md5Path, "  ");
+            String md5 = temp.get(0);
+            String path = new File(inputDir, temp.get(1)).getAbsolutePath();
+            callableList.add(()->MD5.getCheckMD5Res(path, md5));
+        }
+        List<Pair<File, Boolean>> results = CommandUtils.run_commands(callableList, numThreads);
+        int failedCount = 0;
+        for (Pair<File, Boolean> pair : results){
+            if (pair.getValue()) continue;
+            failedCount++;
+            System.out.println(pair.getKey().getAbsolutePath()+" check md5sum failed");
+        }
+        if (failedCount > 0){
+            System.out.println("Total failed file count is "+failedCount);
+        }else {
+            System.out.println("All file passed md5 check sum");
+        }
+
         System.out.println("completed in " + String.format("%.4f", Benchmark.getTimeSpanMinutes(start)) + " minutes");
     }
 
