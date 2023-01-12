@@ -6,6 +6,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -64,15 +65,23 @@ public class IOTool extends IOUtils {
     }
 
     /**
-     * 递归获取当前目录下的所有非隐藏文件
+     * 递归获取当前目录下的所有非隐藏文件和非隐藏目录
      * @param dir dir
-     * @return 当前目录下的所有非隐藏文件
+     * @return 当前目录下的所有非隐藏文件和非隐藏目录
      */
     public static List<File> getVisibleFileRecursiveDir(String dir){
-        File[] files= IOUtils.listRecursiveFiles(new File(dir));
-        Predicate<File> hidden=File::isHidden;
-        List<File> res= Arrays.stream(files).filter(hidden.negate()).sorted().collect(Collectors.toList());
-        return res;
+        File inputDirFile = new File(dir);
+        TreeSet<File> fileTree = new TreeSet<>();
+        for (File entry : inputDirFile.listFiles()) {
+            if (entry.isHidden()) continue;
+            if (entry.isFile()){
+                fileTree.add(entry);
+            }
+            else {
+                fileTree.addAll(getVisibleFileRecursiveDir(entry.getAbsolutePath()));
+            }
+        }
+        return fileTree.stream().sorted().collect(Collectors.toList());
     }
 
     /**
