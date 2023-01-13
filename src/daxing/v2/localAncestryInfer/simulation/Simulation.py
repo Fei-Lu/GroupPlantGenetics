@@ -9,39 +9,41 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 
-# graphFile = sys.argv[1]
-# outFile_model = sys.argv[2]
-# outFile_simulateGenotype = sys.argv[3]
-# taxaPopInfo = sys.argv[4]
-# outFile_recombinationMap = sys.argv[5]
-# outFile_tracts = sys.argv[6]
-# sequence_length = sys.argv[7]
-# random_seed = sys.argv[8]
-# mutation_rate = sys.argv[9]
-# recombination_rate = sys.argv[10]
-# pops = sys.argv[11].split(",")
-# sampleSize = sys.argv[12].split(",")
+graphFile = sys.argv[1]
+outFile_model = sys.argv[2]
+outFile_simulateGenotype = sys.argv[3]
+taxaPopInfo = sys.argv[4]
+outFile_recombinationMap = sys.argv[5]
+outFile_tracts = sys.argv[6]
+sequence_length = sys.argv[7]
+random_seed = sys.argv[8]
+mutation_rate = sys.argv[9]
+recombination_rate = sys.argv[10]
 
-graphFile = "/Users/xudaxing/Desktop/LocalAncestry/demes/two_way_admixture_proportion0.1_genetration500.yaml"
-outFile_model = "/Users/xudaxing/Desktop/LocalAncestry/simulatedData/temp.pdf"
-outFile_simulateGenotype = "/Users/xudaxing/Desktop/LocalAncestry/simulatedData/simulate.vcf"
-taxaPopInfo = "/Users/xudaxing/Desktop/LocalAncestry/simulatedData/taxaInfo.txt"
-outFile_recombinationMap = "/Users/xudaxing/Desktop/LocalAncestry/simulatedData/recombinationMap.txt"
-outFile_tracts = "/Users/xudaxing/Desktop/LocalAncestry/simulatedData/localAncestryTract.txt"
-sequence_length = 10_000_000
-random_seed = 1
-mutation_rate = 7.1e-9
-recombination_rate = 1e-8
+## admixed population, native population, introgressed population
+pops = sys.argv[11].split(",")
+sampleSize = sys.argv[12].split(",")
+
+# graphFile = "/Users/xudaxing/Desktop/LocalAncestry/demes/two_way_admixture_proportion0.1_genetration500.yaml"
+# outFile_model = "/Users/xudaxing/Desktop/LocalAncestry/simulatedData/temp.pdf"
+# outFile_simulateGenotype = "/Users/xudaxing/Desktop/LocalAncestry/simulatedData/simulate.vcf"
+# taxaPopInfo = "/Users/xudaxing/Desktop/LocalAncestry/simulatedData/taxaInfo.txt"
+# outFile_recombinationMap = "/Users/xudaxing/Desktop/LocalAncestry/simulatedData/recombinationMap.txt"
+# outFile_tracts = "/Users/xudaxing/Desktop/LocalAncestry/simulatedData/localAncestryTract.txt"
+# sequence_length = 10_000_000
+# random_seed = 1
+# mutation_rate = 7.1e-9
+# recombination_rate = 1e-8
 
 ## admixed population, native population, introgressed population
 # pops = "F,G,D,E".split(",")
 # sampleSize = "10,10,10,10".split(",")
-pops = "E,D,C".split(",")
-sampleSize = "30,30,30".split(",")
+# pops = "E,D,C".split(",")
+# sampleSize = "30,30,30".split(",")
 
 graph = demes.load(graphFile, format="yaml")
 demography = msprime.Demography.from_demes(graph)
-print(demography.debug())
+# print(demography.debug())
 
 demesdraw.tubes(graph)
 # plt.show()
