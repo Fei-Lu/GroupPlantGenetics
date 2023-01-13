@@ -1,4 +1,4 @@
-package daxing.v2.localAncestryInfer;
+package daxing.v2.localAncestryInfer.simulation;
 
 import daxing.common.sh.CommandUtils;
 import daxing.common.utiles.IOTool;
@@ -13,6 +13,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Simulation {
+
+    /**
+     * Python packages need to be installed
+     * demes, demesdraw, matplotlib, msprime, numpy
+     */
+    String pythonInterpreterPath;
+
+    String demesPathFile;
 
     public static void runCommand(String command, String commandInfo){
         String[] commands = StringUtils.split(command, " ");
