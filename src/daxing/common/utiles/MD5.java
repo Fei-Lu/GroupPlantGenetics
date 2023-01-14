@@ -5,7 +5,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
-import pgl.infra.utils.PArrayUtils;
 import pgl.infra.utils.PStringUtils;
 import java.io.*;
 import java.nio.file.Files;
@@ -13,7 +12,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -120,52 +118,6 @@ public class MD5 {
      * @param inputMD5File 输入的标准MD5文件的绝对路径
      */
     public static void checkMD5(String inputMD5File){
-        String inputDir=new File(inputMD5File).getParent();
-        long start = System.nanoTime();
-        int numThreads = Math.min(Runtime.getRuntime().availableProcessors(), 32);
-        List<String> md5ValuePath=new ArrayList<>();
-        String line;
-        try(BufferedReader br=IOUtils.getTextReader(inputMD5File)){
-            while((line=br.readLine())!=null){
-                md5ValuePath.add(line);
-            }
-        }
-        catch(Exception e){
-            e.printStackTrace();
-        }
-        if(md5ValuePath.size()<numThreads){
-            numThreads=md5ValuePath.size();
-        }
-        int[][] indices=PArrayUtils.getSubsetsIndicesBySubsetSize(md5ValuePath.size(), numThreads);
-        for (int i = 0; i < indices.length; i++) {
-            Integer[] subLibIndices = new Integer[indices[i][1]-indices[i][0]];
-            for (int j = 0; j < subLibIndices.length; j++) {
-                subLibIndices[j] = indices[i][0]+j;
-            }
-            List<Integer> integerList=Arrays.asList(subLibIndices);
-            integerList.parallelStream().forEach(index->{
-                String valuePath=md5ValuePath.get(index);
-                List<String> md5Value= PStringUtils.fastSplit(valuePath,"  ");
-                String value=md5Value.get(0);
-                String path=inputDir+"/"+md5Value.get(1);
-                boolean f=MD5.checkMD5(path, value);
-                if(!f){
-                    System.out.println("False  "+path+": "+value);
-                }
-                else{
-                    //System.out.println("True  "+path+": "+value);
-                }
-            });
-            System.out.println(integerList.size()*(i+1)+" files had been checked");
-        }
-        System.out.println("completed in " + String.format("%.4f", Benchmark.getTimeSpanMinutes(start)) + " minutes");
-    }
-
-    /**
-     * 对标准MD5文件进行校验(MD5文件需在等待检测MD5值的文件目录下)。在服务器上默认使用32个核；在个人电脑上默认使用全部核
-     * @param inputMD5File 输入的标准MD5文件的绝对路径
-     */
-    public static void checkMD5_2(String inputMD5File){
         String inputDir=new File(inputMD5File).getParent();
         long start = System.nanoTime();
         int numThreads = Math.min(Runtime.getRuntime().availableProcessors(), 32);
