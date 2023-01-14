@@ -15,6 +15,8 @@ public class GenotypeMetaData {
 
     String[] genotypePath;
 
+    String[] taxaInfoPath;
+
     int[] nWayAdmixture;
 
     String[] admixedPop;
@@ -30,6 +32,7 @@ public class GenotypeMetaData {
     public GenotypeMetaData(String genotypePathFile){
         List<String> genotypeIDList = new ArrayList<>();
         List<String> genotypePathList=new ArrayList<>();
+        List<String> taxaInfoPathList = new ArrayList<>();
         IntList nWayAdmixtureList = new IntArrayList();
         List<String> admixedPopList = new ArrayList<>();
         List<List<String>> refPopList = new ArrayList<>();
@@ -44,14 +47,15 @@ public class GenotypeMetaData {
                 temp = PStringUtils.fastSplit(line);
                 genotypeIDList.add(temp.get(0));
                 genotypePathList.add(temp.get(1));
-                nWayAdmixtureList.add(Integer.parseInt(temp.get(2)));
-                admixedPopList.add(temp.get(3));
-                tem = PStringUtils.fastSplit(temp.get(4), ",");
+                taxaInfoPathList.add(temp.get(2));
+                nWayAdmixtureList.add(Integer.parseInt(temp.get(3)));
+                admixedPopList.add(temp.get(4));
+                tem = PStringUtils.fastSplit(temp.get(5), ",");
                 refPopList.add(tem);
-                int time = Integer.parseInt(temp.get(5));
+                int time = Integer.parseInt(temp.get(6));
                 timeSinceAdmixture.add(time < 0 ? -1 : time);
-                chrIDList.add(Integer.parseInt(temp.get(6)));
-                recombinationMap.add(temp.get(7));
+                chrIDList.add(Integer.parseInt(temp.get(7)));
+                recombinationMap.add(temp.get(8));
             }
             br.close();
             this.genotypeID = genotypeIDList.toArray(new String[0]);
@@ -73,6 +77,10 @@ public class GenotypeMetaData {
 
     public String[] getGenotypePath() {
         return genotypePath;
+    }
+
+    public String[] getTaxaInfoPath() {
+        return taxaInfoPath;
     }
 
     public int[] getTimeSinceAdmixture() {
@@ -97,5 +105,41 @@ public class GenotypeMetaData {
 
     public String[] getRecombinationMap() {
         return recombinationMap;
+    }
+
+    public String getGenotypeID(int indexOfRun){
+        return this.getGenotypeID()[indexOfRun];
+    }
+
+    public String getGenotypePath(int indexOfRun){
+        return this.getGenotypePath()[indexOfRun];
+    }
+
+    public TaxaInfo getTaxaInfo(int indexOfRun){
+        return new TaxaInfo(this.getTaxaInfoPath()[indexOfRun]);
+    }
+
+    public int getNwayAdmixture(int indexOfRun){
+        return this.getnWayAdmixture()[indexOfRun];
+    }
+
+    public String getAdmixedPop(int indexOfRun){
+        return this.getAdmixedPop()[indexOfRun];
+    }
+
+    public List<String> getReferencePopList(int indexOfRun){
+        return this.getReferencePopList()[indexOfRun];
+    }
+
+    public int getTimeSinceAdmixture(int indexOfRun){
+        return this.getTimeSinceAdmixture()[indexOfRun];
+    }
+
+    public int getChrID(int indexOfRun){
+        return this.getChrID()[indexOfRun];
+    }
+
+    public String getRecombinationMap(int indexOfRun){
+        return this.getRecombinationMap()[indexOfRun];
     }
 }

@@ -27,11 +27,6 @@ public class Loter_runner implements LocalAncestry{
     GenotypeMetaData genotypeMetaData;
 
     /**
-     * taxaInfo file
-     */
-    TaxaInfo taxaInfo;
-
-    /**
      * logFile
      */
     String logFilePath; // all log will be append to this logFile
@@ -75,10 +70,6 @@ public class Loter_runner implements LocalAncestry{
                     this.genotypeMetaData = new GenotypeMetaData(temp.get(1));
                     continue;
                 }
-                if (line.startsWith("TaxaInfoPath")){
-                    this.taxaInfo = new TaxaInfo(temp.get(1));
-                    continue;
-                }
                 if (line.startsWith("LogFilePath")){
                     this.logFilePath = temp.get(1);
                     continue;
@@ -114,7 +105,7 @@ public class Loter_runner implements LocalAncestry{
             for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
                 referencePopList = genotypeMetaData.referencePopList[i];
                 for (String refPop:referencePopList){
-                    taxaList = taxaInfo.getTaxaListOf(refPop);
+                    taxaList = genotypeMetaData.getTaxaInfo(i).getTaxaListOf(refPop);
                     bw = IOTool.getWriter(new File(subDirFile[0], genotypeMetaData.genotypeID[i]+"."+refPop+".txt"));
                     bw.write(String.join("\n", taxaList));
                     bw.newLine();
@@ -123,7 +114,7 @@ public class Loter_runner implements LocalAncestry{
                 }
                 admixedPop = genotypeMetaData.admixedPop[i];
                 bw = IOTool.getWriter(new File(subDirFile[0], genotypeMetaData.genotypeID[i]+"."+admixedPop+".txt"));
-                taxaList = taxaInfo.getTaxaListOf(admixedPop);
+                taxaList = genotypeMetaData.getTaxaInfo(i).getTaxaListOf(admixedPop);
                 bw.write(String.join("\n", taxaList));
                 bw.newLine();
                 bw.flush();
@@ -191,7 +182,7 @@ public class Loter_runner implements LocalAncestry{
     public double[][][][] extractLocalAncestry(){
         double[][][][] localAncestry = new double[genotypeMetaData.genotypeID.length][][][];
         for (int i = 0; i < localAncestry.length; i++) {
-            localAncestry[i] = new double[taxaInfo.getPopSampleSize(genotypeMetaData.admixedPop[i])][][];
+            localAncestry[i] = new double[genotypeMetaData.getTaxaInfo(i).getPopSampleSize(genotypeMetaData.admixedPop[i])][][];
             for (int j = 0; j < localAncestry[i].length; j++) {
                 localAncestry[i][j] = new double[genotypeMetaData.nWayAdmixture[i]][];
             }
@@ -200,7 +191,7 @@ public class Loter_runner implements LocalAncestry{
         try {
             DoubleList[][][] localAnc = new DoubleList[genotypeMetaData.genotypeID.length][][];
             for (int i = 0; i < localAnc.length; i++) {
-                localAnc[i] = new DoubleList[taxaInfo.getPopSampleSize(genotypeMetaData.admixedPop[i])][];
+                localAnc[i] = new DoubleList[genotypeMetaData.getTaxaInfo(i).getPopSampleSize(genotypeMetaData.admixedPop[i])][];
                 for (int j = 0; j < localAncestry[i].length; j++) {
                     localAnc[i][j] = new DoubleList[genotypeMetaData.nWayAdmixture[i]];
                     for (int k = 0; k < localAnc[i][j].length; k++) {

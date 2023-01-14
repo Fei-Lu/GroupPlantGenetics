@@ -24,12 +24,6 @@ public class ELAI_runner implements LocalAncestry {
     GenotypeMetaData genotypeMetaData;
 
     /**
-     * taxaInfo file
-     */
-    TaxaInfo taxaInfo;
-
-
-    /**
      * logFile
      */
     String logFilePath;
@@ -78,10 +72,6 @@ public class ELAI_runner implements LocalAncestry {
                     this.genotypeMetaData=new GenotypeMetaData(temp.get(1));
                     continue;
                 }
-                if (line.startsWith("TaxaInfoPath")){
-                    this.taxaInfo = new TaxaInfo(temp.get(1));
-                    continue;
-                }
                 if (line.startsWith("LogFilePath")){
                     this.logFilePath = temp.get(1);
                     continue;
@@ -115,15 +105,17 @@ public class ELAI_runner implements LocalAncestry {
 
     private void prepareFile(){
         for (int i = 0; i < genotypeMetaData.genotypePath.length; i++) {
-            ELAI_runner.prepareInputFile(genotypeMetaData.genotypePath[i], genotypeMetaData.genotypeID[i], this.taxaInfo,
+            ELAI_runner.prepareInputFile(genotypeMetaData.genotypePath[i], genotypeMetaData.genotypeID[i],
+                    genotypeMetaData.taxaInfoPath[i],
                     genotypeMetaData.admixedPop[i], genotypeMetaData.referencePopList[i], workingDir[i],
                     new File(workingDir[i], genotypeMetaData.genotypeID[i]+".pos.txt"));
         }
     }
 
-    private static void prepareInputFile(String genotypeFile, String genotypeID, TaxaInfo taxaInfo, String admixedPop,
+    private static void prepareInputFile(String genotypeFile, String genotypeID, String taxaInfoFile, String admixedPop,
                                         List<String> referencePopList, File outDirBimBam,
                                         File posFile){
+        TaxaInfo taxaInfo = new TaxaInfo(taxaInfoFile);
         GenotypeTable genotypeTable = new GenotypeTable(genotypeFile);
         String[] allPopOutName = new String[referencePopList.size()+1];
         allPopOutName[0] = admixedPop;
@@ -232,8 +224,10 @@ public class ELAI_runner implements LocalAncestry {
     @Override
     public double[][][][] extractLocalAncestry(){
         double[][][][] localAncestry = new double[genotypeMetaData.genotypeID.length][][][];
+        TaxaInfo taxaInfo;
         for (int i = 0; i < localAncestry.length; i++) {
-            localAncestry[i] = new double[this.taxaInfo.getPopSampleSize(genotypeMetaData.admixedPop[i])][][];
+            taxaInfo = new TaxaInfo(genotypeMetaData.taxaInfoPath[i]);
+            localAncestry[i] = new double[taxaInfo.getPopSampleSize(genotypeMetaData.admixedPop[i])][][];
             for (int j = 0; j < localAncestry[i].length; j++) {
                 localAncestry[i][j] = new double[genotypeMetaData.nWayAdmixture[i]][];
             }
@@ -246,6 +240,7 @@ public class ELAI_runner implements LocalAncestry {
             File outputFile;
             DoubleList[][][] localAnc = new DoubleList[genotypeMetaData.genotypeID.length][][];
             for (int i = 0; i < localAnc.length; i++) {
+                taxaInfo = new TaxaInfo(genotypeMetaData.taxaInfoPath[i]);
                 localAnc[i] = new DoubleList[taxaInfo.getPopSampleSize(genotypeMetaData.admixedPop[i])][];
                 for (int j = 0; j < localAncestry[i].length; j++) {
                     localAnc[i][j] = new DoubleList[genotypeMetaData.nWayAdmixture[i]];

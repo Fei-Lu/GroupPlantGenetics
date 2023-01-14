@@ -31,8 +31,6 @@ public class Mosaic_runner implements LocalAncestry{
      */
     GenotypeMetaData genotypeMetaData;
 
-    TaxaInfo taxaInfo;
-
     String fastDirPath; // temp file for mosaic
     String logFile; // all log will be append to this logFile
     String outDir; // outDir
@@ -65,10 +63,6 @@ public class Mosaic_runner implements LocalAncestry{
                 }
                 if (line.startsWith("GenotypeMetaDataPath")){
                     this.genotypeMetaData = new GenotypeMetaData(temp.get(1));
-                    continue;
-                }
-                if (line.startsWith("TaxaInfoPath")){
-                    this.taxaInfo = new TaxaInfo(temp.get(1));
                     continue;
                 }
                 if (line.startsWith("FastDirPath")){
@@ -116,6 +110,7 @@ public class Mosaic_runner implements LocalAncestry{
             subDirFile[i].mkdir();
         }
         IntList posList = new IntArrayList();
+        TaxaInfo taxaInfo = this.genotypeMetaData.getTaxaInfo(indexOfRun);
         DoubleList geneticsMapList = new DoubleArrayList();
         try (BufferedReader brGenotype = IOTool.getReader(genotypeMetaData.genotypePath[indexOfRun]);
              BufferedReader brRecombinationMap = IOTool.getReader(genotypeMetaData.recombinationMap[indexOfRun])) {
@@ -296,7 +291,7 @@ public class Mosaic_runner implements LocalAncestry{
     public double[][][][] extractLocalAncestry() {
         double[][][][] localAncestry = new double[genotypeMetaData.genotypeID.length][][][];
         for (int i = 0; i < localAncestry.length; i++) {
-            localAncestry[i] = new double[taxaInfo.getPopSampleSize(genotypeMetaData.admixedPop[i])][][];
+            localAncestry[i] = new double[this.genotypeMetaData.getTaxaInfo(i).getPopSampleSize(genotypeMetaData.admixedPop[i])][][];
             for (int j = 0; j < localAncestry[i].length; j++) {
                 localAncestry[i][j] = new double[genotypeMetaData.nWayAdmixture[i]][];
             }
@@ -314,7 +309,7 @@ public class Mosaic_runner implements LocalAncestry{
                 currentWorkingDir = workingDir[i];
                 mosaicResDir = currentWorkingDir.listFiles(dir -> dir.getName().startsWith("MOSAIC_RESULTS"))[0];
                 ancestryFiles = IOTool.getFileListInDirStartsWith(mosaicResDir.getAbsolutePath(), "ancestry");
-                haplotype_source_variants_array = new DoubleList[taxaInfo.getPopSampleSize(genotypeMetaData.admixedPop[i])][];
+                haplotype_source_variants_array = new DoubleList[genotypeMetaData.getTaxaInfo(i).getPopSampleSize(genotypeMetaData.admixedPop[i])][];
                 for (int j = 0; j < haplotype_source_variants_array.length; j++) {
                     haplotype_source_variants_array[j] = new DoubleList[genotypeMetaData.nWayAdmixture[i]];
                     for (int k = 0; k < haplotype_source_variants_array[j].length; k++) {
