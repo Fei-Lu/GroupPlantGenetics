@@ -21,6 +21,10 @@ public class GenotypeMetaData {
 
     String[] admixedPop;
 
+    String[] nativePop;
+
+    List<String>[] introgressedPop;
+
     List<String>[] referencePopList;
 
     int[] timeSinceAdmixture;   // -1 means unknown
@@ -35,7 +39,8 @@ public class GenotypeMetaData {
         List<String> taxaInfoPathList = new ArrayList<>();
         IntList nWayAdmixtureList = new IntArrayList();
         List<String> admixedPopList = new ArrayList<>();
-        List<List<String>> refPopList = new ArrayList<>();
+        List<String> nativePopList = new ArrayList<>();
+        List<List<String>> introgressedPopList = new ArrayList<>();
         IntList timeSinceAdmixture=new IntArrayList();
         IntList chrIDList = new IntArrayList();
         List<String> recombinationMap = new ArrayList<>();
@@ -50,22 +55,29 @@ public class GenotypeMetaData {
                 taxaInfoPathList.add(temp.get(2));
                 nWayAdmixtureList.add(Integer.parseInt(temp.get(3)));
                 admixedPopList.add(temp.get(4));
-                tem = PStringUtils.fastSplit(temp.get(5), ",");
-                refPopList.add(tem);
-                int time = Integer.parseInt(temp.get(6));
+                nativePopList.add(temp.get(5));
+                tem = PStringUtils.fastSplit(temp.get(6), ",");
+                introgressedPopList.add(tem);
+                int time = Integer.parseInt(temp.get(7));
                 timeSinceAdmixture.add(time < 0 ? -1 : time);
-                chrIDList.add(Integer.parseInt(temp.get(7)));
-                recombinationMap.add(temp.get(8));
+                chrIDList.add(Integer.parseInt(temp.get(8)));
+                recombinationMap.add(temp.get(9));
             }
             br.close();
             this.genotypeID = genotypeIDList.toArray(new String[0]);
             this.genotypePath = genotypePathList.toArray(new String[0]);
             this.nWayAdmixture=nWayAdmixtureList.toIntArray();
             this.admixedPop = admixedPopList.toArray(new String[0]);
-            this.referencePopList = refPopList.toArray(new List[0]);
             this.timeSinceAdmixture = timeSinceAdmixture.toIntArray();
             this.chrID=chrIDList.toIntArray();
             this.recombinationMap=recombinationMap.toArray(new String[0]);
+            List<String>[] referencePopList = new List[genotypeID.length];
+            for (int i = 0; i < referencePopList.length; i++) {
+                referencePopList[i] = new ArrayList<>();
+                referencePopList[i].addAll(introgressedPopList.get(i));
+                referencePopList[i].add(nativePopList.get(i));
+            }
+            this.referencePopList=referencePopList;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -99,6 +111,14 @@ public class GenotypeMetaData {
         return admixedPop;
     }
 
+    public String[] getNativePop() {
+        return nativePop;
+    }
+
+    public List<String>[] getIntrogressedPop() {
+        return introgressedPop;
+    }
+
     public int[] getChrID() {
         return chrID;
     }
@@ -125,6 +145,14 @@ public class GenotypeMetaData {
 
     public String getAdmixedPop(int indexOfRun){
         return this.getAdmixedPop()[indexOfRun];
+    }
+
+    public String getNativePop(int indexOfRun){
+        return this.getNativePop()[indexOfRun];
+    }
+
+    public List<String> getIntrogressedPop(int indexOfRun){
+        return this.getIntrogressedPop()[indexOfRun];
     }
 
     public List<String> getReferencePopList(int indexOfRun){
