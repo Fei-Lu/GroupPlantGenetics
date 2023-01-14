@@ -149,7 +149,7 @@ public class Simulation {
             sb.append(simulationPyPath).append(" ");
             sb.append(this.getDemesPath(i)).append(" ");
             sb.append(new File(outDir, this.getDemesID(i)+".graph.pdf").getAbsolutePath()).append(" ");
-            sb.append(new File(outDir, this.getDemesID(i)+".vcf.gz")).append(" ");
+            sb.append(new File(outDir, this.getDemesID(i)+".vcf")).append(" ");
             sb.append(new File(outDir, this.getDemesID(i)+".taxaInfo")).append(" ");
             sb.append(new File(outDir, this.getDemesID(i)+".recombinationMap")).append(" ");
             sb.append(new File(outDir, this.getDemesID(i)+".tract")).append(" ");
