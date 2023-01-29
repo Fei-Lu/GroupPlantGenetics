@@ -5,9 +5,9 @@ import java.util.List;
 public class DemographicModel {
 
     String description;
-    String time_units; // generations or years
+    String time_units = "generations"; // generations or years
 
-    int generation_time; // 25 for human, 1 for wheat
+    double generation_time = 1; // 25 for human, 1 for wheat
     List<String> doi;
 
     List<Deme> demes;
@@ -32,7 +32,7 @@ public class DemographicModel {
 
     }
 
-    public DemographicModel(String description, String time_units, int generation_time, List<String> doi,
+    public DemographicModel(String description, String time_units, double generation_time, List<String> doi,
                             List<Default> defaults, List<Deme> demes, List<Migration> migrations, List<Pulse> pulses,
                             double selfing_rate, double cloning_rate){
         this.description=description;
@@ -55,7 +55,7 @@ public class DemographicModel {
         return selfing_rate;
     }
 
-    public int getGeneration_time() {
+    public double getGeneration_time() {
         return generation_time;
     }
 
@@ -107,7 +107,7 @@ public class DemographicModel {
         this.doi = doi;
     }
 
-    public void setGeneration_time(int generation_time) {
+    public void setGeneration_time(double generation_time) {
         this.generation_time = generation_time;
     }
 
