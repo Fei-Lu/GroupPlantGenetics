@@ -1,9 +1,20 @@
 package daxing;
 
-import daxing.v2.mosaic.Mosaic_runner;
-import pgl.infra.utils.Benchmark;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import daxing.v2.localAncestryInfer.simulation.Order;
+import daxing.v2.localAncestryInfer.simulation.OrderLine;
 
+import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Start {
 
@@ -69,7 +80,7 @@ public class Start {
 //                simulatedGenotypeWithAncestralGeno_outFile);
 
 //        String pythonInterpreterPath = "/Users/xudaxing/anaconda3/envs/Msprime/bin/python";
-//        String laidp_simulatePy = "/Users/xudaxing/IdeaProjects/PlantGenetics/GroupPlantGenetics/src/daxing/v2/localAncestryInfer/LAIDP.py";
+//        String laidp_simulatePy = "/Users/xudaxing/IdeaProjects/PlantGenetics/GroupPlantGenetics/src/daxing/v2/localAncestryInfer/Simulation.py";
 //        String graphFileDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/000_graphs";
 //        int sequence_length = 100_000_000;
 //        int random_seed = 1;
@@ -99,11 +110,65 @@ public class Start {
 //        Simulation.plot_deme(pythonInterpreterPath, demeFilesDir, demesPy, graph_outDir, workingDirectory, logDir, threadsNum);
 
 
-        String parameterFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/007_mosaic/001_parameterFile/ParameterFile.txt";
-        Mosaic_runner mosaicRunner = new Mosaic_runner(parameterFile);
-        long start =System.nanoTime();
-        double[][][] mosaicDir_taxa_variants_localAncestry = mosaicRunner.getLocalAncestry();
-        System.out.println("completed in "+ Benchmark.getTimeSpanMinutes(start)+ " minutes");
+//        String parameterFile = "/Users/xudaxing/Desktop/LocalAncestry/parameterFile/mosaic_parameterFile.txt";
+//        Mosaic_runner mosaicRunner = new Mosaic_runner(parameterFile);
+//        long start = System.nanoTime();
+//        double[][][][] mosaicDir_taxa_variants_localAncestry = mosaicRunner.extractLocalAncestry();
+//        System.out.println("completed in "+ Benchmark.getTimeSpanMinutes(start)+ " minutes");
+
+//        String parameterFile = "/Users/xudaxing/Desktop/LocalAncestry/parameterFile/loter_parameterFile.txt";
+//        Loter_runner loterRunner = new Loter_runner(parameterFile);
+//        double[][][][] localAncestry = loterRunner.extractLocalAncestry();
+//        System.out.println("ok");
+
+//        String parameterFile = "/Users/xudaxing/Desktop/LocalAncestry/parameterFile/ELAI_parameterFile.txt";
+//        ELAI_runner elaiRunner = new ELAI_runner(parameterFile);
+//        double[][][][] localAncestry = elaiRunner.extractLocalAncestry();
+//        System.out.println();
+
+//        MD5.getMD5FromDir("/Users/xudaxing/Desktop/LocalAncestry");
+//
+//        String simulationMetadataPath ="/Users/xudaxing/Desktop/LocalAncestry/parameterFile/SimulationMetadata.txt";
+//        SimulationMetadata simulationMetadata = new SimulationMetadata(simulationMetadataPath);
+//        System.out.println();
+
+//        MD5.checkMD5(args[0]);
+
+//        MD5.checkMD5("/Volumes/ Lulab4T_83/analysis/md5.txt");
+
+        String yamlSource = "/Users/xudaxing/Desktop/test.yaml";
+        String yamlOutFile = "/Users/xudaxing/Desktop/test_out.yaml";
+//        ObjectMapper mapper = new YAMLMapper();
+//        Order order = mapper.readValue(yamlSource, Order.class);
+//        System.out.println();
+
+        // read yaml
+        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        mapper.findAndRegisterModules();
+        Order order = mapper.readValue(new File(yamlSource), Order.class);
+        System.out.println();
+
+        // write yaml
+        YAMLFactory yamlFactory = new YAMLFactory();
+        yamlFactory.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER);
+        yamlFactory.enable(YAMLGenerator.Feature.MINIMIZE_QUOTES);
+        yamlFactory.enable(YAMLGenerator.Feature.INDENT_ARRAYS_WITH_INDICATOR);
+
+        mapper = new ObjectMapper(yamlFactory);
+        mapper.findAndRegisterModules();
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        List<OrderLine> lines = new ArrayList<>();
+        lines.add(new OrderLine("Copper Wire (200ft)", 1,
+                new BigDecimal(50.67).setScale(2, RoundingMode.HALF_UP)));
+        lines.add(new OrderLine("Washers (1/4\")", 24,
+                new BigDecimal(.15).setScale(2, RoundingMode.HALF_UP)));
+        Order order1 = new Order(
+                "B-9910",
+                LocalDate.parse("2019-04-18", DateTimeFormatter.ISO_DATE),
+                "Customer, Jane",
+                lines);
+        mapper.writeValue(new File(yamlOutFile), order1);
     }
 
 
