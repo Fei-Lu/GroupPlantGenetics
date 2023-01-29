@@ -1,7 +1,5 @@
 package daxing.v2.localAncestryInfer.simulation;
 
-import it.unimi.dsi.fastutil.doubles.DoubleList;
-
 import java.util.List;
 
 /**
@@ -23,21 +21,21 @@ public class Pulse {
      */
     List<String> sources;
     String dest;
-    DoubleList proportions;
+    List<Double> proportions;
     double time;
 
     public Pulse(){
 
     }
 
-    public Pulse(List<String> sources, String dest, DoubleList proportions, double time){
+    public Pulse(List<String> sources, String dest, List<Double> proportions, double time){
         this.sources=sources;
         this.dest=dest;
         this.proportions=proportions;
         this.time=time;
     }
 
-    public DoubleList getProportions() {
+    public List<Double> getProportions() {
         return proportions;
     }
 
@@ -53,7 +51,7 @@ public class Pulse {
         return sources;
     }
 
-    public void setProportions(DoubleList proportions) {
+    public void setProportions(List<Double> proportions) {
         this.proportions = proportions;
     }
 
