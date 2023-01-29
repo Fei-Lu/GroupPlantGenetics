@@ -1,6 +1,5 @@
 package daxing.v2.localAncestryInfer.simulation;
 
-import it.unimi.dsi.fastutil.doubles.DoubleList;
 import java.util.List;
 
 /**
@@ -19,7 +18,7 @@ public class Deme {
      * This is done using the deme’s proportions list property.
      */
     List<String> ancestors;
-    DoubleList proportions;
+    List<Double> proportions;
 
     /**
      * When multiple ancestors exists, there are two types of events to consider,
@@ -37,7 +36,7 @@ public class Deme {
      * does not default to the end_time of any of its ancestors.
      * So the start_time must always be specified for a deme with multiple ancestors.
      */
-    int start_time;
+    double start_time = Double.POSITIVE_INFINITY;
 
     /**
      * We partition a deme’s interval of existence into distinct epochs.
@@ -48,7 +47,7 @@ public class Deme {
 
     }
 
-    public Deme(String name, List<String> ancestors, DoubleList proportions, int start_time, List<Epoch> epochs){
+    public Deme(String name, List<String> ancestors, List<Double> proportions, double start_time, List<Epoch> epochs){
         this.name=name;
         this.ancestors=ancestors;
         this.proportions=proportions;
@@ -56,11 +55,11 @@ public class Deme {
         this.epochs=epochs;
     }
 
-    public DoubleList getProportions() {
+    public List<Double> getProportions() {
         return proportions;
     }
 
-    public int getStart_time() {
+    public double getStart_time() {
         return start_time;
     }
 
@@ -88,11 +87,11 @@ public class Deme {
         this.name = name;
     }
 
-    public void setProportions(DoubleList proportions) {
+    public void setProportions(List<Double> proportions) {
         this.proportions = proportions;
     }
 
-    public void setStart_time(int start_time) {
+    public void setStart_time(double start_time) {
         this.start_time = start_time;
     }
 
