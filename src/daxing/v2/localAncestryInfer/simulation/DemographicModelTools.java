@@ -130,7 +130,7 @@ public class DemographicModelTools {
                                                                       String[] sourcePop, String destPop,
                                                                       double[] admixtureProportion,
                                                                       int[] admixtureTime){
-        int[] epochEndTime = new int[0];
+        int[] epochEndTime = new int[splitEventTime.length * 2 +1];
         System.arraycopy(splitEventTime, 0, epochEndTime, 0, splitEventTime.length);
         List<Deme> demes = DemographicModelTools.getEquilibriumPopulationDemes(demeNames, epochEndTime, ancestors, populationSize);
         List<Pulse> pulses = DemographicModelTools.getEquilibriumPopulationPulses(sourcePop, destPop,
