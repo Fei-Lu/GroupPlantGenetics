@@ -36,7 +36,7 @@ public class Deme {
      * does not default to the end_time of any of its ancestors.
      * So the start_time must always be specified for a deme with multiple ancestors.
      */
-    double start_time;
+    int start_time;
 
     /**
      * We partition a deme’s interval of existence into distinct epochs.
@@ -47,7 +47,7 @@ public class Deme {
 
     }
 
-    public Deme(String name, List<String> ancestors, List<Double> proportions, double start_time, List<Epoch> epochs){
+    public Deme(String name, List<String> ancestors, List<Double> proportions, int start_time, List<Epoch> epochs){
         this.name=name;
         this.ancestors=ancestors;
         this.proportions=proportions;
@@ -59,7 +59,7 @@ public class Deme {
         return proportions;
     }
 
-    public double getStart_time() {
+    public int getStart_time() {
         return start_time;
     }
 
@@ -91,7 +91,7 @@ public class Deme {
         this.proportions = proportions;
     }
 
-    public void setStart_time(double start_time) {
+    public void setStart_time(int start_time) {
         this.start_time = start_time;
     }
 
