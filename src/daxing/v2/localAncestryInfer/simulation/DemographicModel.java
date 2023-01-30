@@ -1,5 +1,6 @@
 package daxing.v2.localAncestryInfer.simulation;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DemographicModel {
@@ -45,6 +46,37 @@ public class DemographicModel {
         this.pulses=pulses;
         this.selfing_rate=selfing_rate;
         this.cloning_rate=cloning_rate;
+    }
+
+    /**
+     * When you read a model into DemographicModel object, trim_default() need to be run.
+     * Because some value may be missing in your model, and these value will be infer reasonably
+     */
+    public void trim_default(){
+        List<Double> proportion = new ArrayList<>();
+        proportion.add(1.0);
+        String ancestor;
+        int demeIndex;
+        for (int i = 1; i < this.demes.size(); i++) {
+            if (this.demes.get(i).ancestors.size()==1){
+                this.demes.get(i).proportions=proportion;
+                ancestor = this.demes.get(i).ancestors.get(0);
+                demeIndex = this.getDemeIndex(ancestor);
+                assert demeIndex >=0 : "error, check deme name";
+                int epochCount = this.demes.get(demeIndex).epochs.size();
+                this.demes.get(i).start_time = this.demes.get(demeIndex).epochs.get(epochCount-1).end_time;
+            }
+
+        }
+    }
+
+    public int getDemeIndex(String demeName){
+        for (int i = 0; i < this.demes.size(); i++) {
+            if (this.demes.get(i).name.equals(demeName)){
+                return i;
+            }
+        }
+        return -1;
     }
 
     public double getCloning_rate() {
