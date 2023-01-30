@@ -55,6 +55,55 @@ public class Deme {
         this.epochs=epochs;
     }
 
+    private Deme(Builder builder){
+        this.name=builder.name;
+        this.epochs=builder.epochs;
+        this.ancestors=builder.ancestors;
+        this.proportions=builder.proportions;
+        this.start_time=builder.start_time;
+    }
+
+    public static class Builder{
+
+        /**
+         * Required parameters
+         */
+        private String name;
+        private List<Epoch> epochs;
+
+        /**
+         * Optional parameters
+         */
+        List<String> ancestors;
+        List<Double> proportions;
+        int start_time;
+
+        public Builder(String name, List<Epoch> epochs){
+            this.name=name;
+            this.epochs=epochs;
+        }
+
+        public Builder ancestors(List<String> ancestors){
+            this.ancestors=ancestors;
+            return this;
+        }
+
+        public Builder proportions(List<Double> proportions){
+            this.proportions=proportions;
+            return this;
+        }
+
+        public Builder start_time(int start_time){
+            this.start_time=start_time;
+            return this;
+        }
+
+        public Deme build(){
+            return new Deme(this);
+        }
+
+    }
+
     public List<Double> getProportions() {
         return proportions;
     }

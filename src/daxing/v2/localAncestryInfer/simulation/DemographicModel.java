@@ -48,6 +48,90 @@ public class DemographicModel {
         this.cloning_rate=cloning_rate;
     }
 
+    private DemographicModel(Builder builder){
+        this.time_units=builder.time_units;
+        this.demes=builder.demes;
+        this.description=builder.description;
+        this.generation_time=builder.generation_time;
+        this.doi=builder.doi;
+        this.migrations=builder.migrations;
+        this.pulses=builder.pulses;
+        this.defaults=builder.defaults;
+        this.selfing_rate=builder.selfing_rate;
+        this.cloning_rate=builder.cloning_rate;
+    }
+
+    public static class Builder{
+
+        /**
+         * Required parameters
+         */
+        private String time_units;
+        private List<Deme> demes;
+
+
+        /**
+         * Optional parameters
+         */
+        private String description;
+
+        private double generation_time;
+        private List<String> doi;
+        private List<Migration> migrations;
+        private List<Pulse> pulses;
+        private List<Default> defaults;
+        private double selfing_rate = 0;
+        private double cloning_rate = 0;
+
+        public Builder(String time_units, List<Deme> demes){
+            this.time_units= time_units;
+            this.demes=demes;
+        }
+        public Builder description(String description){
+            this.description=description;
+            return this;
+        }
+
+        public Builder generation_time(double generation_time){
+            this.generation_time=generation_time;
+            return this;
+        }
+
+        public Builder doi(List<String> doi){
+            this.doi=doi;
+            return this;
+        }
+
+        public Builder migrations(List<Migration> migrations){
+            this.migrations=migrations;
+            return this;
+        }
+
+        public Builder pulses(List<Pulse> pulses){
+            this.pulses=pulses;
+            return this;
+        }
+
+        public Builder defaults(List<Default> defaults){
+            this.defaults=defaults;
+            return this;
+        }
+
+        public Builder selfing_rate(double selfing_rate){
+            this.selfing_rate=selfing_rate;
+            return this;
+        }
+
+        public Builder cloning_rate(double cloning_rate){
+            this.cloning_rate=cloning_rate;
+            return this;
+        }
+
+        public DemographicModel build(){
+            return new DemographicModel(this);
+        }
+    }
+
     /**
      * When you read a model into DemographicModel object, trim_default() need to be run.
      * Because some value may be missing in your model, and these value will be infer reasonably
