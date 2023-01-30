@@ -36,7 +36,7 @@ public class Deme {
      * does not default to the end_time of any of its ancestors.
      * So the start_time must always be specified for a deme with multiple ancestors.
      */
-    double start_time = Double.POSITIVE_INFINITY;
+    double start_time;
 
     /**
      * We partition a deme’s interval of existence into distinct epochs.
