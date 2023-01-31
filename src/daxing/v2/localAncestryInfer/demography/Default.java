@@ -1,4 +1,4 @@
-package daxing.v2.localAncestryInfer.simulation;
+package daxing.v2.localAncestryInfer.demography;
 
 public class Default {
 

@@ -1,4 +1,4 @@
-package daxing.v2.localAncestryInfer.simulation;
+package daxing.v2.localAncestryInfer.demography;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -71,7 +71,7 @@ public class DemographicModelTools {
     }
 
     private static List<Deme> getEquilibriumPopulationDemes(String[] demeNames, int[] epochEndTime,
-                                                                String[] ancestors, int populationSize){
+                                                            String[] ancestors, int populationSize){
         List<Deme> demes = new ArrayList<>();
         List<Epoch> epoches;
         Epoch epoch;
