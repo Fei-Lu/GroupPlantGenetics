@@ -175,15 +175,28 @@ public class DemographicModelTools {
     }
 
     public static void batchRun_twoWay(String simulationMetadataOutFile, String outDir){
+//        String[] admixed_native_introgressed_pop = {"E","D","C"};
+//        int[] sampleSize = {30,30,30};
+//        int equilibriumPopulationSize = 10000;
+//        int[] splitEventTime_0 = {10000};
+//        int[] splitEventTime_1 = {500, 1000, 2000, 4000, 8000};
+//        double[] ratio_admixture_divergence = {0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64};
+//        double[] admixtureProportion = {0.01, 0.02, 0.04, 0.08, 0.16, 0.32};
+//        int sequenceLength = 100_000_000;
+//        double recombination_rate = 1e-8;
+
+
         String[] admixed_native_introgressed_pop = {"E","D","C"};
         int[] sampleSize = {30,30,30};
         int equilibriumPopulationSize = 10000;
         int[] splitEventTime_0 = {10000};
-        int[] splitEventTime_1 = {500, 1000, 2000, 4000, 8000};
-        double[] ratio_admixture_divergence = {0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64};
-        double[] admixtureProportion = {0.01, 0.02, 0.04, 0.08, 0.16, 0.32};
-        int sequenceLength = 100_000_000;
+        int[] splitEventTime_1 = {500};
+        double[] ratio_admixture_divergence = {0.01};
+        double[] admixtureProportion = {0.1, 0.2};
+        int sequenceLength = 10_000_000;
         double recombination_rate = 1e-8;
+
+
         int[] splitEventTime;
         List<DemographicModel> demographicModels = new ArrayList<>();
         List<String> modelName = new ArrayList<>();
@@ -214,7 +227,7 @@ public class DemographicModelTools {
 
                             // model name
                             sb.setLength(0);
-                            sb.append("twoWay_").append("adp_").append(admixed_native_introgressed_pop[0]).append("_");
+                            sb.append("way_").append(2).append("_").append("adp_").append(admixed_native_introgressed_pop[0]).append("_");
                             sb.append("nap_").append(admixed_native_introgressed_pop[1]).append("_");
                             sb.append("inp_").append(admixed_native_introgressed_pop[2]).append("_");
                             sb.append("ep_").append(equilibriumPopulationSize).append("_");
