@@ -5,6 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import daxing.common.utiles.IOTool;
+import pgl.infra.utils.PStringUtils;
+
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -170,54 +174,79 @@ public class DemographicModelTools {
                 populationSize, sourcePop, destPop, admixtureProportion, admixtureTime);
     }
 
-    public static void batchRun_twoWay(String outDir){
-        String admixedPop= "E";
-        String nativePop = "D";
-        String[] introgressedPop = {"C"};
+    public static void batchRun_twoWay(String simulationMetadataOutFile, String outDir){
+        String[] admixed_native_introgressed_pop = {"E","D","C"};
+        int[] sampleSize = {30,30,30};
         int equilibriumPopulationSize = 10000;
         int[] splitEventTime_0 = {10000};
         int[] splitEventTime_1 = {500, 1000, 2000, 4000, 8000};
         double[] ratio_admixture_divergence = {0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64};
         double[] admixtureProportion = {0.01, 0.02, 0.04, 0.08, 0.16, 0.32};
+        int sequenceLength = 100_000_000;
+        double recombination_rate = 1e-8;
         int[] splitEventTime;
         List<DemographicModel> demographicModels = new ArrayList<>();
         List<String> modelName = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
         DemographicModel demographicModel;
         double admixtureTime, divergenceTime0, divergenceTime1;
-        for (int i = 0; i < splitEventTime_0.length; i++) {
-            for (int j = 0; j < splitEventTime_1.length; j++) {
-                for (int k = 0; k < ratio_admixture_divergence.length; k++) {
-                    for (int l = 0; l < admixtureProportion.length; l++) {
-                        splitEventTime = new int[2];
-                        splitEventTime[0] = splitEventTime_0[i];
-                        splitEventTime[1] = splitEventTime_1[j];
-                        admixtureTime = splitEventTime_1[j]*ratio_admixture_divergence[k];
-                        divergenceTime0 = splitEventTime_0[i];
-                        divergenceTime1 = splitEventTime_1[j];
-                        demographicModel = DemographicModelTools.twoWayBuilder_equilibriumPopulation(splitEventTime,
-                                admixtureProportion[l], (int)admixtureTime);
-                        demographicModel.trim_default();
-                        demographicModels.add(demographicModel);
+        StringBuilder sb_Metadata = new StringBuilder();
+        String header = "DemesID\tDemePath\tAdmixedPop\tNativePop\tIntrogressedPopulation\tSequenceLength" +
+                "\tRecombination_rate";
+        try (BufferedWriter bw = IOTool.getWriter(simulationMetadataOutFile)) {
+            bw.write(header);
+            bw.newLine();
+            int count= 1;
+            for (int i = 0; i < splitEventTime_0.length; i++) {
+                for (int j = 0; j < splitEventTime_1.length; j++) {
+                    for (int k = 0; k < ratio_admixture_divergence.length; k++) {
+                        for (int l = 0; l < admixtureProportion.length; l++) {
+                            splitEventTime = new int[2];
+                            splitEventTime[0] = splitEventTime_0[i];
+                            splitEventTime[1] = splitEventTime_1[j];
+                            admixtureTime = splitEventTime_1[j] * ratio_admixture_divergence[k];
+                            divergenceTime0 = splitEventTime_0[i];
+                            divergenceTime1 = splitEventTime_1[j];
+                            demographicModel = DemographicModelTools.twoWayBuilder_equilibriumPopulation(splitEventTime,
+                                    admixtureProportion[l], (int) admixtureTime);
+                            demographicModel.trim_default();
+                            demographicModels.add(demographicModel);
 
-                        sb.setLength(0);
-                        sb.append("twoWay_").append("adp_").append(admixedPop).append("_");
-                        sb.append("nap_").append(nativePop).append("_");
-                        sb.append("inp_").append(String.join("+",introgressedPop)).append("_");
-                        sb.append("ep_").append(equilibriumPopulationSize).append("_");
-                        sb.append("pr_").append(admixtureProportion[l]).append("_");
-                        sb.append("at_").append((int)admixtureTime).append("_");
-                        sb.append("dta_").append((int)divergenceTime0).append("_");
-                        sb.append("dtb_").append((int)divergenceTime1).append(".yaml");
-                        modelName.add(sb.toString());
+                            // model name
+                            sb.setLength(0);
+                            sb.append("twoWay_").append("adp_").append(admixed_native_introgressed_pop[0]).append("_");
+                            sb.append("nap_").append(admixed_native_introgressed_pop[1]).append("_");
+                            sb.append("inp_").append(admixed_native_introgressed_pop[2]).append("_");
+                            sb.append("ep_").append(equilibriumPopulationSize).append("_");
+                            sb.append("pr_").append(admixtureProportion[l]).append("_");
+                            sb.append("at_").append((int) admixtureTime).append("_");
+                            sb.append("dta_").append((int) divergenceTime0).append("_");
+                            sb.append("dtb_").append((int) divergenceTime1).append(".yaml");
+                            modelName.add(sb.toString());
+
+                            // simulation metadata
+                            sb_Metadata.setLength(0);
+                            sb_Metadata.append("D").append(PStringUtils.getNDigitNumber(3, count)).append("\t");
+                            sb_Metadata.append(new File(outDir, sb.toString()).getAbsolutePath()).append("\t");
+                            sb_Metadata.append(admixed_native_introgressed_pop[0]).append(":").append(sampleSize[0]).append("\t");
+                            sb_Metadata.append(admixed_native_introgressed_pop[1]).append(":").append(sampleSize[1]).append("\t");
+                            sb_Metadata.append(admixed_native_introgressed_pop[2]).append(":").append(sampleSize[2]).append("\t");
+                            sb_Metadata.append(sequenceLength).append("\t").append(recombination_rate);
+                            bw.write(sb_Metadata.toString());
+                            bw.newLine();
+                            count++;
+                        }
                     }
                 }
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         for (int i = 0; i < demographicModels.size(); i++) {
             DemographicModelTools.writeModel(demographicModels.get(i), new File(outDir, modelName.get(i)));
-
         }
+
+
     }
 
 
