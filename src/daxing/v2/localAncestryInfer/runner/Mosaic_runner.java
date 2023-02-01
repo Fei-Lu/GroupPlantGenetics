@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -42,12 +43,26 @@ public class Mosaic_runner implements LocalAncestry{
     File[] workingDir;
     String subDirName = "mosaicData";
 
+    public Mosaic_runner(Builder builder){
+        this.rscriptPath = builder.rscriptPath;
+        this.genotypeMetaData=builder.genotypeMetaData;
+        this.fastDirPath=builder.fastDirPath;
+        this.logFile=builder.logFile;
+        this.outDir=builder.outDir;
+        this.coresNumber=builder.coresNumber;
+        this.subDirName= builder.subDirName;
+        this.makeSubDir();
+    }
 
     public Mosaic_runner(String parameterFile){
         this.initialize(parameterFile);
-//        this.prepareInputFile();
-//        this.run_mosaic();
-//        this.transformLocalAncestryRDataToTxt();
+        this.startRun();
+    }
+
+    public void startRun(){
+        this.prepareInputFile();
+        this.run_mosaic();
+        this.transformLocalAncestryRDataToTxt();
     }
 
     private void initialize(String parameterFile){
@@ -93,6 +108,50 @@ public class Mosaic_runner implements LocalAncestry{
         for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
             this.workingDir[i] = new File(outDir, genotypeMetaData.genotypeID[i]);
             this.workingDir[i].mkdir();
+        }
+    }
+
+    public static class Builder{
+
+        /**
+         * Required parameters
+         */
+        GenotypeMetaData genotypeMetaData;
+        String fastDirPath;
+        String logFile; // all log will be append to this logFile
+        String outDir; // outDir
+
+        /**
+         * Optional parameters
+         */
+        String rscriptPath= "/usr/local/bin/Rscript";
+        int coresNumber=2; // core number, not threads number
+        String subDirName = "mosaicData";
+
+        public Builder(GenotypeMetaData genotypeMetaData, String fastDirPath, String logFile, String outDir){
+            this.genotypeMetaData=genotypeMetaData;
+            this.fastDirPath=fastDirPath;
+            this.logFile=logFile;
+            this.outDir=outDir;
+        }
+
+        public Builder rscriptPath(String rscriptPath){
+            this.rscriptPath=rscriptPath;
+            return this;
+        }
+
+        public Builder coresNumber(int coresNumber){
+            this.coresNumber=coresNumber;
+            return this;
+        }
+
+        public Builder subDirName(String subDirName){
+            this.subDirName=subDirName;
+            return this;
+        }
+
+        public Mosaic_runner build(){
+            return new Mosaic_runner(this);
         }
     }
 
@@ -231,6 +290,7 @@ public class Mosaic_runner implements LocalAncestry{
         new File(this.logFile).delete();
         String mosaicRpath = Mosaic_runner.class.getResource("mosaic.R").getPath();
         List<Callable<Integer>> callableList = new ArrayList<>();
+        long start = System.nanoTime();
         for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
             StringBuilder sb = new StringBuilder();
             sb.setLength(0);
@@ -251,6 +311,7 @@ public class Mosaic_runner implements LocalAncestry{
                 System.out.println(genotypeMetaData.genotypeID[i]+" run failed");
             }
         }
+        System.out.println("mosaic_runner completed in "+ Benchmark.getTimeSpanSeconds(start)+" seconds");
     }
 
     private void transformLocalAncestryRDataToTxt(){

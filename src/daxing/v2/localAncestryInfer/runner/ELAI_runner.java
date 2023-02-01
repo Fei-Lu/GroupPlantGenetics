@@ -5,6 +5,7 @@ import daxing.common.utiles.IOTool;
 import daxing.v2.localAncestryInfer.GenotypeTable;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
+import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -51,8 +52,22 @@ public class ELAI_runner implements LocalAncestry {
      */
     File[] workingDir;
 
+    public ELAI_runner(Builder builder){
+        this.softPath=builder.softPath;
+        this.genotypeMetaData=builder.genotypeMetaData;
+        this.logFilePath=builder.logFilePath;
+        this.outDir=builder.outDir;
+        this.expectationMaximizationSteps=builder.expectationMaximizationSteps;
+        this.threadsNum=builder.threadsNum;
+        this.makeSubDir();
+    }
+
     public ELAI_runner(String parameterFile){
         this.initialize(parameterFile);
+        this.startRun();
+    }
+
+    public void startRun(){
         this.prepareFile();
         this.runELAI();
     }
@@ -100,6 +115,48 @@ public class ELAI_runner implements LocalAncestry {
         for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
             this.workingDir[i] = new File(this.outDir, genotypeMetaData.genotypeID[i]);
             this.workingDir[i].mkdir();
+        }
+    }
+
+    public static class Builder{
+
+        /**
+         * Required parameters
+         */
+        GenotypeMetaData genotypeMetaData;
+        String logFilePath;
+        String outDir;
+
+        /**
+         * Optional parameters
+         */
+        String softPath = "/Users/xudaxing/Software/ELAI/elai-mac";
+        int expectationMaximizationSteps = 2;
+        int threadsNum = 2;
+
+        public Builder(GenotypeMetaData genotypeMetaData, String logFilePath, String outDir){
+            this.genotypeMetaData=genotypeMetaData;
+            this.logFilePath=logFilePath;
+            this.outDir=outDir;
+        }
+
+        public Builder softPath(String softPath){
+            this.softPath=softPath;
+            return this;
+        }
+
+        public Builder expectationMaximizationSteps(int expectationMaximizationSteps){
+            this.expectationMaximizationSteps=expectationMaximizationSteps;
+            return this;
+        }
+
+        public Builder threadsNum(int threadsNum){
+            this.threadsNum=threadsNum;
+            return this;
+        }
+
+        public ELAI_runner build(){
+            return new ELAI_runner(this);
         }
     }
 
@@ -188,6 +245,7 @@ public class ELAI_runner implements LocalAncestry {
     private void runELAI(){
         new File(logFilePath).delete();
         List<Callable<Integer>> callableList = new ArrayList<>();
+        long start = System.nanoTime();
         for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
             StringBuilder sb = new StringBuilder();
             sb.setLength(0);
@@ -219,6 +277,7 @@ public class ELAI_runner implements LocalAncestry {
                 System.out.println(genotypeMetaData.genotypeID[i]+" run failed");
             }
         }
+        System.out.println("elaiRunner completed in "+ Benchmark.getTimeSpanSeconds(start)+" seconds");
     }
 
     @Override

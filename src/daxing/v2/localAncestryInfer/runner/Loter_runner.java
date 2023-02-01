@@ -4,6 +4,7 @@ import daxing.common.sh.CommandUtils;
 import daxing.common.utiles.IOTool;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
+import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -44,8 +45,23 @@ public class Loter_runner implements LocalAncestry{
     String[] subDir = {"loterGroup", "loterGroupVCF", "LAI"};
     File[] subDirFile;
 
+    public Loter_runner(Builder builder){
+        this.genotypeMetaData=builder.genotypeMetaData;
+        this.logFilePath=builder.logFilePath;
+        this.outDir=builder.outDir;
+        this.condaActivatePath=builder.condaActivatePath;
+        this.vcftools=builder.vcftools;
+        this.threadsNum=builder.threadsNum;
+        this.subDir=builder.subDir;
+        this.makeSubDir();
+    }
+
     public Loter_runner(String parameterFile){
         this.initialize(parameterFile);
+        this.startRun();
+    }
+
+    public void startRun(){
         this.preparePop();
         this.splitPopGenotype();
         this.run_loter();
@@ -87,6 +103,55 @@ public class Loter_runner implements LocalAncestry{
             throw new RuntimeException(e);
         }
         this.makeSubDir();
+    }
+
+    public static class Builder{
+
+        /**
+         * Required parameters
+         */
+        GenotypeMetaData genotypeMetaData;
+        String logFilePath;
+        String outDir;
+
+        /**
+         * Optional parameters
+         */
+        String condaActivatePath = "/Users/xudaxing/anaconda3/bin/activate";
+        String vcftools = "/Users/xudaxing/Software/vcftools_0.1.13/bin/vcftools";
+        int threadsNum = 2;
+        String[] subDir = {"loterGroup", "loterGroupVCF", "LAI"};
+
+        public Builder(GenotypeMetaData genotypeMetaData, String logFilePath, String outDir){
+            this.genotypeMetaData= genotypeMetaData;
+            this.logFilePath=logFilePath;
+            this.outDir=outDir;
+        }
+
+        public Builder condaActivatePath(String condaActivatePath){
+            this.condaActivatePath=condaActivatePath;
+            return this;
+        }
+
+        public Builder vcftools(String vcftools){
+            this.vcftools=vcftools;
+            return this;
+        }
+
+        public Builder threadsNum(int threadsNum){
+            this.threadsNum=threadsNum;
+            return this;
+        }
+
+        public Builder subDir(String[] subDir){
+            this.subDir=subDir;
+            return this;
+        }
+
+        public Loter_runner build(){
+            return new Loter_runner(this);
+        }
+
     }
 
     private void makeSubDir(){
@@ -151,6 +216,7 @@ public class Loter_runner implements LocalAncestry{
     }
 
     private void run_loter(){
+        long start = System.nanoTime();
         List<Callable<Integer>> callableList = new ArrayList<>();
         for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
             StringBuilder sb = new StringBuilder();
@@ -176,6 +242,7 @@ public class Loter_runner implements LocalAncestry{
                 System.out.println(genotypeMetaData.genotypeID[i]+" run failed");
             }
         }
+        System.out.println("loter_runner completed in "+ Benchmark.getTimeSpanSeconds(start)+ " seconds");
     }
 
     @Override

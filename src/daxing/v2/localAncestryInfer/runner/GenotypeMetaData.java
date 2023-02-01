@@ -1,10 +1,12 @@
 package daxing.v2.localAncestryInfer.runner;
 
 import daxing.common.utiles.IOTool;
+import daxing.v2.localAncestryInfer.simulation.SimulationMetadata;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,36 @@ public class GenotypeMetaData {
     int[] chrID;
 
     String[] recombinationMap;
+
+    public GenotypeMetaData(String simulationMetadataPath, String simulationOutDir){
+        SimulationMetadata simulationMetadata = new SimulationMetadata(simulationMetadataPath);
+        this.genotypeID=simulationMetadata.getDemesID();
+        String[] demeID = simulationMetadata.getDemesID();
+        String[] genotypePath = new String[demeID.length];
+        String[] taxaInfoPath = new String[demeID.length];
+        String[] recombinationMap= new String[demeID.length];
+        for (int i = 0; i < demeID.length; i++) {
+            genotypePath[i] = new File(simulationOutDir, demeID[i]+".vcf").getAbsolutePath();
+            taxaInfoPath[i] = new File(simulationOutDir, demeID[i]+".taxaInfo").getAbsolutePath();
+            recombinationMap[i] = new File(simulationOutDir, demeID[i]+".recombinationMap").getAbsolutePath();
+        }
+        this.genotypePath=genotypePath;
+        this.taxaInfoPath=taxaInfoPath;
+        this.recombinationMap=recombinationMap;
+        this.nWayAdmixture=simulationMetadata.get_nWayAdmixture();
+        this.admixedPop= simulationMetadata.getAdmixedPop();
+        this.nativePop= simulationMetadata.getNativePop();
+        this.introgressedPop=simulationMetadata.getIntrogressedPop();
+        this.timeSinceAdmixture=simulationMetadata.getTimeSinceAdmixture();
+        this.chrID=simulationMetadata.getChrID();
+        List<String>[] referencePopList = new List[genotypeID.length];
+        for (int i = 0; i < referencePopList.length; i++) {
+            referencePopList[i] = new ArrayList<>();
+            referencePopList[i].addAll(simulationMetadata.getIntrogressedPop()[i]);
+            referencePopList[i].add(simulationMetadata.getNativePop()[i]);
+        }
+        this.referencePopList=referencePopList;
+    }
 
     public GenotypeMetaData(String genotypePathFile){
         List<String> genotypeIDList = new ArrayList<>();

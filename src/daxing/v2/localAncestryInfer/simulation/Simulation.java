@@ -4,6 +4,7 @@ import daxing.common.sh.CommandUtils;
 import daxing.common.utiles.IOTool;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.apache.commons.lang3.StringUtils;
+import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.File;
@@ -28,6 +29,28 @@ public class Simulation {
     double mutation_rate;
     int random_seed;
     int threadsNum;
+
+    public Simulation(String pythonInterpreterPath, String simulationMetadata, String logFile,
+                      String outDir, double mutation_rate, int random_seed, int threadsNum){
+
+        this.pythonInterpreterPath=pythonInterpreterPath;
+        this.simulationMetadata=new SimulationMetadata(simulationMetadata);
+        this.logFile=logFile;
+        this.outDir=outDir;
+        this.mutation_rate=mutation_rate;
+        this.random_seed=random_seed;
+        this.threadsNum=threadsNum;
+    }
+
+    public Simulation(Builder builder){
+        this.pythonInterpreterPath=builder.pythonInterpreterPath;
+        this.simulationMetadata=builder.simulationMetadata;
+        this.logFile=builder.logFile;
+        this.outDir=builder.outDir;
+        this.mutation_rate=builder.mutation_rate;
+        this.random_seed=builder.random_seed;
+        this.threadsNum=builder.threadsNum;
+    }
 
     public Simulation(String parameterFile){
         this.initialize(parameterFile);
@@ -72,6 +95,55 @@ public class Simulation {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static class Builder {
+
+        /**
+         * Required parameters
+         */
+        private SimulationMetadata simulationMetadata;
+        private String logFile;
+        private String outDir;
+
+        /**
+         * Optional parameters
+         */
+        private String pythonInterpreterPath = "/Users/xudaxing/anaconda3/envs/Msprime/bin/python";
+        private double mutation_rate = 7.1e-9;
+        private int random_seed = 1;
+        private int threadsNum = 2;
+
+        public Builder(String simulationMetadata, String logFile, String outDir){
+            this.simulationMetadata=new SimulationMetadata(simulationMetadata);
+            this.logFile=logFile;
+            this.outDir=outDir;
+        }
+
+        public Builder pythonInterpreterPath(String pythonInterpreterPath){
+            this.pythonInterpreterPath=pythonInterpreterPath;
+            return this;
+        }
+
+        public Builder mutation_rate(double mutation_rate){
+            this.mutation_rate=mutation_rate;
+            return this;
+        }
+
+        public Builder random_seed(int random_seed){
+            this.random_seed=random_seed;
+            return this;
+        }
+
+        public Builder threadsNum(int threadsNum){
+            this.threadsNum=threadsNum;
+            return this;
+        }
+
+        public Simulation build(){
+            return new Simulation(this);
+        }
+
     }
 
     public int getTotalNumberOfSimulation(){
@@ -138,8 +210,9 @@ public class Simulation {
         return threadsNum;
     }
 
-    private void run_simulation(){
+    public void run_simulation(){
         new File(this.logFile).delete();
+        long start = System.nanoTime();
         String simulationPyPath = Simulation.class.getResource("Simulation.py").getPath();
         List<Callable<Integer>> callableList = new ArrayList<>();
         for (int i = 0; i < this.getTotalNumberOfSimulation(); i++) {
@@ -179,6 +252,7 @@ public class Simulation {
         }else {
             System.out.println("All simulation run successful");
         }
+        System.out.println("simulation runner completed in "+ Benchmark.getTimeSpanSeconds(start)+" seconds");
     }
 
 //    public static void addAncestralSample(String simulatedGenotype, String simulatedGenotypeWithAncestral_outFile){
