@@ -268,9 +268,9 @@ public class Loter_runner implements LocalAncestry{
             }
             String line;
             List<String> temp;
-            int haplotypeIndex=0;
             for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
                 br = IOTool.getReader(new File(subDirFile[2], genotypeMetaData.genotypeID[i]+".lai.txt"));
+                int haplotypeIndex=0;
                 while ((line=br.readLine())!=null){
                     temp =PStringUtils.fastSplit(line, " ");
                     for (int j = 0; j < genotypeMetaData.referencePopList[i].size(); j++) {
@@ -282,6 +282,8 @@ public class Loter_runner implements LocalAncestry{
                             }
                         }
                     }
+                    haplotypeIndex++;
+                    br.readLine();
                 }
             }
             for (int i = 0; i < localAnc.length; i++) {
