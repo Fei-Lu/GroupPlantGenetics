@@ -111,6 +111,17 @@ public class SimulationMetadata {
         return introgressedPop;
     }
 
+
+    public List<String>[] getReferencePopList(){
+        List<String>[] referencePopList = new List[this.demesPath.length];
+        for (int i = 0; i < referencePopList.length; i++) {
+            referencePopList[i] = new ArrayList<>();
+            referencePopList[i].addAll(this.getIntrogressedPop()[i]);
+            referencePopList[i].add(this.getNativePop()[i]);
+        }
+        return referencePopList;
+    }
+
     public String[] getDemesID() {
         return demesID;
     }
