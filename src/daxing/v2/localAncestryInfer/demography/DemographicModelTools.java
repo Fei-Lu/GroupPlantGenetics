@@ -16,6 +16,12 @@ import java.util.List;
 
 public class DemographicModelTools {
 
+    public enum N_way{
+        TWO_WAY,
+        THREE_WAY,
+        FOUR_WAY
+    }
+
     public static DemographicModel readModel(File modelPath){
         DemographicModel demographicModel;
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
@@ -194,7 +200,36 @@ public class DemographicModelTools {
                 populationSize, sourcePop, destPop, admixtureProportion, admixtureTime);
     }
 
-    public static void batchRun_twoWay(String simulationMetadataOutFile, String outDir){
+    public static DemographicModel fourWayBuilder_equilibriumPopulation(int[] splitEventTime,
+                                                                         double[] admixtureProportion,
+                                                                         int[] admixtureTime){
+        String[] demeNames = {"A","B","C","D","E","F","G","H","I"};
+        String[] ancestors = {null,"A","B","C","A","B","C","D","D"};
+        int populationSize = 10000;
+        String[] sourcePop = new String[3];
+        sourcePop[0] = "E";
+        sourcePop[1] = "F";
+        sourcePop[2] = "G";
+        String destPop = "H";
+        return DemographicModelTools.equilibriumPopulationModelBuilder(demeNames, splitEventTime, ancestors,
+                populationSize, sourcePop, destPop, admixtureProportion, admixtureTime);
+    }
+
+    public static void batchRun(N_way nWay, String simulationMetadataOutFile, String outDir){
+        switch (nWay){
+            case TWO_WAY:
+                batchRun_twoWay(simulationMetadataOutFile, outDir);
+                break;
+            case THREE_WAY:
+                batchRun_threeWay(simulationMetadataOutFile, outDir);
+                break;
+            case FOUR_WAY:
+                batchRun_fourWay(simulationMetadataOutFile, outDir);
+                break;
+        }
+    }
+
+    private static void batchRun_twoWay(String simulationMetadataOutFile, String outDir){
 //        String[] admixed_native_introgressed_pop = {"E","D","C"};
 //        int[] sampleSize = {30,30,30};
 //        int equilibriumPopulationSize = 10000;
@@ -284,7 +319,7 @@ public class DemographicModelTools {
 
     }
 
-    public static void batchRun_multipleWay(String simulationMetadataOutFile, String outDir){
+    private static void batchRun_threeWay(String simulationMetadataOutFile, String outDir){
 
         String[] admixed_native_introgressed_pop = {"F","G","D","E"};
         int[] sampleSize = {30,30,30,30};
@@ -398,8 +433,122 @@ public class DemographicModelTools {
         for (int i = 0; i < demographicModels.size(); i++) {
             DemographicModelTools.writeModel(demographicModels.get(i), new File(outDir, modelName.get(i)));
         }
+    }
 
+    private static void batchRun_fourWay(String simulationMetadataOutFile, String outDir){
 
+        String[] admixed_native_introgressed_pop = {"H","I","E","F","G"};
+        int[] sampleSize = {30,30,30,30,30};
+        int equilibriumPopulationSize = 10000;
+        int[] splitEventTime_0 = {10000};
+        int[] splitEventTime_1 = {9000};
+        int[] splitEventTime_2 = {8000};
+        int[] splitEventTime_3 = {100, 1000, 4000};
+        double[] ratio_admixture_divergence_0 = {0.3};
+        double[] ratio_admixture_divergence_1 = {0.2};
+        double[] ratio_admixture_divergence_2 = {0.1};
+        double[] admixtureProportion_0 = {0.1};
+        double[] admixtureProportion_1 = {0.2};
+        double[] admixtureProportion_2 = {0.3};
+        int sequenceLength = 1_000_000;
+        double recombination_rate = 1e-8;
+        double mutation_rate = 1e-8; // 7.1e-9
+
+        int n_way = 4;
+
+        int[] splitEventTime;
+        List<DemographicModel> demographicModels = new ArrayList<>();
+        List<String> modelName = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        DemographicModel demographicModel;
+        int[] admixtureTime;
+        double[] admixtureProportion;
+        int divergenceTime0, divergenceTime1, divergenceTime2, divergenceTime3;
+        StringBuilder sb_Metadata = new StringBuilder();
+        String header = "DemesID\tDemePath\tAdmixedPop\tNativePop\tIntrogressedPopulation\tSequenceLength" +
+                "\tRecombination_rate\tMutation_rate";
+        try (BufferedWriter bw = IOTool.getWriter(simulationMetadataOutFile)) {
+            bw.write(header);
+            bw.newLine();
+            int count= 1;
+            for (int i = 0; i < splitEventTime_0.length; i++) {
+                for (int j = 0; j < splitEventTime_1.length; j++) {
+                    for (int m = 0; m < splitEventTime_2.length; m++) {
+                        for (int n = 0; n < splitEventTime_3.length; n++) {
+                            for (int k = 0; k < ratio_admixture_divergence_0.length; k++) {
+                                for (int l = 0; l < admixtureProportion_0.length; l++) {
+                                    splitEventTime = new int[n_way];
+                                    splitEventTime[0] = splitEventTime_0[i];
+                                    splitEventTime[1] = splitEventTime_1[j];
+                                    splitEventTime[2] = splitEventTime_2[m];
+                                    splitEventTime[3] = splitEventTime_3[n];
+                                    admixtureTime = new int[n_way-1];
+                                    admixtureTime[0] = (int)(splitEventTime_3[n] * ratio_admixture_divergence_0[k]);
+                                    admixtureTime[1] = (int)(splitEventTime_3[n] * ratio_admixture_divergence_1[k]);
+                                    admixtureTime[2] = (int)(splitEventTime_3[n] * ratio_admixture_divergence_2[k]);
+                                    admixtureProportion = new double[n_way-1];
+                                    admixtureProportion[0] = admixtureProportion_0[l];
+                                    admixtureProportion[1] = admixtureProportion_1[l];
+                                    admixtureProportion[2] = admixtureProportion_2[l];
+                                    divergenceTime0 = splitEventTime_0[i];
+                                    divergenceTime1 = splitEventTime_1[j];
+                                    divergenceTime2 = splitEventTime_2[m];
+                                    divergenceTime3 = splitEventTime_3[n];
+                                    demographicModel = DemographicModelTools.fourWayBuilder_equilibriumPopulation(splitEventTime,
+                                            admixtureProportion, admixtureTime);
+                                    demographicModel.trim_default();
+                                    demographicModels.add(demographicModel);
+
+                                    // model name
+                                    sb.setLength(0);
+                                    sb.append("way_").append(n_way).append("_").append("adp_").append(admixed_native_introgressed_pop[0]).append("_");
+                                    sb.append("nap_").append(admixed_native_introgressed_pop[1]).append("_");
+                                    sb.append("in0_").append(admixed_native_introgressed_pop[2]).append("_");
+                                    sb.append("in1_").append(admixed_native_introgressed_pop[3]).append("_");
+                                    sb.append("in2_").append(admixed_native_introgressed_pop[4]).append("_");
+                                    sb.append("ep_").append(equilibriumPopulationSize).append("_");
+                                    sb.append("pr0_").append(admixtureProportion_0[l]).append("_");
+                                    sb.append("pr1_").append(admixtureProportion_1[l]).append("_");
+                                    sb.append("pr2_").append(admixtureProportion_2[l]).append("_");
+                                    sb.append("at0_").append(admixtureTime[0]).append("_");
+                                    sb.append("at1_").append(admixtureTime[1]).append("_");
+                                    sb.append("at2_").append(admixtureTime[2]).append("_");
+                                    sb.append("dt0_").append(divergenceTime0).append("_");
+                                    sb.append("dt1_").append(divergenceTime1).append("_");
+                                    sb.append("dt2_").append(divergenceTime2).append("_");
+                                    sb.append("dt3_").append(divergenceTime3);
+                                    sb.append(".yaml");
+                                    modelName.add(sb.toString());
+
+                                    // simulation metadata
+                                    String[] introgressedPop = new String[n_way-1];
+                                    int[] introgressedPop_sampleSize = new int[n_way-1];
+                                    System.arraycopy(admixed_native_introgressed_pop, 2, introgressedPop, 0,n_way-1);
+                                    System.arraycopy(sampleSize, 2, introgressedPop_sampleSize, 0, n_way-1);
+                                    sb_Metadata.setLength(0);
+                                    sb_Metadata.append("D").append(PStringUtils.getNDigitNumber(3, count)).append("\t");
+                                    sb_Metadata.append(new File(outDir, sb.toString()).getAbsolutePath()).append("\t");
+                                    sb_Metadata.append(admixed_native_introgressed_pop[0]).append(":").append(sampleSize[0]).append("\t");
+                                    sb_Metadata.append(admixed_native_introgressed_pop[1]).append(":").append(sampleSize[1]).append("\t");
+                                    sb_Metadata.append(String.join(",", introgressedPop)).append(":");
+                                    sb_Metadata.append(Ints.join(",", introgressedPop_sampleSize)).append("\t");
+                                    sb_Metadata.append(sequenceLength).append("\t").append(recombination_rate).append("\t");
+                                    sb_Metadata.append(mutation_rate);
+                                    bw.write(sb_Metadata.toString());
+                                    bw.newLine();
+                                    count++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        for (int i = 0; i < demographicModels.size(); i++) {
+            DemographicModelTools.writeModel(demographicModels.get(i), new File(outDir, modelName.get(i)));
+        }
     }
 
 
