@@ -184,7 +184,7 @@ public class DemographicModelTools {
 //        double[] admixtureProportion = {0.01, 0.02, 0.04, 0.08, 0.16, 0.32};
 //        int sequenceLength = 100_000_000;
 //        double recombination_rate = 1e-8;
-
+//        double mutation_rate = 1e-8; // 7.1e-9
 
         String[] admixed_native_introgressed_pop = {"E","D","C"};
         int[] sampleSize = {30,30,30};
