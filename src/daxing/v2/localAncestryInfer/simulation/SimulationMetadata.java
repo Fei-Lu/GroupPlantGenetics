@@ -25,6 +25,7 @@ public class SimulationMetadata {
     IntList[] introgressedPopSampleSize;
     int[] sequenceLen;
     double[] recombinationRate;
+    double[] mutationRate;
 
     public SimulationMetadata(String simulationMetadataFile){
         List<String> demesIDList = new ArrayList<>();
@@ -37,6 +38,7 @@ public class SimulationMetadata {
         List<IntList> introgressedPopSampleSizeList = new ArrayList<>();
         IntList seqLenList = new IntArrayList();
         DoubleList recombinationRateList = new DoubleArrayList();
+        DoubleList mutationRateList = new DoubleArrayList();
         try (BufferedReader br = IOTool.getReader(simulationMetadataFile)) {
             br.readLine();
             String line;
@@ -63,6 +65,7 @@ public class SimulationMetadata {
                 introgressedPopSampleSizeList.add(intList);
                 seqLenList.add(Integer.parseInt(temp.get(5)));
                 recombinationRateList.add(Double.parseDouble(temp.get(6)));
+                mutationRateList.add(Double.parseDouble(temp.get(7)));
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -77,6 +80,7 @@ public class SimulationMetadata {
         this.introgressedPopSampleSize = introgressedPopSampleSizeList.toArray(new IntList[0]);
         this.sequenceLen=seqLenList.toIntArray();
         this.recombinationRate=recombinationRateList.toDoubleArray();
+        this.mutationRate=mutationRateList.toDoubleArray();
     }
 
     public String[] getNativePop() {
@@ -89,6 +93,10 @@ public class SimulationMetadata {
 
     public double[] getRecombinationRate() {
         return recombinationRate;
+    }
+
+    public double[] getMutationRate() {
+        return mutationRate;
     }
 
     public int[] getAdmixedPopSampleSize() {

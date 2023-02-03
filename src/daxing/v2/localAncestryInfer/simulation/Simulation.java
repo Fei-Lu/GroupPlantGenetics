@@ -26,18 +26,16 @@ public class Simulation {
     String logFile;
     String outDir;
 
-    double mutation_rate;
     int random_seed;
     int threadsNum;
 
     public Simulation(String pythonInterpreterPath, String simulationMetadata, String logFile,
-                      String outDir, double mutation_rate, int random_seed, int threadsNum){
+                      String outDir, int random_seed, int threadsNum){
 
         this.pythonInterpreterPath=pythonInterpreterPath;
         this.simulationMetadata=new SimulationMetadata(simulationMetadata);
         this.logFile=logFile;
         this.outDir=outDir;
-        this.mutation_rate=mutation_rate;
         this.random_seed=random_seed;
         this.threadsNum=threadsNum;
     }
@@ -47,7 +45,6 @@ public class Simulation {
         this.simulationMetadata=builder.simulationMetadata;
         this.logFile=builder.logFile;
         this.outDir=builder.outDir;
-        this.mutation_rate=builder.mutation_rate;
         this.random_seed=builder.random_seed;
         this.threadsNum=builder.threadsNum;
     }
@@ -80,10 +77,6 @@ public class Simulation {
                     this.outDir=temp.get(1);
                     continue;
                 }
-                if (line.startsWith("mutation_rate")){
-                    this.mutation_rate=Double.parseDouble(temp.get(1));
-                    continue;
-                }
                 if (line.startsWith("random_seed")){
                     this.random_seed=Integer.parseInt(temp.get(1));
                     continue;
@@ -110,7 +103,6 @@ public class Simulation {
          * Optional parameters
          */
         private String pythonInterpreterPath = "/Users/xudaxing/anaconda3/envs/Msprime/bin/python";
-        private double mutation_rate = 7.1e-9;
         private int random_seed = 1;
         private int threadsNum = 2;
 
@@ -122,11 +114,6 @@ public class Simulation {
 
         public Builder pythonInterpreterPath(String pythonInterpreterPath){
             this.pythonInterpreterPath=pythonInterpreterPath;
-            return this;
-        }
-
-        public Builder mutation_rate(double mutation_rate){
-            this.mutation_rate=mutation_rate;
             return this;
         }
 
@@ -190,12 +177,12 @@ public class Simulation {
         return this.simulationMetadata.recombinationRate[simulationIndex];
     }
 
-    public int getRandom_seed() {
-        return random_seed;
+    public double getMutationRate(int simulationIndex){
+        return this.simulationMetadata.mutationRate[simulationIndex];
     }
 
-    public double getMutation_rate() {
-        return mutation_rate;
+    public int getRandom_seed() {
+        return random_seed;
     }
 
     public String getOutDir() {
@@ -228,8 +215,8 @@ public class Simulation {
             sb.append(new File(outDir, this.getDemesID(i)+".tract")).append(" ");
             sb.append(this.getSeqLen(i)).append(" ");
             sb.append(this.getRandom_seed()).append(" ");
-            sb.append(this.getMutation_rate()).append(" ");
             sb.append(this.getRecombinationRate(i)).append(" ");
+            sb.append(this.getMutationRate(i)).append(" ");
             sb.append(this.getAdmixedPop(i)).append(",");
             sb.append(this.getNativePop(i)).append(",");
             sb.append(String.join(",", this.getIntrogressedPop(i))).append(" ");

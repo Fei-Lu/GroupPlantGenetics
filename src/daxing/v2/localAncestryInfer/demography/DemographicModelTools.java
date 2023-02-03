@@ -195,6 +195,7 @@ public class DemographicModelTools {
         double[] admixtureProportion = {0.1, 0.2};
         int sequenceLength = 1_000_000;
         double recombination_rate = 1e-8;
+        double mutation_rate = 1e-8; // 7.1e-9
 
 
         int[] splitEventTime;
@@ -205,7 +206,7 @@ public class DemographicModelTools {
         double admixtureTime, divergenceTime0, divergenceTime1;
         StringBuilder sb_Metadata = new StringBuilder();
         String header = "DemesID\tDemePath\tAdmixedPop\tNativePop\tIntrogressedPopulation\tSequenceLength" +
-                "\tRecombination_rate";
+                "\tRecombination_rate\tMutation_rate";
         try (BufferedWriter bw = IOTool.getWriter(simulationMetadataOutFile)) {
             bw.write(header);
             bw.newLine();
@@ -244,7 +245,8 @@ public class DemographicModelTools {
                             sb_Metadata.append(admixed_native_introgressed_pop[0]).append(":").append(sampleSize[0]).append("\t");
                             sb_Metadata.append(admixed_native_introgressed_pop[1]).append(":").append(sampleSize[1]).append("\t");
                             sb_Metadata.append(admixed_native_introgressed_pop[2]).append(":").append(sampleSize[2]).append("\t");
-                            sb_Metadata.append(sequenceLength).append("\t").append(recombination_rate);
+                            sb_Metadata.append(sequenceLength).append("\t").append(recombination_rate).append("\t");
+                            sb_Metadata.append(mutation_rate);
                             bw.write(sb_Metadata.toString());
                             bw.newLine();
                             count++;
