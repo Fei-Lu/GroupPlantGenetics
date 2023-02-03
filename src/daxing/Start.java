@@ -1,6 +1,7 @@
 package daxing;
 
 import daxing.v2.localAncestryInfer.demography.DemographicModelTools;
+import daxing.v2.localAncestryInfer.evaluation.Evaluation;
 import daxing.v2.localAncestryInfer.runner.ELAI_runner;
 import daxing.v2.localAncestryInfer.runner.GenotypeMetaData;
 import daxing.v2.localAncestryInfer.runner.Loter_runner;
@@ -9,6 +10,8 @@ import daxing.v2.localAncestryInfer.simulation.Simulation;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.IntStream;
 
 public class Start {
@@ -65,14 +68,14 @@ public class Start {
 //        DemographicModelTools.writeModel(demographicModel, new File(modelOutPaht));
 
         String outDir = "/Users/xudaxing/Desktop/test";
-
         run(outDir);
 
     }
 
     public static void run(String outDir){
 
-        final String[] DIRS = {"001_parameterFile","002_demes","003_simulation","004_runner","temp","log"};
+        final String[] DIRS = {"001_parameterFile","002_demes","003_simulation","004_runner","log",
+                "005_evaluation"};
         final String[] SOFTWARE = {"loter","elai","mosaic"};
 
         File[] dirsFile = new File[DIRS.length];
@@ -87,37 +90,51 @@ public class Start {
             File file = new File(dirsFile[3], SOFTWARE[i]);
             file.mkdir();
             softwareSubDir[i] = file.getAbsolutePath();
-            logFiles[i] = new File(dirsFile[5], SOFTWARE[i]+".log").getAbsolutePath();
+            logFiles[i] = new File(dirsFile[4], SOFTWARE[i]+".log").getAbsolutePath();
         }
 
         String simulationMetadataOutFile = new File(dirsFile[0], "simulationMetadata.txt").getAbsolutePath();
-        String simulationLogFile = new File(dirsFile[5], "simulation.log").getAbsolutePath();
+        String simulationLogFile = new File(dirsFile[4], "simulation.log").getAbsolutePath();
 
         DemographicModelTools.batchRun_twoWay(simulationMetadataOutFile, dirsFile[1].getAbsolutePath());
-        Simulation simulation = new Simulation.Builder(simulationMetadataOutFile, simulationLogFile, dirsFile[2].getAbsolutePath()).build();
+        Simulation simulation = new Simulation.Builder(simulationMetadataOutFile, simulationLogFile,
+                dirsFile[2].getAbsolutePath()).build();
         simulation.run_simulation();
 
         GenotypeMetaData genotypeMetaData = new GenotypeMetaData(simulationMetadataOutFile, dirsFile[2].getAbsolutePath());
 
-        // 使用 Java 8 Streams API
+        List<double[][][][]> software_localAncestry = new ArrayList<>();
+        List<String> software = new ArrayList<>();
+
+//         使用 Java 8 Streams API
         IntStream.range(0, SOFTWARE.length).forEach(i -> {
             switch(SOFTWARE[i]) {
                 case "loter":
                     Loter_runner loterRunner = new Loter_runner.Builder(genotypeMetaData, logFiles[i], softwareSubDir[i]).build();
                     loterRunner.startRun();
+                    software_localAncestry.add(loterRunner.extractLocalAncestry());
+                    software.add(SOFTWARE[i]);
                     break;
                 case "elai":
                     ELAI_runner elaiRunner = new ELAI_runner.Builder(genotypeMetaData, logFiles[i], softwareSubDir[i]).build();
                     elaiRunner.startRun();
+                    software_localAncestry.add(elaiRunner.extractLocalAncestry());
+                    software.add(SOFTWARE[i]);
                     break;
                 case "mosaic":
-                    Mosaic_runner mosaicRunner = new Mosaic_runner.Builder(genotypeMetaData, dirsFile[4].getAbsolutePath(), logFiles[i], softwareSubDir[i]).build();
+                    Mosaic_runner mosaicRunner = new Mosaic_runner.Builder(genotypeMetaData, logFiles[i], softwareSubDir[i]).build();
                     mosaicRunner.startRun();
+                    software_localAncestry.add(mosaicRunner.extractLocalAncestry());
+                    software.add(SOFTWARE[i]);
                     break;
                 default:
                     break;
             }
         });
+
+        Evaluation.write_RobustnessData(simulationMetadataOutFile, dirsFile[2].getAbsolutePath(),
+                software_localAncestry, software, new File(dirsFile[5], "evaluation.txt").getAbsolutePath());
+
     }
 
 
