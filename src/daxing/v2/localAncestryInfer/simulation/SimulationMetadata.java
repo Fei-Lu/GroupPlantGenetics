@@ -7,7 +7,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -138,34 +137,20 @@ public class SimulationMetadata {
         return demesPath;
     }
 
-    public int[] get_nWayAdmixture(){
-        String[] demePathArray = this.getDemesPath();
-        int[] nWayAdmixture = new int[demePathArray.length];
-        Arrays.fill(nWayAdmixture, -1);
-        for (int i = 0; i < demePathArray.length; i++) {
-            nWayAdmixture[i] = Integer.parseInt(new File(demePathArray[i]).getName().substring(4,5));
-        }
-        return nWayAdmixture;
-    }
-
-    public int[] getTimeSinceAdmixture(){
-        String[] demePathArray = this.getDemesPath();
-        int[] timeSinceAdmixture = new int[demePathArray.length];
-        Arrays.fill(timeSinceAdmixture, -1);
-        List<String> temp;
-        int index;
-        for (int i = 0; i < demePathArray.length; i++) {
-            temp = PStringUtils.fastSplit(new File(demePathArray[i]).getName().substring(4,5), "_");
-            index = temp.indexOf("at");
-            timeSinceAdmixture[i] = Integer.parseInt(temp.get(index+1));
-        }
-        return timeSinceAdmixture;
-    }
-
     public int[] getChrID(){
         int[] chrID = new int[this.demesPath.length];
         Arrays.fill(chrID, 1);
         return chrID;
+    }
+
+    public int[] get_nWayAdmixture(){
+        int[] nwayAdmixture = new int[this.demesPath.length];
+        Arrays.fill(nwayAdmixture, -1);
+        List<String>[] introgressedPopList = this.getIntrogressedPop();
+        for (int i = 0; i < introgressedPopList.length; i++) {
+            nwayAdmixture[i] = introgressedPopList[i].size() +1;
+        }
+        return nwayAdmixture;
     }
 
 

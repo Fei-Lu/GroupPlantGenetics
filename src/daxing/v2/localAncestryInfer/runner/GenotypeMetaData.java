@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class GenotypeMetaData {
@@ -35,6 +36,11 @@ public class GenotypeMetaData {
 
     String[] recombinationMap;
 
+    /**
+     * time since admixture is set to -1 by default
+     * @param simulationMetadataPath
+     * @param simulationOutDir
+     */
     public GenotypeMetaData(String simulationMetadataPath, String simulationOutDir){
         SimulationMetadata simulationMetadata = new SimulationMetadata(simulationMetadataPath);
         this.genotypeID=simulationMetadata.getDemesID();
@@ -54,7 +60,9 @@ public class GenotypeMetaData {
         this.admixedPop= simulationMetadata.getAdmixedPop();
         this.nativePop= simulationMetadata.getNativePop();
         this.introgressedPop=simulationMetadata.getIntrogressedPop();
-        this.timeSinceAdmixture=simulationMetadata.getTimeSinceAdmixture();
+        int[] timeSinceAdmixture=new int[this.genotypeID.length];
+        Arrays.fill(timeSinceAdmixture, -1);
+        this.timeSinceAdmixture=timeSinceAdmixture;
         this.chrID=simulationMetadata.getChrID();
         List<String>[] referencePopList = new List[genotypeID.length];
         for (int i = 0; i < referencePopList.length; i++) {
@@ -65,6 +73,10 @@ public class GenotypeMetaData {
         this.referencePopList=referencePopList;
     }
 
+    /**
+     * time since admixture was supplied by genotypePathFile
+     * @param genotypePathFile
+     */
     public GenotypeMetaData(String genotypePathFile){
         List<String> genotypeIDList = new ArrayList<>();
         List<String> genotypePathList=new ArrayList<>();
