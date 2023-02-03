@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -227,13 +228,17 @@ public class Mosaic_runner implements LocalAncestry{
             // sample.names
             File sampleNamesFile = new File(subDirFile[0], "sample.names");
             BufferedWriter bwSampleName = IOTool.getWriter(sampleNamesFile);
-            for (int i = 9; i < headerList.size(); i++) {
-                sb.setLength(0);
-                popName = taxaInfo.getTaxonPop(headerList.get(i));
-                sb.append(popName).append(" ").append(headerList.get(i)).append(" ");
-                sb.append("0 0 0 2 -9");
-                bwSampleName.write(sb.toString());
-                bwSampleName.newLine();
+            IntList indexList;
+            for (int i = 0; i < refPop_AdmixedPopList.size(); i++) {
+                indexList = popIndexMap.get(refPop_AdmixedPopList.get(i));
+                for (int j = 0; j < indexList.size(); j++) {
+                    sb.setLength(0);
+                    sb.append(refPop_AdmixedPopList.get(i)).append(" ");
+                    sb.append(headerList.get(indexList.getInt(j))).append(" ");
+                    sb.append("0 0 0 2 -9");
+                    bwSampleName.write(sb.toString());
+                    bwSampleName.newLine();
+                }
             }
             bwSampleName.flush();
             bwSampleName.close();
