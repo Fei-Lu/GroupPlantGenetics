@@ -118,26 +118,31 @@ public class Mosaic_runner implements LocalAncestry{
          * Required parameters
          */
         GenotypeMetaData genotypeMetaData;
-        String fastDirPath;
         String logFile; // all log will be append to this logFile
         String outDir; // outDir
 
         /**
          * Optional parameters
+         *
          */
+        String fastDirPath ="/Users/xudaxing/Documents/temp";
         String rscriptPath= "/usr/local/bin/Rscript";
         int coresNumber=2; // core number, not threads number
         String subDirName = "mosaicData";
 
-        public Builder(GenotypeMetaData genotypeMetaData, String fastDirPath, String logFile, String outDir){
+        public Builder(GenotypeMetaData genotypeMetaData, String logFile, String outDir){
             this.genotypeMetaData=genotypeMetaData;
-            this.fastDirPath=fastDirPath;
             this.logFile=logFile;
             this.outDir=outDir;
         }
 
         public Builder rscriptPath(String rscriptPath){
             this.rscriptPath=rscriptPath;
+            return this;
+        }
+
+        public Builder fastDirPath(String fastDirPath){
+            this.fastDirPath=fastDirPath;
             return this;
         }
 
