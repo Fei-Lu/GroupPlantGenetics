@@ -7,7 +7,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import daxing.common.utiles.IOTool;
 import pgl.infra.utils.PStringUtils;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -63,12 +62,18 @@ public class DemographicModelTools {
      * @param admixtureProportion
      * @return transformedAdmixtureProportion
      */
-    private static double[] transform_twoPulse_threeWay_proportion(double[] admixtureProportion){
-        assert  admixtureProportion.length ==2 ||  admixtureProportion.length ==1: "error, check admixtureProportion";
-        if (admixtureProportion.length ==2 ){
-            double[] transformedAdmixtureProportion = new double[2];
-            transformedAdmixtureProportion[0] = admixtureProportion[0]/(1-admixtureProportion[1]);
-            transformedAdmixtureProportion[1] = admixtureProportion[1];
+    public static double[] transform_proportion(double[] admixtureProportion){
+        assert  admixtureProportion.length > 0: "error, check admixtureProportion";
+
+        if (admixtureProportion.length  > 1 ){
+            double[] transformedAdmixtureProportion = new double[admixtureProportion.length];
+            for (int i = 0; i < admixtureProportion.length; i++){
+                double proportion=1;
+                for (int j = i+1; j < admixtureProportion.length; j++) {
+                    proportion*=1-admixtureProportion[j];
+                }
+                transformedAdmixtureProportion[i] = admixtureProportion[i]/proportion;
+            }
             return transformedAdmixtureProportion;
         }else if (admixtureProportion.length==1)return admixtureProportion;
         else return new double[0];
@@ -104,7 +109,7 @@ public class DemographicModelTools {
             sourcePopList.add(pop);
         }
         List<Double> admixtureProportionList = new ArrayList<>();
-        for (double proportion : DemographicModelTools.transform_twoPulse_threeWay_proportion(admixtureProportion)){
+        for (double proportion : DemographicModelTools.transform_proportion(admixtureProportion)){
             admixtureProportionList.add(proportion);
         }
         List<Pulse> pulses = new ArrayList<>();
@@ -127,7 +132,7 @@ public class DemographicModelTools {
      * @param destPop desPop
      * @param admixtureProportion admixtureProportion
      * @param admixtureTime admixtureTime
-     * @return
+     * @return DemographicModel
      */
     public static DemographicModel equilibriumPopulationModelBuilder(String[] demeNames, int[] splitEventTime,
                                                                       String[] ancestors, int populationSize,
@@ -142,6 +147,13 @@ public class DemographicModelTools {
         return new DemographicModel.Builder("generations", demes).pulses(pulses).build();
     }
 
+    /**
+     *
+     * @param splitEventTime 2 dimensional array for two-way admixture
+     * @param admixtureProportion
+     * @param admixtureTime
+     * @return DemographicModel
+     */
     public static DemographicModel twoWayBuilder_equilibriumPopulation(int[] splitEventTime,
                                                                      double admixtureProportion,
                                                                      int admixtureTime){
@@ -160,6 +172,13 @@ public class DemographicModelTools {
                 populationSize, sourcePop, destPop, admixtureProportionArray, admixtureTimeArray);
     }
 
+    /**
+     *
+     * @param splitEventTime 3 dimensional array for three-way admixture
+     * @param admixtureProportion
+     * @param admixtureTime
+     * @return DemographicModel
+     */
     public static DemographicModel threeWayBuilder_equilibriumPopulation(int[] splitEventTime,
                                                                        double[] admixtureProportion,
                                                                        int[] admixtureTime){
