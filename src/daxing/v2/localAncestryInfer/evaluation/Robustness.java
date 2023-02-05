@@ -19,7 +19,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class Evaluation {
+public class Robustness {
 
     /**
      * detail information about Mean deviation and Pearson correlation see reference
@@ -216,17 +216,17 @@ public class Evaluation {
                                             List<double[][][][]> software_localAncestry,
                                             List<String> softwareList, String outFileRobustnessData){
         SimulationMetadata simulationMetadata = new SimulationMetadata(simulationMetadataFile);
-        double[][][][] actual_values = Evaluation.extractLocalAncestry_actualValue(simulationMetadata,
+        double[][][][] actual_values = Robustness.extractLocalAncestry_actualValue(simulationMetadata,
                 simulationDir);
         double[][][] meanDeviationData = new double[software_localAncestry.size()][][];
         double[][][] pearsonCorrelationData = new double[software_localAncestry.size()][][];
         String[] software = new String[software_localAncestry.size()];
         for (int i = 0; i < software_localAncestry.size(); i++) {
-            meanDeviationData[i] = Evaluation.meanDeviation(software_localAncestry.get(i), actual_values);
-            pearsonCorrelationData[i] = Evaluation.pearsonCorrelation(software_localAncestry.get(i), actual_values);
+            meanDeviationData[i] = Robustness.meanDeviation(software_localAncestry.get(i), actual_values);
+            pearsonCorrelationData[i] = Robustness.pearsonCorrelation(software_localAncestry.get(i), actual_values);
             software[i] = softwareList.get(i);
         }
-        Evaluation.write_RobustnessData(meanDeviationData, pearsonCorrelationData, software, simulationMetadata,
+        Robustness.write_RobustnessData(meanDeviationData, pearsonCorrelationData, software, simulationMetadata,
                 outFileRobustnessData);
     }
 }
