@@ -1,7 +1,7 @@
 package daxing;
 
 import daxing.v2.localAncestryInfer.demography.DemographicModelTools;
-import daxing.v2.localAncestryInfer.evaluation.Evaluation;
+import daxing.v2.localAncestryInfer.evaluation.Robustness;
 import daxing.v2.localAncestryInfer.runner.ELAI_runner;
 import daxing.v2.localAncestryInfer.runner.GenotypeMetaData;
 import daxing.v2.localAncestryInfer.runner.Loter_runner;
@@ -67,12 +67,26 @@ public class Start {
 ////                admixtureProportion, admixtureTime);
 //        DemographicModelTools.writeModel(demographicModel, new File(modelOutPaht));
 
-        String outDir = "/Users/xudaxing/Desktop/test";
-        run(outDir);
+        String outDir = "/Users/xudaxing/Desktop/twoWay";
+        String outDir2 = "/Users/xudaxing/Desktop/threeWay";
+        String outDir3 = "/Users/xudaxing/Desktop/fourWay";
+//        run(DemographicModelTools.N_way.TWO_WAY, outDir);
+        run(DemographicModelTools.N_way.THREE_WAY,outDir2);
+        run(DemographicModelTools.N_way.FOUR_WAY, outDir3);
+
+//        String a = "/Users/xudaxing/Desktop/multipleWay/simulationMetadata.txt";
+//        String b = "/Users/xudaxing/Desktop/multipleWay";
+//        DemographicModelTools.batchRun_multipleWay(a, b);
+
+//        int[] splitEventTime = {10000, 9000, 500};
+//        double[] admixtureProportion = {0.1, 0.2};
+//        int[] admixtureTime = {500, 100};
+//        DemographicModel demographicModel =DemographicModelTools.threeWayBuilder_equilibriumPopulation(splitEventTime, admixtureProportion, admixtureTime);
+//        DemographicModelTools.writeModel(demographicModel, new File("/Users/xudaxing/Desktop/multipleWay/test.yaml"));
 
     }
 
-    public static void run(String outDir){
+    public static void run(DemographicModelTools.N_way nWay, String outDir){
 
         final String[] DIRS = {"001_parameterFile","002_demes","003_simulation","004_runner","log",
                 "005_evaluation"};
@@ -96,7 +110,8 @@ public class Start {
         String simulationMetadataOutFile = new File(dirsFile[0], "simulationMetadata.txt").getAbsolutePath();
         String simulationLogFile = new File(dirsFile[4], "simulation.log").getAbsolutePath();
 
-        DemographicModelTools.batchRun_twoWay(simulationMetadataOutFile, dirsFile[1].getAbsolutePath());
+//        DemographicModelTools.batchRun_twoWay(simulationMetadataOutFile, dirsFile[1].getAbsolutePath());
+        DemographicModelTools.batchRun(nWay, simulationMetadataOutFile, dirsFile[1].getAbsolutePath());
         Simulation simulation = new Simulation.Builder(simulationMetadataOutFile, simulationLogFile,
                 dirsFile[2].getAbsolutePath()).build();
         simulation.run_simulation();
@@ -132,7 +147,7 @@ public class Start {
             }
         });
 
-        Evaluation.write_RobustnessData(simulationMetadataOutFile, dirsFile[2].getAbsolutePath(),
+        Robustness.write_RobustnessData(simulationMetadataOutFile, dirsFile[2].getAbsolutePath(),
                 software_localAncestry, software, new File(dirsFile[5], "evaluation.txt").getAbsolutePath());
 
     }
