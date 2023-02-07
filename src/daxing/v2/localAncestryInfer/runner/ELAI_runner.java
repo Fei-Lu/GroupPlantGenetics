@@ -2,7 +2,7 @@ package daxing.v2.localAncestryInfer.runner;
 
 import daxing.common.sh.CommandUtils;
 import daxing.common.utiles.IOTool;
-import daxing.v2.localAncestryInfer.GenotypeTable;
+import daxing.v2.localAncestryInfer.laidp.GenotypeTable;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import pgl.infra.utils.Benchmark;

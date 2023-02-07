@@ -1,4 +1,4 @@
-package daxing.v2.localAncestryInfer;
+package daxing.v2.localAncestryInfer.laidp;
 
 import daxing.common.table.RowTableTool;
 import daxing.common.utiles.IOTool;
@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import pgl.infra.utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;

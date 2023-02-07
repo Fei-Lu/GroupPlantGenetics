@@ -1,4 +1,4 @@
-package daxing.v2.localAncestryInfer;
+package daxing.v2.localAncestryInfer.laidp;
 
 import daxing.common.bisnp.SNP;
 import daxing.common.chrrange.ChrPos;

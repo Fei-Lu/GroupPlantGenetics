@@ -2,7 +2,7 @@ package daxing.v2.localAncestryInfer.evaluation;
 
 import daxing.common.sh.CommandUtils;
 import daxing.common.utiles.IOTool;
-import daxing.v2.localAncestryInfer.GenotypeTable;
+import daxing.v2.localAncestryInfer.laidp.GenotypeTable;
 import daxing.v2.localAncestryInfer.simulation.SimulationMetadata;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import pgl.infra.utils.PStringUtils;

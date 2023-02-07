@@ -1,4 +1,4 @@
-package daxing.v2.localAncestryInfer;
+package daxing.v2.localAncestryInfer.laidp;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;

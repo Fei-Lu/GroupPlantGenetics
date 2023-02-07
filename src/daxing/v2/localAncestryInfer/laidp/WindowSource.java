@@ -1,4 +1,4 @@
-package daxing.v2.localAncestryInfer;
+package daxing.v2.localAncestryInfer.laidp;
 
 import daxing.common.chrrange.ChrRange;
 import java.util.*;
