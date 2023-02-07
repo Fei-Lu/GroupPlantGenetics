@@ -11,20 +11,37 @@ package daxing.v2.localAncestryInfer.demography;
  */
 public class Epoch {
 
+    /**
+     * required
+     */
     int start_size;
     int end_time;
+
+    /**
+     * optional
+     */
+    int end_size;
 
     public Epoch(){
 
     }
 
-    public Epoch(int start_size, int end_time){
+    public Epoch(int start_size, int end_time, int end_size){
+        this.setEpoch(start_size,end_size,end_time);
+    }
+
+    private void setEpoch(int start_size, int end_size, int end_time){
         this.start_size = start_size;
-        this.end_time=end_time;
+        this.end_size = end_size;
+        this.end_time = end_time;
     }
 
     public int getStart_size() {
         return start_size;
+    }
+
+    public int getEnd_size() {
+        return end_size;
     }
 
     public int getEnd_time() {
@@ -39,6 +56,9 @@ public class Epoch {
         this.start_size = start_size;
     }
 
+    public void setEnd_size(int end_size) {
+        this.end_size = end_size;
+    }
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Epoch{");

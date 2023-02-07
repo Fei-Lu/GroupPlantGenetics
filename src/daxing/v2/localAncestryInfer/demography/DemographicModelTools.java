@@ -95,7 +95,7 @@ public class DemographicModelTools {
         List<String> ancestorsList;
         for (int i = 0; i < demeNames.length; i++) {
             epoches = new ArrayList<>();
-            epoch = new Epoch(populationSize, epochEndTime[i]);
+            epoch = new Epoch(populationSize, epochEndTime[i], populationSize);
             epoches.add(epoch);
             if (i > 0){
                 ancestorsList = new ArrayList<>();
@@ -109,8 +109,39 @@ public class DemographicModelTools {
         return demes;
     }
 
-    private static List<Pulse> getEquilibriumPopulationPulses(String[] sourcePop, String destPop,
-                                                              double[] admixtureProportion, int[] admixtureTime){
+//    private static List<Deme> getTwoWayNonEquilibriumPopulationDemes(int[] splitEventTime, int populationSize){
+//        String[] demeNames = {"A","B","C","D","E"};
+//        String[] ancestors = {null,"A","A","B","B"};
+//        int[] epochEndTime = new int[splitEventTime.length * 2 +1];
+//        System.arraycopy(splitEventTime, 0, epochEndTime, 0, splitEventTime.length);
+//
+//        List<Deme> demes = new ArrayList<>();
+//        List<Epoch> epoches;
+//        Epoch epoch;
+//        Deme deme;
+//        List<String> ancestorsList;
+//        for (int i = 0; i < demeNames.length; i++) {
+//            epoches = new ArrayList<>();
+//            epoch = new Epoch(populationSize, epochEndTime[i], populationSize);
+//            epoches.add(epoch);
+//            if (i > 0){
+//                ancestorsList = new ArrayList<>();
+//                ancestorsList.add(ancestors[i]);
+//                deme = new Deme.Builder(demeNames[i], epoches).ancestors(ancestorsList).build();
+//                if (demeNames[i].equals("C")){
+//                    epoch = new Epoch();
+//                }
+//            }else {
+//                deme = new Deme.Builder(demeNames[i], epoches).build();
+//            }
+//            demes.add(deme);
+//        }
+//
+//        return demes;
+//    }
+
+    private static List<Pulse> getPulses(String[] sourcePop, String destPop,
+                                         double[] admixtureProportion, int[] admixtureTime){
         List<String> sourcePopList = new ArrayList<>();
         for (String pop : sourcePop){
             sourcePopList.add(pop);
@@ -149,7 +180,7 @@ public class DemographicModelTools {
         int[] epochEndTime = new int[splitEventTime.length * 2 +1];
         System.arraycopy(splitEventTime, 0, epochEndTime, 0, splitEventTime.length);
         List<Deme> demes = DemographicModelTools.getEquilibriumPopulationDemes(demeNames, epochEndTime, ancestors, populationSize);
-        List<Pulse> pulses = DemographicModelTools.getEquilibriumPopulationPulses(sourcePop, destPop,
+        List<Pulse> pulses = DemographicModelTools.getPulses(sourcePop, destPop,
                 admixtureProportion, admixtureTime);
         return new DemographicModel.Builder("generations", demes).pulses(pulses).build();
     }
