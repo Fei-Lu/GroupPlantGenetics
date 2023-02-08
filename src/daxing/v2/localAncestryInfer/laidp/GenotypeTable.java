@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.stream.IntStream;
 
 /**
  * 记得改BitSet loop
@@ -240,50 +241,10 @@ public class GenotypeTable {
     /**
      *
      * @param threadsNum threadsNum
-     * @return maf of all sites
-     */
-    public double[] calculateMaf(int threadsNum) {
-        int numVariants = this.getSiteNumber();
-        int numTaxa = this.getTaxa().length;
-        double[] mafs = new double[this.getSiteNumber()];
-        int numBlock = (numVariants + BLOCK_SIZE - 1) / BLOCK_SIZE;
-        ExecutorService executorService = Executors.newFixedThreadPool(threadsNum);
-        List<Future<Void>> futures = new ArrayList<>();
-        for (int blockIndex = 0; blockIndex < numBlock; blockIndex++) {
-            int startIndex = blockIndex * BLOCK_SIZE;
-            int endIndex = Math.min((blockIndex + 1) * BLOCK_SIZE, numVariants);
-            futures.add(executorService.submit(() -> {
-                for (int variantsIndex = startIndex; variantsIndex < endIndex; variantsIndex++) {
-                    BitSet[] gts = this.genoSite[variantsIndex];
-                    int count1 = gts[0].cardinality();
-                    int total = numTaxa - gts[1].cardinality();
-                    int count0 = total - count1;
-                    int countMin = Math.min(count0, count1);
-                    mafs[variantsIndex] = (double) countMin / total;
-                }
-                return null;
-            }));
-        }
-        for (Future<Void> future : futures) {
-            try {
-                future.get();
-            } catch (InterruptedException | ExecutionException e) {
-                executorService.shutdown();
-                throw new RuntimeException(e);
-            }
-        }
-        executorService.shutdown();
-        return mafs;
-    }
-
-
-    /**
-     *
-     * @param threadsNum threadsNum
      * @param taxaIndices dim1 is different pop, dim2 is different taxon
      * @return mafs, dim1 is different pop, dim2 is variants
      */
-    public double[][] calculateMaf(int threadsNum, int[][] taxaIndices) {
+    public double[][] calculateAltAlleleFrequency(int threadsNum, int[][] taxaIndices) {
         BitSet[] pop_bitSet = new BitSet[taxaIndices.length];
         for (int i = 0; i < taxaIndices.length; i++) {
             pop_bitSet[i] = new BitSet();
@@ -300,7 +261,7 @@ public class GenotypeTable {
             int startIndex = blockIndex * BLOCK_SIZE;
             int endIndex = Math.min((blockIndex + 1) * BLOCK_SIZE, numVariants);
             futures.add(executorService.submit(() -> {
-                int count1, total, count0;
+                int count1, total;
                 BitSet[][] genoSite = this.getGenoSite();
                 BitSet[] bitSets, clonedBitSets;
                 int bitSetsLen;
@@ -314,9 +275,7 @@ public class GenotypeTable {
                         clonedBitSets[1].and(pop_bitSet[i]);
                         count1 = clonedBitSets[0].cardinality();
                         total = pop_bitSet[i].cardinality() - clonedBitSets[1].cardinality();
-                        count0 = total - count1;
-                        int countMin = Math.min(count0, count1);
-                        mafs[i][variantsIndex] = (double) countMin / total;
+                        mafs[i][variantsIndex] = (double) count1 / total;
                     }
                 }
                 return null;
@@ -332,6 +291,116 @@ public class GenotypeTable {
         }
         executorService.shutdown();
         return mafs;
+    }
+
+    /**
+     *
+     * @param threadsNum threadsNum
+     * @return alt frequency of all sites
+     */
+    public double[] calculateAltAlleleFrequency(int threadsNum) {
+        int taxaNum = this.getTaxa().length;
+        int[][] taxaIndex = new int[1][];
+        for (int i = 0; i < taxaIndex.length; i++) {
+            taxaIndex[i] = IntStream.range(0, taxaNum).toArray();
+        }
+        return this.calculateAltAlleleFrequency(threadsNum, taxaIndex)[0];
+    }
+
+    public double[] calculateMaf(int threadsNum){
+        double[] alts = this.calculateAltAlleleFrequency(threadsNum);
+        double[] mafs = new double[alts.length];
+        for (int i = 0; i < alts.length; i++) {
+            if (alts[i] > 0.5){
+                mafs[i] = 1-alts[i];
+            }else {
+                mafs[i] = alts[i];
+            }
+        }
+        return mafs;
+    }
+
+    public double[][] calculateMaf(int threadsNum, int[][] taxaIndices){
+        double[][] alts = this.calculateAltAlleleFrequency(threadsNum, taxaIndices);
+        double[][] mafs = new double[alts.length][alts[0].length];
+        for (int i = 0; i < alts.length; i++) {
+            for (int j = 0; j < alts[i].length; j++) {
+                if (alts[i][j] > 0.5){
+                    mafs[i][j] = 1-alts[i][j];
+                }else {
+                    mafs[i][j] = alts[i][j];
+                }
+            }
+        }
+        return mafs;
+    }
+
+    /**
+     *
+     * @param threadsNum
+     * @param taxaIndices
+     * @param ancestralAlleleBitSet 1 in ancestralAlleleBitSet represent allele 1 is ancestral allele, dim1 is
+     *                              genotype(haploid), dim2 is missing
+     * @return derived allele frequency, -1 mean missing
+     */
+    public double[][] calculateDaf(int threadsNum, int[][] taxaIndices, BitSet[] ancestralAlleleBitSet){
+        double[][] alts = this.calculateAltAlleleFrequency(threadsNum, taxaIndices);
+        double[][] dafs = new double[alts.length][alts[0].length];
+        for (int i = 0; i < alts.length; i++) {
+            System.arraycopy(alts[i], 0, dafs[i], 0, alts[i].length);
+        }
+        for (int i = ancestralAlleleBitSet[0].nextSetBit(0); i >= 0; i = ancestralAlleleBitSet[0].nextSetBit(i+1)) {
+            for (int j = 0; j < dafs.length; j++) {
+                dafs[j][i] = 1 - alts[j][i];
+            }
+        }
+
+        // missing will be filling with -1
+        for (int i = ancestralAlleleBitSet[1].nextSetBit(0); i >=0; i = ancestralAlleleBitSet[1].nextSetBit(i+1)) {
+            for (int j = 0; j < dafs.length; j++) {
+                dafs[j][i] = -1;
+            }
+        }
+        return dafs;
+    }
+
+    /**
+     *
+     * @param threadsNum
+     * @param ancestralAlleleBitSet
+     * @return derived allele frequency, -1 mean missing
+     */
+    public double[] calculateDaf(int threadsNum, BitSet[] ancestralAlleleBitSet){
+        double[] alts = this.calculateAltAlleleFrequency(threadsNum);
+        double[] dafs = new double[alts.length];
+        System.arraycopy(alts, 0, dafs, 0, alts.length);
+        for (int i = ancestralAlleleBitSet[0].nextSetBit(0); i >=0; i = ancestralAlleleBitSet[0].nextSetBit(i+1)) {
+            dafs[i] = 1 - alts[i];
+        }
+        for (int i = ancestralAlleleBitSet[1].nextSetBit(0); i >=0; i = ancestralAlleleBitSet[1].nextSetBit(i+1)) {
+            dafs[i] = -1;
+        }
+        return dafs;
+    }
+
+    /**
+     *
+     * @param taxonIndex outGroup population
+     * @return ancestralAlleleBitSet
+     */
+    public BitSet[] getAncestralAlleleFromTaxa(int[] taxonIndex){
+        BitSet[] bitSets = new BitSet[2];
+        BitSet ancestralAllele = (BitSet) this.genoTaxon[taxonIndex[0]][0].clone();
+        for (int i = 1; i < taxonIndex.length; i++) {
+            ancestralAllele.and(this.genoTaxon[taxonIndex[i]][0]);
+        }
+        BitSet missing = (BitSet) this.genoTaxon[taxonIndex[0]][1].clone();
+        for (int i = 1; i < taxonIndex.length; i++) {
+            missing.or(this.genoTaxon[taxonIndex[i]][1]);
+        }
+        bitSets[0] = ancestralAllele;
+        bitSets[1] = missing;
+        return bitSets;
     }
 
     /**
