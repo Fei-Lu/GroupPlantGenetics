@@ -14,10 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * 记得改BitSet loop
@@ -37,6 +34,8 @@ public class GenotypeTable {
      * Bit genotype by taxon, the first dimension is taxon; the second dimension is genotype(haploid), and missing
      */
     BitSet[][] genoTaxon;
+
+    private static final int BLOCK_SIZE = 4000;
 
     public GenotypeTable(String haploidGenotypeFile){
         try {
@@ -236,6 +235,103 @@ public class GenotypeTable {
     public char getAlleleBase(int siteIndex, int taxonIndex){
         byte alleleByte = this.getAlleleByte(siteIndex, taxonIndex);
         return AlleleEncoder.getAlleleBaseFromByte(alleleByte);
+    }
+
+    /**
+     *
+     * @param threadsNum threadsNum
+     * @return maf of all sites
+     */
+    public double[] calculateMaf(int threadsNum) {
+        int numVariants = this.getSiteNumber();
+        int numTaxa = this.getTaxa().length;
+        double[] mafs = new double[this.getSiteNumber()];
+        int numBlock = (numVariants + BLOCK_SIZE - 1) / BLOCK_SIZE;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadsNum);
+        List<Future<Void>> futures = new ArrayList<>();
+        for (int blockIndex = 0; blockIndex < numBlock; blockIndex++) {
+            int startIndex = blockIndex * BLOCK_SIZE;
+            int endIndex = Math.min((blockIndex + 1) * BLOCK_SIZE, numVariants);
+            futures.add(executorService.submit(() -> {
+                for (int variantsIndex = startIndex; variantsIndex < endIndex; variantsIndex++) {
+                    BitSet[] gts = this.genoSite[variantsIndex];
+                    int count1 = gts[0].cardinality();
+                    int total = numTaxa - gts[1].cardinality();
+                    int count0 = total - count1;
+                    int countMin = Math.min(count0, count1);
+                    mafs[variantsIndex] = (double) countMin / total;
+                }
+                return null;
+            }));
+        }
+        for (Future<Void> future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                executorService.shutdown();
+                throw new RuntimeException(e);
+            }
+        }
+        executorService.shutdown();
+        return mafs;
+    }
+
+
+    /**
+     *
+     * @param threadsNum threadsNum
+     * @param taxaIndices dim1 is different pop, dim2 is different taxon
+     * @return mafs, dim1 is different pop, dim2 is variants
+     */
+    public double[][] calculateMaf(int threadsNum, int[][] taxaIndices) {
+        BitSet[] pop_bitSet = new BitSet[taxaIndices.length];
+        for (int i = 0; i < taxaIndices.length; i++) {
+            pop_bitSet[i] = new BitSet();
+            for (int j = 0; j < taxaIndices[i].length; j++) {
+                pop_bitSet[i].set(taxaIndices[i][j]);
+            }
+        }
+        int numVariants = this.getSiteNumber();
+        double[][] mafs = new double[taxaIndices.length][numVariants];
+        int numBlock = (numVariants + BLOCK_SIZE - 1) / BLOCK_SIZE;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadsNum);
+        List<Future<Void>> futures = new ArrayList<>();
+        for (int blockIndex = 0; blockIndex < numBlock; blockIndex++) {
+            int startIndex = blockIndex * BLOCK_SIZE;
+            int endIndex = Math.min((blockIndex + 1) * BLOCK_SIZE, numVariants);
+            futures.add(executorService.submit(() -> {
+                int count1, total, count0;
+                BitSet[][] genoSite = this.getGenoSite();
+                BitSet[] bitSets, clonedBitSets;
+                int bitSetsLen;
+                for (int variantsIndex = startIndex; variantsIndex < endIndex; variantsIndex++) {
+                    bitSets = genoSite[variantsIndex];
+                    bitSetsLen = genoSite[variantsIndex].length;
+                    for (int i = 0; i < taxaIndices.length; i++) {
+                        clonedBitSets = new BitSet[bitSetsLen];
+                        System.arraycopy(bitSets, 0, clonedBitSets, 0, bitSetsLen);
+                        clonedBitSets[0].and(pop_bitSet[i]);
+                        clonedBitSets[1].and(pop_bitSet[i]);
+                        count1 = clonedBitSets[0].cardinality();
+                        total = pop_bitSet[i].cardinality() - clonedBitSets[1].cardinality();
+                        count0 = total - count1;
+                        int countMin = Math.min(count0, count1);
+                        mafs[i][variantsIndex] = (double) countMin / total;
+                    }
+                }
+                return null;
+            }));
+        }
+        for (Future<Void> future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                executorService.shutdown();
+                throw new RuntimeException(e);
+            }
+        }
+        executorService.shutdown();
+        return mafs;
     }
 
     /**
