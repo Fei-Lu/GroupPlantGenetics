@@ -12,7 +12,6 @@ import pgl.PGLConstraints;
 import pgl.infra.dna.allele.AlleleEncoder;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
-
 import java.io.BufferedReader;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -554,6 +553,14 @@ public class GenotypeTable {
         return dxyArrays;
     }
 
+    /**
+     *
+     * @param threadsNum threadsNum
+     * @param pop_taxonIndex dim1 is different populations, dim2 is different taxa
+     * @param ifSimulation if use simulated genotype
+     * @param ifZsocre if calculate zscore of pattersonD_f
+     * @return pattersonD_f, with or without zscore
+     */
     public double[] calculatePattersonD_f(int threadsNum, int[][] pop_taxonIndex, boolean ifSimulation,
                                           boolean ifZsocre){
         BitSet[] ancestralAlleleBitSet;
@@ -601,7 +608,9 @@ public class GenotypeTable {
         d_f[1] = (abba-baba)/(abba_p3ab-baba_p3ab);
         if (!ifZsocre) return d_f;
         int totalVariants = dafs[0].length;
-        double[] d_f_zscore = GenotypeTable.getJackknife_pattersonD_standError(d_f, dafs, dafs_p3_ab,
+
+        // default， split to 20
+        double[] d_f_zscore = GenotypeTable.getJackknife_pattersonD_f_zscore(d_f, dafs, dafs_p3_ab,
                 totalVariants/20, totalVariants);
 
         double[] res = new double[4];
@@ -613,22 +622,23 @@ public class GenotypeTable {
     }
 
     /**
-     *
+     * @param d_f pattersonD and f
      * @param dafs derived allele frequency, dim1 is different populations, dim2 is variants.
      *             length of dim1 is 3
+     * @param dafs_p3_ab dim1 is p3a and p3b, dim2 is taxa indices
      * @param block_size linkage disequilibrium decays to background levels when using block_size variants
      * @param totalVariants total variants in genotype
-     * @return Jackknife_pattersonD_standError
+     * @return pattersonD_f_zscore
      */
-    public static double[] getJackknife_pattersonD_standError(double[] d_f, double[][] dafs, double[][] dafs_p3_ab,
+    public static double[] getJackknife_pattersonD_f_zscore(double[] d_f, double[][] dafs, double[][] dafs_p3_ab,
                                                             int block_size, int totalVariants){
         int[] windowStartIndex = GenotypeTable.getWindowStartIndex(block_size, totalVariants);
         int[] randoms = ArrayTool.getRandomNonrepetitionArray(windowStartIndex.length, 0, windowStartIndex.length);
         double[][] jackknife_D_f = new double[2][randoms.length];
         for (int i = 0; i < randoms.length; i++) {
-            jackknife_D_f[0][i] = GenotypeTable.getJackknife_pattersonD(dafs, dafs_p3_ab, windowStartIndex[randoms[i]],
+            jackknife_D_f[0][i] = GenotypeTable.getJackknife_pattersonD_f(dafs, dafs_p3_ab, windowStartIndex[randoms[i]],
                     block_size)[0];
-            jackknife_D_f[1][i] = GenotypeTable.getJackknife_pattersonD(dafs, dafs_p3_ab, windowStartIndex[randoms[i]],
+            jackknife_D_f[1][i] = GenotypeTable.getJackknife_pattersonD_f(dafs, dafs_p3_ab, windowStartIndex[randoms[i]],
                     block_size)[1];
         }
         DescriptiveStatistics stats;
@@ -641,8 +651,6 @@ public class GenotypeTable {
             d_f_zscore[i] = d_f[i]/standError;
         }
         return d_f_zscore;
-
-
     }
 
     /**
@@ -651,10 +659,10 @@ public class GenotypeTable {
      *             length of dim1 is 3
      * @param randomStartSiteIndex random site index when doing Jackknife
      * @param block_size linkage disequilibrium decays to background levels when using block_size variants
-     * @return Jackknife_pattersonD
+     * @return Jackknife pattersonD_f
      */
-    private static double[] getJackknife_pattersonD(double[][] dafs, double[][] dafs_p3_ab, int randomStartSiteIndex,
-                                                  int block_size){
+    private static double[] getJackknife_pattersonD_f(double[][] dafs, double[][] dafs_p3_ab, int randomStartSiteIndex,
+                                                      int block_size){
         DoubleList abbaList = new DoubleArrayList();
         DoubleList babaList = new DoubleArrayList();
         DoubleList abba_p3abList = new DoubleArrayList();
