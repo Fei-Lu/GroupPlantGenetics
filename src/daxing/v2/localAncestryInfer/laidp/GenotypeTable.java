@@ -37,7 +37,7 @@ public class GenotypeTable {
      */
     BitSet[][] genoTaxon;
 
-    private static final int BLOCK_SIZE = 4000;
+    private static final int BLOCK_SIZE = 4000; // for parallel calculation, such as alternative allele frequency
 
     public GenotypeTable(String haploidGenotypeFile){
         try {
