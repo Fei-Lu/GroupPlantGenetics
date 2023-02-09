@@ -2,13 +2,16 @@ package daxing.v2.localAncestryInfer.laidp;
 
 import daxing.common.bisnp.SNP;
 import daxing.common.chrrange.ChrPos;
+import daxing.common.utiles.ArrayTool;
 import daxing.common.utiles.IOTool;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.doubles.DoubleList;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import pgl.PGLConstraints;
 import pgl.infra.dna.allele.AlleleEncoder;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
-
 import java.io.BufferedReader;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -255,7 +258,7 @@ public class GenotypeTable {
             }
         }
         int numVariants = this.getSiteNumber();
-        double[][] mafs = new double[taxaIndices.length][numVariants];
+        double[][] alts = new double[taxaIndices.length][numVariants];
         int numBlock = (numVariants + BLOCK_SIZE - 1) / BLOCK_SIZE;
         ExecutorService executorService = Executors.newFixedThreadPool(threadsNum);
         List<Future<Void>> futures = new ArrayList<>();
@@ -272,7 +275,9 @@ public class GenotypeTable {
                     bitSetsLen = genoSite[variantsIndex].length;
                     for (int i = 0; i < taxaIndices.length; i++) {
                         clonedBitSets = new BitSet[bitSetsLen];
-                        System.arraycopy(bitSets, 0, clonedBitSets, 0, bitSetsLen);
+                        for (int j = 0; j < bitSets.length; j++) {
+                            clonedBitSets[j] = (BitSet) bitSets[j].clone();
+                        }
                         clonedBitSets[0].and(pop_bitSet[i]);
                         clonedBitSets[1].and(pop_bitSet[i]);
                         count1 = clonedBitSets[0].cardinality();
@@ -280,9 +285,9 @@ public class GenotypeTable {
                         total = pop_bitSet[i].cardinality();
                         if (missing == total){
                             // all sample in these pop is missing
-                            mafs[i][variantsIndex] = -1;
+                            alts[i][variantsIndex] = -1;
                         }else {
-                            mafs[i][variantsIndex] = (double) count1 / (total - missing);
+                            alts[i][variantsIndex] = (double) count1 / (total - missing);
                         }
                     }
                 }
@@ -298,7 +303,7 @@ public class GenotypeTable {
             }
         }
         executorService.shutdown();
-        return mafs;
+        return alts;
     }
 
     /**
@@ -365,7 +370,8 @@ public class GenotypeTable {
      * @param taxaIndices dim1 is different populations, dim2 is different taxon
      * @param ancestralAlleleBitSet dim1 is genotype(haploid), dim2 is missing.
      * 1 in ancestralAlleleBitSet represent alternative allele is ancestral allele.
-     * @return derived allele frequency, -1 mean missing.
+     * @return derived allele frequency, dim1 is different populations, dim2 is variants.
+     * -1 mean missing.
      * Missing include two cases:
      * case1: sample in one population is all missing
      * case2: ancestral allele is missing
@@ -452,8 +458,7 @@ public class GenotypeTable {
      * @param stepSize step size of sliding window, the unit is variants, not bp
      * @return windowStartIndex array, site start index of all windows
      */
-    public int[] getWindowStartIndex(int stepSize){
-        int numVariants = this.getSiteNumber();
+    public static int[] getWindowStartIndex(int stepSize, int numVariants){
         int numberWindow = (numVariants + stepSize - 1) / stepSize;
         int[] window = new int[numberWindow];
         for (int windowIndex = 0; windowIndex < numberWindow; windowIndex++) {
@@ -546,6 +551,88 @@ public class GenotypeTable {
             }
         }
         return dxyArrays;
+    }
+
+    /**
+     *
+     * @param threadsNum threadsNum
+     * @param pop_taxonIndex dim1 is different populations, dim2 is different taxa
+     *                       when using simulated genotype, length of dim1 is 3,
+     *                       otherwise length of dim1 is 4
+     * @param ifSimulation if use simulated genotype
+     * @return PattersonD
+     */
+    public double calculatePattersonD(int threadsNum, int[][] pop_taxonIndex, boolean ifSimulation){
+        BitSet[] ancestralAlleleBitSet;
+        if (ifSimulation){
+            ancestralAlleleBitSet = new BitSet[2];
+            ancestralAlleleBitSet[0] = new BitSet();
+            ancestralAlleleBitSet[1] = new BitSet();
+            assert pop_taxonIndex.length == 3 : "population must be three when using simulation genotype";
+        }else {
+            ancestralAlleleBitSet = this.getAncestralAlleleFromTaxa(pop_taxonIndex[3]);
+            assert pop_taxonIndex.length == 4 : "population must be four";
+        }
+        double[][] dafs = this.calculateDaf(threadsNum, pop_taxonIndex, ancestralAlleleBitSet);
+        DoubleList abbaList = new DoubleArrayList();
+        DoubleList babaList = new DoubleArrayList();
+        for (int i = 0; i < dafs[0].length; i++) {
+            if (dafs[0][i] < 0 || dafs[1][i] < 0 || dafs[2][i] < 0) continue;
+            abbaList.add((1-dafs[0][i]) * dafs[1][i] * dafs[2][i]);
+            babaList.add(dafs[0][i] * (1-dafs[1][i]) * dafs[2][i]);
+        }
+        double abba=0, baba=0;
+        for (int i = 0; i < abbaList.size(); i++) {
+            abba += abbaList.getDouble(i);
+            baba += babaList.getDouble(i);
+        }
+        return (abba-baba)/(abba+baba);
+    }
+
+    /**
+     *
+     * @param dafs derived allele frequency, dim1 is different populations, dim2 is variants.
+     *             length of dim1 is 3
+     * @param block_size linkage disequilibrium decays to background levels when using block_size variants
+     * @param totalVariants total variants in genotype
+     * @return Jackknife_pattersonD_standError
+     */
+    public static double getJackknife_pattersonD_standError(double[][] dafs, int block_size, int totalVariants){
+        int[] windowStartIndex = GenotypeTable.getWindowStartIndex(block_size/2, totalVariants);
+        int[] randoms = ArrayTool.getRandomNonrepetitionArray(windowStartIndex.length, 0, windowStartIndex.length);
+        double[] jackknife_D = new double[randoms.length];
+        for (int i = 0; i < jackknife_D.length; i++) {
+            jackknife_D[i] = GenotypeTable.getJackknife_pattersonD(dafs, windowStartIndex[randoms[i]], block_size);
+        }
+        DescriptiveStatistics stats = new DescriptiveStatistics(jackknife_D);
+        double standardDeviation = stats.getStandardDeviation();
+        return standardDeviation/Math.sqrt(jackknife_D.length);
+
+    }
+
+    /**
+     *
+     * @param dafs derived allele frequency, dim1 is different populations, dim2 is variants.
+     *             length of dim1 is 3
+     * @param randomStartSiteIndex random site index when doing Jackknife
+     * @param block_size linkage disequilibrium decays to background levels when using block_size variants
+     * @return Jackknife_pattersonD
+     */
+    private static double getJackknife_pattersonD(double[][] dafs, int randomStartSiteIndex, int block_size){
+        DoubleList abbaList = new DoubleArrayList();
+        DoubleList babaList = new DoubleArrayList();
+        for (int i = 0; i < dafs[0].length; i++) {
+            if (dafs[0][i] < 0 || dafs[1][i] < 0 || dafs[2][i] < 0) continue;
+            if (i >= randomStartSiteIndex && i < (randomStartSiteIndex+block_size)) continue;
+            abbaList.add((1-dafs[0][i]) * dafs[1][i] * dafs[2][i]);
+            babaList.add(dafs[0][i] * (1-dafs[1][i]) * dafs[2][i]);
+        }
+        double abba=0, baba=0;
+        for (int i = 0; i < abbaList.size(); i++) {
+            abba += abbaList.getDouble(i);
+            baba += babaList.getDouble(i);
+        }
+        return (abba-baba)/(abba+baba);
     }
 
 
