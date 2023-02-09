@@ -8,6 +8,7 @@ import pgl.PGLConstraints;
 import pgl.infra.dna.allele.AlleleEncoder;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -261,7 +262,7 @@ public class GenotypeTable {
             int startIndex = blockIndex * BLOCK_SIZE;
             int endIndex = Math.min((blockIndex + 1) * BLOCK_SIZE, numVariants);
             futures.add(executorService.submit(() -> {
-                int count1, total;
+                int count1, missing, total;
                 BitSet[][] genoSite = this.getGenoSite();
                 BitSet[] bitSets, clonedBitSets;
                 int bitSetsLen;
@@ -274,8 +275,14 @@ public class GenotypeTable {
                         clonedBitSets[0].and(pop_bitSet[i]);
                         clonedBitSets[1].and(pop_bitSet[i]);
                         count1 = clonedBitSets[0].cardinality();
-                        total = pop_bitSet[i].cardinality() - clonedBitSets[1].cardinality();
-                        mafs[i][variantsIndex] = (double) count1 / total;
+                        missing =  clonedBitSets[1].cardinality();
+                        total = pop_bitSet[i].cardinality();
+                        if (missing == total){
+                            // all sample in these pop is missing
+                            mafs[i][variantsIndex] = -1;
+                        }else {
+                            mafs[i][variantsIndex] = (double) count1 / (total - missing);
+                        }
                     }
                 }
                 return null;
@@ -401,6 +408,46 @@ public class GenotypeTable {
         bitSets[0] = ancestralAllele;
         bitSets[1] = missing;
         return bitSets;
+    }
+
+    public int[] getWindowStartIndex(int stepSize){
+        int numVariants = this.getSiteNumber();
+        int numberWindow = (numVariants + stepSize - 1) / stepSize;
+        int[] window = new int[numberWindow];
+        for (int windowIndex = 0; windowIndex < numberWindow; windowIndex++) {
+            window[windowIndex] = Math.min(windowIndex * stepSize, numVariants);
+        }
+        return window;
+    }
+
+    public double[] calculateDxy(int[][] pop_taxonIndex){
+        int pop_num = pop_taxonIndex.length;
+        int hapCountA, hapCountB;
+        int len_haplotype = this.snps[this.getSiteNumber()-1].getPos()-this.snps[0].getPos() + 1;
+        double cumDifference;
+        BitSet bitSet, missing;
+        double[] dxy = new double[pop_num];
+        Arrays.fill(dxy, -1);
+        int k =0 ;
+        for (int popIndexA = 0; popIndexA < pop_num -1; popIndexA++) {
+            for (int popIndexB = popIndexA+1; popIndexB < pop_num; popIndexB++) {
+                hapCountA = pop_taxonIndex[popIndexA].length;
+                hapCountB = pop_taxonIndex[popIndexB].length;
+                cumDifference = 0;
+                for (int taxonA : pop_taxonIndex[popIndexA]){
+                    for (int taxonB : pop_taxonIndex[popIndexB]){
+                        bitSet = (BitSet) this.genoTaxon[taxonA][0].clone();
+                        missing = (BitSet)this.genoTaxon[taxonA][1].clone();
+                        missing.or(this.genoTaxon[taxonB][1]);
+                        bitSet.xor(this.genoTaxon[taxonB][0]);
+                        bitSet.andNot(missing);
+                        cumDifference+=bitSet.cardinality();
+                    }
+                }
+                dxy[k++] = cumDifference/(hapCountA*hapCountB)/len_haplotype;
+            }
+        }
+        return dxy;
     }
 
     /**
