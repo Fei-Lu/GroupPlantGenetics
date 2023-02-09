@@ -242,8 +242,9 @@ public class GenotypeTable {
     /**
      *
      * @param threadsNum threadsNum
-     * @param taxaIndices dim1 is different pop, dim2 is different taxon
-     * @return mafs, dim1 is different pop, dim2 is variants
+     * @param taxaIndices dim1 is different populations, dim2 is different taxon
+     * @return alternative allele frequency, dim1 is different populations, dim2 is variants.
+     * -1 means sample in one population is all missing
      */
     public double[][] calculateAltAlleleFrequency(int threadsNum, int[][] taxaIndices) {
         BitSet[] pop_bitSet = new BitSet[taxaIndices.length];
@@ -303,7 +304,8 @@ public class GenotypeTable {
     /**
      *
      * @param threadsNum threadsNum
-     * @return alt frequency of all sites
+     * @return alternative allele frequency, all taxa will be treated as one population
+     * -1 means sample in one population is all missing
      */
     public double[] calculateAltAlleleFrequency(int threadsNum) {
         int taxaNum = this.getTaxa().length;
@@ -314,6 +316,12 @@ public class GenotypeTable {
         return this.calculateAltAlleleFrequency(threadsNum, taxaIndex)[0];
     }
 
+    /**
+     *
+     * @param threadsNum threadsNum
+     * @return minor allele frequency, all taxa will be treated as one population.
+     * -1 means sample in one population is all missing
+     */
     public double[] calculateMaf(int threadsNum){
         double[] alts = this.calculateAltAlleleFrequency(threadsNum);
         double[] mafs = new double[alts.length];
@@ -321,12 +329,20 @@ public class GenotypeTable {
             if (alts[i] > 0.5){
                 mafs[i] = 1-alts[i];
             }else {
+                // include missing in alts
                 mafs[i] = alts[i];
             }
         }
         return mafs;
     }
 
+    /**
+     *
+     * @param threadsNum threadsNum
+     * @param taxaIndices dim1 is different populations, dim2 is different taxon
+     * @return alternative allele frequency, dim1 is different populations, dim2 is variants.
+     * -1 means sample in one population is all missing
+     */
     public double[][] calculateMaf(int threadsNum, int[][] taxaIndices){
         double[][] alts = this.calculateAltAlleleFrequency(threadsNum, taxaIndices);
         double[][] mafs = new double[alts.length][alts[0].length];
@@ -335,6 +351,7 @@ public class GenotypeTable {
                 if (alts[i][j] > 0.5){
                     mafs[i][j] = 1-alts[i][j];
                 }else {
+                    // include missing in alts
                     mafs[i][j] = alts[i][j];
                 }
             }
@@ -344,11 +361,14 @@ public class GenotypeTable {
 
     /**
      *
-     * @param threadsNum
-     * @param taxaIndices
-     * @param ancestralAlleleBitSet 1 in ancestralAlleleBitSet represent allele 1 is ancestral allele, dim1 is
-     *                              genotype(haploid), dim2 is missing
-     * @return derived allele frequency, -1 mean missing
+     * @param threadsNum threadsNum
+     * @param taxaIndices dim1 is different populations, dim2 is different taxon
+     * @param ancestralAlleleBitSet dim1 is genotype(haploid), dim2 is missing.
+     * 1 in ancestralAlleleBitSet represent alternative allele is ancestral allele.
+     * @return derived allele frequency, -1 mean missing.
+     * Missing include two cases:
+     * case1: sample in one population is all missing
+     * case2: ancestral allele is missing
      */
     public double[][] calculateDaf(int threadsNum, int[][] taxaIndices, BitSet[] ancestralAlleleBitSet){
         double[][] alts = this.calculateAltAlleleFrequency(threadsNum, taxaIndices);
@@ -358,11 +378,16 @@ public class GenotypeTable {
         }
         for (int i = ancestralAlleleBitSet[0].nextSetBit(0); i >= 0; i = ancestralAlleleBitSet[0].nextSetBit(i+1)) {
             for (int j = 0; j < dafs.length; j++) {
-                dafs[j][i] = 1 - alts[j][i];
+                // missing
+                if (alts[j][i] < 0){
+                    dafs[j][i] = -1;
+                }else {
+                    dafs[j][i] = 1 - alts[j][i];
+                }
             }
         }
 
-        // missing will be filling with -1
+        // site which ancestral allele is missing will be filling with -1
         for (int i = ancestralAlleleBitSet[1].nextSetBit(0); i >=0; i = ancestralAlleleBitSet[1].nextSetBit(i+1)) {
             for (int j = 0; j < dafs.length; j++) {
                 dafs[j][i] = -1;
@@ -373,16 +398,26 @@ public class GenotypeTable {
 
     /**
      *
-     * @param threadsNum
-     * @param ancestralAlleleBitSet
-     * @return derived allele frequency, -1 mean missing
+     * @param threadsNum threadsNum
+     * @param ancestralAlleleBitSet dim1 is genotype(haploid), dim2 is missing.
+     * 1 in ancestralAlleleBitSet represent alternative allele is ancestral allele.
+     * @return derived allele frequency,  all taxa will be treated as one population.
+     * -1 mean missing
+     * Missing include two cases:
+     * case1: sample in one population is all missing
+     * case2: ancestral allele is missing
      */
     public double[] calculateDaf(int threadsNum, BitSet[] ancestralAlleleBitSet){
         double[] alts = this.calculateAltAlleleFrequency(threadsNum);
         double[] dafs = new double[alts.length];
         System.arraycopy(alts, 0, dafs, 0, alts.length);
         for (int i = ancestralAlleleBitSet[0].nextSetBit(0); i >=0; i = ancestralAlleleBitSet[0].nextSetBit(i+1)) {
-            dafs[i] = 1 - alts[i];
+            // missing
+            if (alts[i] < 0){
+                dafs[i] = -1;
+            }else {
+                dafs[i] = 1 - alts[i];
+            }
         }
         for (int i = ancestralAlleleBitSet[1].nextSetBit(0); i >=0; i = ancestralAlleleBitSet[1].nextSetBit(i+1)) {
             dafs[i] = -1;
@@ -392,8 +427,10 @@ public class GenotypeTable {
 
     /**
      *
-     * @param taxonIndex outGroup population
+     * @param taxonIndex taxa belong to outGroup population
      * @return ancestralAlleleBitSet
+     * dim1 is genotype(haploid), dim2 is missing.
+     * 1 in ancestralAlleleBitSet represent alternative allele is ancestral allele.
      */
     public BitSet[] getAncestralAlleleFromTaxa(int[] taxonIndex){
         BitSet[] bitSets = new BitSet[2];
@@ -410,6 +447,11 @@ public class GenotypeTable {
         return bitSets;
     }
 
+    /**
+     *
+     * @param stepSize step size of sliding window, the unit is variants, not bp
+     * @return windowStartIndex array, site start index of all windows
+     */
     public int[] getWindowStartIndex(int stepSize){
         int numVariants = this.getSiteNumber();
         int numberWindow = (numVariants + stepSize - 1) / stepSize;
@@ -420,13 +462,18 @@ public class GenotypeTable {
         return window;
     }
 
+    /**
+     *
+     * @param pop_taxonIndex dim1 is different populations, dim2 is different taxa
+     * @return pairwise dxy between all populations
+     */
     public double[] calculateDxy(int[][] pop_taxonIndex){
         int pop_num = pop_taxonIndex.length;
         int hapCountA, hapCountB;
         int len_haplotype = this.snps[this.getSiteNumber()-1].getPos()-this.snps[0].getPos() + 1;
         double cumDifference;
         BitSet bitSet, missing;
-        double[] dxy = new double[pop_num];
+        double[] dxy = new double[pop_num*(pop_num-1)/2];
         Arrays.fill(dxy, -1);
         int k =0 ;
         for (int popIndexA = 0; popIndexA < pop_num -1; popIndexA++) {
@@ -449,6 +496,58 @@ public class GenotypeTable {
         }
         return dxy;
     }
+
+    /**
+     *
+     * @param pop_taxonIndex dim1 is different populations, dim2 is different taxa
+     * @param windowStartIndexArray site start index of all windows
+     * @param windowSize window size of sliding window, the unit is variants, not bp
+     * @return pairwise dxy between all populations in all windows
+     * dim1 is different window, same index as windowStartIndexArray,
+     * dim2 is pairwise dxy between all populations
+     */
+    public double[][] calculateDxy(int[][] pop_taxonIndex, int[] windowStartIndexArray, int windowSize) {
+        int pop_num = pop_taxonIndex.length;
+        SNP snp_start, snp_end;
+        int[] windowLen = new int[windowStartIndexArray.length];
+        for (int i = 0; i < windowLen.length; i++) {
+            snp_start = this.snps[windowStartIndexArray[i]];
+            snp_end = this.snps[Math.min(windowStartIndexArray[i]+windowSize, this.getSiteNumber())-1];
+            windowLen[i] = snp_end.getPos() - snp_start.getPos() + 1;
+        }
+        double[][] dxyArrays = new double[windowStartIndexArray.length][pop_num*(pop_num-1)/2];
+        int hapCountA, hapCountB, hapCountAB;
+        double[] cumDifference;
+        BitSet bitSet, missing, subBitset;
+        int k =0;
+        for (int popIndexA = 0; popIndexA < pop_num -1; popIndexA++) {
+            for (int popIndexB = popIndexA+1; popIndexB < pop_num; popIndexB++) {
+                hapCountA = pop_taxonIndex[popIndexA].length;
+                hapCountB = pop_taxonIndex[popIndexB].length;
+                cumDifference = new double[windowStartIndexArray.length];
+                for (int taxonA : pop_taxonIndex[popIndexA]){
+                    for (int taxonB : pop_taxonIndex[popIndexB]){
+                        bitSet = (BitSet) this.genoTaxon[taxonA][0].clone();
+                        missing = (BitSet)this.genoTaxon[taxonA][1].clone();
+                        missing.or(this.genoTaxon[taxonB][1]);
+                        bitSet.xor(this.genoTaxon[taxonB][0]);
+                        bitSet.andNot(missing);
+                        for (int i = 0; i < windowStartIndexArray.length; i++) {
+                            subBitset = bitSet.get(windowStartIndexArray[i], windowStartIndexArray[i]+windowSize);
+                            cumDifference[i] += subBitset.cardinality();
+                        }
+                    }
+                }
+                hapCountAB = hapCountA*hapCountB;
+                for (int i = 0; i < cumDifference.length; i++) {
+                    dxyArrays[i][k] = cumDifference[i]/hapCountAB/windowLen[i];
+                }
+                k++;
+            }
+        }
+        return dxyArrays;
+    }
+
 
     /**
      *
