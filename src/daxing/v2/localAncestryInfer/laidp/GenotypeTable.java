@@ -12,6 +12,7 @@ import pgl.PGLConstraints;
 import pgl.infra.dna.allele.AlleleEncoder;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -553,16 +554,8 @@ public class GenotypeTable {
         return dxyArrays;
     }
 
-    /**
-     *
-     * @param threadsNum threadsNum
-     * @param pop_taxonIndex dim1 is different populations, dim2 is different taxa
-     *                       when using simulated genotype, length of dim1 is 3,
-     *                       otherwise length of dim1 is 4
-     * @param ifSimulation if use simulated genotype
-     * @return PattersonD
-     */
-    public double calculatePattersonD(int threadsNum, int[][] pop_taxonIndex, boolean ifSimulation){
+    public double[] calculatePattersonD_f(int threadsNum, int[][] pop_taxonIndex, boolean ifSimulation,
+                                          boolean ifZsocre){
         BitSet[] ancestralAlleleBitSet;
         if (ifSimulation){
             ancestralAlleleBitSet = new BitSet[2];
@@ -574,19 +567,49 @@ public class GenotypeTable {
             assert pop_taxonIndex.length == 4 : "population must be four";
         }
         double[][] dafs = this.calculateDaf(threadsNum, pop_taxonIndex, ancestralAlleleBitSet);
+        // for f
+        int[] p3_taxaIndices = pop_taxonIndex[2];
+        int p3_taxaIndices_len = p3_taxaIndices.length;
+        int[][] p3_ab_taxaIndices = new int[2][];
+        for (int i = 0; i < p3_ab_taxaIndices.length; i++) {
+            p3_ab_taxaIndices[i] = new int[p3_taxaIndices_len/2];
+        }
+        System.arraycopy(p3_taxaIndices, 0, p3_ab_taxaIndices[0], 0, p3_taxaIndices_len/2);
+        System.arraycopy(p3_taxaIndices, p3_taxaIndices_len/2, p3_ab_taxaIndices[1], 0, p3_taxaIndices_len/2);
+        double[][] dafs_p3_ab = this.calculateDaf(threadsNum, p3_ab_taxaIndices, ancestralAlleleBitSet);
         DoubleList abbaList = new DoubleArrayList();
         DoubleList babaList = new DoubleArrayList();
+        DoubleList abba_p3abList = new DoubleArrayList();
+        DoubleList baba_p3abList = new DoubleArrayList();
         for (int i = 0; i < dafs[0].length; i++) {
             if (dafs[0][i] < 0 || dafs[1][i] < 0 || dafs[2][i] < 0) continue;
+            if (dafs_p3_ab[0][i] < 0 || dafs_p3_ab[1][i] < 0) continue;
             abbaList.add((1-dafs[0][i]) * dafs[1][i] * dafs[2][i]);
             babaList.add(dafs[0][i] * (1-dafs[1][i]) * dafs[2][i]);
+            abba_p3abList.add((1-dafs[0][i]) * dafs_p3_ab[0][i] * dafs_p3_ab[1][i]);
+            baba_p3abList.add(dafs[0][i] * (1-dafs_p3_ab[0][i]) * dafs_p3_ab[1][i]);
         }
-        double abba=0, baba=0;
+        double abba=0, baba=0, abba_p3ab=0, baba_p3ab=0;
         for (int i = 0; i < abbaList.size(); i++) {
             abba += abbaList.getDouble(i);
             baba += babaList.getDouble(i);
+            abba_p3ab += abba_p3abList.getDouble(i);
+            baba_p3ab += baba_p3abList.getDouble(i);
         }
-        return (abba-baba)/(abba+baba);
+        double[] d_f = new double[2];
+        d_f[0] = (abba-baba)/(abba+baba);
+        d_f[1] = (abba-baba)/(abba_p3ab-baba_p3ab);
+        if (!ifZsocre) return d_f;
+        int totalVariants = dafs[0].length;
+        double[] d_f_zscore = GenotypeTable.getJackknife_pattersonD_standError(d_f, dafs, dafs_p3_ab,
+                totalVariants/20, totalVariants);
+
+        double[] res = new double[4];
+        res[0] = d_f[0];
+        res[1] =d_f[1];
+        res[2] =d_f_zscore[0];
+        res[3] =d_f_zscore[1];
+        return res;
     }
 
     /**
@@ -597,16 +620,28 @@ public class GenotypeTable {
      * @param totalVariants total variants in genotype
      * @return Jackknife_pattersonD_standError
      */
-    public static double getJackknife_pattersonD_standError(double[][] dafs, int block_size, int totalVariants){
-        int[] windowStartIndex = GenotypeTable.getWindowStartIndex(block_size/2, totalVariants);
+    public static double[] getJackknife_pattersonD_standError(double[] d_f, double[][] dafs, double[][] dafs_p3_ab,
+                                                            int block_size, int totalVariants){
+        int[] windowStartIndex = GenotypeTable.getWindowStartIndex(block_size, totalVariants);
         int[] randoms = ArrayTool.getRandomNonrepetitionArray(windowStartIndex.length, 0, windowStartIndex.length);
-        double[] jackknife_D = new double[randoms.length];
-        for (int i = 0; i < jackknife_D.length; i++) {
-            jackknife_D[i] = GenotypeTable.getJackknife_pattersonD(dafs, windowStartIndex[randoms[i]], block_size);
+        double[][] jackknife_D_f = new double[2][randoms.length];
+        for (int i = 0; i < randoms.length; i++) {
+            jackknife_D_f[0][i] = GenotypeTable.getJackknife_pattersonD(dafs, dafs_p3_ab, windowStartIndex[randoms[i]],
+                    block_size)[0];
+            jackknife_D_f[1][i] = GenotypeTable.getJackknife_pattersonD(dafs, dafs_p3_ab, windowStartIndex[randoms[i]],
+                    block_size)[1];
         }
-        DescriptiveStatistics stats = new DescriptiveStatistics(jackknife_D);
-        double standardDeviation = stats.getStandardDeviation();
-        return standardDeviation/Math.sqrt(jackknife_D.length);
+        DescriptiveStatistics stats;
+        double standardDeviation, standError;
+        double[] d_f_zscore = new double[2];
+        for (int i = 0; i < jackknife_D_f.length; i++) {
+            stats = new DescriptiveStatistics(jackknife_D_f[i]);
+            standardDeviation = stats.getStandardDeviation();
+            standError = standardDeviation/Math.sqrt(randoms.length);
+            d_f_zscore[i] = d_f[i]/standError;
+        }
+        return d_f_zscore;
+
 
     }
 
@@ -618,21 +653,32 @@ public class GenotypeTable {
      * @param block_size linkage disequilibrium decays to background levels when using block_size variants
      * @return Jackknife_pattersonD
      */
-    private static double getJackknife_pattersonD(double[][] dafs, int randomStartSiteIndex, int block_size){
+    private static double[] getJackknife_pattersonD(double[][] dafs, double[][] dafs_p3_ab, int randomStartSiteIndex,
+                                                  int block_size){
         DoubleList abbaList = new DoubleArrayList();
         DoubleList babaList = new DoubleArrayList();
+        DoubleList abba_p3abList = new DoubleArrayList();
+        DoubleList baba_p3abList = new DoubleArrayList();
         for (int i = 0; i < dafs[0].length; i++) {
             if (dafs[0][i] < 0 || dafs[1][i] < 0 || dafs[2][i] < 0) continue;
+            if (dafs_p3_ab[0][i] < 0 || dafs_p3_ab[1][i] < 0) continue;
             if (i >= randomStartSiteIndex && i < (randomStartSiteIndex+block_size)) continue;
             abbaList.add((1-dafs[0][i]) * dafs[1][i] * dafs[2][i]);
             babaList.add(dafs[0][i] * (1-dafs[1][i]) * dafs[2][i]);
+            abba_p3abList.add((1-dafs[0][i]) * dafs_p3_ab[0][i] * dafs_p3_ab[1][i]);
+            baba_p3abList.add(dafs[0][i] * (1-dafs_p3_ab[0][i]) * dafs_p3_ab[1][i]);
         }
-        double abba=0, baba=0;
+        double abba=0, baba=0, abba_p3ab=0, baba_p3ab=0;
         for (int i = 0; i < abbaList.size(); i++) {
             abba += abbaList.getDouble(i);
             baba += babaList.getDouble(i);
+            abba_p3ab += abba_p3abList.getDouble(i);
+            baba_p3ab += baba_p3abList.getDouble(i);
         }
-        return (abba-baba)/(abba+baba);
+        double[] res = new double[2];
+        res[0] = (abba-baba)/(abba+baba);
+        res[1] = (abba-baba)/(abba_p3ab-baba_p3ab);
+        return res;
     }
 
 
