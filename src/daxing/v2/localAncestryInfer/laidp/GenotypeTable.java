@@ -559,7 +559,7 @@ public class GenotypeTable {
      * @param threadsNum threadsNum
      * @param pop_taxonIndex dim1 is different populations, dim2 is different taxa
      * @param ifSimulation if use simulated genotype
-     * @param ifZsocre if calculate zscore of pattersonD_f
+     * @param ifZsocre if calculate_pattersonD_f zscore of pattersonD_f
      * @return pattersonD_f, with or without zscore
      */
     public double[] calculatePattersonD_f(int threadsNum, int[][] pop_taxonIndex, boolean ifSimulation,
@@ -584,7 +584,7 @@ public class GenotypeTable {
         System.arraycopy(p3_taxaIndices, 0, p3_ab_taxaIndices[0], 0, p3_taxaIndices_len/2);
         System.arraycopy(p3_taxaIndices, p3_taxaIndices_len/2, p3_ab_taxaIndices[1], 0, p3_taxaIndices_len/2);
         double[][] dafs_p3_ab = this.calculateDaf(threadsNum, p3_ab_taxaIndices, ancestralAlleleBitSet);
-        double[] d_f = GenotypeTable.calculate(dafs, dafs_p3_ab, Integer.MAX_VALUE, Integer.MAX_VALUE);
+        double[] d_f = GenotypeTable.calculate_pattersonD_f(dafs, dafs_p3_ab, Integer.MAX_VALUE, Integer.MAX_VALUE);
         if (!ifZsocre) return d_f;
         int totalVariants = dafs[0].length;
         // default， split to 20
@@ -612,9 +612,9 @@ public class GenotypeTable {
         int[] randoms = ArrayTool.getRandomNonrepetitionArray(windowStartIndex.length, 0, windowStartIndex.length);
         double[][] jackknife_D_f = new double[2][randoms.length];
         for (int i = 0; i < randoms.length; i++) {
-            jackknife_D_f[0][i] = GenotypeTable.calculate(dafs, dafs_p3_ab, windowStartIndex[randoms[i]],
+            jackknife_D_f[0][i] = GenotypeTable.calculate_pattersonD_f(dafs, dafs_p3_ab, windowStartIndex[randoms[i]],
                     block_size)[0];
-            jackknife_D_f[1][i] = GenotypeTable.calculate(dafs, dafs_p3_ab, windowStartIndex[randoms[i]],
+            jackknife_D_f[1][i] = GenotypeTable.calculate_pattersonD_f(dafs, dafs_p3_ab, windowStartIndex[randoms[i]],
                     block_size)[1];
         }
         DescriptiveStatistics stats;
@@ -630,14 +630,13 @@ public class GenotypeTable {
     }
 
     /**
-     *
      * @param dafs derived allele frequency, dim1 is different populations, dim2 is variants.
      *             length of dim1 is 3
      * @param randomStartSiteIndex random site index when doing Jackknife
      * @param block_size linkage disequilibrium decays to background levels when using block_size variants
      * @return pattersonD_f
      */
-    private static double[] calculate(double[][] dafs, double[][] dafs_p3_ab, int randomStartSiteIndex, int block_size){
+    private static double[] calculate_pattersonD_f(double[][] dafs, double[][] dafs_p3_ab, int randomStartSiteIndex, int block_size){
         DoubleList abbaList = new DoubleArrayList();
         DoubleList babaList = new DoubleArrayList();
         DoubleList abba_p3abList = new DoubleArrayList();
