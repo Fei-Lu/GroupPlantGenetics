@@ -514,6 +514,7 @@ public class GenotypeTable {
      */
     public double[][] calculateDxy(int[][] pop_taxonIndex, int[] windowStartIndexArray, int windowSize) {
         int pop_num = pop_taxonIndex.length;
+        int variantsNum = this.getSiteNumber();
         SNP snp_start, snp_end;
         int[] windowLen = new int[windowStartIndexArray.length];
         for (int i = 0; i < windowLen.length; i++) {
@@ -539,7 +540,7 @@ public class GenotypeTable {
                         bitSet.xor(this.genoTaxon[taxonB][0]);
                         bitSet.andNot(missing);
                         for (int i = 0; i < windowStartIndexArray.length; i++) {
-                            subBitset = bitSet.get(windowStartIndexArray[i], windowStartIndexArray[i]+windowSize);
+                            subBitset = bitSet.get(windowStartIndexArray[i], Math.min(windowStartIndexArray[i]+windowSize, variantsNum));
                             cumDifference[i] += subBitset.cardinality();
                         }
                     }
@@ -549,6 +550,57 @@ public class GenotypeTable {
                     dxyArrays[i][k] = cumDifference[i]/hapCountAB/windowLen[i];
                 }
                 k++;
+            }
+        }
+        return dxyArrays;
+    }
+
+    /**
+     *
+     * @param pop_taxonIndex_native_introgressed dim1 is different populations, dim2 is different taxa
+     * @param pop_taxonIndex_admixed dim1 is different populations, dim2 is different taxa
+     * @param windowStartIndexArray site start index of all windows
+     * @param windowSize window size of sliding window, the unit is variants, not bp
+     * @return pairwise dxy between all populations in all windows
+     * dim1 is different window, same index as windowStartIndexArray,
+     * dim2 is taxon index of admixed population
+     */
+    public double[][] calculateDxy(int[][] pop_taxonIndex_native_introgressed, int[] pop_taxonIndex_admixed,
+                                   int[] windowStartIndexArray,
+                                   int windowSize){
+        int variantsNum = this.getSiteNumber();
+        double[][] dxyArrays = new double[windowStartIndexArray.length][pop_taxonIndex_admixed.length];
+        SNP snp_start, snp_end;
+        int[] windowLen = new int[windowStartIndexArray.length];
+        for (int i = 0; i < windowLen.length; i++) {
+            snp_start = this.snps[windowStartIndexArray[i]];
+            snp_end = this.snps[Math.min(windowStartIndexArray[i]+windowSize, this.getSiteNumber())-1];
+            windowLen[i] = snp_end.getPos() - snp_start.getPos() + 1;
+        }
+        int hapCount_admixed, hapCount_native_introgressed, hapCount;
+        double[] cumDifference;
+        BitSet bitSet, missing, subBitset;
+        int popNum = pop_taxonIndex_native_introgressed.length;
+        for (int popTaxonIndex = 0; popTaxonIndex < popNum; popTaxonIndex++) {
+            for (int admixedTaxonIndex = 0; admixedTaxonIndex < pop_taxonIndex_admixed.length; admixedTaxonIndex++) {
+                hapCount_native_introgressed = pop_taxonIndex_native_introgressed[popTaxonIndex].length;
+                hapCount_admixed = 1;
+                cumDifference = new double[windowStartIndexArray.length];
+                for (int taxon: pop_taxonIndex_native_introgressed[popTaxonIndex]){
+                    bitSet = (BitSet) this.genoTaxon[taxon][0].clone();
+                    missing = (BitSet) this.genoTaxon[taxon][1].clone();
+                    missing.or(this.genoTaxon[admixedTaxonIndex][1]);
+                    bitSet.xor(this.genoTaxon[admixedTaxonIndex][0]);
+                    bitSet.andNot(missing);
+                    for (int i = 0; i < windowStartIndexArray.length; i++) {
+                        subBitset = bitSet.get(windowStartIndexArray[i], Math.min(windowStartIndexArray[i]+windowSize, variantsNum));
+                        cumDifference[i] += subBitset.cardinality();
+                    }
+                }
+                hapCount = hapCount_native_introgressed*hapCount_admixed;
+                for (int i = 0; i < cumDifference.length; i++) {
+                    dxyArrays[i][admixedTaxonIndex] = cumDifference[i]/hapCount/windowLen[i];
+                }
             }
         }
         return dxyArrays;
@@ -666,6 +718,43 @@ public class GenotypeTable {
         return res;
     }
 
+    /**
+     *
+     * @param dafs_native_introgressed derived allele frequency, dim1 is different populations, dim2 is variants.
+     * @param dafs_admixed derived allele frequency, dim1 is different populations, dim2 is variants.
+     * @param windowStartIndexArray site start index of all windows
+     * @param windowSize windowSize
+     * @return sources int[][], dim1 is admixed taxa, dim2 is window index
+     */
+    public static int[][] prepareCandidateSources(int threadsNum, int[][] pop_taxonIndex_native_introgressed,
+                                                  int[][] pop_taxonIndex_admixed,
+                                                  double[][] dafs_native_introgressed,
+                                                  double[][] dafs_admixed,
+                                            int[] windowStartIndexArray,
+                                           int windowSize, int variantsNum){
+
+        int windowStartIndex, windowEndIndex;
+        double[][] window_dafs_native_introgressed, window_dafs_admixed;
+        List<Future<Void>> futures= new ArrayList<>();
+        ExecutorService executorService = Executors.newFixedThreadPool(threadsNum);
+        for (int i = 0; i < windowStartIndexArray.length; i++) {
+            windowStartIndex = windowStartIndexArray[i];
+            windowEndIndex = Math.min(windowStartIndex+windowSize, variantsNum-1);
+            window_dafs_native_introgressed = new double[dafs_native_introgressed.length][windowEndIndex-windowStartIndex+1];
+            window_dafs_admixed = new double[dafs_native_introgressed.length][windowEndIndex-windowStartIndex+1];
+            futures.add(executorService.submit(()->{
+                System.out.println();
+                return null;
+            }));
+        }
+        return null;
+    }
+
+
+    public static BitSet[][] calculateLocalAncestry(int[] windowStartIndexArray, int[][] sources, int conjunctionNum,
+                                                    BitSet[][] localAncestry){
+        return null;
+    }
 
 
     /**
