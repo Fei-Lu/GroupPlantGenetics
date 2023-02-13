@@ -561,7 +561,7 @@ public class GenotypeTable {
      * @param pop_taxonIndex_admixed dim1 is different populations, dim2 is different taxa
      * @param windowStartIndexArray site start index of all windows
      * @param windowSize window size of sliding window, the unit is variants, not bp
-     * @return pairwise dxy between all populations in all windows
+     * @return dxy between all admixed taxon and all source (native + introgressed) populations
      * dim1 is different window, same index as windowStartIndexArray,
      * dim2 is taxon index of admixed population
      * dim3 is population index of native_introgressed populations
@@ -723,13 +723,16 @@ public class GenotypeTable {
     /**
      *
      * @param threadsNum threadsNum
-     * @param dafs_native
-     * @param dafs_admixed
-     * @param dafs_introgressed
-     * @param windowStartIndexArray
-     * @param windowSize
-     * @param variantsNum
-     * @return
+     * @param dafs_native derived allele frequency of native population
+     * @param dafs_admixed derived allele frequency of admixed population
+     * @param dafs_introgressed derivedd allele frequency of introgressed population
+     * @param windowStartIndexArray site start index of all windows
+     * @param windowSize window size of sliding window, the unit is variants, not bp
+     * @param variantsNum total variants in genotype
+     * @return fd_windows_admixed_introgressed,
+     * dim1 is window index
+     * dim2 is admixed taxon
+     * dim3 is introgressed population
      */
     public static double[][][] calculate_fd(int threadsNum, double[][] dafs_native, double[][] dafs_admixed,
                                             double[][] dafs_introgressed, int[] windowStartIndexArray, int windowSize,
@@ -853,14 +856,84 @@ public class GenotypeTable {
 
     }
 
-    public static int[][] calculateSource(double[][][] fd_windows_admixed_introgressed, int[] windowStartIndexArray, int windowSize,
-                                          int variantsNum){
-        return null;
+    /**
+     *
+     * @param fd_windows_admixed_introgressed fd_windows_admixed_introgressed
+     *                                        dim1 is window index，
+     *                                        dim2 is admixed taxon，
+     *                                        dim3 is introgressed population
+     * @param dxy_pairwise_nativeIntrogressed pairwise dxy between all source population (native + introgressed
+     *                                        population)
+     *                                        dim1 is different window, same index as windowStartIndexArray,
+     *                                        dim2 is pairwise dxy between all populations
+     * @param dxy_windows_admixed_nativeIntrogressed dxy between all admixed taxon and all source (native + introgressed) populations
+     *                                               dim1 is different window, same index as windowStartIndexArray,
+     *                                               dim2 is taxon index of admixed population,
+     *                                               dim3 is population index of native_introgressed populations
+     * @return grid source, dim1 is window index, dim is admixed taxon index
+     */
+    public static Source[][] calculateSource(double[][][] fd_windows_admixed_introgressed,
+                                             double[][] dxy_pairwise_nativeIntrogressed,
+                                             double[][][] dxy_windows_admixed_nativeIntrogressed){
+        int windowNum = fd_windows_admixed_introgressed.length;
+        int admixedTaxaNum = fd_windows_admixed_introgressed[0].length;
+        int introgressedPopNum = fd_windows_admixed_introgressed[0][0].length;
+        Source[][] gridSource = new Source[admixedTaxaNum][windowNum];
+        for (int i = 0; i < gridSource.length; i++) {
+            Arrays.fill(gridSource, Source.NATIVE_SOURCE_0);
+        }
+        double[][] fd_sum = new double[admixedTaxaNum][introgressedPopNum];
+        double[][] fd_mean = new double[admixedTaxaNum][introgressedPopNum];
+        for (int i = 0; i < fd_mean.length; i++) {
+            Arrays.fill(fd_mean[i], -1);
+        }
+        for (int admixedTaxonIndex = 0; admixedTaxonIndex < admixedTaxaNum; admixedTaxonIndex++) {
+            for (int introgressedPopIndex = 0; introgressedPopIndex < introgressedPopNum; introgressedPopNum++) {
+                for (int windowIndex = 0; windowIndex < windowNum; windowIndex++) {
+                    fd_sum[admixedTaxonIndex][introgressedPopIndex]+= fd_windows_admixed_introgressed[windowIndex][admixedTaxonIndex][introgressedPopIndex];
+                }
+            }
+        }
+        for (int admixedTaxonIndex = 0; admixedTaxonIndex < admixedTaxaNum; admixedTaxonIndex++) {
+            for (int introgressedPopIndex = 0; introgressedPopIndex < introgressedPopNum; introgressedPopIndex++) {
+                fd_mean[admixedTaxonIndex][introgressedPopIndex] = fd_sum[admixedTaxonIndex][introgressedPopIndex]/windowNum;
+            }
+        }
+        double dxy_min, dxy_p1p2, dxy_p2p3, fd;
+        Source source;
+        for (int windowIndex = 0; windowIndex < windowNum; windowIndex++) {
+            dxy_min = Double.MAX_VALUE;
+            for (int i = 0; i < dxy_pairwise_nativeIntrogressed.length; i++) {
+                dxy_min = dxy_pairwise_nativeIntrogressed[windowIndex][i] < dxy_min ? dxy_pairwise_nativeIntrogressed[windowIndex][i] : dxy_min;
+            }
+            for (int admixedTaxonIndex = 0; admixedTaxonIndex < admixedTaxaNum; admixedTaxonIndex++) {
+
+                dxy_p1p2 = dxy_windows_admixed_nativeIntrogressed[windowNum][admixedTaxonIndex][0];
+
+                // 可能是ILS或introgress population间有基因流
+                if (dxy_min < dxy_p1p2) continue;
+
+                for (int introgressedPopIndex = 1; introgressedPopIndex < introgressedPopNum+1; introgressedPopIndex++) {
+                    fd = fd_windows_admixed_introgressed[windowIndex][admixedTaxonIndex][introgressedPopIndex-1];
+
+                    // fd值小与全基因组均值, 很有可能是ILS引起
+                    if (fd < fd_mean[admixedTaxonIndex][windowIndex]) continue;
+
+                    dxy_p2p3 = dxy_windows_admixed_nativeIntrogressed[windowIndex][admixedTaxonIndex][introgressedPopIndex];
+                    if (dxy_p2p3 < dxy_p1p2){
+                        source = Source.getInstanceFromIndex(introgressedPopIndex).get();
+                        gridSource[admixedTaxonIndex][windowIndex].setSourceFeature(source);
+                    }
+                }
+            }
+        }
+        return gridSource;
     }
 
 
-    public static BitSet[][] calculateLocalAncestry(int[] windowStartIndexArray, int[][] sources, int conjunctionNum,
+    public static BitSet[][] calculateLocalAncestry(int[] windowStartIndexArray, Source[][] sources, int conjunctionNum,
                                                     BitSet[][] localAncestry){
+        
         return null;
     }
 
