@@ -564,12 +564,13 @@ public class GenotypeTable {
      * @return pairwise dxy between all populations in all windows
      * dim1 is different window, same index as windowStartIndexArray,
      * dim2 is taxon index of admixed population
+     * dim3 is population index of native_introgressed populations
      */
-    public double[][] calculateDxy(int[][] pop_taxonIndex_native_introgressed, int[] pop_taxonIndex_admixed,
+    public double[][][] calculateDxy(int[][] pop_taxonIndex_native_introgressed, int[] pop_taxonIndex_admixed,
                                    int[] windowStartIndexArray,
                                    int windowSize){
         int variantsNum = this.getSiteNumber();
-        double[][] dxyArrays = new double[windowStartIndexArray.length][pop_taxonIndex_admixed.length];
+        double[][][] dxyArrays = new double[windowStartIndexArray.length][pop_taxonIndex_admixed.length][pop_taxonIndex_native_introgressed.length];
         SNP snp_start, snp_end;
         int[] windowLen = new int[windowStartIndexArray.length];
         for (int i = 0; i < windowLen.length; i++) {
@@ -599,7 +600,7 @@ public class GenotypeTable {
                 }
                 hapCount = hapCount_native_introgressed*hapCount_admixed;
                 for (int i = 0; i < cumDifference.length; i++) {
-                    dxyArrays[i][admixedTaxonIndex] = cumDifference[i]/hapCount/windowLen[i];
+                    dxyArrays[i][admixedTaxonIndex][popTaxonIndex] = cumDifference[i]/hapCount/windowLen[i];
                 }
             }
         }
@@ -718,35 +719,142 @@ public class GenotypeTable {
         return res;
     }
 
+
     /**
      *
-     * @param dafs_native_introgressed derived allele frequency, dim1 is different populations, dim2 is variants.
-     * @param dafs_admixed derived allele frequency, dim1 is different populations, dim2 is variants.
-     * @param windowStartIndexArray site start index of all windows
-     * @param windowSize windowSize
-     * @return sources int[][], dim1 is admixed taxa, dim2 is window index
+     * @param threadsNum threadsNum
+     * @param dafs_native
+     * @param dafs_admixed
+     * @param dafs_introgressed
+     * @param windowStartIndexArray
+     * @param windowSize
+     * @param variantsNum
+     * @return
      */
-    public static int[][] prepareCandidateSources(int threadsNum, int[][] pop_taxonIndex_native_introgressed,
-                                                  int[][] pop_taxonIndex_admixed,
-                                                  double[][] dafs_native_introgressed,
-                                                  double[][] dafs_admixed,
-                                            int[] windowStartIndexArray,
-                                           int windowSize, int variantsNum){
-
+    public static double[][][] calculate_fd(int threadsNum, double[][] dafs_native, double[][] dafs_admixed,
+                                            double[][] dafs_introgressed, int[] windowStartIndexArray, int windowSize,
+                                            int variantsNum){
         int windowStartIndex, windowEndIndex;
-        double[][] window_dafs_native_introgressed, window_dafs_admixed;
         List<Future<Void>> futures= new ArrayList<>();
         ExecutorService executorService = Executors.newFixedThreadPool(threadsNum);
+        double[][][] fd_windows_admixed_introgressed = new double[windowStartIndexArray.length][dafs_admixed.length][dafs_introgressed.length];
         for (int i = 0; i < windowStartIndexArray.length; i++) {
             windowStartIndex = windowStartIndexArray[i];
-            windowEndIndex = Math.min(windowStartIndex+windowSize, variantsNum-1);
-            window_dafs_native_introgressed = new double[dafs_native_introgressed.length][windowEndIndex-windowStartIndex+1];
-            window_dafs_admixed = new double[dafs_native_introgressed.length][windowEndIndex-windowStartIndex+1];
+            windowEndIndex = Math.min(windowStartIndex+windowSize, variantsNum);
+            int windowIndexFinal = i;
+            int windowStartFinalIndex = windowStartIndex;
+            int windowEndFinalIndex = windowEndIndex;
             futures.add(executorService.submit(()->{
-                System.out.println();
+                DoubleList[][] abbaList = new DoubleList[dafs_admixed.length][dafs_introgressed.length];
+                DoubleList[][] babaList = new DoubleList[dafs_admixed.length][dafs_introgressed.length];
+                DoubleList[][] abba_pDList = new DoubleList[dafs_admixed.length][dafs_introgressed.length];
+                DoubleList[][] baba_pDList = new DoubleList[dafs_admixed.length][dafs_introgressed.length];
+                boolean ifVariantContinue= false;
+                double daf_native, daf_admixed, daf_introgressed, daf_pD;
+                double abba, baba, abba_pD, baba_pD;
+                for (int variantIndex = windowStartFinalIndex; variantIndex < windowEndFinalIndex; variantIndex++) {
+                    for (int popIndex = 0; popIndex < dafs_native.length; popIndex++) {
+                        if (dafs_native[popIndex][variantIndex] < 0){
+                            ifVariantContinue = true;
+                            break;
+                        }
+                    }
+                    for (int popIndex=0; popIndex < dafs_admixed.length; popIndex++){
+                        if (dafs_admixed[popIndex][variantIndex] < 0){
+                            ifVariantContinue =true;
+                            break;
+                        }
+                    }
+                    for (int popIndex = 0; popIndex < dafs_introgressed.length; popIndex++) {
+                        if (dafs_introgressed[popIndex][variantIndex] < 0){
+                            ifVariantContinue =true;
+                            break;
+                        }
+                    }
+                    if (ifVariantContinue) continue;
+                    for (int admixedTaxonIndex = 0; admixedTaxonIndex < dafs_admixed.length; admixedTaxonIndex++) {
+                        for (int introgressedPopIndex = 0; introgressedPopIndex < dafs_introgressed.length; introgressedPopIndex++) {
+                            daf_native = dafs_native[0][variantIndex];
+                            daf_admixed = dafs_admixed[admixedTaxonIndex][variantIndex];
+                            daf_introgressed = dafs_introgressed[introgressedPopIndex][variantIndex];
+                            daf_pD = daf_admixed > 0 ? daf_admixed : daf_introgressed;
+                            abba = (1-daf_native) * daf_admixed * daf_introgressed;
+                            baba = daf_native * (1-daf_admixed) * daf_introgressed;
+                            abba_pD = daf_pD * daf_pD* (1-daf_native);
+                            baba_pD = daf_pD * (1-daf_pD) * daf_native;
+                            abbaList[admixedTaxonIndex][introgressedPopIndex].add(abba);
+                            babaList[admixedTaxonIndex][introgressedPopIndex].add(baba);
+                            abba_pDList[admixedTaxonIndex][introgressedPopIndex].add(abba_pD);
+                            baba_pDList[admixedTaxonIndex][introgressedPopIndex].add(baba_pD);
+                        }
+                    }
+                }
+                int[][] abbaSum = new int[dafs_admixed.length][dafs_introgressed.length];
+                int[][] babaSum = new int[dafs_admixed.length][dafs_introgressed.length];
+                int[][] abba_pDSum = new int[dafs_admixed.length][dafs_introgressed.length];
+                int[][] baba_pDSum = new int[dafs_admixed.length][dafs_introgressed.length];
+                for (int admixedTaxonIndex = 0; admixedTaxonIndex < abbaList.length; admixedTaxonIndex++) {
+                    for (int introgressedPopIndex = 0; introgressedPopIndex < abbaList[admixedTaxonIndex].length; introgressedPopIndex++) {
+                        for (int j = 0; j < abbaList[admixedTaxonIndex][introgressedPopIndex].size(); j++) {
+                            abbaSum[admixedTaxonIndex][introgressedPopIndex]+=abbaList[admixedTaxonIndex][introgressedPopIndex].getDouble(j);
+                            babaSum[admixedTaxonIndex][introgressedPopIndex]+=babaList[admixedTaxonIndex][introgressedPopIndex].getDouble(j);
+                            abba_pDSum[admixedTaxonIndex][introgressedPopIndex]+=abba_pDList[admixedTaxonIndex][introgressedPopIndex].getDouble(j);
+                            baba_pDSum[admixedTaxonIndex][introgressedPopIndex]+=baba_pDList[admixedTaxonIndex][introgressedPopIndex].getDouble(j);
+                        }
+                    }
+                }
+                double[][] pattersonD = new double[dafs_admixed.length][dafs_introgressed.length];
+                double[][] fd = new double[dafs_admixed.length][dafs_introgressed.length];
+                double difference_ABBA_BABA, sum_ABBA_BABA, difference_ABBA_BABA_pD;
+                for (int admixedTaxonIndex = 0; admixedTaxonIndex < abbaSum.length; admixedTaxonIndex++) {
+                    for (int introgressedPopIndex = 0; introgressedPopIndex < abbaSum[admixedTaxonIndex].length; introgressedPopIndex++) {
+                        difference_ABBA_BABA = abbaSum[admixedTaxonIndex][introgressedPopIndex] - babaSum[admixedTaxonIndex][introgressedPopIndex];
+                        sum_ABBA_BABA = abbaSum[admixedTaxonIndex][introgressedPopIndex] + babaSum[admixedTaxonIndex][introgressedPopIndex];
+                        difference_ABBA_BABA_pD = abba_pDSum[admixedTaxonIndex][introgressedPopIndex] - baba_pDSum[admixedTaxonIndex][introgressedPopIndex];
+                        if (sum_ABBA_BABA == 0 || difference_ABBA_BABA_pD == 0){
+                            pattersonD[admixedTaxonIndex][introgressedPopIndex] = 0;
+                            fd[admixedTaxonIndex][introgressedPopIndex] = 0;
+                        }else {
+                            pattersonD[admixedTaxonIndex][introgressedPopIndex] = difference_ABBA_BABA/sum_ABBA_BABA;
+                            fd[admixedTaxonIndex][introgressedPopIndex] = difference_ABBA_BABA/difference_ABBA_BABA_pD;
+                        }
+
+                        if (pattersonD[admixedTaxonIndex][introgressedPopIndex] <=0 || fd[admixedTaxonIndex][introgressedPopIndex] < 0){
+                            fd[admixedTaxonIndex][introgressedPopIndex] = 0;
+                        }
+                        if (fd[admixedTaxonIndex][introgressedPopIndex] > 1){
+                            fd[admixedTaxonIndex][introgressedPopIndex] = 1;
+                        }
+                    }
+                }
+                fd_windows_admixed_introgressed[windowIndexFinal] = fd;
                 return null;
             }));
         }
+
+        for (Future<Void> future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                executorService.shutdown();
+                throw new RuntimeException(e);
+            }
+        }
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS)) {
+                // task not been completed
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+        }
+        return fd_windows_admixed_introgressed;
+
+    }
+
+    public static int[][] calculateSource(double[][][] fd_windows_admixed_introgressed, int[] windowStartIndexArray, int windowSize,
+                                          int variantsNum){
         return null;
     }
 
