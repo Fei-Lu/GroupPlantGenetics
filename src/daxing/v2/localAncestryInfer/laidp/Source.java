@@ -28,9 +28,8 @@ public enum Source {
         return index;
     }
 
-    public void setSourceFeature(int feature){
-        int resFeature = this.feature | feature;
-        this.feature = resFeature;
+    public static int addSourceFeature(int feature0, int feature1){
+        return feature0 | feature1;
     }
 
     public void setSourceFeature(Source source){

@@ -276,7 +276,7 @@ public class DemographicModelTools {
         int[] sampleSize = {30,30,30};
         int equilibriumPopulationSize = 10000;
         int[] splitEventTime_0 = {10000};
-        int[] splitEventTime_1 = {500};
+        int[] splitEventTime_1 = {5000};
         double[] ratio_admixture_divergence = {0.01};
         double[] admixtureProportion = {0.1, 0.2};
         int sequenceLength = 1_000_000;

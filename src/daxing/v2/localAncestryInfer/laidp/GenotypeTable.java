@@ -555,10 +555,25 @@ public class GenotypeTable {
         return dxyArrays;
     }
 
+    public double[][] calculatePairwiseDxy(int[] pop_taxonIndex_admixed, int[] pop_taxonIndex_native,
+                                           int[][] pop_taxonIndex_introgressed, int[] windowStartIndexArray, int windowSize) {
+        int[][] pop_taxonIndex_native_introgressed = new int[1 + pop_taxonIndex_introgressed.length][];
+        pop_taxonIndex_native_introgressed[0] = new int[pop_taxonIndex_native.length];
+        System.arraycopy(pop_taxonIndex_native, 0, pop_taxonIndex_native_introgressed[0], 0, pop_taxonIndex_native.length);
+        for (int i = 0; i < pop_taxonIndex_introgressed.length; i++) {
+            pop_taxonIndex_native_introgressed[i+1] = new int[pop_taxonIndex_introgressed[i].length];
+            for (int j = 0; j < pop_taxonIndex_introgressed[i].length; j++) {
+                pop_taxonIndex_native_introgressed[i+1][j]=pop_taxonIndex_introgressed[i][j];
+            }
+        }
+        return this.calculateDxy(pop_taxonIndex_native_introgressed, windowStartIndexArray, windowSize);
+    }
+
     /**
      *
-     * @param pop_taxonIndex_native_introgressed dim1 is different populations, dim2 is different taxa
-     * @param pop_taxonIndex_admixed dim1 is different populations, dim2 is different taxa
+     * @param pop_taxonIndex_admixed taxon index of admixed population
+     * @param pop_taxonIndex_native  taxon index of native population
+     * @param pop_taxonIndex_introgressed taxon index of all introgressed population
      * @param windowStartIndexArray site start index of all windows
      * @param windowSize window size of sliding window, the unit is variants, not bp
      * @return dxy between all admixed taxon and all source (native + introgressed) populations
@@ -566,9 +581,18 @@ public class GenotypeTable {
      * dim2 is taxon index of admixed population
      * dim3 is population index of native_introgressed populations
      */
-    public double[][][] calculateDxy(int[][] pop_taxonIndex_native_introgressed, int[] pop_taxonIndex_admixed,
-                                   int[] windowStartIndexArray,
-                                   int windowSize){
+    public double[][][] calculateAdmixedDxy(int[] pop_taxonIndex_admixed, int[] pop_taxonIndex_native,
+                                             int[][] pop_taxonIndex_introgressed,
+                                             int[] windowStartIndexArray, int windowSize){
+        int[][] pop_taxonIndex_native_introgressed = new int[1 + pop_taxonIndex_introgressed.length][];
+        pop_taxonIndex_native_introgressed[0] = new int[pop_taxonIndex_native.length];
+        System.arraycopy(pop_taxonIndex_native, 0, pop_taxonIndex_native_introgressed[0], 0, pop_taxonIndex_native.length);
+        for (int i = 0; i < pop_taxonIndex_introgressed.length; i++) {
+            pop_taxonIndex_native_introgressed[i+1] = new int[pop_taxonIndex_introgressed[i].length];
+            for (int j = 0; j < pop_taxonIndex_introgressed[i].length; j++) {
+                pop_taxonIndex_native_introgressed[i+1][j]=pop_taxonIndex_introgressed[i][j];
+            }
+        }
         int variantsNum = this.getSiteNumber();
         double[][][] dxyArrays = new double[windowStartIndexArray.length][pop_taxonIndex_admixed.length][pop_taxonIndex_native_introgressed.length];
         SNP snp_start, snp_end;
@@ -724,8 +748,8 @@ public class GenotypeTable {
      *
      * @param threadsNum threadsNum
      * @param dafs_native derived allele frequency of native population
-     * @param dafs_admixed derived allele frequency of admixed population
-     * @param dafs_introgressed derivedd allele frequency of introgressed population
+     * @param dafs_admixed derived allele frequency of each admixed taxon
+     * @param dafs_introgressed derivedd allele frequency of all introgressed populations
      * @param windowStartIndexArray site start index of all windows
      * @param windowSize window size of sliding window, the unit is variants, not bp
      * @param variantsNum total variants in genotype
@@ -734,7 +758,7 @@ public class GenotypeTable {
      * dim2 is admixed taxon
      * dim3 is introgressed population
      */
-    public static double[][][] calculate_fd(int threadsNum, double[][] dafs_native, double[][] dafs_admixed,
+    public static double[][][] calculate_fd(int threadsNum, double[] dafs_native, double[][] dafs_admixed,
                                             double[][] dafs_introgressed, int[] windowStartIndexArray, int windowSize,
                                             int variantsNum){
         int windowStartIndex, windowEndIndex;
@@ -752,15 +776,20 @@ public class GenotypeTable {
                 DoubleList[][] babaList = new DoubleList[dafs_admixed.length][dafs_introgressed.length];
                 DoubleList[][] abba_pDList = new DoubleList[dafs_admixed.length][dafs_introgressed.length];
                 DoubleList[][] baba_pDList = new DoubleList[dafs_admixed.length][dafs_introgressed.length];
+                for (int j = 0; j < dafs_admixed.length; j++) {
+                    for (int k = 0; k < dafs_introgressed.length; k++) {
+                        abbaList[j][k] = new DoubleArrayList();
+                        babaList[j][k] = new DoubleArrayList();
+                        abba_pDList[j][k] = new DoubleArrayList();
+                        baba_pDList[j][k] = new DoubleArrayList();
+                    }
+                }
                 boolean ifVariantContinue= false;
                 double daf_native, daf_admixed, daf_introgressed, daf_pD;
                 double abba, baba, abba_pD, baba_pD;
                 for (int variantIndex = windowStartFinalIndex; variantIndex < windowEndFinalIndex; variantIndex++) {
-                    for (int popIndex = 0; popIndex < dafs_native.length; popIndex++) {
-                        if (dafs_native[popIndex][variantIndex] < 0){
-                            ifVariantContinue = true;
-                            break;
-                        }
+                    if (dafs_native[variantIndex] < 0){
+                        ifVariantContinue = true;
                     }
                     for (int popIndex=0; popIndex < dafs_admixed.length; popIndex++){
                         if (dafs_admixed[popIndex][variantIndex] < 0){
@@ -777,7 +806,7 @@ public class GenotypeTable {
                     if (ifVariantContinue) continue;
                     for (int admixedTaxonIndex = 0; admixedTaxonIndex < dafs_admixed.length; admixedTaxonIndex++) {
                         for (int introgressedPopIndex = 0; introgressedPopIndex < dafs_introgressed.length; introgressedPopIndex++) {
-                            daf_native = dafs_native[0][variantIndex];
+                            daf_native = dafs_native[variantIndex];
                             daf_admixed = dafs_admixed[admixedTaxonIndex][variantIndex];
                             daf_introgressed = dafs_introgressed[introgressedPopIndex][variantIndex];
                             daf_pD = daf_admixed > 0 ? daf_admixed : daf_introgressed;
@@ -792,10 +821,10 @@ public class GenotypeTable {
                         }
                     }
                 }
-                int[][] abbaSum = new int[dafs_admixed.length][dafs_introgressed.length];
-                int[][] babaSum = new int[dafs_admixed.length][dafs_introgressed.length];
-                int[][] abba_pDSum = new int[dafs_admixed.length][dafs_introgressed.length];
-                int[][] baba_pDSum = new int[dafs_admixed.length][dafs_introgressed.length];
+                double[][] abbaSum = new double[dafs_admixed.length][dafs_introgressed.length];
+                double[][] babaSum = new double[dafs_admixed.length][dafs_introgressed.length];
+                double[][] abba_pDSum = new double[dafs_admixed.length][dafs_introgressed.length];
+                double[][] baba_pDSum = new double[dafs_admixed.length][dafs_introgressed.length];
                 for (int admixedTaxonIndex = 0; admixedTaxonIndex < abbaList.length; admixedTaxonIndex++) {
                     for (int introgressedPopIndex = 0; introgressedPopIndex < abbaList[admixedTaxonIndex].length; introgressedPopIndex++) {
                         for (int j = 0; j < abbaList[admixedTaxonIndex][introgressedPopIndex].size(); j++) {
@@ -858,7 +887,7 @@ public class GenotypeTable {
 
     /**
      *
-     * @param fd_windows_admixed_introgressed fd_windows_admixed_introgressed
+     * @param fd_windows_admixed fd_windows_admixed_introgressed
      *                                        dim1 is window index，
      *                                        dim2 is admixed taxon，
      *                                        dim3 is introgressed population
@@ -872,15 +901,15 @@ public class GenotypeTable {
      *                                               dim3 is population index of native_introgressed populations
      * @return grid source, dim1 is window index, dim is admixed taxon index
      */
-    public static Source[][] calculateSource(double[][][] fd_windows_admixed_introgressed,
+    public static int[][] calculateSource(double[][][] fd_windows_admixed,
                                              double[][] dxy_pairwise_nativeIntrogressed,
                                              double[][][] dxy_windows_admixed_nativeIntrogressed){
-        int windowNum = fd_windows_admixed_introgressed.length;
-        int admixedTaxaNum = fd_windows_admixed_introgressed[0].length;
-        int introgressedPopNum = fd_windows_admixed_introgressed[0][0].length;
-        Source[][] gridSource = new Source[admixedTaxaNum][windowNum];
+        int windowNum = fd_windows_admixed.length;
+        int admixedTaxaNum = fd_windows_admixed[0].length;
+        int introgressedPopNum = fd_windows_admixed[0][0].length;
+        int[][] gridSource = new int[admixedTaxaNum][windowNum];
         for (int i = 0; i < gridSource.length; i++) {
-            Arrays.fill(gridSource, Source.NATIVE_SOURCE_0);
+            Arrays.fill(gridSource[i], 1);
         }
         double[][] fd_sum = new double[admixedTaxaNum][introgressedPopNum];
         double[][] fd_mean = new double[admixedTaxaNum][introgressedPopNum];
@@ -888,9 +917,9 @@ public class GenotypeTable {
             Arrays.fill(fd_mean[i], -1);
         }
         for (int admixedTaxonIndex = 0; admixedTaxonIndex < admixedTaxaNum; admixedTaxonIndex++) {
-            for (int introgressedPopIndex = 0; introgressedPopIndex < introgressedPopNum; introgressedPopNum++) {
+            for (int introgressedPopIndex = 0; introgressedPopIndex < introgressedPopNum; introgressedPopIndex++) {
                 for (int windowIndex = 0; windowIndex < windowNum; windowIndex++) {
-                    fd_sum[admixedTaxonIndex][introgressedPopIndex]+= fd_windows_admixed_introgressed[windowIndex][admixedTaxonIndex][introgressedPopIndex];
+                    fd_sum[admixedTaxonIndex][introgressedPopIndex]+= fd_windows_admixed[windowIndex][admixedTaxonIndex][introgressedPopIndex];
                 }
             }
         }
@@ -899,30 +928,32 @@ public class GenotypeTable {
                 fd_mean[admixedTaxonIndex][introgressedPopIndex] = fd_sum[admixedTaxonIndex][introgressedPopIndex]/windowNum;
             }
         }
-        double dxy_min, dxy_p1p2, dxy_p2p3, fd;
+        double dxy_min, dxy_p1p2, dxy_p2p3, fd, fd_thresh, fd_max;
         Source source;
         for (int windowIndex = 0; windowIndex < windowNum; windowIndex++) {
             dxy_min = Double.MAX_VALUE;
-            for (int i = 0; i < dxy_pairwise_nativeIntrogressed.length; i++) {
+            for (int i = 0; i < dxy_pairwise_nativeIntrogressed[windowIndex].length; i++) {
                 dxy_min = dxy_pairwise_nativeIntrogressed[windowIndex][i] < dxy_min ? dxy_pairwise_nativeIntrogressed[windowIndex][i] : dxy_min;
             }
             for (int admixedTaxonIndex = 0; admixedTaxonIndex < admixedTaxaNum; admixedTaxonIndex++) {
 
-                dxy_p1p2 = dxy_windows_admixed_nativeIntrogressed[windowNum][admixedTaxonIndex][0];
+                dxy_p1p2 = dxy_windows_admixed_nativeIntrogressed[windowIndex][admixedTaxonIndex][0];
 
                 // 可能是ILS或introgress population间有基因流
                 if (dxy_min < dxy_p1p2) continue;
 
-                for (int introgressedPopIndex = 1; introgressedPopIndex < introgressedPopNum+1; introgressedPopIndex++) {
-                    fd = fd_windows_admixed_introgressed[windowIndex][admixedTaxonIndex][introgressedPopIndex-1];
+                fd_max = Double.MIN_VALUE;
+                for (int introgressedPopIndex = 1; introgressedPopIndex < introgressedPopNum +1; introgressedPopIndex++) {
+                    fd = fd_windows_admixed[windowIndex][admixedTaxonIndex][introgressedPopIndex-1];
 
                     // fd值小与全基因组均值, 很有可能是ILS引起
-                    if (fd < fd_mean[admixedTaxonIndex][windowIndex]) continue;
+                    fd_thresh = fd_mean[admixedTaxonIndex][introgressedPopIndex-1];
+                    if (fd < fd_thresh) continue;
 
                     dxy_p2p3 = dxy_windows_admixed_nativeIntrogressed[windowIndex][admixedTaxonIndex][introgressedPopIndex];
                     if (dxy_p2p3 < dxy_p1p2){
                         source = Source.getInstanceFromIndex(introgressedPopIndex).get();
-                        gridSource[admixedTaxonIndex][windowIndex].setSourceFeature(source);
+                        gridSource[admixedTaxonIndex][windowIndex] = Source.addSourceFeature(gridSource[admixedTaxonIndex][windowIndex], source.getFeature());
                     }
                 }
             }
@@ -933,7 +964,7 @@ public class GenotypeTable {
 
     public static BitSet[][] calculateLocalAncestry(int[] windowStartIndexArray, Source[][] sources, int conjunctionNum,
                                                     BitSet[][] localAncestry){
-        
+
         return null;
     }
 
