@@ -4,6 +4,9 @@ import daxing.common.bisnp.SNP;
 import daxing.common.chrrange.ChrPos;
 import daxing.common.utiles.ArrayTool;
 import daxing.common.utiles.IOTool;
+import gnu.trove.iterator.TIntIterator;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import org.apache.commons.lang.ArrayUtils;
@@ -899,7 +902,7 @@ public class GenotypeTable {
      *                                               dim1 is different window, same index as windowStartIndexArray,
      *                                               dim2 is taxon index of admixed population,
      *                                               dim3 is population index of native_introgressed populations
-     * @return grid source, dim1 is window index, dim is admixed taxon index
+     * @return grid source, dim1 is admixed taxon index, dim2 is window index
      */
     public static int[][] calculateSource(double[][][] fd_windows_admixed,
                                              double[][] dxy_pairwise_nativeIntrogressed,
@@ -961,10 +964,106 @@ public class GenotypeTable {
         return gridSource;
     }
 
+    /**
+     *
+     * @param source grid source, dim1 is admixed taxon index, dim2 is window index
+     * @param conjunctionNum conjunctionNum
+     * @return window start end index of successive window
+     * dim1 is taxon
+     */
+    public static List<int[]>[] getSuccessiveIntrogressionWindow(int[][] source, int conjunctionNum){
+        List<int[]>[] successiveWindow_taxon = new List[source.length];
+        for (int i = 0; i < successiveWindow_taxon.length; i++) {
+            successiveWindow_taxon[i] = new ArrayList<>();
+        }
+        int windowNum = source[0].length;
+        TIntSet introgressionWindowIndexSet;
+        for (int taxonIndex = 0; taxonIndex < source.length; taxonIndex++) {
+            introgressionWindowIndexSet = new TIntHashSet();
+            for (int windowIndex = 0; windowIndex < windowNum; windowIndex++) {
+                if (source[taxonIndex][windowIndex] > 1){
+                    introgressionWindowIndexSet.add(windowIndex);
+                }
+            }
+            TIntSet resultIndexSet =  new TIntHashSet(introgressionWindowIndexSet);
+            TIntIterator intIterator = introgressionWindowIndexSet.iterator();
+            while (intIterator.hasNext()){
+                int index = intIterator.next();
+                if (index > 1 && index < windowNum-conjunctionNum){
+                    int i=1;
+                    while (i <= conjunctionNum){
+                        resultIndexSet.add(index-i < 0 ? 0:index-i);
+                        resultIndexSet.add(index+i);
+                        i++;
+                    }
 
-    public static BitSet[][] calculateLocalAncestry(int[] windowStartIndexArray, Source[][] sources, int conjunctionNum,
-                                                    BitSet[][] localAncestry){
+                }else if (index == 1){
+                    resultIndexSet.add(index-1);
+                }else if (index == (windowNum-conjunctionNum)){
+                    int i = 1;
+                    while (i < conjunctionNum){
+                        resultIndexSet.add(index+i);
+                        i++;
+                    }
+                }else if (index == 0){
+                    int i = 0;
+                    while (i < conjunctionNum){
+                        resultIndexSet.add(i);
+                        i++;
+                    }
+                }
+            }
 
+            if (resultIndexSet.size()==0) continue;
+
+            // introgression window index set to sorted arrat
+            int[] resultIndexArray = resultIndexSet.toArray();
+            Arrays.sort(resultIndexArray);
+
+            // int[2] start end represent successive introgression window index
+            List<int[]> indexList = new ArrayList<>();
+            int initializeStartIndex=resultIndexArray[0];
+            int initializeEndIndex=initializeStartIndex;
+            int[] startEnd;
+            for (int i = 1; i < resultIndexArray.length; i++) {
+                if (resultIndexArray[i]-resultIndexArray[i-1]==1){
+                    initializeEndIndex = resultIndexArray[i];
+                }else {
+                    startEnd = new int[2];
+                    startEnd[0] = initializeStartIndex;
+                    startEnd[1] = initializeEndIndex;
+                    indexList.add(startEnd);
+                    initializeStartIndex = resultIndexArray[i];
+                    initializeEndIndex = initializeStartIndex ;
+                }
+            }
+            startEnd = new int[2];
+            startEnd[0]=initializeStartIndex;
+            startEnd[1] = initializeEndIndex;
+            indexList.add(startEnd);
+
+            successiveWindow_taxon[taxonIndex] = indexList;
+
+        }
+        return successiveWindow_taxon;
+    }
+
+
+    /**
+     *
+     * @param windowStartIndexArray site start index of all windows
+     * @param sourceFeature grid source, dim1 is window index, dim is admixed taxon index
+     * @param conjunctionNum conjunctionNum
+     * @param localAncestry
+     * @param genotypeTable
+     * @return
+     */
+    public static BitSet[][] calculateLocalAncestry(int[] windowStartIndexArray, int[][] sourceFeature, int conjunctionNum,
+                                                    BitSet[][] localAncestry, GenotypeTable genotypeTable,
+                                                    int[] admixedTaxaIndices, int[] sourceTaxaIndices){
+        List<int[]>[] successiveWindow_taxon = GenotypeTable.getSuccessiveIntrogressionWindow(sourceFeature, conjunctionNum);
+        BitSet[] query = new BitSet[admixedTaxaIndices.length];
+        BitSet[] sources = new BitSet[sourceTaxaIndices.length];
         return null;
     }
 

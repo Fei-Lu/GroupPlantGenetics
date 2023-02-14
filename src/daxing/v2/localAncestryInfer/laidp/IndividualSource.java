@@ -162,7 +162,7 @@ public class IndividualSource {
                     introgressionWindowIndexSet.add(i);
                 }
             }
-            TIntSet resultIndexSet =  new TIntHashSet();
+            TIntSet resultIndexSet =  new TIntHashSet(introgressionWindowIndexSet);
             TIntIterator intIterator = introgressionWindowIndexSet.iterator();
             while (intIterator.hasNext()){
                 int index = intIterator.next();
