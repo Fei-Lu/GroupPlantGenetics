@@ -9,6 +9,7 @@ import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import pgl.PGLConstraints;
@@ -18,10 +19,7 @@ import pgl.infra.utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.IntStream;
 
@@ -1048,23 +1046,79 @@ public class GenotypeTable {
         return successiveWindow_taxon;
     }
 
+    public static BitSet[][] calculateLocalAncestry(int[] windowStartIndexArray, int windowSize,
+                                                    int variantsNum, int[][] gridSource, int conjunctionNum,
+                                                    GenotypeTable genotypeTable, int[] admixedTaxaIndices,
+                                                    int[] sourceTaxaIndices, int n_wayAdmixture, double switchCostScore,
+                                                    TaxaGroup taxaGroup){
+        List<int[]>[] successiveWindow_taxon = GenotypeTable.getSuccessiveIntrogressionWindow(gridSource, conjunctionNum);
+        BitSet[] queriesGenotype = genotypeTable.getTaxaGenotype(admixedTaxaIndices);
+        BitSet[] sourcesGenotype = genotypeTable.getTaxaGenotype(sourceTaxaIndices);
+        List<String> sourceTaxaList = genotypeTable.getTaxaList(sourceTaxaIndices);
+        Map<String, Source> taxaSourceMap = taxaGroup.getTaxaSourceMap(sourceTaxaList);
+        BitSet[][] localAncestry = new BitSet[admixedTaxaIndices.length][n_wayAdmixture];
+        for (int i = 0; i < admixedTaxaIndices.length; i++) {
+            localAncestry[i] = new BitSet[n_wayAdmixture];
+            for (int j = 0; j < localAncestry[i].length; j++) {
+                localAncestry[i][j] = new BitSet();
+            }
+            // initialize native ancestry to 1
+            localAncestry[i][0].set(1, variantsNum);
+        }
 
-    /**
-     *
-     * @param windowStartIndexArray site start index of all windows
-     * @param sourceFeature grid source, dim1 is window index, dim is admixed taxon index
-     * @param conjunctionNum conjunctionNum
-     * @param localAncestry
-     * @param genotypeTable
-     * @return
-     */
-    public static BitSet[][] calculateLocalAncestry(int[] windowStartIndexArray, int[][] sourceFeature, int conjunctionNum,
-                                                    BitSet[][] localAncestry, GenotypeTable genotypeTable,
-                                                    int[] admixedTaxaIndices, int[] sourceTaxaIndices){
-        List<int[]>[] successiveWindow_taxon = GenotypeTable.getSuccessiveIntrogressionWindow(sourceFeature, conjunctionNum);
-        BitSet[] query = new BitSet[admixedTaxaIndices.length];
-        BitSet[] sources = new BitSet[sourceTaxaIndices.length];
-        return null;
+        List<Future> futures = new ArrayList<>();
+        for (int i = 0; i < admixedTaxaIndices.length; i++) {
+            for (int j = 0; j < successiveWindow_taxon[i].size(); j++) {
+
+                int admixedTaxonIndex = i;
+                int gridIndex = j;
+                int gridStart = successiveWindow_taxon[admixedTaxonIndex].get(gridIndex)[0]; // inclusive
+                int gridEnd = successiveWindow_taxon[admixedTaxonIndex].get(gridIndex)[1]; // inclusive
+                int fragmentStartIndex = windowStartIndexArray[gridStart]; // inclusive
+                int fragmentEndIndex = Math.min(windowStartIndexArray[gridEnd]+windowSize, variantsNum); // exclusive
+                BitSet queryFragment = queriesGenotype[admixedTaxonIndex].get(fragmentStartIndex, fragmentEndIndex);
+                BitSet[] sourcesFragment = new BitSet[sourcesGenotype.length];
+                for (int sourceIndex = 0; sourceIndex < sourcesGenotype.length; sourceIndex++) {
+                    sourcesFragment[sourceIndex]=sourcesGenotype[sourceIndex].get(fragmentStartIndex,fragmentEndIndex);
+                }
+                int fragmentStartPos = genotypeTable.getSnps()[fragmentStartIndex].getPos();
+                int fragmentEndPos = genotypeTable.getSnps()[fragmentEndIndex-1].getPos();
+                int fragmentLen = fragmentEndPos - fragmentStartPos + 1;
+                EnumMap<Direction, IntList[]> biDirectionCandidateSolution =
+                        Solution.getBiDirectionCandidateSourceSolution(sourcesFragment, queryFragment, fragmentLen,
+                                switchCostScore, sourceTaxaList, taxaSourceMap, 32);
+                IntList solution = Solution.calculateBreakPoint(biDirectionCandidateSolution);
+                EnumSet<Source> sources;
+                int intervalStartIndex, intervalEndIndex;
+                for (int k = 0; k < solution.size(); k=k+3) {
+                    sources = Source.getSourcesFrom(solution.getInt(k));
+                    intervalStartIndex = solution.getInt(k+1)+fragmentStartIndex; // inclusive
+                    intervalEndIndex = solution.getInt(k+2)+fragmentStartIndex; // inclusive
+                    for (Source source : sources){
+                        if (source.equals(Source.NATIVE_SOURCE_0)) continue;
+                        localAncestry[admixedTaxonIndex][source.getIndex()].set(intervalStartIndex, intervalEndIndex+1);
+                        localAncestry[admixedTaxonIndex][0].set(intervalStartIndex, intervalEndIndex+1, false);
+                    }
+                }
+            }
+        }
+        return localAncestry;
+    }
+
+    public BitSet[] getTaxaGenotype(int[] taxaIndices){
+        BitSet[] genoTaxa = new BitSet[taxaIndices.length];
+        for (int i = 0; i < genoTaxa.length; i++) {
+            genoTaxa[i] = (BitSet) this.genoTaxon[taxaIndices[i]][0].clone();
+        }
+        return genoTaxa;
+    }
+
+    public List<String> getTaxaList(int[] taxaIndices){
+        List<String> taxaList = new ArrayList<>();
+        for (int index : taxaIndices){
+            taxaList.add(this.taxa[index]);
+        }
+        return taxaList;
     }
 
 
