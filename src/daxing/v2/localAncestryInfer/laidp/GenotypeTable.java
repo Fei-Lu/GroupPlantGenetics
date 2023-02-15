@@ -1135,6 +1135,17 @@ public class GenotypeTable {
         return localAncestry;
     }
 
+    /**
+     *
+     * @param windowSize
+     * @param stepSize
+     * @param taxaGroupFile
+     * @param ancestralAlleleBitSet
+     * @param conjunctionNum
+     * @param switchCostScore
+     * @param threadsNum
+     * @return BitSet[][] local ancestry, dim1 is admixed taxon index, dim2 is n_way admixture, index equal Source.index
+     */
     public BitSet[][] calculateLocalAncestry(int windowSize, int stepSize, String taxaGroupFile,
                                              BitSet[] ancestralAlleleBitSet, int conjunctionNum,
                                              double switchCostScore, int threadsNum){
