@@ -76,7 +76,7 @@ public class LAIDP_runner implements LocalAncestry {
         }
     }
 
-    private void startRun(){
+    public void startRun(){
         this.prepareFile();
         this.runLAIDP();
     }
@@ -262,7 +262,13 @@ public class LAIDP_runner implements LocalAncestry {
                     for (int j = 0; j < temp.size(); j++) {
                         tem = PStringUtils.fastSplit(temp.get(j), ",");
                         for (int k = 0; k < tem.size(); k++) {
-                            localAnc[i][j][k].add(Integer.parseInt(tem.get(k)));
+                            if (k == 0){
+                                // native ancestry
+                                localAnc[i][j][tem.size()-1].add(Integer.parseInt(tem.get(k)));
+                            }else {
+                                // introgressed ancestry
+                                localAnc[i][j][k-1].add(Integer.parseInt(tem.get(k)));
+                            }
                         }
                     }
                 }
