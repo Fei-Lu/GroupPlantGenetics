@@ -91,76 +91,64 @@ public class Solution {
      * the second and third number is start(inclusive) position and end(inclusive) position
      */
     public static IntList[] getCandidateSolution(int[][] srcGenotype, int[] queryGenotype, double switchCostScore,
-                                                 List<String> srcIndiList,
-                                                 Map<String, Source> taxaSourceMap){
+                                                 List<String> srcIndiList, Map<String, Source> taxaSourceMap) {
 
         double[][] miniCost = Solution.getMiniCostScore(srcGenotype, queryGenotype, switchCostScore);
+        int haplotypeLen = miniCost[0].length;
 
-//        long start = System.nanoTime();
-        int haplotypeLen=miniCost[0].length;
-
-        // miniCost score indexList
-        double miniCostScore= Double.MAX_VALUE;
+        // Find the index of the minimum cost score
+        double miniCostScore = Double.MAX_VALUE;
         IntList miniCostScoreIndexList = new IntArrayList();
         for (int i = 0; i < miniCost.length; i++) {
-            miniCostScore = miniCost[i][haplotypeLen-1] < miniCostScore ? miniCost[i][haplotypeLen-1] :miniCostScore;
-        }
-        for (int i = 0; i < miniCost.length; i++) {
-            if (miniCostScore==miniCost[i][haplotypeLen-1]){
+            if (miniCost[i][haplotypeLen-1] < miniCostScore) {
+                miniCostScore = miniCost[i][haplotypeLen-1];
+                miniCostScoreIndexList.clear();
+                miniCostScoreIndexList.add(i);
+            } else if (miniCost[i][haplotypeLen-1] == miniCostScore) {
                 miniCostScoreIndexList.add(i);
             }
         }
 
-        // new solution, the first dim is miniCostScoreList, the second dim is SNP
+        // Initialize the candidate solutions
         IntList[] solutions = new IntList[miniCostScoreIndexList.size()];
-
-        Source source;
         for (int i = 0; i < solutions.length; i++) {
             solutions[i] = new IntArrayList();
-            source = taxaSourceMap.get(srcIndiList.get(miniCostScoreIndexList.getInt(i)));
+            Source source = taxaSourceMap.get(srcIndiList.get(miniCostScoreIndexList.getInt(i)));
             solutions[i].add(Source.valueOf(source.name()).getFeature());
             solutions[i].add(haplotypeLen-1);
             solutions[i].add(haplotypeLen-1);
         }
 
-        // find all solution
-        IntSet currentIndexSet, nextIndexSet;
-        int currentSourceFeature, nextSourceFeature;
-        IntIterator tIntIterator;
-        int index, currentSolutionElementIndex;
-
+        // Compute the candidate solutions
         for (int i = 0; i < solutions.length; i++) {
-            index = miniCostScoreIndexList.getInt(i);
-            currentIndexSet = new IntOpenHashSet();
-            currentIndexSet.add(index);
+            IntSet currentIndexSet = new IntOpenHashSet();
+            currentIndexSet.add(miniCostScoreIndexList.getInt(i));
+            int currentSolutionElementIndex = 0;
 
-            currentSolutionElementIndex=0;
             for (int j = haplotypeLen - 1; j > 0; j--) {
-                tIntIterator = currentIndexSet.iterator();
-                nextIndexSet = new IntOpenHashSet();
-                while (tIntIterator.hasNext()){
+                IntSet nextIndexSet = new IntOpenHashSet();
 
-                    index = tIntIterator.nextInt();
+                for (IntIterator it = currentIndexSet.iterator(); it.hasNext(); ) {
+                    int index = it.nextInt();
 
-                    // 当前单倍型
-                    if (miniCost[index][j-1] <= miniCost[index][j]){
+                    // Add the current index to the next index set if the cost of staying at the current index is lower
+                    if (miniCost[index][j-1] <= miniCost[index][j]) {
                         nextIndexSet.add(index);
                     }
 
-                    // 转换单倍型
+                    // Add the indices of other individuals to the next index set if the cost of switching to them is lower
                     for (int k = 0; k < miniCost.length; k++) {
-                        if (k==index) continue;
-                        if ((miniCost[k][j-1]+switchCostScore) <= miniCost[index][j]){
+                        if (k != index && (miniCost[k][j-1] + switchCostScore) <= miniCost[index][j]) {
                             nextIndexSet.add(k);
                         }
                     }
                 }
 
-                currentSourceFeature = Solution.getSourceFutureFrom(currentIndexSet, srcIndiList, taxaSourceMap);
-                nextSourceFeature = Solution.getSourceFutureFrom(nextIndexSet, srcIndiList, taxaSourceMap);
-                if (currentSourceFeature==nextSourceFeature){
-                    solutions[i].set(currentSolutionElementIndex*3+2, j-1);
-                }else {
+                int currentSourceFeature = Solution.getSourceFutureFrom(currentIndexSet, srcIndiList, taxaSourceMap);
+                int nextSourceFeature = Solution.getSourceFutureFrom(nextIndexSet, srcIndiList, taxaSourceMap);
+                if (currentSourceFeature == nextSourceFeature) {
+                    solutions[i].set(currentSolutionElementIndex * 3 + 2, j-1);
+                } else {
                     solutions[i].add(nextSourceFeature);
                     solutions[i].add(j-1);
                     solutions[i].add(j-1);
@@ -170,8 +158,10 @@ public class Solution {
                 currentIndexSet = nextIndexSet;
             }
         }
+
         return solutions;
     }
+
 
     /**
      * 需要性能优化

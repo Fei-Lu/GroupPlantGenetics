@@ -18,6 +18,8 @@ import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.*;
@@ -1050,59 +1052,97 @@ public class GenotypeTable {
                                                     int variantsNum, int[][] gridSource, int conjunctionNum,
                                                     GenotypeTable genotypeTable, int[] admixedTaxaIndices,
                                                     int[] sourceTaxaIndices, int n_wayAdmixture, double switchCostScore,
-                                                    TaxaGroup taxaGroup){
+                                                    TaxaGroup taxaGroup, int threadsNum){
         List<int[]>[] successiveWindow_taxon = GenotypeTable.getSuccessiveIntrogressionWindow(gridSource, conjunctionNum);
         BitSet[] queriesGenotype = genotypeTable.getTaxaGenotype(admixedTaxaIndices);
         BitSet[] sourcesGenotype = genotypeTable.getTaxaGenotype(sourceTaxaIndices);
         List<String> sourceTaxaList = genotypeTable.getTaxaList(sourceTaxaIndices);
         Map<String, Source> taxaSourceMap = taxaGroup.getTaxaSourceMap(sourceTaxaList);
-        BitSet[][] localAncestry = new BitSet[admixedTaxaIndices.length][n_wayAdmixture];
+        BitSet[][] localAncestry = new BitSet[admixedTaxaIndices.length][];
         for (int i = 0; i < admixedTaxaIndices.length; i++) {
             localAncestry[i] = new BitSet[n_wayAdmixture];
             for (int j = 0; j < localAncestry[i].length; j++) {
                 localAncestry[i][j] = new BitSet();
             }
             // initialize native ancestry to 1
-            localAncestry[i][0].set(1, variantsNum);
+            localAncestry[i][0].set(0, variantsNum);
         }
 
-        List<Future> futures = new ArrayList<>();
+        ExecutorService executorService = Executors.newFixedThreadPool(threadsNum);
+        List<Future<Void>> futures = new ArrayList<>();
         for (int i = 0; i < admixedTaxaIndices.length; i++) {
             for (int j = 0; j < successiveWindow_taxon[i].size(); j++) {
-
                 int admixedTaxonIndex = i;
                 int gridIndex = j;
-                int gridStart = successiveWindow_taxon[admixedTaxonIndex].get(gridIndex)[0]; // inclusive
-                int gridEnd = successiveWindow_taxon[admixedTaxonIndex].get(gridIndex)[1]; // inclusive
-                int fragmentStartIndex = windowStartIndexArray[gridStart]; // inclusive
-                int fragmentEndIndex = Math.min(windowStartIndexArray[gridEnd]+windowSize, variantsNum); // exclusive
-                BitSet queryFragment = queriesGenotype[admixedTaxonIndex].get(fragmentStartIndex, fragmentEndIndex);
-                BitSet[] sourcesFragment = new BitSet[sourcesGenotype.length];
-                for (int sourceIndex = 0; sourceIndex < sourcesGenotype.length; sourceIndex++) {
-                    sourcesFragment[sourceIndex]=sourcesGenotype[sourceIndex].get(fragmentStartIndex,fragmentEndIndex);
-                }
-                int fragmentStartPos = genotypeTable.getSnps()[fragmentStartIndex].getPos();
-                int fragmentEndPos = genotypeTable.getSnps()[fragmentEndIndex-1].getPos();
-                int fragmentLen = fragmentEndPos - fragmentStartPos + 1;
-                EnumMap<Direction, IntList[]> biDirectionCandidateSolution =
-                        Solution.getBiDirectionCandidateSourceSolution(sourcesFragment, queryFragment, fragmentLen,
-                                switchCostScore, sourceTaxaList, taxaSourceMap, 32);
-                IntList solution = Solution.calculateBreakPoint(biDirectionCandidateSolution);
-                EnumSet<Source> sources;
-                int intervalStartIndex, intervalEndIndex;
-                for (int k = 0; k < solution.size(); k=k+3) {
-                    sources = Source.getSourcesFrom(solution.getInt(k));
-                    intervalStartIndex = solution.getInt(k+1)+fragmentStartIndex; // inclusive
-                    intervalEndIndex = solution.getInt(k+2)+fragmentStartIndex; // inclusive
-                    for (Source source : sources){
-                        if (source.equals(Source.NATIVE_SOURCE_0)) continue;
-                        localAncestry[admixedTaxonIndex][source.getIndex()].set(intervalStartIndex, intervalEndIndex+1);
-                        localAncestry[admixedTaxonIndex][0].set(intervalStartIndex, intervalEndIndex+1, false);
+                futures.add(executorService.submit(()->{
+                    int gridStart = successiveWindow_taxon[admixedTaxonIndex].get(gridIndex)[0]; // inclusive
+                    int gridEnd = successiveWindow_taxon[admixedTaxonIndex].get(gridIndex)[1]; // inclusive
+                    int fragmentStartIndex = windowStartIndexArray[gridStart]; // inclusive
+                    int fragmentEndIndex = Math.min(windowStartIndexArray[gridEnd]+windowSize, variantsNum); // exclusive
+                    BitSet queryFragment = queriesGenotype[admixedTaxonIndex].get(fragmentStartIndex, fragmentEndIndex);
+                    BitSet[] sourcesFragment = new BitSet[sourcesGenotype.length];
+                    for (int sourceIndex = 0; sourceIndex < sourcesGenotype.length; sourceIndex++) {
+                        sourcesFragment[sourceIndex]=sourcesGenotype[sourceIndex].get(fragmentStartIndex,fragmentEndIndex);
                     }
-                }
+                    int fragmentStartPos = genotypeTable.getSnps()[fragmentStartIndex].getPos();
+                    int fragmentEndPos = genotypeTable.getSnps()[fragmentEndIndex-1].getPos();
+                    int fragmentLen = fragmentEndPos - fragmentStartPos + 1;
+                    EnumMap<Direction, IntList[]> biDirectionCandidateSolution =
+                            Solution.getBiDirectionCandidateSourceSolution(sourcesFragment, queryFragment, fragmentLen,
+                                    switchCostScore, sourceTaxaList, taxaSourceMap, 32);
+                    IntList solution = Solution.calculateBreakPoint(biDirectionCandidateSolution);
+                    EnumSet<Source> sources;
+                    int intervalStartIndex, intervalEndIndex;
+                    for (int k = 0; k < solution.size(); k=k+3) {
+                        sources = Source.getSourcesFrom(solution.getInt(k));
+                        intervalStartIndex = solution.getInt(k+1)+fragmentStartIndex; // inclusive
+                        intervalEndIndex = solution.getInt(k+2)+fragmentStartIndex; // inclusive
+                        for (Source source : sources){
+                            if (source.equals(Source.NATIVE_SOURCE_0)) continue;
+                            localAncestry[admixedTaxonIndex][source.getIndex()].set(intervalStartIndex, intervalEndIndex+1);
+                            localAncestry[admixedTaxonIndex][0].set(intervalStartIndex, intervalEndIndex+1, false);
+                        }
+                    }
+                    return null;
+                }));
             }
         }
+        for (Future<Void> future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                executorService.shutdown();
+                throw new RuntimeException(e);
+            }
+        }
+        executorService.shutdown();
         return localAncestry;
+    }
+
+    public static void write_localAncestry(BitSet[][] localAncestry, String localAncestryOutFile, int variantsNum){
+        try (BufferedWriter bw = IOTool.getWriter(localAncestryOutFile)) {
+            StringBuilder sb = new StringBuilder();
+            int admixedTaxonNum = localAncestry.length;
+            int sourceNum = localAncestry[0].length;
+            int ancestry;
+            for (int variantIndex = 0; variantIndex < variantsNum; variantIndex++) {
+                sb.setLength(0);
+                for (int admixedTaxonIndex = 0; admixedTaxonIndex < admixedTaxonNum; admixedTaxonIndex++) {
+                    for (int sourceIndex = 0; sourceIndex < sourceNum; sourceIndex++) {
+                        ancestry = localAncestry[admixedTaxonIndex][sourceIndex].get(variantIndex) ? 1 : 0;
+                        sb.append(ancestry).append(",");
+                    }
+                    sb.deleteCharAt(sb.length()-1);
+                    sb.append("\t");
+                }
+                sb.deleteCharAt(sb.length()-1);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public BitSet[] getTaxaGenotype(int[] taxaIndices){
