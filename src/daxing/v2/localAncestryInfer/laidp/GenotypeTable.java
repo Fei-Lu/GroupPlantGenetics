@@ -1236,9 +1236,15 @@ public class GenotypeTable {
     
 
 
-    public static void write_localAncestry(BitSet[][] localAncestry, String localAncestryOutFile, int variantsNum){
+    public static void write_localAncestry(BitSet[][] localAncestry, String localAncestryOutFile, int variantsNum,
+                                           String taxaGroupFile){
+        TaxaGroup taxaGroup = TaxaGroup.buildFrom(taxaGroupFile);
         try (BufferedWriter bw = IOTool.getWriter(localAncestryOutFile)) {
+            List<String> admixedTaxaList = taxaGroup.getTaxaOf(Source.ADMIXED);
             StringBuilder sb = new StringBuilder();
+            sb.append(String.join("\t", admixedTaxaList));
+            bw.write(sb.toString());
+            bw.newLine();
             int admixedTaxonNum = localAncestry.length;
             int sourceNum = localAncestry[0].length;
             int ancestry;
@@ -1270,7 +1276,7 @@ public class GenotypeTable {
         BitSet[][] localAnc = genotypeTable.calculateLocalAncestry(windowSize, stepSize, taxaGroupFile,
                 ancestralAlleleBitSet, conjunctionNum, switchCostScore, threadsNum);
         int variantsNum = genotypeTable.getSiteNumber();
-        GenotypeTable.write_localAncestry(localAnc, localAnceOutFile, variantsNum);
+        GenotypeTable.write_localAncestry(localAnc, localAnceOutFile, variantsNum, taxaGroupFile);
     }
 
     public BitSet[] getAncestralAlleleBitSet(String ancestryAllele){
