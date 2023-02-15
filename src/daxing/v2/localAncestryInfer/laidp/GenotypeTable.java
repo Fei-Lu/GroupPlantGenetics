@@ -1262,6 +1262,78 @@ public class GenotypeTable {
         }
     }
 
+    public static void run_LAIDP(String genotypeFile, int windowSize, int stepSize, String taxaGroupFile,
+                                 String ancestryAllele, int conjunctionNum,
+                                 double switchCostScore, String localAnceOutFile, int threadsNum){
+        GenotypeTable genotypeTable = new GenotypeTable(genotypeFile);
+        BitSet[] ancestralAlleleBitSet = genotypeTable.getAncestralAlleleBitSet(ancestryAllele);
+        BitSet[][] localAnc = genotypeTable.calculateLocalAncestry(windowSize, stepSize, taxaGroupFile,
+                ancestralAlleleBitSet, conjunctionNum, switchCostScore, threadsNum);
+        int variantsNum = genotypeTable.getSiteNumber();
+        GenotypeTable.write_localAncestry(localAnc, localAnceOutFile, variantsNum);
+    }
+
+    public BitSet[] getAncestralAlleleBitSet(String ancestryAllele){
+        if (ancestryAllele.equals("simulation")){
+            BitSet[] ancestralAlleleBitSet = new BitSet[2];
+            ancestralAlleleBitSet[0] = new BitSet();
+            ancestralAlleleBitSet[1] = new BitSet();
+            return ancestralAlleleBitSet;
+        }
+        List<String> temp= PStringUtils.fastSplit(ancestryAllele, ",");
+        int[] outGroupTaxaIndices = new int[temp.size()];
+        if (temp.size() > 1){
+            for (int i = 0; i < temp.size(); i++) {
+                outGroupTaxaIndices[i] = Integer.parseInt(temp.get(i));
+            }
+            return this.getAncestralAlleleFromTaxa(outGroupTaxaIndices);
+        }else {
+            return GenotypeTable.getAncestralAlleleBitSetFromFile(ancestryAllele);
+        }
+    }
+
+
+
+    /**
+     *
+     * @param ancestryAlleleFile
+     *  pos ref alt ancestralState
+     *  2 A T 0
+     *  3 C A 1
+     *  4 G T -9
+     *  ancestralState 0 means ancestral allele is reference allele
+     *                 1 means ancestral allele is alt allele
+     *                 -9 means ancestral allele is missing
+     *  total pos number must be equal genotype file
+     * @return
+     */
+    public static BitSet[] getAncestralAlleleBitSetFromFile(String ancestryAlleleFile){
+        BitSet[] ancestralAlleleBitset = new BitSet[2];
+        for (int i = 0; i < ancestralAlleleBitset.length; i++) {
+            ancestralAlleleBitset[i] = new BitSet();
+        }
+        try (BufferedReader br = IOTool.getReader(ancestryAlleleFile)) {
+            br.readLine();
+            String line;
+            List<String> temp;
+            int k = 0;
+            int ancestralState;
+            while ((line = br.readLine())!=null){
+                temp =PStringUtils.fastSplit(line);
+                ancestralState = Integer.parseInt(temp.get(3));
+                if (ancestralState < 0){
+                    ancestralAlleleBitset[1].set(k);
+                }else if (ancestralState == 1){
+                    ancestralAlleleBitset[0].set(k);
+                }
+                k++;
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return ancestralAlleleBitset;
+    }
+
     public BitSet[] getTaxaGenotype(int[] taxaIndices){
         BitSet[] genoTaxa = new BitSet[taxaIndices.length];
         for (int i = 0; i < genoTaxa.length; i++) {
