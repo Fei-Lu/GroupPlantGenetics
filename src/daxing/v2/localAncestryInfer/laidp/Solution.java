@@ -54,14 +54,23 @@ public class Solution {
                 miniCostSwitch = Math.min(miniCost[j][i - 1], miniCostSwitch);
             }
 
+//            for (int j = 0; j < rowNum; j++) {
+//                // 最小cost路径对应当前haplotype
+//                if (miniCost[j][i-1] < miniCostSwitch+switchCostScore){
+//                    miniCost[j][i] = miniCost[j][i-1] + distance[j][i];
+//                }else {
+//                    // 最小cost路径对应转换单倍型
+//                    miniCost[j][i] = miniCostSwitch+switchCostScore+distance[j][i];
+//                }
+//            }
+
+            // Calculate miniCost matrix for current SNP position
             for (int j = 0; j < rowNum; j++) {
-                // 最小cost路径对应当前haplotype
-                if (miniCost[j][i-1] < miniCostSwitch+switchCostScore){
-                    miniCost[j][i] = miniCost[j][i-1] + distance[j][i];
-                }else {
-                    // 最小cost路径对应转换单倍型
-                    miniCost[j][i] = miniCostSwitch+switchCostScore+distance[j][i];
+                miniCost[j][i] = miniCostSwitch + switchCostScore;
+                if (miniCost[j][i - 1] < miniCostSwitch + switchCostScore) {
+                    miniCost[j][i] = miniCost[j][i - 1];
                 }
+                miniCost[j][i] += distance[j][i];
             }
         }
 //        System.out.println("calculate mini cost matrix take "+Benchmark.getTimeSpanSeconds(start)+ " seconds");
