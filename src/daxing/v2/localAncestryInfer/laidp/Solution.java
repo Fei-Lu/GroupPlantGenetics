@@ -29,11 +29,7 @@ public class Solution {
         int colNum = srcGenotype[0].length;
 
         // distance
-        double[][] distance = new double[rowNum][];
-        for (int i = 0; i < rowNum; i++) {
-            distance[i]= new double[srcGenotype[i].length];
-            Arrays.fill(distance[i], -1);
-        }
+        double[][] distance = new double[rowNum][colNum];
         for (int i = 0; i < rowNum; i++) {
             for (int j = 0; j < colNum; j++) {
                 distance[i][j]=Math.abs(srcGenotype[i][j]- queryGenotype[j]);
@@ -41,10 +37,8 @@ public class Solution {
         }
 
         // initialize mini cost score
-        double[][] miniCost = new double[rowNum][];
+        double[][] miniCost = new double[rowNum][colNum];
         for (int i = 0; i < miniCost.length; i++) {
-            miniCost[i] = new double[distance[0].length];
-            Arrays.fill(miniCost[i], -1);
             miniCost[i][0] = distance[i][0];
         }
 
@@ -57,7 +51,7 @@ public class Solution {
             // j-1 SNP位置，单倍型路径发生switch对应的最小Cost
             double miniCostSwitch=Double.MAX_VALUE;
             for (int j = 0; j < distance.length; j++) {
-                miniCostSwitch = miniCost[j][i-1] < miniCostSwitch ? miniCost[j][i-1] : miniCostSwitch;
+                miniCostSwitch = Math.min(miniCost[j][i - 1], miniCostSwitch);
             }
 
             for (int j = 0; j < rowNum; j++) {
