@@ -13,7 +13,7 @@ public class Solution {
      * @param switchCostScore
      * @return mini cost score matrix, the first dim is haplotype, the second dim is SNP position
      */
-    public static double[][] getMiniCostScore(double[][] srcGenotype, double[] queryGenotype,
+    public static double[][] getMiniCostScore(int[][] srcGenotype, int[] queryGenotype,
                                               double switchCostScore){
         //        double switchCostScore= 1.5;
 //        int[][] srcGenotype = {{0,1,0,1,0,1,0,0,0,0,1,1},
@@ -25,21 +25,23 @@ public class Solution {
 //        int[] queryGenotype =       {1,1,0,0,0,1,0,0,1,1,1,1};
 
 //        long start = System.nanoTime();
+        int rowNum = srcGenotype.length;
+        int colNum = srcGenotype[0].length;
 
         // distance
-        double[][] distance = new double[srcGenotype.length][];
-        for (int i = 0; i < distance.length; i++) {
+        double[][] distance = new double[rowNum][];
+        for (int i = 0; i < rowNum; i++) {
             distance[i]= new double[srcGenotype[i].length];
             Arrays.fill(distance[i], -1);
         }
-        for (int i = 0; i < distance.length; i++) {
-            for (int j = 0; j < distance[i].length; j++) {
+        for (int i = 0; i < rowNum; i++) {
+            for (int j = 0; j < colNum; j++) {
                 distance[i][j]=Math.abs(srcGenotype[i][j]- queryGenotype[j]);
             }
         }
 
         // initialize mini cost score
-        double[][] miniCost = new double[distance.length][];
+        double[][] miniCost = new double[rowNum][];
         for (int i = 0; i < miniCost.length; i++) {
             miniCost[i] = new double[distance[0].length];
             Arrays.fill(miniCost[i], -1);
@@ -50,7 +52,7 @@ public class Solution {
         // i is SNP position
         // j is haplotype index of source population
         // miniCost
-        for (int i = 1; i < distance[0].length; i++) {
+        for (int i = 1; i < colNum; i++) {
 
             // j-1 SNP位置，单倍型路径发生switch对应的最小Cost
             double miniCostSwitch=Double.MAX_VALUE;
@@ -58,7 +60,7 @@ public class Solution {
                 miniCostSwitch = miniCost[j][i-1] < miniCostSwitch ? miniCost[j][i-1] : miniCostSwitch;
             }
 
-            for (int j = 0; j < distance.length; j++) {
+            for (int j = 0; j < rowNum; j++) {
                 // 最小cost路径对应当前haplotype
                 if (miniCost[j][i-1] < miniCostSwitch+switchCostScore){
                     miniCost[j][i] = miniCost[j][i-1] + distance[j][i];
@@ -85,7 +87,8 @@ public class Solution {
      * the first number is source population index, equal WindowSource.Source.index()
      * the second and third number is start(inclusive) position and end(inclusive) position
      */
-    public static IntList[] getCandidateSolution(double[][] srcGenotype, double[] queryGenotype, double switchCostScore, List<String> srcIndiList,
+    public static IntList[] getCandidateSolution(int[][] srcGenotype, int[] queryGenotype, double switchCostScore,
+                                                 List<String> srcIndiList,
                                                  Map<String, Source> taxaSourceMap){
 
         double[][] miniCost = Solution.getMiniCostScore(srcGenotype, queryGenotype, switchCostScore);
@@ -190,8 +193,8 @@ public class Solution {
                                                                                       List<String> srcIndiList,
                                                                                       Map<String, Source> taxaSourceMap,
                                                                                       int maxSolutionCount){
-        double[][] srcGenotype = new double[srcGenotypeFragment.length][fragmentLength];
-        double[] queryGenotype = new double[fragmentLength];
+        int[][] srcGenotype = new int[srcGenotypeFragment.length][fragmentLength];
+        int[] queryGenotype = new int[fragmentLength];
         for (int i = 0; i < srcGenotype.length; i++) {
             for (int j = srcGenotypeFragment[i].nextSetBit(0); j >= 0; j=srcGenotypeFragment[i].nextSetBit(j+1)) {
                 srcGenotype[i][j] = 1;
@@ -257,10 +260,10 @@ public class Solution {
         return sizes;
     }
 
-    public static double[][] reverseSrcGenotype(double[][] srcGenotype){
-        double[][] reverseGenotype = new double[srcGenotype.length][];
+    public static int[][] reverseSrcGenotype(int[][] srcGenotype){
+        int[][] reverseGenotype = new int[srcGenotype.length][];
         for (int i = 0; i < reverseGenotype.length; i++) {
-            reverseGenotype[i] = new double[srcGenotype[0].length];
+            reverseGenotype[i] = new int[srcGenotype[0].length];
             Arrays.fill(reverseGenotype[i], -1);
         }
 
@@ -277,8 +280,8 @@ public class Solution {
      * @param genotype
      * @return 反向序列
      */
-    public static double[] reverseGenotype(double[] genotype){
-        double[] reverseGenotype = new double[genotype.length];
+    public static int[] reverseGenotype(int[] genotype){
+        int[] reverseGenotype = new int[genotype.length];
         Arrays.fill(reverseGenotype, -1);
         for (int i = 0; i < genotype.length; i++) {
             reverseGenotype[genotype.length-1-i]=genotype[i];
