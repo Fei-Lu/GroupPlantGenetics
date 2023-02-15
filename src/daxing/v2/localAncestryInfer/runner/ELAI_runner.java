@@ -322,6 +322,7 @@ public class ELAI_runner implements LocalAncestry {
                     br.readLine();
                     haplotypeIndex ++;
                 }
+                br.close();
             }
             for (int i = 0; i < localAnc.length; i++) {
                 for (int j = 0; j < localAnc[i].length; j++) {

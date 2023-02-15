@@ -285,6 +285,7 @@ public class Loter_runner implements LocalAncestry{
                     haplotypeIndex++;
                     br.readLine();
                 }
+                br.close();
             }
             for (int i = 0; i < localAnc.length; i++) {
                 for (int j = 0; j < localAnc[i].length; j++) {
