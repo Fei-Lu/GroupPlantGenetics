@@ -2,7 +2,6 @@ package daxing.v2.localAncestryInfer.laidp;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
@@ -11,11 +10,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public enum Source {
-    NATIVE_SOURCE_0(0, 0b1),
-    INTROGRESSED_SOURCE_1(1, 0b10),
-    INTROGRESSED_SOURCE_2(2, 0b100),
-    INTROGRESSED_SOURCE_3(3, 0b1000),
-    INTROGRESSED_SOURCE_4(4, 0b10000);
+    NATIVE(0, 0b1),
+    INTROGRESSED_1(1, 0b10),
+    INTROGRESSED_2(2, 0b100),
+    INTROGRESSED_3(3, 0b1000),
+    INTROGRESSED_4(4, 0b10000),
+    ADMIXED(5, 0b100000);
 
     private int index;
     private int feature;

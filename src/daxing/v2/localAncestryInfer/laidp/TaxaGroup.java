@@ -54,17 +54,62 @@ public class TaxaGroup {
         return popList;
     }
 
-    public List<String> getTaxaOf(String popName){
+    public List<Source> getSourceList() {
+        return sourceList;
+    }
+
+    public List<String> getTaxaOf(Source source){
         List<String> taxaList= new ArrayList<>();
-        List<String> popList = this.getPop();
-        assert popList.contains(popName) : "error, check your popName";
+        List<Source> sources = this.getSourceList();
+        assert sources.contains(source) : "error, check your popName";
         int totalTaxaNum = this.getTotalTaxaNumber();
         for (int i = 0; i < totalTaxaNum; i++) {
-            if (this.popList.get(i).equals(popName)){
+            if (this.getSourceList().get(i).equals(source)){
                 taxaList.add(this.taxaList.get(i));
             }
         }
         return taxaList;
+    }
+
+    public List<String> getTaxaOf_native_introgressed(){
+        List<Source> native_introgressed_sources = this.get_Native_Introgressed_Source();
+        List<String> taxaList = new ArrayList<>();
+        for (Source source : native_introgressed_sources){
+            taxaList.addAll(this.getTaxaOf(source));
+        }
+        return taxaList;
+    }
+
+    public List<String>[] getTaxaOf(List<Source> sources){
+        List<String>[] res = new List[sources.size()];
+        for (int i = 0; i < sources.size(); i++) {
+            res[i] = this.getTaxaOf(sources.get(i));
+        }
+        return res;
+    }
+
+    public List<String>[] getIntrogressedPopTaxa(){
+        Set<Source> sourceSet = new HashSet<>(this.sourceList);
+        sourceSet.remove(Source.ADMIXED);
+        sourceSet.remove(Source.NATIVE);
+        List<Source> sources = new ArrayList<>(sourceSet);
+        Collections.sort(sources);
+        return this.getTaxaOf(sources);
+    }
+
+    public List<String>[] getNative_admixed_introgressed_Taxa(){
+        int nativePopNum = 1;
+        int admixedTaxaNum = this.getTaxaOf(Source.ADMIXED).size();
+        int introgressedPopNum = this.getIntrogressedPopTaxa().length;
+        List<String>[] res = new List[nativePopNum+admixedTaxaNum+introgressedPopNum];
+        res[0] = this.getTaxaOf(Source.NATIVE);
+        for (int i = 1; i < admixedTaxaNum + nativePopNum; i++) {
+            res[i] = this.getTaxaOf(Source.ADMIXED).subList(i-1, i);
+        }
+        for (int i = 0; i < introgressedPopNum; i++) {
+            res[i+nativePopNum+admixedTaxaNum]=this.getIntrogressedPopTaxa()[i];
+        }
+        return res;
     }
 
     public Map<String, Source> getTaxaSourceMap(List<String> taxaList){
@@ -76,6 +121,15 @@ public class TaxaGroup {
         }
         return taxaSourceMap;
     }
+
+    public List<Source> get_Native_Introgressed_Source(){
+        Set<Source> sourceSet = new HashSet<>(this.sourceList);
+        sourceSet.remove(Source.ADMIXED);
+        List<Source> sources = new ArrayList<>(sourceSet);
+        Collections.sort(sources);
+        return sources;
+    }
+
 
 
 }
