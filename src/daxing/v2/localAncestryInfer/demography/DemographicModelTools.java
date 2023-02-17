@@ -276,9 +276,9 @@ public class DemographicModelTools {
         int[] sampleSize = {30,30,30};
         int equilibriumPopulationSize = 10000;
         int[] splitEventTime_0 = {10000};
-        int[] splitEventTime_1 = {5000};
-        double[] ratio_admixture_divergence = {0.01};
-        double[] admixtureProportion = {0.1, 0.2};
+        int[] splitEventTime_1 = {8000};
+        double[] ratio_admixture_divergence = {0.1,0.2,0.4,0.8};
+        double[] admixtureProportion = {0.1};
         int sequenceLength = 1_000_000;
         double recombination_rate = 1e-8;
         double mutation_rate = 1e-8; // 7.1e-9
@@ -314,6 +314,7 @@ public class DemographicModelTools {
 
                             // model name
                             sb.setLength(0);
+                            sb.append("D").append(PStringUtils.getNDigitNumber(3, count)).append("_");
                             sb.append("way_").append(2).append("_").append("adp_").append(admixed_native_introgressed_pop[0]).append("_");
                             sb.append("nap_").append(admixed_native_introgressed_pop[1]).append("_");
                             sb.append("inp_").append(admixed_native_introgressed_pop[2]).append("_");
@@ -421,6 +422,7 @@ public class DemographicModelTools {
 
                                 // model name
                                 sb.setLength(0);
+                                sb.append("D").append(PStringUtils.getNDigitNumber(3, count)).append("_");
                                 sb.append("way_").append(3).append("_").append("adp_").append(admixed_native_introgressed_pop[0]).append("_");
                                 sb.append("nap_").append(admixed_native_introgressed_pop[1]).append("_");
                                 sb.append("in0_").append(admixed_native_introgressed_pop[2]).append("_");
@@ -532,6 +534,7 @@ public class DemographicModelTools {
 
                                     // model name
                                     sb.setLength(0);
+                                    sb.append("D").append(PStringUtils.getNDigitNumber(3, count)).append("_");
                                     sb.append("way_").append(n_way).append("_").append("adp_").append(admixed_native_introgressed_pop[0]).append("_");
                                     sb.append("nap_").append(admixed_native_introgressed_pop[1]).append("_");
                                     sb.append("in0_").append(admixed_native_introgressed_pop[2]).append("_");
