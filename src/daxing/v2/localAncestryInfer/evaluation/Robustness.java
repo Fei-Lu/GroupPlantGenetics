@@ -1,5 +1,7 @@
 package daxing.v2.localAncestryInfer.evaluation;
 
+import com.google.common.base.Joiner;
+import com.google.common.primitives.Ints;
 import daxing.common.sh.CommandUtils;
 import daxing.common.utiles.IOTool;
 import daxing.v2.localAncestryInfer.laidp.GenotypeTable;
@@ -31,7 +33,8 @@ public class Robustness {
      */
     public enum Metric{
         MEAN_DEVIATION,
-        PEARSON_CORRELATION
+        PEARSON_CORRELATION,
+        CONTINGENCY_TABLE
     }
 
 
@@ -114,6 +117,51 @@ public class Robustness {
         return result;
     }
 
+
+    /**
+     *
+     * @param inferredValue
+     * @param actualValue
+     * @return contingencyTable, dim1 is different run, dim2 is admixed taxon index, dim is one of
+     * [count_truePositive, count_falseNegative, count_falsePositive, count_trueNegative]
+     */
+    public static int[][][] contingencyTable(double[][][][] inferredValue, double[][][][] actualValue){
+        int runNum = inferredValue.length;
+        int admixedTaxaNum = inferredValue[0].length;
+        int contingencyTableNum = 4;
+        int sourceNum = inferredValue[0][0].length;
+        int[][][] contingencyTable = new int[runNum][admixedTaxaNum][contingencyTableNum];
+        double inferred, actual;
+        for (int runIndex = 0; runIndex < runNum; runIndex++) {
+            for (int admixedTaxonIndex = 0; admixedTaxonIndex < admixedTaxaNum; admixedTaxonIndex++) {
+                int count_truePositive=0;
+                int count_falseNegative=0;
+                int count_falsePositive=0;
+                int count_trueNegative=0;
+                for (int sourceIndex = 0; sourceIndex < sourceNum; sourceIndex++) {
+                    for (int variantIndex = 0; variantIndex < inferredValue[runIndex][admixedTaxonIndex][sourceIndex].length; variantIndex++) {
+                        inferred = inferredValue[runIndex][admixedTaxonIndex][sourceIndex][variantIndex];
+                        actual = actualValue[runIndex][admixedTaxonIndex][sourceIndex][variantIndex];
+                        if (actual > 0.5 && inferred > 0.5){
+                            count_truePositive++;
+                        }else if (actual > 0.5 && inferred < 0.5){
+                            count_falseNegative++;
+                        }else if (actual < 0.5 && inferred > 0.5){
+                            count_falsePositive++;
+                        }else if (actual < 0.5 && inferred < 0.5){
+                            count_trueNegative++;
+                        }
+                    }
+                }
+                contingencyTable[runIndex][admixedTaxonIndex][0] = count_truePositive;
+                contingencyTable[runIndex][admixedTaxonIndex][1] = count_falseNegative;
+                contingencyTable[runIndex][admixedTaxonIndex][2] = count_falsePositive;
+                contingencyTable[runIndex][admixedTaxonIndex][3] = count_trueNegative;
+            }
+        }
+        return contingencyTable;
+    }
+
     /**
      *
      * @param simulationMetadata
@@ -185,13 +233,17 @@ public class Robustness {
      * @param outFile_evaluation
      */
     private static void write_RobustnessData(double[][][] meanDeviationData, double[][][] pearsonCorrelationData,
+                                             int[][][][] contingencyTableData,
                                              String[] software, SimulationMetadata simulationMetadata,
                                              String outFile_evaluation){
 
         try (BufferedWriter bw = IOTool.getWriter(outFile_evaluation)) {
-            bw.write("DemesID\tSoftware\tAdmixedIndividual\tMeanDeviation\tPearsonCorrelation");
+            bw.write("DemesID\tSoftware\tAdmixedIndividual\tMeanDeviation\tPearsonCorrelation\tTruePositive" +
+                    "\tFalseNegative\tFalsePositive\tTrueNegative");
+
             bw.newLine();
             StringBuilder sb = new StringBuilder();
+            String joined;
             for (int i = 0; i < meanDeviationData.length; i++) {
                 for (int j = 0; j < meanDeviationData[i].length; j++) {
                     for (int k = 0; k < meanDeviationData[i][j].length; k++) {
@@ -200,7 +252,9 @@ public class Robustness {
                         sb.append(software[i]).append("\t");
                         sb.append("tsk_").append(k).append("\t");
                         sb.append(meanDeviationData[i][j][k]).append("\t");
-                        sb.append(pearsonCorrelationData[i][j][k]);
+                        sb.append(pearsonCorrelationData[i][j][k]).append("\t");
+                        joined = Joiner.on("\t").join(Ints.asList(contingencyTableData[i][j][k]));
+                        sb.append(joined);
                         bw.write(sb.toString());
                         bw.newLine();
                     }
@@ -220,13 +274,16 @@ public class Robustness {
                 simulationDir);
         double[][][] meanDeviationData = new double[software_localAncestry.size()][][];
         double[][][] pearsonCorrelationData = new double[software_localAncestry.size()][][];
+        int[][][][] contingencyTableData = new int[software_localAncestry.size()][][][];
         String[] software = new String[software_localAncestry.size()];
         for (int i = 0; i < software_localAncestry.size(); i++) {
             meanDeviationData[i] = Robustness.meanDeviation(software_localAncestry.get(i), actual_values);
             pearsonCorrelationData[i] = Robustness.pearsonCorrelation(software_localAncestry.get(i), actual_values);
+            contingencyTableData[i] = Robustness.contingencyTable(software_localAncestry.get(i), actual_values);
             software[i] = softwareList.get(i);
         }
-        Robustness.write_RobustnessData(meanDeviationData, pearsonCorrelationData, software, simulationMetadata,
+        Robustness.write_RobustnessData(meanDeviationData, pearsonCorrelationData, contingencyTableData, software,
+                simulationMetadata,
                 outFileRobustnessData);
     }
 }
