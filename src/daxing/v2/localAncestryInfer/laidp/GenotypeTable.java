@@ -9,6 +9,7 @@ import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -16,7 +17,6 @@ import pgl.PGLConstraints;
 import pgl.infra.dna.allele.AlleleEncoder;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -474,17 +474,25 @@ public class GenotypeTable {
     }
 
     /**
-     *
+     * @param windowSize window size of sliding window, the unit is variants, not bp
      * @param stepSize step size of sliding window, the unit is variants, not bp
      * @return windowStartIndex array, site start index of all windows
      */
-    public static int[] getWindowStartIndex(int stepSize, int numVariants){
+    public static int[] getWindowStartIndex(int windowSize, int stepSize, int numVariants){
         int numberWindow = (numVariants + stepSize - 1) / stepSize;
-        int[] window = new int[numberWindow];
+        IntList windowList = new IntArrayList();
+//        int[] window = new int[numberWindow];
+        int windowStartIndex;
         for (int windowIndex = 0; windowIndex < numberWindow; windowIndex++) {
-            window[windowIndex] = Math.min(windowIndex * stepSize, numVariants);
+            windowStartIndex = Math.min(windowIndex * stepSize, numVariants);
+//            window[windowIndex] = windowStartIndex;
+            if (windowStartIndex + windowSize > numVariants){
+                windowList.add(windowStartIndex);
+                break;
+            }
+            windowList.add(windowStartIndex);
         }
-        return window;
+        return windowList.toIntArray();
     }
 
     /**
@@ -704,7 +712,7 @@ public class GenotypeTable {
      */
     public static double[] getJackknife_pattersonD_f_zscore(double[] d_f, double[][] dafs, double[][] dafs_p3_ab,
                                                             int block_size, int totalVariants){
-        int[] windowStartIndex = GenotypeTable.getWindowStartIndex(block_size, totalVariants);
+        int[] windowStartIndex = GenotypeTable.getWindowStartIndex(block_size/2,block_size, totalVariants);
         int[] randoms = ArrayTool.getRandomNonrepetitionArray(windowStartIndex.length, 0, windowStartIndex.length);
         double[][] jackknife_D_f = new double[2][randoms.length];
         for (int i = 0; i < randoms.length; i++) {
@@ -1159,7 +1167,7 @@ public class GenotypeTable {
         int[][] native_admixed_introgressed_popIndex = this.getTaxaIndices(taxaGroup.getNative_admixed_introgressed_Taxa());
         int[] native_introgressed_popIndex = this.getTaxaIndices(taxaGroup.getTaxaOf_native_introgressed());
 
-        int[] windowStartIndexArray = GenotypeTable.getWindowStartIndex(stepSize, variantsNum);
+        int[] windowStartIndexArray = GenotypeTable.getWindowStartIndex(windowSize, stepSize, variantsNum);
         double[][][] dxy_windows_admixed = this.calculateAdmixedDxy(admixedTaxaIndices, nativeTaxaIndices,
                 introgressedPopTaxaIndices, windowStartIndexArray, windowSize);
         double[][] dxy_pairwise_nativeIntrogressed = this.calculatePairwiseDxy(admixedTaxaIndices,
