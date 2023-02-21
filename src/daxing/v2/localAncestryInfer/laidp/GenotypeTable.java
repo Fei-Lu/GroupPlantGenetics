@@ -542,23 +542,25 @@ public class GenotypeTable {
     public double[][] calculateDxy(int[][] pop_taxonIndex, int[] windowStartIndexArray, int windowSize) {
         int pop_num = pop_taxonIndex.length;
         int variantsNum = this.getSiteNumber();
-        SNP snp_start, snp_end;
-        int[] windowLen = new int[windowStartIndexArray.length];
-        for (int i = 0; i < windowLen.length; i++) {
-            snp_start = this.snps[windowStartIndexArray[i]];
-            snp_end = this.snps[Math.min(windowStartIndexArray[i]+windowSize, this.getSiteNumber())-1];
-            windowLen[i] = snp_end.getPos() - snp_start.getPos() + 1;
-        }
+//        SNP snp_start, snp_end;
+//        int[] windowLen = new int[windowStartIndexArray.length];
+//        for (int i = 0; i < windowLen.length; i++) {
+//            snp_start = this.snps[windowStartIndexArray[i]];
+//            snp_end = this.snps[Math.min(windowStartIndexArray[i]+windowSize, this.getSiteNumber())-1];
+//            windowLen[i] = snp_end.getPos() - snp_start.getPos() + 1;
+//        }
         double[][] dxyArrays = new double[windowStartIndexArray.length][pop_num*(pop_num-1)/2];
         int hapCountA, hapCountB, hapCountAB;
         double[] cumDifference;
         BitSet bitSet, missing, subBitset;
         int k =0;
+        int[] variantsNum_window;
         for (int popIndexA = 0; popIndexA < pop_num -1; popIndexA++) {
             for (int popIndexB = popIndexA+1; popIndexB < pop_num; popIndexB++) {
                 hapCountA = pop_taxonIndex[popIndexA].length;
                 hapCountB = pop_taxonIndex[popIndexB].length;
                 cumDifference = new double[windowStartIndexArray.length];
+                variantsNum_window = new int[windowStartIndexArray.length];
                 for (int taxonA : pop_taxonIndex[popIndexA]){
                     for (int taxonB : pop_taxonIndex[popIndexB]){
                         bitSet = (BitSet) this.genoTaxon[taxonA][0].clone();
@@ -569,12 +571,14 @@ public class GenotypeTable {
                         for (int i = 0; i < windowStartIndexArray.length; i++) {
                             subBitset = bitSet.get(windowStartIndexArray[i], Math.min(windowStartIndexArray[i]+windowSize, variantsNum));
                             cumDifference[i] += subBitset.cardinality();
+                            variantsNum_window[i] = Math.min(windowStartIndexArray[i]+windowSize, variantsNum) - windowStartIndexArray[i];
                         }
                     }
                 }
                 hapCountAB = hapCountA*hapCountB;
                 for (int i = 0; i < cumDifference.length; i++) {
-                    dxyArrays[i][k] = cumDifference[i]/hapCountAB/windowLen[i];
+//                    dxyArrays[i][k] = cumDifference[i]/hapCountAB/windowLen[i];
+                    dxyArrays[i][k] = cumDifference[i]/hapCountAB/variantsNum_window[i];
                 }
                 k++;
             }
@@ -1255,20 +1259,25 @@ public class GenotypeTable {
     
 
 
-    public static void write_localAncestry(BitSet[][] localAncestry, String localAncestryOutFile, int variantsNum,
+    public void write_localAncestry(BitSet[][] localAncestry, String localAncestryOutFile,
                                            String taxaGroupFile){
         TaxaGroup taxaGroup = TaxaGroup.buildFrom(taxaGroupFile);
+        int variantsNum = this.getSiteNumber();
         try (BufferedWriter bw = IOTool.getWriter(localAncestryOutFile)) {
             List<String> admixedTaxaList = taxaGroup.getTaxaOf(Source.ADMIXED);
             StringBuilder sb = new StringBuilder();
+            sb.append("pos").append("\t");
             sb.append(String.join("\t", admixedTaxaList));
             bw.write(sb.toString());
             bw.newLine();
             int admixedTaxonNum = localAncestry.length;
             int sourceNum = localAncestry[0].length;
             int ancestry;
+            int pos;
             for (int variantIndex = 0; variantIndex < variantsNum; variantIndex++) {
                 sb.setLength(0);
+                pos = this.getSnps()[variantIndex].getPos();
+                sb.append(pos).append("\t");
                 for (int admixedTaxonIndex = 0; admixedTaxonIndex < admixedTaxonNum; admixedTaxonIndex++) {
                     for (int sourceIndex = 0; sourceIndex < sourceNum; sourceIndex++) {
                         ancestry = localAncestry[admixedTaxonIndex][sourceIndex].get(variantIndex) ? 1 : 0;
@@ -1294,8 +1303,7 @@ public class GenotypeTable {
         BitSet[] ancestralAlleleBitSet = genotypeTable.getAncestralAlleleBitSet(ancestryAllele);
         BitSet[][] localAnc = genotypeTable.calculateLocalAncestry(windowSize, stepSize, taxaGroupFile,
                 ancestralAlleleBitSet, conjunctionNum, switchCostScore, threadsNum);
-        int variantsNum = genotypeTable.getSiteNumber();
-        GenotypeTable.write_localAncestry(localAnc, localAnceOutFile, variantsNum, taxaGroupFile);
+        genotypeTable.write_localAncestry(localAnc, localAnceOutFile, taxaGroupFile);
     }
 
     public BitSet[] getAncestralAlleleBitSet(String ancestryAllele){
