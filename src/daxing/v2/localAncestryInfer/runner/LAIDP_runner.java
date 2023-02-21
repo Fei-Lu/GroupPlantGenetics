@@ -259,15 +259,15 @@ public class LAIDP_runner implements LocalAncestry {
                 br.readLine();
                 while ((line=br.readLine())!=null){
                     temp = PStringUtils.fastSplit(line);
-                    for (int j = 0; j < temp.size(); j++) {
+                    for (int j = 1; j < temp.size(); j++) {
                         tem = PStringUtils.fastSplit(temp.get(j), ",");
                         for (int k = 0; k < tem.size(); k++) {
                             if (k == 0){
                                 // native ancestry
-                                localAnc[i][j][tem.size()-1].add(Integer.parseInt(tem.get(k)));
+                                localAnc[i][j-1][tem.size()-1].add(Integer.parseInt(tem.get(k)));
                             }else {
                                 // introgressed ancestry
-                                localAnc[i][j][k-1].add(Integer.parseInt(tem.get(k)));
+                                localAnc[i][j-1][k-1].add(Integer.parseInt(tem.get(k)));
                             }
                         }
                     }
