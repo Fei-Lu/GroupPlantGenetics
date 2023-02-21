@@ -20,7 +20,7 @@ public class Start {
 //        String groupByPop2IndividualFile="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/simulated_group.txt";
 ////        String outDir_deme="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/004_laidpRes/06_two_way_admixture_proportion0.1_genetration100_P1P2_divergence0.1Ne";
 //        String outDir_deme="/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/004_laidpRes/temp";
-
+//
 //        int conjunctionNum=2; // 2
 //        double switchCostScore=1.5; // 1.5
 //        int maxSolutionCount=20; // 100
@@ -42,18 +42,27 @@ public class Start {
 //                new File(outDir_deme), maxSolutionCount);
 //        System.out.println(Benchmark.getTimeSpanSeconds(start)+" seconds");
 
+//        String file1 = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt" +
+//                "/021_Simulation/005_twoWay/004_laidpRes/06_two_way_admixture_proportion0.1_genetration100_P1P2_divergence0.1Ne/chr1_tsk_61_LAI.txt";
+//        String file2 = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt" +
+//                "/021_Simulation/005_twoWay/004_laidpRes/temp/chr1_tsk_61_LAI.txt";
+//        MD5.checkTwoFileMD5(file1,file2);
+
 
 ////
-//        String genotypeFile = "/Users/xudaxing/Desktop/LAIDP_development/uniqueTestData/001_uniqueTestSimulatedData/D001.vcf";
+//        String genotypeFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/001_simulatedGenotype/simulate_two_way_admixture_proportion0.1_genetration100_P1P2_divergence0.1Ne_ancestral.vcf";
 //        int windowSize = 200;
 //        int stepSize = 100;
-//        String taxaGroupFile = "/Users/xudaxing/Desktop/LAIDP_development/uniqueTestData/002_uniqeTestRes/D001.taxaGroup.txt";
+//        String taxaGroupFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/taxaGroup.txt";
 //        String ancestryAllele = "simulation";
 //        int conjunctionNum = 2;
 //        double switchCostScore = 1.5;
-//        String localAnceOutFile = "/Users/xudaxing/Desktop/LAIDP_development/uniqueTestData/003_results/localAncestry.txt";
+//        String localAnceOutFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/004_laidpRes/temp/localAncestry.txt";
 //        int threadsNum = 2;
 //
+//
+////        String outDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/004_laidpRes/temp";
+//////
 //        String genotypeFile = args[0];
 //        int windowSize =Integer.parseInt(args[1]);
 //        int stepSize = Integer.parseInt(args[2]);
@@ -64,9 +73,16 @@ public class Start {
 //        String localAnceOutFile = args[7];
 //        int threadsNum = Integer.parseInt(args[8]);
 ////        long start = System.nanoTime();
-//
 //        GenotypeTable.run_LAIDP(genotypeFile, windowSize, stepSize, taxaGroupFile, ancestryAllele, conjunctionNum,
 //                switchCostScore, localAnceOutFile, threadsNum);
+//        System.out.println(Benchmark.getTimeSpanSeconds(start)+" s");
+
+//        GenotypeTable genotypeTable = new GenotypeTable(genotypeFile);
+//        BitSet[] ancestralAlleleBitSet = genotypeTable.getAncestralAlleleBitSet(ancestryAllele);
+//        genotypeTable.calculateLocalAncestry_test(windowSize, stepSize, taxaGroupFile,
+//                ancestralAlleleBitSet, conjunctionNum, switchCostScore, threadsNum, outDir);
+
+
 ////
 //        System.out.println(Benchmark.getTimeSpanSeconds(start)+" s ");
 
@@ -84,8 +100,8 @@ public class Start {
 
 
         String outDir = "/Users/xudaxing/Desktop/LAIDP_development/twoWay_temp";
-////        String outDir2 = "/Users/xudaxing/Desktop/threeWay";
-////        String outDir3 = "/Users/xudaxing/Desktop/fourWay";
+////////        String outDir2 = "/Users/xudaxing/Desktop/threeWay";
+////////        String outDir3 = "/Users/xudaxing/Desktop/fourWay";
         run(DemographicModelTools.N_way.TWO_WAY, outDir);
 //        run(DemographicModelTools.N_way.THREE_WAY,outDir2);
 //        run(DemographicModelTools.N_way.FOUR_WAY, outDir3);
