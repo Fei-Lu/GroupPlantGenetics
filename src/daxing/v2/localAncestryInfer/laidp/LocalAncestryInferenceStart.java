@@ -5,13 +5,14 @@ import daxing.common.utiles.IOTool;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.*;
 
 public class LocalAncestryInferenceStart {
 
@@ -40,45 +41,45 @@ public class LocalAncestryInferenceStart {
                 13+taxonIndexLength))).toArray(String[]::new);
         String[] outFiles = Arrays.stream(queryTaxa).map(s -> "chr"+refChr+"_"+s+"_LAI.txt").toArray(String[]::new);
 
-//        List<Callable<Integer>> callableTasks = new ArrayList<>();
+        List<Callable<Integer>> callableTasks = new ArrayList<>();
 
         for (int i = 0; i < fd_dxyFiles.size(); i++) {
             int k = i;
 
-//            callableTasks.add(()-> inferLocalAncestry3(refChr, genoTable, srcIndividualMap, taxaSourceMap,
-//                    fd_dxyFiles.get(k), queryTaxa[k], new File(outDir, outFiles[k]), conjunctionNum,
-//                    initializeSwitchCostScore, maxSolutionCount));
-
-            inferLocalAncestry(refChr, genoTable, srcIndividualMap, taxaSourceMap,
+            callableTasks.add(()-> inferLocalAncestry(refChr, genoTable, srcIndividualMap, taxaSourceMap,
                     fd_dxyFiles.get(k), queryTaxa[k], new File(outDir, outFiles[k]), conjunctionNum,
-                    initializeSwitchCostScore, maxSolutionCount);
+                    initializeSwitchCostScore, maxSolutionCount));
+
+//            inferLocalAncestry(refChr, genoTable, srcIndividualMap, taxaSourceMap,
+//                    fd_dxyFiles.get(k), queryTaxa[k], new File(outDir, outFiles[k]), conjunctionNum,
+//                    initializeSwitchCostScore, maxSolutionCount);
 
         }
-//        ExecutorService executorService = Executors.newFixedThreadPool(32);
-//        List<Integer> exitCodes = new ArrayList<>();
-//        long start = System.nanoTime();
-//        try {
-//            List<Future<Integer>> futureList=executorService.invokeAll(callableTasks);
-//            executorService.shutdown();
-//            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
-//            for (Future<Integer> future : futureList){
-//                exitCodes.add(future.get());
-//            }
-//        } catch (InterruptedException | ExecutionException e) {
-//            e.printStackTrace();
-//        }
-//        List<String> failCommandList= new ArrayList<>();
-//        for (int i = 0; i < exitCodes.size(); i++) {
-//            if (exitCodes.get(i)!=0){
-//                failCommandList.add(fd_dxyFiles.get(i).getName()+ "_"+refChr+" command fail to completed");
-//            }
-//        }
-//        if (failCommandList.size()==0){
-//            System.out.println("all commands had completed in "+ Benchmark.getTimeSpanHours(start)+ " hours");
-//        }else {
-//            System.out.println(failCommandList.size()+ "commands run failed");
-//            System.out.println("Total spend "+Benchmark.getTimeSpanHours(start)+ " hours");
-//        }
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+        List<Integer> exitCodes = new ArrayList<>();
+        long start = System.nanoTime();
+        try {
+            List<Future<Integer>> futureList=executorService.invokeAll(callableTasks);
+            executorService.shutdown();
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
+            for (Future<Integer> future : futureList){
+                exitCodes.add(future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        List<String> failCommandList= new ArrayList<>();
+        for (int i = 0; i < exitCodes.size(); i++) {
+            if (exitCodes.get(i)!=0){
+                failCommandList.add(fd_dxyFiles.get(i).getName()+ "_"+refChr+" command fail to completed");
+            }
+        }
+        if (failCommandList.size()==0){
+            System.out.println("all commands had completed in "+ Benchmark.getTimeSpanHours(start)+ " hours");
+        }else {
+            System.out.println(failCommandList.size()+ "commands run failed");
+            System.out.println("Total spend "+Benchmark.getTimeSpanHours(start)+ " hours");
+        }
     }
 
     public static int inferLocalAncestry(String refChr, GenotypeTable genoTable,
