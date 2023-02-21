@@ -593,9 +593,8 @@ public class GenotypeTable {
         System.arraycopy(pop_taxonIndex_native, 0, pop_taxonIndex_native_introgressed[0], 0, pop_taxonIndex_native.length);
         for (int i = 0; i < pop_taxonIndex_introgressed.length; i++) {
             pop_taxonIndex_native_introgressed[i+1] = new int[pop_taxonIndex_introgressed[i].length];
-            for (int j = 0; j < pop_taxonIndex_introgressed[i].length; j++) {
-                pop_taxonIndex_native_introgressed[i+1][j]=pop_taxonIndex_introgressed[i][j];
-            }
+            System.arraycopy(pop_taxonIndex_introgressed[i], 0, pop_taxonIndex_native_introgressed[i + 1], 0,
+                    pop_taxonIndex_introgressed[i].length);
         }
         return this.calculateDxy(pop_taxonIndex_native_introgressed, windowStartIndexArray, windowSize);
     }
@@ -822,15 +821,15 @@ public class GenotypeTable {
                     if (dafs_native[variantIndex] < 0){
                         ifVariantContinue = true;
                     }
-                    for (int popIndex=0; popIndex < dafs_admixed.length; popIndex++){
-                        if (dafs_admixed[popIndex][variantIndex] < 0){
-                            ifVariantContinue =true;
+                    for (double[] value : dafs_admixed) {
+                        if (value[variantIndex] < 0) {
+                            ifVariantContinue = true;
                             break;
                         }
                     }
-                    for (int popIndex = 0; popIndex < dafs_introgressed.length; popIndex++) {
-                        if (dafs_introgressed[popIndex][variantIndex] < 0){
-                            ifVariantContinue =true;
+                    for (double[] doubles : dafs_introgressed) {
+                        if (doubles[variantIndex] < 0) {
+                            ifVariantContinue = true;
                             break;
                         }
                     }
@@ -939,18 +938,18 @@ public class GenotypeTable {
         int admixedTaxaNum = fd_windows_admixed[0].length;
         int introgressedPopNum = fd_windows_admixed[0][0].length;
         int[][] gridSource = new int[admixedTaxaNum][windowNum];
-        for (int i = 0; i < gridSource.length; i++) {
-            Arrays.fill(gridSource[i], 1);
+        for (int[] ints : gridSource) {
+            Arrays.fill(ints, 1);
         }
         double[][] fd_sum = new double[admixedTaxaNum][introgressedPopNum];
         double[][] fd_mean = new double[admixedTaxaNum][introgressedPopNum];
-        for (int i = 0; i < fd_mean.length; i++) {
-            Arrays.fill(fd_mean[i], -1);
+        for (double[] value : fd_mean) {
+            Arrays.fill(value, -1);
         }
         for (int admixedTaxonIndex = 0; admixedTaxonIndex < admixedTaxaNum; admixedTaxonIndex++) {
             for (int introgressedPopIndex = 0; introgressedPopIndex < introgressedPopNum; introgressedPopIndex++) {
-                for (int windowIndex = 0; windowIndex < windowNum; windowIndex++) {
-                    fd_sum[admixedTaxonIndex][introgressedPopIndex]+= fd_windows_admixed[windowIndex][admixedTaxonIndex][introgressedPopIndex];
+                for (double[][] doubles : fd_windows_admixed) {
+                    fd_sum[admixedTaxonIndex][introgressedPopIndex] += doubles[admixedTaxonIndex][introgressedPopIndex];
                 }
             }
         }
@@ -964,7 +963,7 @@ public class GenotypeTable {
         for (int windowIndex = 0; windowIndex < windowNum; windowIndex++) {
             dxy_min = Double.MAX_VALUE;
             for (int i = 0; i < dxy_pairwise_nativeIntrogressed[windowIndex].length; i++) {
-                dxy_min = dxy_pairwise_nativeIntrogressed[windowIndex][i] < dxy_min ? dxy_pairwise_nativeIntrogressed[windowIndex][i] : dxy_min;
+                dxy_min = Math.min(dxy_pairwise_nativeIntrogressed[windowIndex][i], dxy_min);
             }
             for (int admixedTaxonIndex = 0; admixedTaxonIndex < admixedTaxaNum; admixedTaxonIndex++) {
 
@@ -1026,7 +1025,7 @@ public class GenotypeTable {
                     }
 
                 }else if (index == 1){
-                    resultIndexSet.add(index-1);
+                    resultIndexSet.add(0);
                 }else if (index == (windowNum-conjunctionNum)){
                     int i = 1;
                     while (i < conjunctionNum){
@@ -1222,9 +1221,7 @@ public class GenotypeTable {
                     for (int sourceIndex = 0; sourceIndex < sourcesGenotype.length; sourceIndex++) {
                         sourcesFragment[sourceIndex]=sourcesGenotype[sourceIndex].get(fragmentStartIndex,fragmentEndIndex);
                     }
-                    int fragmentStartPos = this.getSnps()[fragmentStartIndex].getPos();
-                    int fragmentEndPos = this.getSnps()[fragmentEndIndex-1].getPos();
-                    int fragmentLen = fragmentEndPos - fragmentStartPos + 1;
+                    int fragmentLen = fragmentEndIndex - fragmentStartIndex;
                     EnumMap<Direction, IntList[]> biDirectionCandidateSolution =
                             Solution.getBiDirectionCandidateSourceSolution(sourcesFragment, queryFragment, fragmentLen,
                                     switchCostScore, sourceTaxaList, taxaSourceMap, 32);
@@ -1270,7 +1267,6 @@ public class GenotypeTable {
             sb.append(String.join("\t", admixedTaxaList));
             bw.write(sb.toString());
             bw.newLine();
-            int admixedTaxonNum = localAncestry.length;
             int sourceNum = localAncestry[0].length;
             int ancestry;
             int pos;
@@ -1278,12 +1274,12 @@ public class GenotypeTable {
                 sb.setLength(0);
                 pos = this.getSnps()[variantIndex].getPos();
                 sb.append(pos).append("\t");
-                for (int admixedTaxonIndex = 0; admixedTaxonIndex < admixedTaxonNum; admixedTaxonIndex++) {
+                for (BitSet[] bitSets : localAncestry) {
                     for (int sourceIndex = 0; sourceIndex < sourceNum; sourceIndex++) {
-                        ancestry = localAncestry[admixedTaxonIndex][sourceIndex].get(variantIndex) ? 1 : 0;
+                        ancestry = bitSets[sourceIndex].get(variantIndex) ? 1 : 0;
                         sb.append(ancestry).append(",");
                     }
-                    sb.deleteCharAt(sb.length()-1);
+                    sb.deleteCharAt(sb.length() - 1);
                     sb.append("\t");
                 }
                 sb.deleteCharAt(sb.length()-1);
@@ -1338,7 +1334,8 @@ public class GenotypeTable {
      *                 1 means ancestral allele is alt allele
      *                 -9 means ancestral allele is missing
      *  total pos number must be equal genotype file
-     * @return
+     * @return ancestryAllele bitset, dim1 represent alt allele is ancestral allele,
+     * dim2 mean ancestral allele is missing
      */
     public static BitSet[] getAncestralAlleleBitSetFromFile(String ancestryAlleleFile){
         BitSet[] ancestralAlleleBitset = new BitSet[2];
