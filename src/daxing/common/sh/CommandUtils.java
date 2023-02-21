@@ -127,11 +127,11 @@ public class CommandUtils {
         List<Integer> exitCodes = new ArrayList<>();
         try {
             List<Future<Integer>> futureList=executorService.invokeAll(callableList);
-            executorService.shutdown();
-            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
             for (Future<Integer> future : futureList){
                 exitCodes.add(future.get());
             }
+            executorService.shutdown();
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
@@ -173,11 +173,11 @@ public class CommandUtils {
         List<Integer> exitCodes = new ArrayList<>();
         try {
             List<Future<Integer>> futureList=executorService.invokeAll(callableList);
-            executorService.shutdown();
-            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
             for (Future<Integer> future : futureList){
                 exitCodes.add(future.get());
             }
+            executorService.shutdown();
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
@@ -220,11 +220,11 @@ public class CommandUtils {
         List<Integer> exitCodes = new ArrayList<>();
         try {
             List<Future<Integer>> futureList=executorService.invokeAll(callableList);
-            executorService.shutdown();
-            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
             for (Future<Integer> future : futureList){
                 exitCodes.add(future.get());
             }
+            executorService.shutdown();
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
@@ -266,11 +266,11 @@ public class CommandUtils {
         List<Integer> exitCodes = new ArrayList<>();
         try {
             List<Future<Integer>> futureList=executorService.invokeAll(callableList);
-            executorService.shutdown();
-            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
             for (Future<Integer> future : futureList){
                 exitCodes.add(future.get());
             }
+            executorService.shutdown();
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
@@ -294,7 +294,7 @@ public class CommandUtils {
      *
      * @param callableList
      * @param threadsNum
-     * @return
+     * @return the result type of callable task
      * @param <V> the result type of callable task
      */
     public static <V> List<V> run_commands(List<Callable<V>> callableList, int threadsNum){
@@ -302,11 +302,11 @@ public class CommandUtils {
         List<V> results = new ArrayList<>();
         try {
             List<Future<V>> futureList=executorService.invokeAll(callableList);
-            executorService.shutdown();
-            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MICROSECONDS);
             for (Future<V> future : futureList){
                 results.add(future.get());
             }
+            executorService.shutdown();
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
