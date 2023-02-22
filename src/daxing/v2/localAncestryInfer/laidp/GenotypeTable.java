@@ -999,7 +999,7 @@ public class GenotypeTable {
      * dim1 is taxon
      */
     public static List<int[]>[] getSuccessiveIntrogressionWindow(int[][] source, int conjunctionNum){
-        List<int[]>[] successiveWindow_taxon = new List[source.length];
+        List[] successiveWindow_taxon = new List[source.length];
         for (int i = 0; i < successiveWindow_taxon.length; i++) {
             successiveWindow_taxon[i] = new ArrayList<>();
         }
@@ -1019,7 +1019,7 @@ public class GenotypeTable {
                 if (index > 1 && index < windowNum-conjunctionNum){
                     int i=1;
                     while (i <= conjunctionNum){
-                        resultIndexSet.add(index-i < 0 ? 0:index-i);
+                        resultIndexSet.add(Math.max(index - i, 0));
                         resultIndexSet.add(index+i);
                         i++;
                     }
@@ -1263,6 +1263,7 @@ public class GenotypeTable {
         try (BufferedWriter bw = IOTool.getWriter(localAncestryOutFile)) {
             List<String> admixedTaxaList = taxaGroup.getTaxaOf(Source.ADMIXED);
             StringBuilder sb = new StringBuilder();
+//            sb.append("## native ancestry,introgressed ancestry 1, introgressed ancestry 2, et al.");
             sb.append("pos").append("\t");
             sb.append(String.join("\t", admixedTaxaList));
             bw.write(sb.toString());
