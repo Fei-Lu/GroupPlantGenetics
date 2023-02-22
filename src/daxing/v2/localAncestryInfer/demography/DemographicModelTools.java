@@ -12,6 +12,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class DemographicModelTools {
@@ -82,8 +83,7 @@ public class DemographicModelTools {
                 transformedAdmixtureProportion[i] = admixtureProportion[i]/proportion;
             }
             return transformedAdmixtureProportion;
-        }else if (admixtureProportion.length==1)return admixtureProportion;
-        else return new double[0];
+        }else return admixtureProportion;
     }
 
     private static List<Deme> getEquilibriumPopulationDemes(String[] demeNames, int[] epochEndTime,
@@ -143,9 +143,7 @@ public class DemographicModelTools {
     private static List<Pulse> getPulses(String[] sourcePop, String destPop,
                                          double[] admixtureProportion, int[] admixtureTime){
         List<String> sourcePopList = new ArrayList<>();
-        for (String pop : sourcePop){
-            sourcePopList.add(pop);
-        }
+        sourcePopList.addAll(Arrays.asList(sourcePop));
         List<Double> admixtureProportionList = new ArrayList<>();
         for (double proportion : DemographicModelTools.transform_proportion(admixtureProportion)){
             admixtureProportionList.add(proportion);
@@ -276,8 +274,8 @@ public class DemographicModelTools {
         int[] sampleSize = {30,30,30};
         int equilibriumPopulationSize = 10000;
         int[] splitEventTime_0 = {10000};
-        int[] splitEventTime_1 = {8000};
-        double[] ratio_admixture_divergence = {0.1,0.2,0.4,0.8};
+        int[] splitEventTime_1 = {500};
+        double[] ratio_admixture_divergence = {0.1, 0.2, 0.4};
         double[] admixtureProportion = {0.1};
         int sequenceLength = 1_000_000;
         double recombination_rate = 1e-8;
@@ -297,18 +295,18 @@ public class DemographicModelTools {
             bw.write(header);
             bw.newLine();
             int count= 1;
-            for (int i = 0; i < splitEventTime_0.length; i++) {
-                for (int j = 0; j < splitEventTime_1.length; j++) {
-                    for (int k = 0; k < ratio_admixture_divergence.length; k++) {
-                        for (int l = 0; l < admixtureProportion.length; l++) {
+            for (int j : splitEventTime_0) {
+                for (int k : splitEventTime_1) {
+                    for (double value : ratio_admixture_divergence) {
+                        for (double v : admixtureProportion) {
                             splitEventTime = new int[2];
-                            splitEventTime[0] = splitEventTime_0[i];
-                            splitEventTime[1] = splitEventTime_1[j];
-                            admixtureTime = splitEventTime_1[j] * ratio_admixture_divergence[k];
-                            divergenceTime0 = splitEventTime_0[i];
-                            divergenceTime1 = splitEventTime_1[j];
+                            splitEventTime[0] = j;
+                            splitEventTime[1] = k;
+                            admixtureTime = k * value;
+                            divergenceTime0 = j;
+                            divergenceTime1 = k;
                             demographicModel = DemographicModelTools.twoWayBuilder_equilibriumPopulation(splitEventTime,
-                                    admixtureProportion[l], (int) admixtureTime);
+                                    v, (int) admixtureTime);
                             demographicModel.trim_default();
                             demographicModels.add(demographicModel);
 
@@ -319,7 +317,7 @@ public class DemographicModelTools {
                             sb.append("nap_").append(admixed_native_introgressed_pop[1]).append("_");
                             sb.append("inp_").append(admixed_native_introgressed_pop[2]).append("_");
                             sb.append("ep_").append(equilibriumPopulationSize).append("_");
-                            sb.append("pr_").append(admixtureProportion[l]).append("_");
+                            sb.append("pr_").append(v).append("_");
                             sb.append("at_").append((int) admixtureTime).append("_");
                             sb.append("dta_").append((int) divergenceTime0).append("_");
                             sb.append("dtb_").append((int) divergenceTime1).append(".yaml");
@@ -397,26 +395,27 @@ public class DemographicModelTools {
             bw.write(header);
             bw.newLine();
             int count= 1;
-            for (int i = 0; i < splitEventTime_0.length; i++) {
-                for (int j = 0; j < splitEventTime_1.length; j++) {
-                    for (int m = 0; m < splitEventTime_2.length; m++) {
+            for (int value : splitEventTime_0) {
+                for (int i : splitEventTime_1) {
+                    for (int j : splitEventTime_2) {
                         for (int k = 0; k < ratio_admixture_divergence_0.length; k++) {
                             for (int l = 0; l < admixtureProportion_0.length; l++) {
                                 splitEventTime = new int[3];
-                                splitEventTime[0] = splitEventTime_0[i];
-                                splitEventTime[1] = splitEventTime_1[j];
-                                splitEventTime[2] = splitEventTime_2[m];
+                                splitEventTime[0] = value;
+                                splitEventTime[1] = i;
+                                splitEventTime[2] = j;
                                 admixtureTime = new int[2];
-                                admixtureTime[0] = (int)(splitEventTime_2[m] * ratio_admixture_divergence_0[k]);
-                                admixtureTime[1] = (int)(splitEventTime_2[m] * ratio_admixture_divergence_1[k]);
+                                admixtureTime[0] = (int) (j * ratio_admixture_divergence_0[k]);
+                                admixtureTime[1] = (int) (j * ratio_admixture_divergence_1[k]);
                                 admixtureProportion = new double[2];
                                 admixtureProportion[0] = admixtureProportion_0[l];
                                 admixtureProportion[1] = admixtureProportion_1[l];
-                                divergenceTime0 = splitEventTime_0[i];
-                                divergenceTime1 = splitEventTime_1[j];
-                                divergenceTime2 = splitEventTime_2[m];
-                                demographicModel = DemographicModelTools.threeWayBuilder_equilibriumPopulation(splitEventTime,
-                                        admixtureProportion, admixtureTime);
+                                divergenceTime0 = value;
+                                divergenceTime1 = i;
+                                divergenceTime2 = j;
+                                demographicModel =
+                                        DemographicModelTools.threeWayBuilder_equilibriumPopulation(splitEventTime,
+                                                admixtureProportion, admixtureTime);
                                 demographicModel.trim_default();
                                 demographicModels.add(demographicModel);
 
@@ -441,7 +440,7 @@ public class DemographicModelTools {
                                 // simulation metadata
                                 String[] introgressedPop = new String[2];
                                 int[] introgressedPop_sampleSize = new int[2];
-                                System.arraycopy(admixed_native_introgressed_pop, 2, introgressedPop, 0,2);
+                                System.arraycopy(admixed_native_introgressed_pop, 2, introgressedPop, 0, 2);
                                 System.arraycopy(sampleSize, 2, introgressedPop_sampleSize, 0, 2);
                                 sb_Metadata.setLength(0);
                                 sb_Metadata.append("D").append(PStringUtils.getNDigitNumber(3, count)).append("\t");
@@ -504,31 +503,32 @@ public class DemographicModelTools {
             bw.write(header);
             bw.newLine();
             int count= 1;
-            for (int i = 0; i < splitEventTime_0.length; i++) {
-                for (int j = 0; j < splitEventTime_1.length; j++) {
-                    for (int m = 0; m < splitEventTime_2.length; m++) {
-                        for (int n = 0; n < splitEventTime_3.length; n++) {
+            for (int j : splitEventTime_0) {
+                for (int element : splitEventTime_1) {
+                    for (int item : splitEventTime_2) {
+                        for (int value : splitEventTime_3) {
                             for (int k = 0; k < ratio_admixture_divergence_0.length; k++) {
                                 for (int l = 0; l < admixtureProportion_0.length; l++) {
                                     splitEventTime = new int[n_way];
-                                    splitEventTime[0] = splitEventTime_0[i];
-                                    splitEventTime[1] = splitEventTime_1[j];
-                                    splitEventTime[2] = splitEventTime_2[m];
-                                    splitEventTime[3] = splitEventTime_3[n];
-                                    admixtureTime = new int[n_way-1];
-                                    admixtureTime[0] = (int)(splitEventTime_3[n] * ratio_admixture_divergence_0[k]);
-                                    admixtureTime[1] = (int)(splitEventTime_3[n] * ratio_admixture_divergence_1[k]);
-                                    admixtureTime[2] = (int)(splitEventTime_3[n] * ratio_admixture_divergence_2[k]);
-                                    admixtureProportion = new double[n_way-1];
+                                    splitEventTime[0] = j;
+                                    splitEventTime[1] = element;
+                                    splitEventTime[2] = item;
+                                    splitEventTime[3] = value;
+                                    admixtureTime = new int[n_way - 1];
+                                    admixtureTime[0] = (int) (value * ratio_admixture_divergence_0[k]);
+                                    admixtureTime[1] = (int) (value * ratio_admixture_divergence_1[k]);
+                                    admixtureTime[2] = (int) (value * ratio_admixture_divergence_2[k]);
+                                    admixtureProportion = new double[n_way - 1];
                                     admixtureProportion[0] = admixtureProportion_0[l];
                                     admixtureProportion[1] = admixtureProportion_1[l];
                                     admixtureProportion[2] = admixtureProportion_2[l];
-                                    divergenceTime0 = splitEventTime_0[i];
-                                    divergenceTime1 = splitEventTime_1[j];
-                                    divergenceTime2 = splitEventTime_2[m];
-                                    divergenceTime3 = splitEventTime_3[n];
-                                    demographicModel = DemographicModelTools.fourWayBuilder_equilibriumPopulation(splitEventTime,
-                                            admixtureProportion, admixtureTime);
+                                    divergenceTime0 = j;
+                                    divergenceTime1 = element;
+                                    divergenceTime2 = item;
+                                    divergenceTime3 = value;
+                                    demographicModel =
+                                            DemographicModelTools.fourWayBuilder_equilibriumPopulation(splitEventTime,
+                                                    admixtureProportion, admixtureTime);
                                     demographicModel.trim_default();
                                     demographicModels.add(demographicModel);
 
@@ -555,10 +555,10 @@ public class DemographicModelTools {
                                     modelName.add(sb.toString());
 
                                     // simulation metadata
-                                    String[] introgressedPop = new String[n_way-1];
-                                    int[] introgressedPop_sampleSize = new int[n_way-1];
-                                    System.arraycopy(admixed_native_introgressed_pop, 2, introgressedPop, 0,n_way-1);
-                                    System.arraycopy(sampleSize, 2, introgressedPop_sampleSize, 0, n_way-1);
+                                    String[] introgressedPop = new String[n_way - 1];
+                                    int[] introgressedPop_sampleSize = new int[n_way - 1];
+                                    System.arraycopy(admixed_native_introgressed_pop, 2, introgressedPop, 0, n_way - 1);
+                                    System.arraycopy(sampleSize, 2, introgressedPop_sampleSize, 0, n_way - 1);
                                     sb_Metadata.setLength(0);
                                     sb_Metadata.append("D").append(PStringUtils.getNDigitNumber(3, count)).append("\t");
                                     sb_Metadata.append(new File(outDir, sb.toString()).getAbsolutePath()).append("\t");
