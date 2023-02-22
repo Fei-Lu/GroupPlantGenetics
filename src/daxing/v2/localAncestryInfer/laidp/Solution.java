@@ -164,6 +164,99 @@ public class Solution {
 
 
     /**
+     * 合并miniCost和path
+     * @param srcGenotype
+     * @param queryGenotype
+     * @param switchCostScore
+     * @return
+     */
+    public static IntSet[] getCandidateSolution2(int[][] srcGenotype, int[] queryGenotype, double switchCostScore){
+        int hapNum = srcGenotype.length;
+        int variantNum = srcGenotype[0].length;
+
+        // distance
+        double[][] distance = new double[hapNum][variantNum];
+        for (int i = 0; i < hapNum; i++) {
+            for (int j = 0; j < variantNum; j++) {
+                distance[i][j]=Math.abs(srcGenotype[i][j]- queryGenotype[j]);
+            }
+        }
+
+        // initialize mini cost and mini path matrix
+        double[][] miniCost = new double[hapNum][variantNum];
+        IntList[][] miniPath = new IntList[hapNum][variantNum];
+        for (int hapIndex = 0; hapIndex < hapNum; hapIndex++) {
+            for (int variantIndex = 0; variantIndex < variantNum; variantIndex++) {
+                miniPath[hapIndex][variantIndex] = new IntArrayList();
+            }
+        }
+        for (int hapIndex = 0; hapIndex < hapNum; hapIndex++) {
+            miniCost[hapIndex][0] = distance[hapIndex][0];
+            miniPath[hapIndex][0].add(hapIndex);
+        }
+
+        // i is SNP position
+        // j is haplotype index of source population
+        // miniCost
+        for (int variantIndex = 1; variantIndex < variantNum; variantIndex++) {
+
+            IntList switchIndexList = new IntArrayList();
+            // i-1 SNP位置，单倍型路径发生switch对应的最小Cost和indices
+            double miniCostSwitch=Double.MAX_VALUE;
+            for (int hapIndex = 0; hapIndex < hapNum; hapIndex++) {
+                if (miniCost[hapIndex][variantIndex - 1] < miniCostSwitch){
+                    miniCostSwitch = miniCost[hapIndex][variantIndex - 1];
+                    switchIndexList.clear();
+                    switchIndexList.add(hapIndex);
+                }else if (miniCost[hapIndex][variantIndex - 1] == miniCostSwitch){
+                    switchIndexList.add(hapIndex);
+                }
+            }
+
+            // Calculate miniCost matrix for current SNP position
+            for (int hapIndex = 0; hapIndex < hapNum; hapIndex++) {
+                if (miniCost[hapIndex][variantIndex - 1] < miniCostSwitch + switchCostScore) {
+                    miniCost[hapIndex][variantIndex] = miniCost[hapIndex][variantIndex - 1];
+                    miniPath[hapIndex][variantIndex].add(hapIndex);
+                }else if (miniCost[hapIndex][variantIndex - 1] == miniCostSwitch + switchCostScore){
+                    miniCost[hapIndex][variantIndex] = miniCostSwitch + switchCostScore;
+                    miniPath[hapIndex][variantIndex].addAll(switchIndexList);
+                    miniPath[hapIndex][variantIndex].add(hapIndex);
+                }else {
+                    miniCost[hapIndex][variantIndex] = miniCostSwitch + switchCostScore;
+                    miniPath[hapIndex][variantIndex].addAll(switchIndexList);
+                }
+                miniCost[hapIndex][variantIndex] += distance[hapIndex][variantIndex];
+            }
+        }
+
+        double miniScore = Double.MAX_VALUE;
+        IntSet bestHapSet = new IntArraySet();
+        for (int hapIndex = 0; hapIndex < hapNum; hapIndex++) {
+            if (miniCost[hapIndex][variantNum-1] < miniScore){
+                miniScore = miniCost[hapIndex][variantNum-1];
+                bestHapSet.clear();
+                bestHapSet.add(hapIndex);
+            } else if (miniCost[hapIndex][variantNum-1] == miniScore){
+                bestHapSet.add(hapIndex);
+            }
+        }
+
+        IntSet[] path = new IntSet[variantNum];
+        for (int variantIndex = 0; variantIndex < variantNum; variantIndex++) {
+            path[variantIndex] = new IntArraySet();
+        }
+        path[variantNum-1] = bestHapSet;
+        for (int variantIndex = variantNum-2; variantIndex >= 0; variantIndex--) {
+            for (int index : path[variantIndex+1]){
+                path[variantIndex].addAll(miniPath[index][variantIndex+1]);
+            }
+        }
+        return path;
+    }
+
+
+    /**
      * 需要性能优化
      * @param sourceIndexSet
      * @param srcIndiList
