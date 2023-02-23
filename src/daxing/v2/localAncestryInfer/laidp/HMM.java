@@ -1,7 +1,6 @@
 package daxing.v2.localAncestryInfer.laidp;
 
 import it.unimi.dsi.fastutil.ints.*;
-import java.util.*;
 import java.util.stream.IntStream;
 
 public class HMM {
@@ -66,17 +65,17 @@ public class HMM {
 
         int[][] paths = new int[bestStateList.size()][variantNum];
 
-        Set<Integer> currentStateSet;
-        Set<Integer> prevStateSet;
+        IntSet currentStateSet;
+        IntSet prevStateSet;
         int currentFeature, prevFeature;
 
         for (int i = 0; i < bestStateList.size(); i++) {
-            currentStateSet = new HashSet<>(backPath[bestStateList.getInt(i)][variantNum-1]);
+            currentStateSet = new IntArraySet(backPath[bestStateList.getInt(i)][variantNum-1]);
             currentFeature = HMM.transform(currentStateSet);
             int[] path = new int[variantNum];
             path[variantNum-1] = currentFeature;
             for (int j = variantNum -2; j >= 0; j--) {
-                prevStateSet = new HashSet<>();
+                prevStateSet = new IntArraySet();
                 for (int currentState : currentStateSet){
                     prevStateSet.addAll(backPath[currentState][j]);
                 }
@@ -99,11 +98,11 @@ public class HMM {
         return int2IntMap;
     }
 
-    public static int transform(Set<Integer> indexSet){
-        Iterator<Integer> integerIterator = indexSet.iterator();
-        int index = integerIterator.next();
+    public static int transform(IntSet indexSet){
+        IntIterator integerIterator = indexSet.iterator();
+        int index = integerIterator.nextInt();
         while (integerIterator.hasNext()){
-            index = index | indices2FeatureMap().get((int)integerIterator.next());
+            index = index | indices2FeatureMap().get(integerIterator.nextInt());
         }
         return index;
     }
