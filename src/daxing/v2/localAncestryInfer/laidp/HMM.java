@@ -167,6 +167,14 @@ public class HMM {
         return path;
     }
 
+    /**
+     *
+     * @param alts alternative allele frequency of different source population, order seen Source class
+     * @param states_trans_prob dim1 and dim2 are different source population (order seen Source)
+     * @param start_prob dim1 is different source population (order seen Source)
+     * @param obs genotype of an admixed haplotype, 0 means reference allele, 1 means alternative allele
+     * @return forward matrix, dim1 is different source population, dim2 is different variant
+     */
     public static double[][] getForward(double[][] alts, double[][] states_trans_prob, double[] start_prob, int[] obs){
 
         int stateNum = alts.length;
@@ -197,11 +205,12 @@ public class HMM {
         return forward;
     }
 
-
     /**
      *
-     * @return β is the probability of seeing the observations from time t + 1 to the end,
-     * given that we are in state i at time t and given the automaton λ
+     * @param alts alternative allele frequency of different source population, order seen Source class
+     * @param states_trans_prob  dim1 and dim2 are different source population (order seen Source)
+     * @param obs genotype of an admixed haplotype, 0 means reference allele, 1 means alternative allele
+     * @return backward matrix, dim1 is different source population, dim2 is different variant
      */
     public static double[][] getBackward(double[][] alts, double[][] states_trans_prob, int[] obs){
         int stateNum = alts.length;
@@ -231,8 +240,12 @@ public class HMM {
         return backward;
     }
 
+    /**
+     * @param forwardMatrix forward matrix
+     * @param variantNum variant number used in forward matrix
+     * @return likelihood probability of the input admixed haplotype
+     */
     public static double getForwardLikelihood(double[][] forwardMatrix, int variantNum){
-        int stateNum = forwardMatrix.length;
         double likelihood = 0;
         for (double[] matrix : forwardMatrix) {
             likelihood += matrix[variantNum - 1];
@@ -240,6 +253,14 @@ public class HMM {
         return likelihood;
     }
 
+    /**
+     *
+     * @param backwardMatrix backward matrix
+     * @param alts alternative allele frequency of different source population, order seen Source class
+     * @param start_prob dim1 is different source population (order seen Source)
+     * @param obs genotype of an admixed haplotype, 0 means reference allele, 1 means alternative allele
+     * @return likelihood probability of the input admixed haplotype
+     */
     public static double getBackwardLikelihood(double[][] backwardMatrix, double[][] alts,
                                         double[] start_prob, int[] obs){
         int stateNum = backwardMatrix.length;
@@ -251,7 +272,14 @@ public class HMM {
     }
 
     /**
-     * EM-step of EM (expectation-maximization) algorithm
+     *
+     * @param alts alternative allele frequency of different source population, order seen Source class
+     * @param states_trans_prob dim1 and dim2 are different source population (order seen Source)
+     * @param obs genotype of an admixed haplotype, 0 means reference allele, 1 means alternative allele
+     * @param forward forward matrix
+     * @param backward backward matrix
+     * @return states_trans_prob after one iteration of the EM (expectation-maximization) algorithm,
+     * dim1 and dim2 are different source population (order seen Source)
      */
     private static double[][] em_step(double[][] alts, double[][] states_trans_prob, int[] obs,
                                        double[][] forward, double[][] backward){
@@ -313,6 +341,15 @@ public class HMM {
         return trans_prob_em;
     }
 
+    /**
+     *
+     * @param lastForward last forward matrix
+     * @param currentForward current forward matrix
+     * @param variantNum variant number
+     * @param logThreshold Threshold of log-likelihood
+     * @return true if and only if the difference between the current log-likelihood value and the previous
+     * one is less than the threshold
+     */
     public static boolean ifConvergence(double[][] lastForward, double[][] currentForward, int variantNum,
                                     double logThreshold){
         double lastLikelihood = HMM.getForwardLikelihood(lastForward, variantNum);
@@ -321,9 +358,19 @@ public class HMM {
         return Math.abs(delta) < logThreshold;
     }
 
-
+    /**
+     *
+     * @param alts alternative allele frequency of different source population, order seen Source class
+     * @param states_trans_prob dim1 and dim2 are different source population (order seen Source)
+     * @param start_prob dim1 is different source population (order seen Source)
+     * @param obs genotype of an admixed haplotype, 0 means reference allele, 1 means alternative allele
+     * @param maxEMStep max em-step number
+     * @param logThreshold Threshold of log-likelihood
+     * @return states_trans_prob estimated by forward-backward algorithm
+     * dim1 and dim2 are different source population (order seen Source)
+     */
     public static double[][] forwardBackward(double[][] alts, double[][] states_trans_prob,
-                                             double[] start_prob, int[] obs, int maxEMStep, double threshold){
+                                             double[] start_prob, int[] obs, int maxEMStep, double logThreshold){
 
         double[][] last_trans_prob = states_trans_prob;
         double[][] lastForward = HMM.getForward(alts, states_trans_prob, start_prob, obs);
@@ -334,7 +381,7 @@ public class HMM {
         for (int i = 0; i < maxEMStep; i++) {
             current_trans_prob = HMM.em_step(alts, last_trans_prob, obs, lastForward, lastBackward);
             currentForward = HMM.getForward(alts, current_trans_prob, start_prob, obs);
-            if(HMM.ifConvergence(lastForward, currentForward, obs.length, threshold)){
+            if(HMM.ifConvergence(lastForward, currentForward, obs.length, logThreshold)){
                 return current_trans_prob;
             }else {
                 last_trans_prob = current_trans_prob;
@@ -346,6 +393,16 @@ public class HMM {
 
     }
 
+    /**
+     *
+     * @param alts alternative allele frequency of different source population, order seen Source class
+     * @param states_trans_prob dim1 and dim2 are different source population (order seen Source)
+     * @param start_prob dim1 is different source population (order seen Source)
+     * @param obs genotype of an admixed haplotype, 0 means reference allele, 1 means alternative allele
+     * @param emStepNum em-step number
+     * @return states_trans_prob estimated by forward-backward algorithm
+     * dim1 and dim2 are different source population (order seen Source)
+     */
     public static double[][] forwardBackward(double[][] alts, double[][] states_trans_prob,
                                              double[] start_prob, int[] obs, int emStepNum){
         double[][] last_trans_prob = states_trans_prob;
