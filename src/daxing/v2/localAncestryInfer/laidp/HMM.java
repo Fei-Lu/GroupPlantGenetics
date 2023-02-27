@@ -251,7 +251,7 @@ public class HMM {
     }
 
     /**
-     * E-step of EM (expectation-maximization) algorithm
+     * EM-step of EM (expectation-maximization) algorithm
      */
     private static double[][] em_step(double[][] alts, double[][] states_trans_prob, int[] obs,
                                        double[][] forward, double[][] backward){
@@ -344,6 +344,25 @@ public class HMM {
         }
         return last_trans_prob;
 
+    }
+
+    public static double[][] forwardBackward(double[][] alts, double[][] states_trans_prob,
+                                             double[] start_prob, int[] obs, int emStepNum){
+        double[][] last_trans_prob = states_trans_prob;
+        double[][] lastForward = HMM.getForward(alts, states_trans_prob, start_prob, obs);
+        double[][] lastBackward= HMM.getBackward(alts, states_trans_prob, obs);
+
+        double[][] current_trans_prob;
+        double[][] currentForward;
+        for (int i = 0; i < emStepNum; i++) {
+            current_trans_prob = HMM.em_step(alts, last_trans_prob, obs, lastForward, lastBackward);
+            currentForward = HMM.getForward(alts, current_trans_prob, start_prob, obs);
+
+            last_trans_prob = current_trans_prob;
+            lastForward = currentForward;
+            lastBackward = HMM.getBackward(alts, current_trans_prob, obs);
+        }
+        return last_trans_prob;
     }
 }
 
