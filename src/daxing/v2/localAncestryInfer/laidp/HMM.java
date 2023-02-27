@@ -2,6 +2,7 @@ package daxing.v2.localAncestryInfer.laidp;
 
 import it.unimi.dsi.fastutil.ints.*;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.stream.IntStream;
 
 public class HMM {
@@ -115,7 +116,7 @@ public class HMM {
      * @param start_prob dim1 is different source population (order seen Source)
      * @return hide state, dim1 is different variant, number represent source index
      */
-    public static int[] hmm2(double[][] alts, double[][] states_trans_prob, double[] start_prob, int[] obs){
+    public static int[] hmm2(double[][] alts, double[][] states_trans_prob, double[] start_prob, BitSet obs){
         int stateNum = alts.length;
         int variantNum = alts[0].length;
 
@@ -124,7 +125,7 @@ public class HMM {
 
 
         for (int i = 0; i < stateNum; i++) {
-            dp[i][0] = Math.log(start_prob[i]) +  (obs[0] == 1 ? Math.log(alts[i][0]) : Math.log(1 - alts[i][0])) ;
+            dp[i][0] = Math.log(start_prob[i]) +  (obs.get(0) ? Math.log(alts[i][0]) : Math.log(1 - alts[i][0])) ;
         }
 
         for (int variantIndex = 1; variantIndex < variantNum; variantIndex++) {
@@ -134,7 +135,7 @@ public class HMM {
 
                 for (int fromState = 0; fromState < stateNum; fromState++) {
                     double score = dp[fromState][variantIndex - 1] + Math.log(states_trans_prob[fromState][currentState]) +
-                            (obs[variantIndex] == 1 ? Math.log(alts[currentState][variantIndex]) :
+                            (obs.get(variantIndex)? Math.log(alts[currentState][variantIndex]) :
                                     Math.log(1 - alts[currentState][variantIndex]));
                     if (score > maxScore){
                         maxScore =  score;
@@ -175,7 +176,7 @@ public class HMM {
      * @param obs genotype of an admixed haplotype, 0 means reference allele, 1 means alternative allele
      * @return forward matrix, dim1 is different source population, dim2 is different variant
      */
-    public static double[][] getForward(double[][] alts, double[][] states_trans_prob, double[] start_prob, int[] obs){
+    public static double[][] getForward(double[][] alts, double[][] states_trans_prob, double[] start_prob, BitSet obs){
 
         int stateNum = alts.length;
         int variantNum = alts[0].length;
@@ -187,7 +188,7 @@ public class HMM {
 
         // Initializing the Forward Matrix
         for (int i = 0; i < stateNum; i++) {
-            forward[i][0] = start_prob[i] * (obs[0] == 1 ? (alts[i][0]) : (1 - alts[i][0]));
+            forward[i][0] = start_prob[i] * (obs.get(0) ? (alts[i][0]) : (1 - alts[i][0]));
         }
 
         for (int variantIndex = 1; variantIndex < variantNum; variantIndex++) {
@@ -196,7 +197,7 @@ public class HMM {
                 for (int fromStateIndex = 0; fromStateIndex < stateNum; fromStateIndex++) {
                     forward[currentStateIndex][variantIndex] += forward[fromStateIndex][variantIndex-1] * states_trans_prob[fromStateIndex][currentStateIndex];
                 }
-                forward[currentStateIndex][variantIndex] *= (obs[variantIndex] == 1 ?
+                forward[currentStateIndex][variantIndex] *= (obs.get(variantIndex) ?
                         (alts[currentStateIndex][variantIndex]) :
                         (1 - alts[currentStateIndex][variantIndex]));
             }
@@ -212,7 +213,7 @@ public class HMM {
      * @param obs genotype of an admixed haplotype, 0 means reference allele, 1 means alternative allele
      * @return backward matrix, dim1 is different source population, dim2 is different variant
      */
-    public static double[][] getBackward(double[][] alts, double[][] states_trans_prob, int[] obs){
+    public static double[][] getBackward(double[][] alts, double[][] states_trans_prob, BitSet obs){
         int stateNum = alts.length;
         int variantNum = alts[0].length;
 
@@ -232,7 +233,7 @@ public class HMM {
                 for (int fromStateIndex = 0; fromStateIndex < stateNum; fromStateIndex++) {
                     backward[currentStateIndex][variantIndex] += backward[fromStateIndex][variantIndex+1] * states_trans_prob[fromStateIndex][currentStateIndex];
                 }
-                backward[currentStateIndex][variantIndex] *= (obs[variantIndex+1] == 1 ?
+                backward[currentStateIndex][variantIndex] *= (obs.get(variantIndex+1) ?
                         (alts[currentStateIndex][variantIndex+1]) :
                         (1 - alts[currentStateIndex][variantIndex+1]));
             }
@@ -281,10 +282,10 @@ public class HMM {
      * @return states_trans_prob after one iteration of the EM (expectation-maximization) algorithm,
      * dim1 and dim2 are different source population (order seen Source)
      */
-    private static double[][] em_step(double[][] alts, double[][] states_trans_prob, int[] obs,
+    private static double[][] em_step(double[][] alts, double[][] states_trans_prob, BitSet obs,
                                        double[][] forward, double[][] backward){
         int stateNum = forward.length;
-        int variantNum = obs.length;
+        int variantNum = alts[0].length;
 
         // E-step
         double[] denominator_notQuite = new double[variantNum];
@@ -305,7 +306,8 @@ public class HMM {
                 for (int toStateIndex = 0; toStateIndex < stateNum; toStateIndex++) {
                     notQuiteXi[variantIndex][fromStateIndex][toStateIndex]= forward[fromStateIndex][variantIndex] *
                             states_trans_prob[fromStateIndex][toStateIndex] *
-                            (obs[variantIndex+1] == 1 ? (alts[toStateIndex][variantIndex+1]) : (1 - alts[toStateIndex][variantIndex+1])) *
+                            (obs.get(variantIndex+1) ? (alts[toStateIndex][variantIndex+1]) :
+                            (1 - alts[toStateIndex][variantIndex+1])) *
                             backward[toStateIndex][variantIndex+1];
                     xi[variantIndex][fromStateIndex][toStateIndex]= notQuiteXi[variantIndex][fromStateIndex][toStateIndex]/denominator_notQuite[variantIndex];
                 }
@@ -370,7 +372,7 @@ public class HMM {
      * dim1 and dim2 are different source population (order seen Source)
      */
     public static double[][] forwardBackward(double[][] alts, double[][] states_trans_prob,
-                                             double[] start_prob, int[] obs, int maxEMStep, double logThreshold){
+                                             double[] start_prob, BitSet obs, int maxEMStep, double logThreshold){
 
         double[][] last_trans_prob = states_trans_prob;
         double[][] lastForward = HMM.getForward(alts, states_trans_prob, start_prob, obs);
@@ -381,7 +383,7 @@ public class HMM {
         for (int i = 0; i < maxEMStep; i++) {
             current_trans_prob = HMM.em_step(alts, last_trans_prob, obs, lastForward, lastBackward);
             currentForward = HMM.getForward(alts, current_trans_prob, start_prob, obs);
-            if(HMM.ifConvergence(lastForward, currentForward, obs.length, logThreshold)){
+            if(HMM.ifConvergence(lastForward, currentForward, alts[0].length, logThreshold)){
                 return current_trans_prob;
             }else {
                 last_trans_prob = current_trans_prob;
@@ -404,7 +406,7 @@ public class HMM {
      * dim1 and dim2 are different source population (order seen Source)
      */
     public static double[][] forwardBackward(double[][] alts, double[][] states_trans_prob,
-                                             double[] start_prob, int[] obs, int emStepNum){
+                                             double[] start_prob, BitSet obs, int emStepNum){
         double[][] last_trans_prob = states_trans_prob;
         double[][] lastForward = HMM.getForward(alts, states_trans_prob, start_prob, obs);
         double[][] lastBackward= HMM.getBackward(alts, states_trans_prob, obs);
