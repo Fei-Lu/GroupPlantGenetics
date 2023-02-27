@@ -1,6 +1,7 @@
 package daxing.v2.localAncestryInfer.laidp;
 
 import it.unimi.dsi.fastutil.ints.*;
+import java.util.Arrays;
 import java.util.stream.IntStream;
 
 public class HMM {
@@ -164,6 +165,185 @@ public class HMM {
         }
 
         return path;
+    }
+
+    public static double[][] getForward(double[][] alts, double[][] states_trans_prob, double[] start_prob, int[] obs){
+
+        int stateNum = alts.length;
+        int variantNum = alts[0].length;
+
+        double[][] forward = new double[stateNum][variantNum];
+        for (double[] doubles : forward) {
+            Arrays.fill(doubles, -1);
+        }
+
+        // Initializing the Forward Matrix
+        for (int i = 0; i < stateNum; i++) {
+            forward[i][0] = start_prob[i] * (obs[0] == 1 ? (alts[i][0]) : (1 - alts[i][0]));
+        }
+
+        for (int variantIndex = 1; variantIndex < variantNum; variantIndex++) {
+            for (int currentStateIndex = 0; currentStateIndex < stateNum; currentStateIndex++) {
+                forward[currentStateIndex][variantIndex] = 0;
+                for (int fromStateIndex = 0; fromStateIndex < stateNum; fromStateIndex++) {
+                    forward[currentStateIndex][variantIndex] += forward[fromStateIndex][variantIndex-1] * states_trans_prob[fromStateIndex][currentStateIndex];
+                }
+                forward[currentStateIndex][variantIndex] *= (obs[variantIndex] == 1 ?
+                        (alts[currentStateIndex][variantIndex]) :
+                        (1 - alts[currentStateIndex][variantIndex]));
+            }
+        }
+
+        return forward;
+    }
+
+
+    /**
+     *
+     * @return β is the probability of seeing the observations from time t + 1 to the end,
+     * given that we are in state i at time t and given the automaton λ
+     */
+    public static double[][] getBackward(double[][] alts, double[][] states_trans_prob, int[] obs){
+        int stateNum = alts.length;
+        int variantNum = alts[0].length;
+
+        double[][] backward = new double[stateNum][variantNum];
+        for (double[] doubles : backward) {
+            Arrays.fill(doubles, -1);
+        }
+
+        // Initializing the Backward Matrix
+        for(int i = 0; i < stateNum; i++){
+            backward[i][variantNum -1] = 1;
+        }
+
+        for (int variantIndex = variantNum - 2; variantIndex >= 0; variantIndex--) {
+            for (int currentStateIndex = 0; currentStateIndex < stateNum; currentStateIndex++) {
+                backward[currentStateIndex][variantIndex] = 0;
+                for (int fromStateIndex = 0; fromStateIndex < stateNum; fromStateIndex++) {
+                    backward[currentStateIndex][variantIndex] += backward[fromStateIndex][variantIndex+1] * states_trans_prob[fromStateIndex][currentStateIndex];
+                }
+                backward[currentStateIndex][variantIndex] *= (obs[variantIndex+1] == 1 ?
+                        (alts[currentStateIndex][variantIndex+1]) :
+                        (1 - alts[currentStateIndex][variantIndex+1]));
+            }
+        }
+        return backward;
+    }
+
+    public static double getForwardLikelihood(double[][] forwardMatrix, int variantNum){
+        int stateNum = forwardMatrix.length;
+        double likelihood = 0;
+        for (double[] matrix : forwardMatrix) {
+            likelihood += matrix[variantNum - 1];
+        }
+        return likelihood;
+    }
+
+    public static double getBackwardLikelihood(double[][] backwardMatrix, double[][] alts,
+                                        double[] start_prob, int[] obs){
+        int stateNum = backwardMatrix.length;
+        double likelihood = 0;
+        for (int i = 0; i < stateNum; i++) {
+            likelihood += backwardMatrix[i][0] * (obs[0] == 1 ? (alts[i][0]) : (1 - alts[i][0])) * start_prob[i];
+        }
+        return likelihood;
+    }
+
+    /**
+     * E-step of EM (expectation-maximization) algorithm
+     */
+    private static double[][] em_step(double[][] alts, double[][] states_trans_prob, int[] obs,
+                                       double[][] forward, double[][] backward){
+        int stateNum = forward.length;
+        int variantNum = obs.length;
+
+        // E-step
+        double[] denominator_notQuite = new double[variantNum];
+        double[][][] notQuiteXi = new double[variantNum-1][stateNum][stateNum];
+        double[][][] xi = new double[variantNum-1][stateNum][stateNum];
+
+        Arrays.fill(denominator_notQuite, -1);
+
+        for (int variantIndex = 0; variantIndex < variantNum; variantIndex++) {
+            denominator_notQuite[variantIndex] = 0;
+            for (int stateIndex = 0; stateIndex < stateNum; stateIndex++) {
+                denominator_notQuite[variantIndex]+= forward[stateIndex][variantIndex] * backward[stateIndex][variantIndex];
+            }
+        }
+
+        for (int variantIndex = 0; variantIndex < variantNum-1; variantIndex++) {
+            for (int fromStateIndex = 0; fromStateIndex < stateNum; fromStateIndex++) {
+                for (int toStateIndex = 0; toStateIndex < stateNum; toStateIndex++) {
+                    notQuiteXi[variantIndex][fromStateIndex][toStateIndex]= forward[fromStateIndex][variantIndex] *
+                            states_trans_prob[fromStateIndex][toStateIndex] *
+                            (obs[variantIndex+1] == 1 ? (alts[toStateIndex][variantIndex+1]) : (1 - alts[toStateIndex][variantIndex+1])) *
+                            backward[toStateIndex][variantIndex+1];
+                    xi[variantIndex][fromStateIndex][toStateIndex]= notQuiteXi[variantIndex][fromStateIndex][toStateIndex]/denominator_notQuite[variantIndex];
+                }
+            }
+        }
+
+        // M-step
+        double[] denominator_xi = new double[stateNum];
+        double[][] trans_prob_em = new double[stateNum][stateNum];
+
+        Arrays.fill(denominator_xi, -1);
+
+        for (int fromStateIndex = 0; fromStateIndex < stateNum; fromStateIndex++) {
+            denominator_xi[fromStateIndex] = 0;
+            for (int variantIndex = 0; variantIndex < variantNum-1; variantIndex++) {
+                for (int toStateIndex = 0; toStateIndex < stateNum; toStateIndex++) {
+                    denominator_xi[fromStateIndex]+=xi[variantIndex][fromStateIndex][toStateIndex];
+                }
+            }
+        }
+
+
+        for (int fromStateIndex = 0; fromStateIndex < stateNum; fromStateIndex++) {
+            for (int toStateIndex = 0; toStateIndex <stateNum; toStateIndex++) {
+                double trans_prob_em_numerator = 0;
+                for (int variantIndex = 0; variantIndex < variantNum - 1; variantIndex++) {
+                    trans_prob_em_numerator+=xi[variantIndex][fromStateIndex][toStateIndex];
+                }
+                trans_prob_em[fromStateIndex][toStateIndex]=trans_prob_em_numerator/denominator_xi[fromStateIndex];
+            }
+        }
+
+        return trans_prob_em;
+    }
+
+    public static boolean ifConvergence(double[][] lastForward, double[][] currentForward, int variantNum,
+                                    double logThreshold){
+        double lastLikelihood = HMM.getForwardLikelihood(lastForward, variantNum);
+        double currentLikelihood = HMM.getForwardLikelihood(currentForward, variantNum);
+        double delta = Math.log(currentLikelihood) - Math.log(lastLikelihood);
+        return Math.abs(delta) < logThreshold;
+    }
+
+
+    public static double[][] forwardBackward(double[][] alts, double[][] states_trans_prob,
+                                             double[] start_prob, int[] obs, int maxEMStep, double threshold){
+
+        double[][] last_trans_prob = states_trans_prob;
+        double[][] lastForward = HMM.getForward(alts, states_trans_prob, start_prob, obs);
+        double[][] lastBackward= HMM.getBackward(alts, states_trans_prob, obs);
+
+        double[][] current_trans_prob;
+        double[][] currentForward;
+        for (int i = 0; i < maxEMStep; i++) {
+            current_trans_prob = HMM.em_step(alts, last_trans_prob, obs, lastForward, lastBackward);
+            currentForward = HMM.getForward(alts, current_trans_prob, start_prob, obs);
+            if(HMM.ifConvergence(lastForward, currentForward, obs.length, threshold)){
+                return current_trans_prob;
+            }else {
+                last_trans_prob = current_trans_prob;
+                lastForward = currentForward;
+                lastBackward = HMM.getBackward(alts, current_trans_prob, obs);
+            }
+        }
+        return last_trans_prob;
+
     }
 }
 
