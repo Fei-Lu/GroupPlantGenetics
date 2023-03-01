@@ -2,7 +2,6 @@ package daxing.v2.localAncestryInfer.laidp;
 
 import it.unimi.dsi.fastutil.ints.*;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.stream.IntStream;
 
 public class HMM {
@@ -116,7 +115,7 @@ public class HMM {
      * @param start_prob dim1 is different source population (order seen Source)
      * @return hide state, dim1 is different variant, number represent source index
      */
-    public static int[] hmm2(double[][] alts, double[][] states_trans_prob, double[] start_prob, BitSet obs){
+    public static int[] hmm2(double[][] alts, double[][] states_trans_prob, double[] start_prob, int[] obs){
         int stateNum = alts.length;
         int variantNum = alts[0].length;
 
@@ -125,7 +124,7 @@ public class HMM {
 
 
         for (int i = 0; i < stateNum; i++) {
-            dp[i][0] = Math.log(start_prob[i]) +  (obs.get(0) ? Math.log(alts[i][0]) : Math.log(1 - alts[i][0])) ;
+            dp[i][0] = Math.log(start_prob[i]) +  (obs[0]==1 ? Math.log(alts[i][0]) : Math.log(1 - alts[i][0])) ;
         }
 
         for (int variantIndex = 1; variantIndex < variantNum; variantIndex++) {
@@ -135,7 +134,7 @@ public class HMM {
 
                 for (int fromState = 0; fromState < stateNum; fromState++) {
                     double score = dp[fromState][variantIndex - 1] + Math.log(states_trans_prob[fromState][currentState]) +
-                            (obs.get(variantIndex)? Math.log(alts[currentState][variantIndex]) :
+                            (obs[variantIndex] ==1 ? Math.log(alts[currentState][variantIndex]) :
                                     Math.log(1 - alts[currentState][variantIndex]));
                     if (score > maxScore){
                         maxScore =  score;
@@ -158,6 +157,7 @@ public class HMM {
             }
         }
 
+        bestState = bestState < 0 ? 0 : bestState;
         int[] path = new int[variantNum];
         path[variantNum-1] = bestState;
 
@@ -176,7 +176,7 @@ public class HMM {
      * @param obs genotype of an admixed haplotype, 0 means reference allele, 1 means alternative allele
      * @return forward matrix, dim1 is different source population, dim2 is different variant
      */
-    public static double[][] getForward(double[][] alts, double[][] states_trans_prob, double[] start_prob, BitSet obs){
+    public static double[][] getForward(double[][] alts, double[][] states_trans_prob, double[] start_prob, int[] obs){
 
         int stateNum = alts.length;
         int variantNum = alts[0].length;
@@ -188,7 +188,7 @@ public class HMM {
 
         // Initializing the Forward Matrix
         for (int i = 0; i < stateNum; i++) {
-            forward[i][0] = start_prob[i] * (obs.get(0) ? (alts[i][0]) : (1 - alts[i][0]));
+            forward[i][0] = start_prob[i] * (obs[0]==1 ? (alts[i][0]) : (1 - alts[i][0]));
         }
 
         for (int variantIndex = 1; variantIndex < variantNum; variantIndex++) {
@@ -197,7 +197,7 @@ public class HMM {
                 for (int fromStateIndex = 0; fromStateIndex < stateNum; fromStateIndex++) {
                     forward[currentStateIndex][variantIndex] += forward[fromStateIndex][variantIndex-1] * states_trans_prob[fromStateIndex][currentStateIndex];
                 }
-                forward[currentStateIndex][variantIndex] *= (obs.get(variantIndex) ?
+                forward[currentStateIndex][variantIndex] *= (obs[variantIndex]==1 ?
                         (alts[currentStateIndex][variantIndex]) :
                         (1 - alts[currentStateIndex][variantIndex]));
             }
@@ -213,7 +213,7 @@ public class HMM {
      * @param obs genotype of an admixed haplotype, 0 means reference allele, 1 means alternative allele
      * @return backward matrix, dim1 is different source population, dim2 is different variant
      */
-    public static double[][] getBackward(double[][] alts, double[][] states_trans_prob, BitSet obs){
+    public static double[][] getBackward(double[][] alts, double[][] states_trans_prob, int[] obs){
         int stateNum = alts.length;
         int variantNum = alts[0].length;
 
@@ -233,7 +233,7 @@ public class HMM {
                 for (int fromStateIndex = 0; fromStateIndex < stateNum; fromStateIndex++) {
                     backward[currentStateIndex][variantIndex] += backward[fromStateIndex][variantIndex+1] * states_trans_prob[fromStateIndex][currentStateIndex];
                 }
-                backward[currentStateIndex][variantIndex] *= (obs.get(variantIndex+1) ?
+                backward[currentStateIndex][variantIndex] *= (obs[variantIndex+1]==1 ?
                         (alts[currentStateIndex][variantIndex+1]) :
                         (1 - alts[currentStateIndex][variantIndex+1]));
             }
@@ -246,12 +246,12 @@ public class HMM {
      * @param variantNum variant number used in forward matrix
      * @return likelihood probability of the input admixed haplotype
      */
-    public static double getForwardLikelihood(double[][] forwardMatrix, int variantNum){
+    public static double getForwardLogLikelihood(double[][] forwardMatrix, int variantNum){
         double likelihood = 0;
         for (double[] matrix : forwardMatrix) {
             likelihood += matrix[variantNum - 1];
         }
-        return likelihood;
+        return Math.log(likelihood);
     }
 
     /**
@@ -262,14 +262,14 @@ public class HMM {
      * @param obs genotype of an admixed haplotype, 0 means reference allele, 1 means alternative allele
      * @return likelihood probability of the input admixed haplotype
      */
-    public static double getBackwardLikelihood(double[][] backwardMatrix, double[][] alts,
-                                        double[] start_prob, int[] obs){
+    public static double getBackwardLogLikelihood(double[][] backwardMatrix, double[][] alts,
+                                                  double[] start_prob, int[] obs){
         int stateNum = backwardMatrix.length;
         double likelihood = 0;
         for (int i = 0; i < stateNum; i++) {
             likelihood += backwardMatrix[i][0] * (obs[0] == 1 ? (alts[i][0]) : (1 - alts[i][0])) * start_prob[i];
         }
-        return likelihood;
+        return Math.log(likelihood);
     }
 
     /**
@@ -282,7 +282,7 @@ public class HMM {
      * @return states_trans_prob after one iteration of the EM (expectation-maximization) algorithm,
      * dim1 and dim2 are different source population (order seen Source)
      */
-    private static double[][] em_step(double[][] alts, double[][] states_trans_prob, BitSet obs,
+    private static double[][] em_step(double[][] alts, double[][] states_trans_prob, int[] obs,
                                        double[][] forward, double[][] backward){
         int stateNum = forward.length;
         int variantNum = alts[0].length;
@@ -306,7 +306,7 @@ public class HMM {
                 for (int toStateIndex = 0; toStateIndex < stateNum; toStateIndex++) {
                     notQuiteXi[variantIndex][fromStateIndex][toStateIndex]= forward[fromStateIndex][variantIndex] *
                             states_trans_prob[fromStateIndex][toStateIndex] *
-                            (obs.get(variantIndex+1) ? (alts[toStateIndex][variantIndex+1]) :
+                            (obs[variantIndex+1]==1 ? (alts[toStateIndex][variantIndex+1]) :
                             (1 - alts[toStateIndex][variantIndex+1])) *
                             backward[toStateIndex][variantIndex+1];
                     xi[variantIndex][fromStateIndex][toStateIndex]= notQuiteXi[variantIndex][fromStateIndex][toStateIndex]/denominator_notQuite[variantIndex];
@@ -354,9 +354,9 @@ public class HMM {
      */
     public static boolean ifConvergence(double[][] lastForward, double[][] currentForward, int variantNum,
                                     double logThreshold){
-        double lastLikelihood = HMM.getForwardLikelihood(lastForward, variantNum);
-        double currentLikelihood = HMM.getForwardLikelihood(currentForward, variantNum);
-        double delta = Math.log(currentLikelihood) - Math.log(lastLikelihood);
+        double lastLikelihood = HMM.getForwardLogLikelihood(lastForward, variantNum);
+        double currentLikelihood = HMM.getForwardLogLikelihood(currentForward, variantNum);
+        double delta = currentLikelihood - lastLikelihood;
         return Math.abs(delta) < logThreshold;
     }
 
@@ -372,7 +372,7 @@ public class HMM {
      * dim1 and dim2 are different source population (order seen Source)
      */
     public static double[][] forwardBackward(double[][] alts, double[][] states_trans_prob,
-                                             double[] start_prob, BitSet obs, int maxEMStep, double logThreshold){
+                                             double[] start_prob, int[] obs, int maxEMStep, double logThreshold){
 
         double[][] last_trans_prob = states_trans_prob;
         double[][] lastForward = HMM.getForward(alts, states_trans_prob, start_prob, obs);
@@ -406,7 +406,7 @@ public class HMM {
      * dim1 and dim2 are different source population (order seen Source)
      */
     public static double[][] forwardBackward(double[][] alts, double[][] states_trans_prob,
-                                             double[] start_prob, BitSet obs, int emStepNum){
+                                             double[] start_prob, int[] obs, int emStepNum){
         double[][] last_trans_prob = states_trans_prob;
         double[][] lastForward = HMM.getForward(alts, states_trans_prob, start_prob, obs);
         double[][] lastBackward= HMM.getBackward(alts, states_trans_prob, obs);
@@ -424,7 +424,7 @@ public class HMM {
         return last_trans_prob;
     }
 
-    public static int[] viterbi(double[][] alts, double[][] states_trans_prob, BitSet obs){
+    public static int[] viterbi(double[][] alts, double[][] states_trans_prob, int[] obs){
         int stateNum = alts.length;
         int variantNum = alts[0].length;
 
@@ -432,7 +432,7 @@ public class HMM {
         int[][] backPath = new int[stateNum][variantNum];
 
         for (int i = 0; i < stateNum; i++) {
-            dp[i][0] = obs.get(0) ? alts[i][0] : (1 - alts[i][0]);
+            dp[i][0] = obs[0]==1 ? alts[i][0] : (1 - alts[i][0]);
         }
 
         for (int variantIndex = 1; variantIndex < variantNum; variantIndex++) {
@@ -441,7 +441,7 @@ public class HMM {
                 int prevState = 0;
                 for (int fromState = 0; fromState < stateNum; fromState++) {
                     double score = dp[fromState][variantIndex - 1] * states_trans_prob[fromState][currentState] +
-                            (obs.get(variantIndex)? (alts[currentState][variantIndex]) :
+                            (obs[variantIndex]==1 ? (alts[currentState][variantIndex]) :
                                     (1 - alts[currentState][variantIndex]));
                     if (score > maxScore){
                         maxScore =  score;
