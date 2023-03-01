@@ -274,8 +274,8 @@ public class DemographicModelTools {
         int[] sampleSize = {30,30,30};
         int equilibriumPopulationSize = 10000;
         int[] splitEventTime_0 = {10000};
-        int[] splitEventTime_1 = {500};
-        double[] ratio_admixture_divergence = {0.1, 0.2, 0.4};
+        int[] splitEventTime_1 = {8000};
+        double[] ratio_admixture_divergence = {0.1, 0.2, 0.4, 0.8};
         double[] admixtureProportion = {0.1};
         int sequenceLength = 1_000_000;
         double recombination_rate = 1e-8;
