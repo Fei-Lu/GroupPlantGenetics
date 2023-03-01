@@ -423,6 +423,56 @@ public class HMM {
         }
         return last_trans_prob;
     }
+
+    public static int[] viterbi(double[][] alts, double[][] states_trans_prob, BitSet obs){
+        int stateNum = alts.length;
+        int variantNum = alts[0].length;
+
+        double[][] dp = new double[stateNum][variantNum];
+        int[][] backPath = new int[stateNum][variantNum];
+
+        for (int i = 0; i < stateNum; i++) {
+            dp[i][0] = obs.get(0) ? alts[i][0] : (1 - alts[i][0]);
+        }
+
+        for (int variantIndex = 1; variantIndex < variantNum; variantIndex++) {
+            for (int currentState = 0; currentState < stateNum; currentState++) {
+                double maxScore = Double.NEGATIVE_INFINITY;
+                int prevState = 0;
+                for (int fromState = 0; fromState < stateNum; fromState++) {
+                    double score = dp[fromState][variantIndex - 1] * states_trans_prob[fromState][currentState] +
+                            (obs.get(variantIndex)? (alts[currentState][variantIndex]) :
+                                    (1 - alts[currentState][variantIndex]));
+                    if (score > maxScore){
+                        maxScore =  score;
+                        prevState = fromState;
+                    }
+                }
+
+                dp[currentState][variantIndex] = maxScore;
+                backPath[currentState][variantIndex-1] = prevState;
+            }
+        }
+
+        double bestScore = Double.NEGATIVE_INFINITY;
+        int bestState = -1;
+
+        for (int stateIndex = 0; stateIndex < stateNum; stateIndex++) {
+            if (dp[stateIndex][variantNum-1] > bestScore){
+                bestScore = dp[stateIndex][variantNum-1];
+                bestState = stateIndex;
+            }
+        }
+
+        int[] path = new int[variantNum];
+        path[variantNum-1] = bestState;
+
+        for (int i = variantNum - 2; i >=0; i--) {
+            path[i] = backPath[path[i+1]][i];
+        }
+
+        return path;
+    }
 }
 
 
