@@ -17,6 +17,7 @@ import pgl.PGLConstraints;
 import pgl.infra.dna.allele.AlleleEncoder;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -1053,28 +1054,11 @@ public class GenotypeTable {
             TIntIterator intIterator = introgressionWindowIndexSet.iterator();
             while (intIterator.hasNext()){
                 int index = intIterator.next();
-                if (index > 1 && index < windowNum-conjunctionNum){
-                    int i=1;
-                    while (i <= conjunctionNum){
-                        resultIndexSet.add(Math.max(index - i, 0));
-                        resultIndexSet.add(index+i);
-                        i++;
-                    }
-
-                }else if (index == 1){
-                    resultIndexSet.add(0);
-                }else if (index == (windowNum-conjunctionNum)){
-                    int i = 1;
-                    while (i < conjunctionNum){
-                        resultIndexSet.add(index+i);
-                        i++;
-                    }
-                }else if (index == 0){
-                    int i = 0;
-                    while (i < conjunctionNum){
-                        resultIndexSet.add(i);
-                        i++;
-                    }
+                int i = 1;
+                while (i <= conjunctionNum){
+                    resultIndexSet.add(Math.max(index - i, 0));
+                    resultIndexSet.add(Math.min(index+i, windowNum-1));
+                    i++;
                 }
             }
 
@@ -1292,8 +1276,7 @@ public class GenotypeTable {
     }
 
     public BitSet[][] calculateLocalAncestry2(int windowSize, int stepSize, String taxaGroupFile,
-                                             BitSet[] ancestralAlleleBitSet, int conjunctionNum,
-                                             int emStepNum, int threadsNum){
+                                             BitSet[] ancestralAlleleBitSet, int conjunctionNum, int threadsNum){
         int variantsNum = this.getSiteNumber();
         TaxaGroup taxaGroup = TaxaGroup.buildFrom(taxaGroupFile);
         int n_wayAdmixture = taxaGroup.getIntrogressedPopTaxa().length + 1;
@@ -1302,7 +1285,6 @@ public class GenotypeTable {
         int[] nativeTaxaIndices = this.getTaxaIndices(taxaGroup.getTaxaOf(Source.NATIVE));
         int[][] introgressedPopTaxaIndices = this.getTaxaIndices(taxaGroup.getIntrogressedPopTaxa());
         int[][] native_admixed_introgressed_popIndex = this.getTaxaIndices(taxaGroup.getNative_admixed_introgressed_Taxa());
-        int[] native_introgressed_popIndex = this.getTaxaIndices(taxaGroup.getTaxaOf_native_introgressed());
 
         int[] windowStartIndexArray = GenotypeTable.getWindowStartIndex(windowSize, stepSize, variantsNum);
         double[][][] dxy_windows_admixed = this.calculateAdmixedDxy(admixedTaxaIndices, nativeTaxaIndices,
@@ -1338,9 +1320,6 @@ public class GenotypeTable {
 
         List<int[]>[] successiveWindow_taxon = GenotypeTable.getSuccessiveIntrogressionWindow(gridSource, conjunctionNum);
         BitSet[] queriesGenotype = this.getTaxaGenotype(admixedTaxaIndices);
-        BitSet[] sourcesGenotype = this.getTaxaGenotype(native_introgressed_popIndex);
-        List<String> sourceTaxaList = this.getTaxaList(native_introgressed_popIndex);
-        Map<String, Source> taxaSourceMap = taxaGroup.getTaxaSourceMap(sourceTaxaList);
         BitSet[][] localAncestry = new BitSet[admixedTaxaIndices.length][];
         for (int i = 0; i < admixedTaxaIndices.length; i++) {
             localAncestry[i] = new BitSet[n_wayAdmixture];
@@ -1351,50 +1330,36 @@ public class GenotypeTable {
             localAncestry[i][0].set(0, variantsNum);
         }
 
-        ExecutorService executorService = Executors.newFixedThreadPool(threadsNum);
-        List<Future<Void>> futures = new ArrayList<>();
         for (int i = 0; i < admixedTaxaIndices.length; i++) {
             for (int j = 0; j < successiveWindow_taxon[i].size(); j++) {
                 int admixedTaxonIndex = i;
                 int gridIndex = j;
-                futures.add(executorService.submit(()->{
-                    int gridStart = successiveWindow_taxon[admixedTaxonIndex].get(gridIndex)[0]; // inclusive
-                    int gridEnd = successiveWindow_taxon[admixedTaxonIndex].get(gridIndex)[1]; // inclusive
-                    int[] gridSource_fragment = new int[gridEnd-gridStart+1];
-                    System.arraycopy(gridSource[admixedTaxonIndex], gridStart, gridSource_fragment, 0,gridEnd-gridStart+1);
 
-                    int fragmentStartIndex = windowStartIndexArray[gridStart]; // inclusive
-                    int fragmentEndIndex = Math.min(windowStartIndexArray[gridEnd]+windowSize, variantsNum); // exclusive
-                    int fragmentLen = fragmentEndIndex - fragmentStartIndex;
+                int gridStart = successiveWindow_taxon[admixedTaxonIndex].get(gridIndex)[0]; // inclusive
+                int gridEnd = successiveWindow_taxon[admixedTaxonIndex].get(gridIndex)[1]; // inclusive
+                int[] gridSource_fragment = new int[gridEnd-gridStart+1];
+                System.arraycopy(gridSource[admixedTaxonIndex], gridStart, gridSource_fragment, 0,gridEnd-gridStart+1);
 
-                    BitSet queryFragment = queriesGenotype[admixedTaxonIndex].get(fragmentStartIndex, fragmentEndIndex);
-                    double[][] alts_sourcesFragment = new double[alts_native_introgressed.length][fragmentLen];
-                    for (int k = 0; k < alts_sourcesFragment.length; k++) {
-                        System.arraycopy(alts_native_introgressed[k], fragmentStartIndex, alts_sourcesFragment[k], 0, fragmentLen);
-                    }
+                int fragmentStartIndex = windowStartIndexArray[gridStart]; // inclusive
+                int fragmentEndIndex = Math.min(windowStartIndexArray[gridEnd]+windowSize, variantsNum); // exclusive
+                int fragmentLen = fragmentEndIndex - fragmentStartIndex;
 
-                    double[][] state_trans_prob = GenotypeTable.get_state_trans_prob(gridSource_fragment, n_wayAdmixture);
-                    double[] start_prob = GenotypeTable.get_start_prob(n_wayAdmixture, 0.9);
-                    double[][] state_trans_prob_em = HMM.forwardBackward(alts_sourcesFragment, state_trans_prob,
-                            start_prob, queryFragment, emStepNum);
-                    int[] hiddenState = HMM.hmm2(alts_sourcesFragment, state_trans_prob_em, start_prob, queryFragment);
-                    for (int k = 0; k < hiddenState.length; k++) {
-                        if (hiddenState[k] == 0) continue;
-                        localAncestry[admixedTaxonIndex][k].set(fragmentStartIndex+k);
-                    }
-                    return null;
-                }));
+                BitSet queryFragment = queriesGenotype[admixedTaxonIndex].get(fragmentStartIndex, fragmentEndIndex);
+
+                double[][] alts_sourcesFragment = new double[alts_native_introgressed.length][fragmentLen];
+                for (int k = 0; k < alts_sourcesFragment.length; k++) {
+                    System.arraycopy(alts_native_introgressed[k], fragmentStartIndex, alts_sourcesFragment[k], 0, fragmentLen);
+                }
+                double[][] state_trans_prob = GenotypeTable.get_state_trans_prob(gridSource_fragment, n_wayAdmixture);
+
+                int[] hiddenState = HMM.viterbi(alts_sourcesFragment, state_trans_prob, queryFragment);
+                for (int k = 0; k < hiddenState.length; k++) {
+                    if (hiddenState[k] == 0) continue;
+                    localAncestry[admixedTaxonIndex][hiddenState[k]].set(fragmentStartIndex+k);
+                    localAncestry[admixedTaxonIndex][0].set(fragmentStartIndex+k, false);
+                }
             }
         }
-        for (Future<Void> future : futures) {
-            try {
-                future.get();
-            } catch (InterruptedException | ExecutionException e) {
-                executorService.shutdown();
-                throw new RuntimeException(e);
-            }
-        }
-        executorService.shutdown();
         return localAncestry;
     }
 
@@ -1437,17 +1402,19 @@ public class GenotypeTable {
                 }
             }
         }
-        double total = 0;
+        double[] total = new double[n_wayAdmixture];
         for (int i = 0; i < n_wayAdmixture; i++) {
+            total[i] = 0;
             for (int j = 0; j < n_wayAdmixture; j++) {
-                total+=state_trans_count[i][j];
+                total[i]+=state_trans_count[i][j];
             }
         }
 
         double[][] state_trans_prob = new double[n_wayAdmixture][n_wayAdmixture];
         for (int i = 0; i < n_wayAdmixture; i++) {
+            if (total[i] == 0) continue;
             for (int j = 0; j < n_wayAdmixture; j++) {
-                state_trans_prob[i][j]=state_trans_count[i][j]/total;
+                state_trans_prob[i][j]=state_trans_count[i][j]/total[i];
             }
         }
         return state_trans_prob;
@@ -1503,10 +1470,10 @@ public class GenotypeTable {
                                  double switchCostScore, String localAnceOutFile, int threadsNum){
         GenotypeTable genotypeTable = new GenotypeTable(genotypeFile);
         BitSet[] ancestralAlleleBitSet = genotypeTable.getAncestralAlleleBitSet(ancestryAllele);
-//        BitSet[][] localAnc = genotypeTable.calculateLocalAncestry(windowSize, stepSize, taxaGroupFile,
-//                ancestralAlleleBitSet, conjunctionNum, switchCostScore, threadsNum);
-        BitSet[][] localAnc = genotypeTable.calculateLocalAncestry2(windowSize, stepSize, taxaGroupFile,
-                ancestralAlleleBitSet, conjunctionNum, 2, threadsNum);
+        BitSet[][] localAnc = genotypeTable.calculateLocalAncestry(windowSize, stepSize, taxaGroupFile,
+                ancestralAlleleBitSet, conjunctionNum, switchCostScore, threadsNum);
+//        BitSet[][] localAnc = genotypeTable.calculateLocalAncestry2(windowSize, stepSize, taxaGroupFile,
+//                ancestralAlleleBitSet, conjunctionNum, threadsNum);
         genotypeTable.write_localAncestry(localAnc, localAnceOutFile, taxaGroupFile);
     }
 
