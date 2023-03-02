@@ -2,6 +2,7 @@ package daxing.v2.localAncestryInfer.laidp;
 
 import it.unimi.dsi.fastutil.ints.*;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.stream.IntStream;
 
 public class HMM {
@@ -424,7 +425,7 @@ public class HMM {
         return last_trans_prob;
     }
 
-    public static int[] viterbi(double[][] alts, double[][] states_trans_prob, int[] obs){
+    public static int[] viterbi(double[][] alts, double[][] states_trans_prob, BitSet obs){
         int stateNum = alts.length;
         int variantNum = alts[0].length;
 
@@ -432,7 +433,7 @@ public class HMM {
         int[][] backPath = new int[stateNum][variantNum];
 
         for (int i = 0; i < stateNum; i++) {
-            dp[i][0] = obs[0]==1 ? alts[i][0] : (1 - alts[i][0]);
+            dp[i][0] = obs.get(0) ? alts[i][0] : (1 - alts[i][0]);
         }
 
         for (int variantIndex = 1; variantIndex < variantNum; variantIndex++) {
@@ -441,7 +442,7 @@ public class HMM {
                 int prevState = 0;
                 for (int fromState = 0; fromState < stateNum; fromState++) {
                     double score = dp[fromState][variantIndex - 1] * states_trans_prob[fromState][currentState] +
-                            (obs[variantIndex]==1 ? (alts[currentState][variantIndex]) :
+                            (obs.get(variantIndex) ? (alts[currentState][variantIndex]) :
                                     (1 - alts[currentState][variantIndex]));
                     if (score > maxScore){
                         maxScore =  score;
