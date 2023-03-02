@@ -1363,6 +1363,192 @@ public class GenotypeTable {
         return localAncestry;
     }
 
+    public BitSet[][] calculateLocalAncestry_HMM_EM(int windowSize, int stepSize, String taxaGroupFile,
+                                                    BitSet[] ancestralAlleleBitSet, int conjunctionNum, int threadsNum){
+        int variantsNum = this.getSiteNumber();
+        TaxaGroup taxaGroup = TaxaGroup.buildFrom(taxaGroupFile);
+        int n_wayAdmixture = taxaGroup.getIntrogressedPopTaxa().length + 1;
+
+        int[] admixedTaxaIndices = this.getTaxaIndices(taxaGroup.getTaxaOf(Source.ADMIXED));
+        int[] nativeTaxaIndices = this.getTaxaIndices(taxaGroup.getTaxaOf(Source.NATIVE));
+        int[][] introgressedPopTaxaIndices = this.getTaxaIndices(taxaGroup.getIntrogressedPopTaxa());
+        int[][] native_admixed_introgressed_popIndex = this.getTaxaIndices(taxaGroup.getNative_admixed_introgressed_Taxa());
+
+        int[] windowStartIndexArray = GenotypeTable.getWindowStartIndex(windowSize, stepSize, variantsNum);
+        double[][][] dxy_windows_admixed = this.calculateAdmixedDxy(admixedTaxaIndices, nativeTaxaIndices,
+                introgressedPopTaxaIndices, windowStartIndexArray, windowSize);
+        double[][] dxy_pairwise_nativeIntrogressed = this.calculatePairwiseDxy(admixedTaxaIndices,
+                nativeTaxaIndices,introgressedPopTaxaIndices,
+                windowStartIndexArray, windowSize);
+
+        double[][] alts = this.calculateAltAlleleFrequency(threadsNum, native_admixed_introgressed_popIndex);
+        double[][] alts_native_introgressed = new double[alts.length-admixedTaxaIndices.length][];
+        for (int i = 0; i < alts.length; i++) {
+            if (i == 0){
+                alts_native_introgressed[i] = new double[alts[i].length];
+                System.arraycopy(alts[i], 0, alts_native_introgressed[i], 0, alts[i].length);
+            }
+            if (i >= (admixedTaxaIndices.length+1)){
+                alts_native_introgressed[i-admixedTaxaIndices.length] = new double[alts[i].length];
+                System.arraycopy(alts[i], 0, alts_native_introgressed[i-admixedTaxaIndices.length], 0, alts[i].length);
+            }
+        }
+        double[][] dafs = this.calculateDaf(alts, ancestralAlleleBitSet);
+        double[] dafs_native = dafs[0];
+        double[][] dafs_admixed = new double[taxaGroup.getTaxaOf(Source.ADMIXED).size()][];
+        System.arraycopy(dafs, 1, dafs_admixed, 0, taxaGroup.getTaxaOf(Source.ADMIXED).size());
+        double[][] dafs_introgressed = new double[taxaGroup.getIntrogressedPopTaxa().length][];
+        System.arraycopy(dafs, taxaGroup.getTaxaOf(Source.ADMIXED).size()+1, dafs_introgressed, 0,
+                taxaGroup.getIntrogressedPopTaxa().length);
+
+        double[][][] fd = GenotypeTable.calculate_fd(threadsNum, dafs_native, dafs_admixed, dafs_introgressed,
+                windowStartIndexArray,
+                windowSize, variantsNum);
+        int[][] gridSource = GenotypeTable.calculateSource(fd, dxy_pairwise_nativeIntrogressed, dxy_windows_admixed);
+
+        List<int[]>[] successiveWindow_taxon = GenotypeTable.getSuccessiveIntrogressionWindow(gridSource, conjunctionNum);
+        BitSet[] queriesGenotype = this.getTaxaGenotype(admixedTaxaIndices);
+        BitSet[] nonInfoSite2 = GenotypeTable.nonInfoSite2(queriesGenotype, this.getSiteNumber(),
+                alts_native_introgressed, 0.9);
+
+        BitSet[][] localAncestry = new BitSet[admixedTaxaIndices.length][];
+        for (int i = 0; i < admixedTaxaIndices.length; i++) {
+            localAncestry[i] = new BitSet[n_wayAdmixture];
+            for (int j = 0; j < localAncestry[i].length; j++) {
+                localAncestry[i][j] = new BitSet();
+            }
+            // initialize native ancestry to 1
+            localAncestry[i][0].set(0, variantsNum);
+        }
+
+        for (int i = 0; i < admixedTaxaIndices.length; i++) {
+            for (int j = 0; j < successiveWindow_taxon[i].size(); j++) {
+                int admixedTaxonIndex = i;
+                int gridIndex = j;
+
+                int gridStart = successiveWindow_taxon[admixedTaxonIndex].get(gridIndex)[0]; // inclusive
+                int gridEnd = successiveWindow_taxon[admixedTaxonIndex].get(gridIndex)[1]; // inclusive
+                int[] gridSource_fragment = new int[gridEnd-gridStart+1];
+                System.arraycopy(gridSource[admixedTaxonIndex], gridStart, gridSource_fragment, 0,gridEnd-gridStart+1);
+
+                int fragmentStartIndex = windowStartIndexArray[gridStart]; // inclusive
+                int fragmentEndIndex = Math.min(windowStartIndexArray[gridEnd]+windowSize, variantsNum); // exclusive
+                int fragmentLen = fragmentEndIndex - fragmentStartIndex;
+
+                int[] siteIndex = new int[2];
+                siteIndex[0] = fragmentStartIndex;
+                siteIndex[1] = fragmentEndIndex-1;
+                int[] query = this.getQueryGenotypeFrom2(admixedTaxonIndex, siteIndex);
+
+                double[][] alts_sourcesFragment = new double[alts_native_introgressed.length][fragmentLen];
+                for (int k = 0; k < alts_sourcesFragment.length; k++) {
+                    System.arraycopy(alts_native_introgressed[k], fragmentStartIndex, alts_sourcesFragment[k], 0, fragmentLen);
+                }
+
+
+                double[][] state_trans_prob = GenotypeTable.get_state_trans_prob(gridSource_fragment, n_wayAdmixture);
+                double[] start_prob = GenotypeTable.get_start_prob(n_wayAdmixture, 0.8);
+
+                BitSet nonInfo = nonInfoSite2[admixedTaxonIndex].get(fragmentStartIndex, fragmentEndIndex);
+
+                double[][] alts_sourcesFragment_nonInfo = new double[alts_sourcesFragment.length][fragmentLen-nonInfo.cardinality()];
+                for (int k = 0; k < alts_sourcesFragment.length; k++) {
+                    int index = 0;
+                    for (int l = 0; l < alts_sourcesFragment[k].length; l++) {
+                        if (nonInfo.get(l)) continue;
+                        if (index >= (fragmentLen-nonInfo.cardinality())) continue;
+                        alts_sourcesFragment_nonInfo[k][index] = alts_sourcesFragment[k][l];
+                        index++;
+                    }
+                }
+
+                int[] query_nonInfo = new int[fragmentLen-nonInfo.cardinality()];
+                int index = 0;
+                for (int k = 0; k < fragmentLen; k++) {
+                    if (nonInfo.get(k)) continue;
+                    if (index >= (fragmentLen-nonInfo.cardinality())) continue;
+                    query_nonInfo[index]=query[k];
+                    index++;
+                }
+
+                double[][] state_trans_prob_EM = HMM.forwardBackward(alts_sourcesFragment_nonInfo, state_trans_prob,
+                        start_prob, query_nonInfo,10);
+
+
+                int[] hiddenState = HMM.hmm2(alts_sourcesFragment_nonInfo, state_trans_prob_EM, start_prob,
+                        query_nonInfo);
+
+                int[] state = GenotypeTable.temp(hiddenState, nonInfo, fragmentLen);
+
+
+//
+//
+                for (int k = 0; k < fragmentLen; k++) {
+                    if (state[k] == 0) continue;
+                    localAncestry[admixedTaxonIndex][state[k]].set(fragmentStartIndex+k);
+                    localAncestry[admixedTaxonIndex][0].set(fragmentStartIndex+k, false);
+                }
+            }
+        }
+        return localAncestry;
+    }
+
+    public static int[] temp(int[] hiddenState, BitSet nonInfo, int fragmentLen){
+        int[] res = new int[fragmentLen];
+        Arrays.fill(res, -1);
+        int index = 0;
+        for (int i = 0; i < fragmentLen; i++) {
+            if (nonInfo.get(i)){
+                if (i > 0){
+                    res[i] = res[i-1];
+                }else {
+                    res[i] = Source.NATIVE.getIndex();
+                }
+
+            }else {
+                res[i] = hiddenState[index];
+                index++;
+            }
+        }
+        return res;
+    }
+
+    public static BitSet[] nonInfoSite2(BitSet[] queriesGenotype, int variantNum,
+                                       double[][] alts_sourcesFragment, double threshold_emitProb){
+        int queryNum = queriesGenotype.length;
+        int sourceNum = alts_sourcesFragment.length;
+        BitSet[] nonInfoSite = new BitSet[queryNum];
+        for (int i = 0; i < queryNum; i++) {
+            nonInfoSite[i] = new BitSet();
+        }
+
+        for (int i = 0; i < queryNum; i++) {
+            for (int j = 0; j < variantNum; j++) {
+                double notEmitProb = 1;
+                if (queriesGenotype[i].get(j)){
+                    for (double[] doubles : alts_sourcesFragment) {
+                        notEmitProb *= (1 - doubles[j]);
+                    }
+
+                }else {
+                    for (double[] doubles : alts_sourcesFragment) {
+                        notEmitProb *= doubles[j];
+                    }
+                }
+                double emitProb = 1 - notEmitProb;
+                if (emitProb < threshold_emitProb){
+                    nonInfoSite[i].set(j);
+                }
+            }
+        }
+
+        int[] count = new int[queryNum];
+        for (int i = 0; i < queryNum; i++) {
+            count[i] = nonInfoSite[i].cardinality();
+        }
+        return nonInfoSite;
+    }
+
     public static double[][] get_state_trans_prob(int[] gridSource_fragment, int n_wayAdmixture){
         int[][] state_trans_count = new int[n_wayAdmixture][n_wayAdmixture];
         IntList singleSourceFeatureList = Source.getSingleSourceFeatureList();
@@ -1420,6 +1606,23 @@ public class GenotypeTable {
         return state_trans_prob;
     }
 
+    public static double[] get_start_prob(int[] gridSource_fragment, int n_wayAdmixture){
+        double[] start_prob = new double[n_wayAdmixture];
+        int[] count = new int[n_wayAdmixture];
+        EnumSet<Source> sources;
+        for (int i = 0; i < gridSource_fragment.length; i++) {
+            sources = Source.getSourcesFrom(gridSource_fragment[i]);
+            for (Source source : sources){
+                count[source.getIndex()]++;
+            }
+        }
+        double sum = Arrays.stream(count).count();
+        for (int i = 0; i < count.length; i++) {
+            start_prob[i] = count[i]/sum;
+        }
+        return start_prob;
+    }
+
     public static double[] get_start_prob(int n_wayAdmixture, double start_prob_native){
         double[] start_prob = new double[n_wayAdmixture];
         start_prob[0] = start_prob_native;
@@ -1470,10 +1673,12 @@ public class GenotypeTable {
                                  double switchCostScore, String localAnceOutFile, int threadsNum){
         GenotypeTable genotypeTable = new GenotypeTable(genotypeFile);
         BitSet[] ancestralAlleleBitSet = genotypeTable.getAncestralAlleleBitSet(ancestryAllele);
-        BitSet[][] localAnc = genotypeTable.calculateLocalAncestry(windowSize, stepSize, taxaGroupFile,
-                ancestralAlleleBitSet, conjunctionNum, switchCostScore, threadsNum);
+//        BitSet[][] localAnc = genotypeTable.calculateLocalAncestry(windowSize, stepSize, taxaGroupFile,
+//                ancestralAlleleBitSet, conjunctionNum, switchCostScore, threadsNum);
 //        BitSet[][] localAnc = genotypeTable.calculateLocalAncestry2(windowSize, stepSize, taxaGroupFile,
 //                ancestralAlleleBitSet, conjunctionNum, threadsNum);
+        BitSet[][] localAnc = genotypeTable.calculateLocalAncestry_HMM_EM(windowSize, stepSize, taxaGroupFile,
+                ancestralAlleleBitSet, conjunctionNum, threadsNum);
         genotypeTable.write_localAncestry(localAnc, localAnceOutFile, taxaGroupFile);
     }
 
@@ -1596,6 +1801,37 @@ public class GenotypeTable {
      *
      * @param taxaIndices taxon可能是不连续的, 也可能是未排序的
      * @param siteIndices 是连续的range, int[2] [start,end] [include,include]
+     * @return double[][], the first dimension is taxa, the second dimension is genotype (missing = 0.5, alt=1, ref=0)
+     */
+    public int[][] getSrcGenotypeFrom2(int[] taxaIndices, int[] siteIndices){
+        BitSet[][] genoTaxa = new BitSet[taxaIndices.length][];
+        for (int i = 0; i < taxaIndices.length; i++) {
+            genoTaxa[i] = new BitSet[2];
+            System.arraycopy(this.genoTaxon[taxaIndices[i]], 0, genoTaxa[i], 0, genoTaxa[0].length);
+        }
+        BitSet[][] genoTaxaSite=new BitSet[taxaIndices.length][2];
+        for (int i = 0; i < genoTaxa.length; i++) {
+            for (int j = 0; j < genoTaxa[i].length; j++) {
+                genoTaxaSite[i][j]=genoTaxa[i][j].get(siteIndices[0],siteIndices[1]);
+            }
+        }
+        int[][] genotype=new int[taxaIndices.length][];
+        for (int i = 0; i < genotype.length; i++) {
+            genotype[i]= new int[siteIndices[1]-siteIndices[0]+1];
+            Arrays.fill(genotype[i], 0);
+            for (int j = 0; j < genoTaxaSite[i][0].length(); j++) {
+                if (genoTaxaSite[i][0].get(j)){
+                    genotype[i][j]=1;
+                }
+            }
+        }
+        return genotype;
+    }
+
+    /**
+     *
+     * @param taxaIndices taxon可能是不连续的, 也可能是未排序的
+     * @param siteIndices 是连续的range, int[2] [start,end] [include,include]
      * @return BitSet[], the first dimension is taxa, the bitset dimension is genotype
      */
     public BitSet[] getSrcGenotypeBitSetFrom(int[] taxaIndices, int[] siteIndices){
@@ -1634,6 +1870,29 @@ public class GenotypeTable {
         for (int i = 0; i < genoTaxaSite[1].length(); i++) {
             if (genoTaxaSite[1].get(i)){
                 query[i]=0.5;
+            }
+        }
+        return query;
+    }
+
+    /**
+     *
+     * @param taxonIndex taxon index
+     * @param siteIndices 是连续的range, int[2] [start,end] [include,include]
+     * @return double[], genotype (missing = 0.5, alt=1, ref=0)
+     */
+    public int[] getQueryGenotypeFrom2(int taxonIndex, int[] siteIndices){
+        BitSet[] genoTaxa = new BitSet[2];
+        System.arraycopy(this.genoTaxon[taxonIndex], 0, genoTaxa, 0, genoTaxa.length);
+        BitSet[] genoTaxaSite=new BitSet[2];
+        for (int i = 0; i < genoTaxa.length; i++) {
+            genoTaxaSite[i]=genoTaxa[i].get(siteIndices[0],siteIndices[1]);
+        }
+        int[] query=new int[siteIndices[1]-siteIndices[0]+1];
+        Arrays.fill(query, 0);
+        for (int i = 0; i < genoTaxaSite[0].length(); i++) {
+            if (genoTaxaSite[0].get(i)){
+                query[i] = 1;
             }
         }
         return query;
