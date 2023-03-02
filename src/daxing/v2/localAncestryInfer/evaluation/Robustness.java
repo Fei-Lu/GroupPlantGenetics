@@ -168,7 +168,7 @@ public class Robustness {
      * @param simulationDir
      * @return actualValue dim1 is different run, dim2 is different haplotype, dim3 is source population, dim4 is variants
      */
-    private static double[][][][] extractLocalAncestry_actualValue(SimulationMetadata simulationMetadata,
+    public static double[][][][] extractLocalAncestry_actualValue(SimulationMetadata simulationMetadata,
                                                              String simulationDir){
         String[] demesID = simulationMetadata.getDemesID();
         double[][][][] actualValue = new double[demesID.length][][][];
@@ -185,7 +185,7 @@ public class Robustness {
         return actualValue;
     }
 
-    private static double[][][] extractLocalAncestry_actualValue(File genotypFile, File tractFile,
+    public static double[][][] extractLocalAncestry_actualValue(File genotypFile, File tractFile,
                                                                  int admixedSampleSize,
                                                                  List<String> refPopList){
         GenotypeTable genotypeTable = new GenotypeTable(genotypFile.getAbsolutePath());

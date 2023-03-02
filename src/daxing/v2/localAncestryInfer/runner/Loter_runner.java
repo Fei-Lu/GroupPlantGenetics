@@ -2,10 +2,12 @@ package daxing.v2.localAncestryInfer.runner;
 
 import daxing.common.sh.CommandUtils;
 import daxing.common.utiles.IOTool;
+import daxing.v2.localAncestryInfer.evaluation.Robustness;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -298,6 +300,11 @@ public class Loter_runner implements LocalAncestry{
             throw new RuntimeException(e);
         }
         return localAncestry;
+    }
+
+    public int[][][] contingencyTable(double[][][][] actual_values){
+        double[][][][] inferredValue = this.extractLocalAncestry();
+        return Robustness.contingencyTable(inferredValue, actual_values);
     }
 
 
