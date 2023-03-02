@@ -277,7 +277,7 @@ public class DemographicModelTools {
         int[] splitEventTime_1 = {8000};
         double[] ratio_admixture_divergence = {0.1, 0.2, 0.4, 0.8};
         double[] admixtureProportion = {0.1};
-        int sequenceLength = 1_000_000;
+        int sequenceLength = 100_000_000;
         double recombination_rate = 1e-8;
         double mutation_rate = 1e-8; // 7.1e-9
 
