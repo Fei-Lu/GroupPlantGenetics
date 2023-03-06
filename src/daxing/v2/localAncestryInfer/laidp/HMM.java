@@ -441,7 +441,7 @@ public class HMM {
                 double maxScore = Double.NEGATIVE_INFINITY;
                 int prevState = 0;
                 for (int fromState = 0; fromState < stateNum; fromState++) {
-                    double score = dp[fromState][variantIndex - 1] * states_trans_prob[fromState][currentState] +
+                    double score = dp[fromState][variantIndex - 1] + states_trans_prob[fromState][currentState] +
                             (obs.get(variantIndex) ? (alts[currentState][variantIndex]) :
                                     (1 - alts[currentState][variantIndex]));
                     if (score > maxScore){
