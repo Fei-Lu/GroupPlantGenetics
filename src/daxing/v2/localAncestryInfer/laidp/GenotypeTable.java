@@ -1350,7 +1350,7 @@ public class GenotypeTable {
                 for (int k = 0; k < alts_sourcesFragment.length; k++) {
                     System.arraycopy(alts_native_introgressed[k], fragmentStartIndex, alts_sourcesFragment[k], 0, fragmentLen);
                 }
-                double[][] state_trans_prob = GenotypeTable.get_state_trans_prob(gridSource_fragment, n_wayAdmixture);
+                double[][] state_trans_prob = GenotypeTable.get_state_trans_prob(gridSource_fragment, n_wayAdmixture, windowSize);
 
                 int[] hiddenState = HMM.viterbi(alts_sourcesFragment, state_trans_prob, queryFragment);
                 for (int k = 0; k < hiddenState.length; k++) {
@@ -1446,7 +1446,7 @@ public class GenotypeTable {
                 }
 
 
-                double[][] state_trans_prob = GenotypeTable.get_state_trans_prob(gridSource_fragment, n_wayAdmixture);
+                double[][] state_trans_prob = GenotypeTable.get_state_trans_prob(gridSource_fragment, n_wayAdmixture, windowSize);
                 double[] start_prob = GenotypeTable.get_start_prob(n_wayAdmixture, 0.8);
 
                 BitSet nonInfo = nonInfoSite2[admixedTaxonIndex].get(fragmentStartIndex, fragmentEndIndex);
@@ -1549,58 +1549,95 @@ public class GenotypeTable {
         return nonInfoSite;
     }
 
-    public static double[][] get_state_trans_prob(int[] gridSource_fragment, int n_wayAdmixture){
-        int[][] state_trans_count = new int[n_wayAdmixture][n_wayAdmixture];
+    public static double[][] get_state_trans_prob(int[] gridSource_fragment, int n_wayAdmixture, int windowSize){
+        double[][] state_trans_count = new double[n_wayAdmixture][n_wayAdmixture];
         IntList singleSourceFeatureList = Source.getSingleSourceFeatureList();
-        EnumSet<Source> sourceSetA, sourceSetB;
+        EnumSet<Source> sourceSetFrom, sourceSetTo;
         boolean ifCurrentSingle, ifNextSingle;
         int from, to;
+        double weight;
+
         for (int fromIndex = 0; fromIndex < gridSource_fragment.length-1; fromIndex++) {
             ifCurrentSingle = singleSourceFeatureList.contains(gridSource_fragment[fromIndex]);
             ifNextSingle = singleSourceFeatureList.contains(gridSource_fragment[fromIndex+1]);
             if (ifCurrentSingle && ifNextSingle){
                 from = Source.getInstanceFromFeature(gridSource_fragment[fromIndex]).get().getIndex();
+                state_trans_count[from][from] += windowSize - 1;
+
                 to = Source.getInstanceFromFeature(gridSource_fragment[fromIndex+1]).get().getIndex();
-                state_trans_count[from][to]++;
+                state_trans_count[from][to] += 1;
             }else if (ifCurrentSingle && (!ifNextSingle)){
                 from = Source.getInstanceFromFeature(gridSource_fragment[fromIndex]).get().getIndex();
-                sourceSetA = Source.getSourcesFrom(gridSource_fragment[fromIndex+1]);
-                for (Source source : sourceSetA){
+                state_trans_count[from][from] += windowSize - 1;
+
+                sourceSetTo = Source.getSourcesFrom(gridSource_fragment[fromIndex+1]);
+                weight = (double) 1/sourceSetTo.size();
+                for (Source source:sourceSetTo){
                     to = source.getIndex();
-                    state_trans_count[from][to]++;
+                    state_trans_count[from][to] += weight;
                 }
             }else if ((!ifCurrentSingle) && ifNextSingle){
-                to = Source.getInstanceFromFeature(gridSource_fragment[fromIndex+1]).get().getIndex();
-                sourceSetA = Source.getSourcesFrom(gridSource_fragment[fromIndex]);
-                for (Source source : sourceSetA){
+                sourceSetFrom = Source.getSourcesFrom(gridSource_fragment[fromIndex]);
+                weight = (double) 1/(sourceSetFrom.size()*sourceSetFrom.size());
+                for (Source source : sourceSetFrom){
                     from = source.getIndex();
-                    state_trans_count[from][to]++;
+                    for (Source source1 : sourceSetFrom){
+                        to = source1.getIndex();
+                        state_trans_count[from][to] += (windowSize - 1)*weight;
+                    }
                 }
-            }else {
-                sourceSetA = Source.getSourcesFrom(gridSource_fragment[fromIndex]);
-                sourceSetB = Source.getSourcesFrom(gridSource_fragment[fromIndex+1]);
-                for (Source sourceA : sourceSetA){
-                    for (Source sourceB: sourceSetB){
-                        from = sourceA.getIndex();
-                        to = sourceB.getIndex();
-                        state_trans_count[from][to]++;
+
+                to = Source.getInstanceFromFeature(gridSource_fragment[fromIndex+1]).get().getIndex();
+                weight = (double)1/sourceSetFrom.size();
+                for (Source source : sourceSetFrom){
+                    from = source.getIndex();
+                    state_trans_count[from][to] += weight;
+                }
+            } else {
+                sourceSetFrom = Source.getSourcesFrom(gridSource_fragment[fromIndex]);
+                sourceSetTo = Source.getSourcesFrom(gridSource_fragment[fromIndex+1]);
+
+                weight = (double) 1/(sourceSetFrom.size()*sourceSetFrom.size());
+                for (Source source : sourceSetFrom){
+                    from = source.getIndex();
+                    for (Source source1 : sourceSetFrom){
+                        to = source1.getIndex();
+                        state_trans_count[from][to] += (windowSize - 1)*weight;
+                    }
+                }
+
+                weight = (double) 1/(sourceSetFrom.size() * sourceSetTo.size());
+                for (Source source : sourceSetFrom){
+                    from = source.getIndex();
+                    for (Source source1 : sourceSetFrom){
+                        to = source1.getIndex();
+                        state_trans_count[from][to] += weight;
                     }
                 }
             }
         }
-        double[] total = new double[n_wayAdmixture];
-        for (int i = 0; i < n_wayAdmixture; i++) {
-            total[i] = 0;
-            for (int j = 0; j < n_wayAdmixture; j++) {
-                total[i]+=state_trans_count[i][j];
+
+        ifCurrentSingle = singleSourceFeatureList.contains(gridSource_fragment[gridSource_fragment.length-1]);
+        if (ifCurrentSingle){
+            from = Source.getInstanceFromFeature(gridSource_fragment[gridSource_fragment.length-1]).get().getIndex();
+            state_trans_count[from][from] += windowSize - 1;
+        }else {
+            sourceSetFrom = Source.getSourcesFrom(gridSource_fragment[gridSource_fragment.length-1]);
+            weight = (double) 1/(sourceSetFrom.size()*sourceSetFrom.size());
+            for (Source source : sourceSetFrom){
+                from = source.getIndex();
+                for (Source source1 : sourceSetFrom){
+                    to = source1.getIndex();
+                    state_trans_count[from][to] += (windowSize - 1)*weight;
+                }
             }
         }
 
         double[][] state_trans_prob = new double[n_wayAdmixture][n_wayAdmixture];
+        int totalVariantNum = gridSource_fragment.length * windowSize;
         for (int i = 0; i < n_wayAdmixture; i++) {
-            if (total[i] == 0) continue;
             for (int j = 0; j < n_wayAdmixture; j++) {
-                state_trans_prob[i][j]=state_trans_count[i][j]/total[i];
+                state_trans_prob[i][j] = state_trans_count[i][j]/(totalVariantNum-1);
             }
         }
         return state_trans_prob;
