@@ -2,14 +2,13 @@ package daxing.v2.localAncestryInfer.runner;
 
 import daxing.common.sh.CommandUtils;
 import daxing.common.utiles.IOTool;
-import daxing.v2.localAncestryInfer.evaluation.Robustness;
+import daxing.v2.localAncestryInfer.evaluation.LocalAncestry;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.PStringUtils;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -22,7 +21,7 @@ import java.util.concurrent.Callable;
  * Mosaic_runner mosaic_runner = new Mosaic_runner(ParameterFile)
  * double[][][] localAncestry = mosaic_runner.getLocalAncestry()
  */
-public class Mosaic_runner implements LocalAncestry{
+public class Mosaic_runner extends LocalAncestry {
 
     /**
      * soft path
@@ -414,9 +413,5 @@ public class Mosaic_runner implements LocalAncestry{
         return localAncestry;
     }
 
-    public int[][][] contingencyTable(double[][][][] actual_values){
-        double[][][][] inferredValue = this.extractLocalAncestry();
-        return Robustness.contingencyTable(inferredValue, actual_values);
-    }
 
 }

@@ -2,7 +2,7 @@ package daxing.v2.localAncestryInfer.runner;
 
 import daxing.common.sh.CommandUtils;
 import daxing.common.utiles.IOTool;
-import daxing.v2.localAncestryInfer.evaluation.Robustness;
+import daxing.v2.localAncestryInfer.evaluation.LocalAncestry;
 import daxing.v2.localAncestryInfer.laidp.GenotypeTable;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-public class ELAI_runner implements LocalAncestry {
+public class ELAI_runner extends LocalAncestry {
 
     /**
      * Soft path
@@ -338,8 +338,4 @@ public class ELAI_runner implements LocalAncestry {
         return localAncestry;
     }
 
-    public int[][][] contingencyTable(double[][][][] actual_values){
-        double[][][][] inferredValue = this.extractLocalAncestry();
-        return Robustness.contingencyTable(inferredValue, actual_values);
-    }
 }

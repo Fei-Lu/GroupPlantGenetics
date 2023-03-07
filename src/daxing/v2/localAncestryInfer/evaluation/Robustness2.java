@@ -21,7 +21,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class Robustness {
+public class Robustness2 {
 
     /**
      * detail information about Mean deviation and Pearson correlation see reference
@@ -270,19 +270,19 @@ public class Robustness {
                                             List<double[][][][]> software_localAncestry,
                                             List<String> softwareList, String outFileRobustnessData){
         SimulationMetadata simulationMetadata = new SimulationMetadata(simulationMetadataFile);
-        double[][][][] actual_values = Robustness.extractLocalAncestry_actualValue(simulationMetadata,
+        double[][][][] actual_values = Robustness2.extractLocalAncestry_actualValue(simulationMetadata,
                 simulationDir);
         double[][][] meanDeviationData = new double[software_localAncestry.size()][][];
         double[][][] pearsonCorrelationData = new double[software_localAncestry.size()][][];
         int[][][][] contingencyTableData = new int[software_localAncestry.size()][][][];
         String[] software = new String[software_localAncestry.size()];
         for (int i = 0; i < software_localAncestry.size(); i++) {
-            meanDeviationData[i] = Robustness.meanDeviation(software_localAncestry.get(i), actual_values);
-            pearsonCorrelationData[i] = Robustness.pearsonCorrelation(software_localAncestry.get(i), actual_values);
-            contingencyTableData[i] = Robustness.contingencyTable(software_localAncestry.get(i), actual_values);
+            meanDeviationData[i] = Robustness2.meanDeviation(software_localAncestry.get(i), actual_values);
+            pearsonCorrelationData[i] = Robustness2.pearsonCorrelation(software_localAncestry.get(i), actual_values);
+            contingencyTableData[i] = Robustness2.contingencyTable(software_localAncestry.get(i), actual_values);
             software[i] = softwareList.get(i);
         }
-        Robustness.write_RobustnessData(meanDeviationData, pearsonCorrelationData, contingencyTableData, software,
+        Robustness2.write_RobustnessData(meanDeviationData, pearsonCorrelationData, contingencyTableData, software,
                 simulationMetadata,
                 outFileRobustnessData);
     }
