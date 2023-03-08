@@ -36,6 +36,11 @@ public abstract class LocalAncestry {
         return LocalAncestry.contingencyTable(inferredValue, actual_values);
     }
 
+    public int[][][] contingencyTable2(double[][][][] actual_values){
+        double[][][][] inferredValue = this.extractLocalAncestry();
+        return LocalAncestry.contingencyTable2(inferredValue, actual_values);
+    }
+
     public double[][] pearsonCorrelation(double[][][][] actual_values){
         double[][][][] inferredValue = this.extractLocalAncestry();
         return LocalAncestry.pearsonCorrelation(inferredValue, actual_values);
@@ -152,9 +157,64 @@ public abstract class LocalAncestry {
 
     /**
      *
-     * @param simulationMetadata
-     * @param simulationDir
-     * @return actualValue dim1 is different run, dim2 is different haplotype, dim3 is source population, dim4 is variants
+     * @param inferredValue
+     * @param actualValue
+     * @return contingencyTable, dim1 is different run, dim2 is admixed taxon index, dim is one of
+     * [count_truePositive, count_falseNegative, count_falsePositive, count_trueNegative]
+     */
+    public static int[][][] contingencyTable2(double[][][][] inferredValue, double[][][][] actualValue){
+        int runNum = inferredValue.length;
+        int admixedTaxaNum = inferredValue[0].length;
+        int contingencyTableNum = 4;
+        int[][][] contingencyTable = new int[runNum][admixedTaxaNum][contingencyTableNum];
+        double inferred0, inferred1, actual0, actual1;
+        int inferredSource, actualSource;
+        for (int runIndex = 0; runIndex < runNum; runIndex++) {
+            for (int admixedTaxonIndex = 0; admixedTaxonIndex < admixedTaxaNum; admixedTaxonIndex++) {
+                int count_truePositive=0;
+                int count_falseNegative=0;
+                int count_falsePositive=0;
+                int count_trueNegative=0;
+                for (int variantIndex = 0; variantIndex < inferredValue[runIndex][admixedTaxonIndex][0].length; variantIndex++) {
+                    inferred0 = inferredValue[runIndex][admixedTaxonIndex][0][variantIndex];
+                    inferred1 = inferredValue[runIndex][admixedTaxonIndex][1][variantIndex];
+                    actual0 = actualValue[runIndex][admixedTaxonIndex][0][variantIndex];
+                    actual1 = actualValue[runIndex][admixedTaxonIndex][1][variantIndex];
+                    inferredSource = -1;
+                    if (inferred0 > 0.5 && inferred1 < 0.5){
+                        inferredSource = 1;
+                    }else if (inferred0 < 0.5 && inferred1 > 0.5){
+                        inferredSource = 0;
+                    }else {
+                        inferredSource = 0;
+                    }
+                    actualSource = actual0 > 0.5 ? 1 : 0;
+
+                    if (actualSource == 1 && inferredSource == 1){
+                        count_truePositive++;
+                    }else if (actualSource == 1 && inferredSource == 0){
+                        count_falseNegative++;
+                    }else if (actualSource == 0  && inferredSource == 1){
+                        count_falsePositive++;
+                    }else if (actualSource == 0 && inferredSource == 0){
+                        count_trueNegative++;
+                    }
+                }
+                contingencyTable[runIndex][admixedTaxonIndex][0] = count_truePositive;
+                contingencyTable[runIndex][admixedTaxonIndex][1] = count_falseNegative;
+                contingencyTable[runIndex][admixedTaxonIndex][2] = count_falsePositive;
+                contingencyTable[runIndex][admixedTaxonIndex][3] = count_trueNegative;
+            }
+        }
+        return contingencyTable;
+    }
+
+    /**
+     *
+     * @param simulationMetadata simulationMetadata
+     * @param simulationDir simulationDir
+     * @return actualValue dim1 is different run, dim2 is different haplotype, dim3 is source population (ordered by
+     * introgressed, native), dim4 is variants
      */
     public static double[][][][] extractLocalAncestry_actualValue(SimulationMetadata simulationMetadata,
                                                                   String simulationDir){
@@ -173,6 +233,15 @@ public abstract class LocalAncestry {
         return actualValue;
     }
 
+    /**
+     *
+     * @param genotypFile genotype file
+     * @param tractFile simulation tract file
+     * @param admixedSampleSize sample size of admixed population
+     * @param refPopList introgressed population, native population
+     * @return actualValue, dim1 is admixed taxon index, dim2 is different haplotype (ordered by introgressed,
+     * native), dim3 is variant index
+     */
     private static double[][][] extractLocalAncestry_actualValue(File genotypFile, File tractFile,
                                                                 int admixedSampleSize,
                                                                 List<String> refPopList){
