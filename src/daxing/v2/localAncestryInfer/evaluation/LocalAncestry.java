@@ -176,17 +176,17 @@ public abstract class LocalAncestry {
                 int count_falsePositive=0;
                 int count_trueNegative=0;
                 for (int variantIndex = 0; variantIndex < inferredValue[runIndex][admixedTaxonIndex][0].length; variantIndex++) {
-                    inferred0 = inferredValue[runIndex][admixedTaxonIndex][0][variantIndex];
-                    inferred1 = inferredValue[runIndex][admixedTaxonIndex][1][variantIndex];
-                    actual0 = actualValue[runIndex][admixedTaxonIndex][0][variantIndex];
-                    actual1 = actualValue[runIndex][admixedTaxonIndex][1][variantIndex];
+                    inferred0 = inferredValue[runIndex][admixedTaxonIndex][0][variantIndex]; // introgressed ancestry
+                    inferred1 = inferredValue[runIndex][admixedTaxonIndex][1][variantIndex]; // native ancestry
+                    actual0 = actualValue[runIndex][admixedTaxonIndex][0][variantIndex]; // introgressed ancestry
+                    actual1 = actualValue[runIndex][admixedTaxonIndex][1][variantIndex]; // native ancestry
                     inferredSource = -1;
                     if (inferred0 > 0.5 && inferred1 < 0.5){
-                        inferredSource = 1;
+                        inferredSource = 1; // here 1 means introgressed ancestry
                     }else if (inferred0 < 0.5 && inferred1 > 0.5){
-                        inferredSource = 0;
+                        inferredSource = 0; // here 0 means native ancestry
                     }else {
-                        inferredSource = 0;
+                        inferredSource = 0; // default ancestry is native
                     }
                     actualSource = actual0 > 0.5 ? 1 : 0;
 
