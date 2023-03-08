@@ -1668,6 +1668,12 @@ public class GenotypeTable {
         return start_prob;
     }
 
+    /**
+     *
+     * @param localAncestry dim1 is admixed taxon index, dim1 is n-way admixture (index seen Source.index)
+     * @param localAncestryOutFile localAncestryOutFile
+     * @param taxaGroupFile taxaGroupFile
+     */
     public void write_localAncestry(BitSet[][] localAncestry, String localAncestryOutFile,
                                            String taxaGroupFile){
         TaxaGroup taxaGroup = TaxaGroup.buildFrom(taxaGroupFile);
