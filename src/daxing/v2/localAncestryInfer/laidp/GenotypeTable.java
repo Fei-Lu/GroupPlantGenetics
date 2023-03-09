@@ -1416,7 +1416,7 @@ public class GenotypeTable {
         }
     }
 
-    public BitSet[][] calculateLocalAncestry2(int windowSize, int stepSize, String taxaGroupFile,
+    public BitSet[][] calculateLocalAncestry_viterbi(int windowSize, int stepSize, String taxaGroupFile,
                                              BitSet[] ancestralAlleleBitSet, int conjunctionNum, int threadsNum){
         int variantsNum = this.getSiteNumber();
         TaxaGroup taxaGroup = TaxaGroup.buildFrom(taxaGroupFile);
