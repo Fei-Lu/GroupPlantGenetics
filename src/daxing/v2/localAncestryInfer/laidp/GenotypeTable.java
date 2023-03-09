@@ -705,22 +705,12 @@ public class GenotypeTable {
      *
      * @param threadsNum threadsNum
      * @param pop_taxonIndex dim1 is different populations, dim2 is different taxa
-     * @param ifSimulation if use simulated genotype
+     * @param ancestralAlleleBitSet ancestral allele
      * @param ifZsocre if calculate_pattersonD_f zscore of pattersonD_f
      * @return pattersonD_f, with or without zscore
      */
-    public double[] calculatePattersonD_f(int threadsNum, int[][] pop_taxonIndex, boolean ifSimulation,
+    public double[] calculatePattersonD_f(int threadsNum, int[][] pop_taxonIndex, BitSet[] ancestralAlleleBitSet,
                                           boolean ifZsocre){
-        BitSet[] ancestralAlleleBitSet;
-        if (ifSimulation){
-            ancestralAlleleBitSet = new BitSet[2];
-            ancestralAlleleBitSet[0] = new BitSet();
-            ancestralAlleleBitSet[1] = new BitSet();
-            assert pop_taxonIndex.length == 3 : "population must be three when using simulation genotype";
-        }else {
-            ancestralAlleleBitSet = this.getAncestralAlleleFromTaxa(pop_taxonIndex[3]);
-            assert pop_taxonIndex.length == 4 : "population must be four";
-        }
         double[][] dafs = this.calculateDaf(threadsNum, pop_taxonIndex, ancestralAlleleBitSet);
         int[] p3_taxaIndices = pop_taxonIndex[2];
         int p3_taxaIndices_len = p3_taxaIndices.length;
