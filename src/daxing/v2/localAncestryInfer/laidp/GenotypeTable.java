@@ -1,5 +1,6 @@
 package daxing.v2.localAncestryInfer.laidp;
 
+import com.google.common.primitives.Doubles;
 import daxing.common.bisnp.SNP;
 import daxing.common.chrrange.ChrPos;
 import daxing.common.utiles.ArrayTool;
@@ -20,6 +21,7 @@ import pgl.infra.utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.*;
@@ -734,11 +736,9 @@ public class GenotypeTable {
         int totalVariants = dafs[0].length;
         // default， split to 20
         double[] d_f_zscore = GenotypeTable.getJackknife_pattersonD_f_zscore(d_f, dafs, dafs_p3_ab, totalVariants/20, totalVariants);
-        double[] res = new double[4];
-        res[0] = d_f[0];
-        res[1] =d_f[1];
-        res[2] =d_f_zscore[0];
-        res[3] =d_f_zscore[1];
+        double[] res = new double[d_f.length+d_f_zscore.length];
+        System.arraycopy(d_f, 0, res, 0, d_f.length);
+        System.arraycopy(d_f_zscore, 0, res, d_f.length, d_f_zscore.length);
         return res;
     }
 
@@ -764,12 +764,14 @@ public class GenotypeTable {
         }
         DescriptiveStatistics stats;
         double standardDeviation, standError;
-        double[] d_f_zscore = new double[2];
-        for (int i = 0; i < jackknife_D_f.length; i++) {
+        double[] d_f_zscore = new double[4];
+        for (int i = 0; i < 2; i++) {
             stats = new DescriptiveStatistics(jackknife_D_f[i]);
             standardDeviation = stats.getStandardDeviation();
-            standError = standardDeviation/Math.sqrt(randoms.length);
-            d_f_zscore[i] = d_f[i]/standError;
+//            standError = standardDeviation/Math.sqrt(randoms.length);
+//            d_f_zscore[i] = d_f[i]/standError;
+            d_f_zscore[i] = d_f[i]/standardDeviation;
+            d_f_zscore[i+2] = standardDeviation;
         }
         return d_f_zscore;
     }
@@ -1021,7 +1023,11 @@ public class GenotypeTable {
                     dxy_p2p3 = dxy_windows_admixed_nativeIntrogressed[windowIndex][admixedTaxonIndex][introgressedPopIndex];
                     if (dxy_p2p3 < dxy_p1p2){
                         source = Source.getInstanceFromIndex(introgressedPopIndex).get();
-                        gridSource[admixedTaxonIndex][windowIndex] = Source.addSourceFeature(gridSource[admixedTaxonIndex][windowIndex], source.getFeature());
+                        if (gridSource[admixedTaxonIndex][windowIndex] == 1){
+                            gridSource[admixedTaxonIndex][windowIndex] = source.getFeature();
+                        }else {
+                            gridSource[admixedTaxonIndex][windowIndex] += source.getFeature();
+                        }
                     }
                 }
             }
@@ -1273,6 +1279,111 @@ public class GenotypeTable {
         }
         executorService.shutdown();
         return localAncestry;
+    }
+
+    /**
+     *
+     * @param windowSize
+     * @param stepSize
+     * @param taxaGroupFile
+     * @param ancestralAlleleBitSet
+     * @param threadsNum
+     * @return BitSet[][] local ancestry, dim1 is admixed taxon index, dim2 is n_way admixture, index equal Source.index
+     */
+    public void calculateLocalAncestry_check_fd_gridSource(int windowSize, int stepSize, String taxaGroupFile,
+                                             BitSet[] ancestralAlleleBitSet, int threadsNum, String fdOutDir,
+                                                           String individualLocalAncestryDir){
+        int variantsNum = this.getSiteNumber();
+        TaxaGroup taxaGroup = TaxaGroup.buildFrom(taxaGroupFile);
+        int n_wayAdmixture = taxaGroup.getIntrogressedPopTaxa().length + 1;
+
+        int[] admixedTaxaIndices = this.getTaxaIndices(taxaGroup.getTaxaOf(Source.ADMIXED));
+        int[] nativeTaxaIndices = this.getTaxaIndices(taxaGroup.getTaxaOf(Source.NATIVE));
+        int[][] introgressedPopTaxaIndices = this.getTaxaIndices(taxaGroup.getIntrogressedPopTaxa());
+        int[][] native_admixed_introgressed_popIndex = this.getTaxaIndices(taxaGroup.getNative_admixed_introgressed_Taxa());
+        int[] native_introgressed_popIndex = this.getTaxaIndices(taxaGroup.getTaxaOf_native_introgressed());
+
+        int[] windowStartIndexArray = GenotypeTable.getWindowStartIndex(windowSize, stepSize, variantsNum);
+        double[][][] dxy_windows_admixed = this.calculateAdmixedDxy(admixedTaxaIndices, nativeTaxaIndices,
+                introgressedPopTaxaIndices, windowStartIndexArray, windowSize);
+        double[][] dxy_pairwise_nativeIntrogressed = this.calculatePairwiseDxy(admixedTaxaIndices,
+                nativeTaxaIndices,introgressedPopTaxaIndices,
+                windowStartIndexArray, windowSize);
+
+        double[][] dafs = this.calculateDaf(threadsNum, native_admixed_introgressed_popIndex, ancestralAlleleBitSet);
+        double[] dafs_native = dafs[0];
+        double[][] dafs_admixed = new double[taxaGroup.getTaxaOf(Source.ADMIXED).size()][];
+        System.arraycopy(dafs, 1, dafs_admixed, 0, taxaGroup.getTaxaOf(Source.ADMIXED).size());
+        double[][] dafs_introgressed = new double[taxaGroup.getIntrogressedPopTaxa().length][];
+        System.arraycopy(dafs, taxaGroup.getTaxaOf(Source.ADMIXED).size()+1, dafs_introgressed, 0,
+                taxaGroup.getIntrogressedPopTaxa().length);
+
+        double[][][] fd = GenotypeTable.calculate_fd(threadsNum, dafs_native, dafs_admixed, dafs_introgressed,
+                windowStartIndexArray,
+                windowSize, variantsNum);
+        int[][] gridSource = GenotypeTable.calculateSource(fd, dxy_pairwise_nativeIntrogressed, dxy_windows_admixed);
+
+        double[][][] fd_byTaxon = new double[fd[0].length][fd.length][fd[0][0].length];
+        for (int i = 0; i < fd.length; i++) {
+            for (int j = 0; j < fd[i].length; j++) {
+                fd_byTaxon[j][i] = fd[i][j];
+            }
+        }
+        String[] outName_fd = IntStream.range(60, 90).boxed().map(e->"tsk_"+e+"_fd.txt").toArray(String[]::new);
+        String[] outName_individualLocalAncestry = IntStream.range(60, 90).boxed().map(e->"tsk_"+e+".txt").toArray(String[]::new);
+
+        BufferedWriter bw;
+        try {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < fd_byTaxon.length; i++) {
+                bw = IOTool.getWriter(new File(fdOutDir, outName_fd[i]));
+                sb.setLength(0);
+                sb.append("scaffold\tstart\tend\t");
+                for (int j = 0; j < fd_byTaxon[0][0].length; j++) {
+                    sb.append(Source.getInstanceFromIndex(j+1).get().name()).append("\t");
+                }
+                sb.deleteCharAt(sb.length()-1);
+                bw.write(sb.toString());
+                bw.newLine();
+                for (int j = 0; j < fd_byTaxon[i].length; j++) {
+                    int windowStartSiteIndex = windowStartIndexArray[j]; // inclusive
+                    int windowEndSiteIndex = Math.min(windowStartIndexArray[j]+windowSize, variantsNum); // inclusive
+                    sb.setLength(0);
+                    sb.append("1").append("\t");
+                    sb.append(this.getPosition(windowStartSiteIndex)).append("\t");
+                    sb.append(this.getPosition(windowEndSiteIndex-1)).append("\t");
+                    sb.append(Doubles.join("\t", fd_byTaxon[i][j]));
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+                bw.flush();
+                bw.close();
+            }
+
+
+            for (int i = 0; i < gridSource.length; i++) {
+                bw = IOTool.getWriter(new File(individualLocalAncestryDir, outName_individualLocalAncestry[i]));
+                sb.setLength(0);
+                sb.append("scaffold\tstart\tend\tsourceFeature");
+                bw.write(sb.toString());
+                bw.newLine();
+                for (int j = 0; j < gridSource[i].length; j++) {
+                    int windowStartSiteIndex = windowStartIndexArray[j]; // inclusive
+                    int windowEndSiteIndex = Math.min(windowStartIndexArray[j]+windowSize, variantsNum); // inclusive
+                    sb.setLength(0);
+                    sb.append("1").append("\t");
+                    sb.append(this.getPosition(windowStartSiteIndex)).append("\t");
+                    sb.append(this.getPosition(windowEndSiteIndex-1)).append("\t");
+                    sb.append(Doubles.join("\t", gridSource[i][j]));
+                    bw.write(sb.toString());
+                    bw.newLine();
+                }
+                bw.flush();
+                bw.close();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public BitSet[][] calculateLocalAncestry2(int windowSize, int stepSize, String taxaGroupFile,
@@ -1716,12 +1827,12 @@ public class GenotypeTable {
                                  double switchCostScore, String localAnceOutFile, int threadsNum){
         GenotypeTable genotypeTable = new GenotypeTable(genotypeFile);
         BitSet[] ancestralAlleleBitSet = genotypeTable.getAncestralAlleleBitSet(ancestryAllele);
-//        BitSet[][] localAnc = genotypeTable.calculateLocalAncestry(windowSize, stepSize, taxaGroupFile,
-//                ancestralAlleleBitSet, conjunctionNum, switchCostScore, threadsNum);
+        BitSet[][] localAnc = genotypeTable.calculateLocalAncestry(windowSize, stepSize, taxaGroupFile,
+                ancestralAlleleBitSet, conjunctionNum, switchCostScore, threadsNum);
 //        BitSet[][] localAnc = genotypeTable.calculateLocalAncestry2(windowSize, stepSize, taxaGroupFile,
 //                ancestralAlleleBitSet, conjunctionNum, threadsNum);
-        BitSet[][] localAnc = genotypeTable.calculateLocalAncestry_HMM_EM(windowSize, stepSize, taxaGroupFile,
-                ancestralAlleleBitSet, conjunctionNum, threadsNum);
+//        BitSet[][] localAnc = genotypeTable.calculateLocalAncestry_HMM_EM(windowSize, stepSize, taxaGroupFile,
+//                ancestralAlleleBitSet, conjunctionNum, threadsNum);
         genotypeTable.write_localAncestry(localAnc, localAnceOutFile, taxaGroupFile);
     }
 
