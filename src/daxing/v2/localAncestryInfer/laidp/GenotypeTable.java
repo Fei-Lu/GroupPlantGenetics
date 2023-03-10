@@ -1202,7 +1202,7 @@ public class GenotypeTable {
                 windowStartIndexArray,
                 windowSize, variantsNum);
 
-        double[][] d_f_z_sd = this.get_D_f_z_sd(threadsNum, taxaGroup, ancestralAlleleBitSet, true);
+        double[][] d_f_z_sd = this.get_D_f_z_sd(threadsNum, taxaGroup, ancestralAlleleBitSet, false);
         double[] f_upperLimit = GenotypeTable.get_upperLimit_f(d_f_z_sd);
         int[][] gridSource = GenotypeTable.calculateSource(fd, dxy_pairwise_nativeIntrogressed,
                 dxy_windows_admixed, f_upperLimit);
@@ -1290,7 +1290,12 @@ public class GenotypeTable {
             sources.remove(2);
             System.out.println();
             System.out.println(source.name());
-            System.out.println("PattersonD, f, zscore_PattersonD, zscore_f, sd_PattersonD, sd_f");
+            if (ifZsocre){
+                System.out.println("PattersonD, f, zscore_PattersonD, zscore_f, sd_PattersonD, sd_f");
+            }else {
+                System.out.println("PattersonD, f");
+            }
+
             sb.setLength(0);
             sb.append(Doubles.join(", ", d_f_z_sd[i]));
             System.out.println(sb);
@@ -1304,7 +1309,8 @@ public class GenotypeTable {
         double[] f_upperLimit = new double[introgressedPopNum];
         for (int i = 0; i < introgressedPopNum; i++) {
             // 2 sd
-            f_upperLimit[i] = d_f_z_sd[i][1]+2*d_f_z_sd[i][5];
+//            f_upperLimit[i] = d_f_z_sd[i][1]+2*d_f_z_sd[i][5];
+            f_upperLimit[i] = d_f_z_sd[i][1];
         }
         return f_upperLimit;
     }
