@@ -13,6 +13,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -28,7 +29,7 @@ public class Start {
 //
 //        int conjunctionNum=2; // 2
 //        double switchCostScore=1.5; // 1.5
-//        int maxSolutionCount=20; // 100
+//        int maxSolutionCount=32; // 100
 //
 ////        String genotypeFile = args[0];
 ////        String fd_dxyFile = args[1];
@@ -39,7 +40,7 @@ public class Start {
 ////        double switchCostScore=Double.parseDouble(args[5]); // 1.5
 ////        int maxSolutionCount=Integer.parseInt(args[6]); // 100
 //////        int threadNum= Integer.parseInt(args[7]);
-//
+////
 //
 //        long start = System.nanoTime();
 //        LocalAncestryInferenceStart.inferLocalAncestry("1", new File(genotypeFile),
@@ -54,20 +55,21 @@ public class Start {
 //        MD5.checkTwoFileMD5(file1,file2);
 
 
-//
-//        String genotypeFile = "/Users/xudaxing/Desktop/LAIDP_development/twoWay_100M/003_simulation/D001.vcf";
+////
+//        String genotypeFile = "/Users/xudaxing/Desktop/LAIDP_development/twoWay_100M/003_simulation/D014.vcf";
 //        int windowSize = 200;
 //        int stepSize = 100;
-//        String taxaGroupFile = "/Users/xudaxing/Desktop/LAIDP_development/twoWay_100M/004_runner/laidp/D001/D001.taxaGroup.txt";
+//        String taxaGroupFile = "/Users/xudaxing/Desktop/LAIDP_development/twoWay_ancient/004_runner/laidp/D012/D012.taxaGroup.txt";
 //        String ancestryAllele = "simulation";
 //        int conjunctionNum = 2;
 //        double switchCostScore = 1.5;
-//        String localAnceOutFile = "/Users/xudaxing/Desktop/LAIDP_development/twoWay_100M/004_runner/laidp/D001/D001.localAnc.txt";
+//        String localAnceOutFile = "/Users/xudaxing/Desktop/LAIDP_development/twoWay_ancient/004_runner/laidp/D012" +
+//                "/D012.localAnc_2.txt";
 //        int threadsNum = 2;
-
-
-//        String outDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/004_laidpRes/temp";
-////
+//////
+//////
+//////        String outDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/004_laidpRes/temp";
+//////////
 //        String genotypeFile = args[0];
 //        int windowSize =Integer.parseInt(args[1]);
 //        int stepSize = Integer.parseInt(args[2]);
@@ -77,13 +79,14 @@ public class Start {
 //        double switchCostScore = Double.parseDouble(args[6]);
 //        String localAnceOutFile = args[7];
 //        int threadsNum = Integer.parseInt(args[8]);
-////////////
-//////////        long start = System.nanoTime();
+//////////////
+////        long start = System.nanoTime();
 //        GenotypeTable.run_LAIDP(genotypeFile, windowSize, stepSize, taxaGroupFile, ancestryAllele, conjunctionNum,
 //                switchCostScore, localAnceOutFile, threadsNum);
 //        System.out.println(Benchmark.getTimeSpanSeconds(start)+" s");
 
-//        MD5.checkTwoFileMD5("/Users/xudaxing/Desktop/LAIDP_development/twoWay/004_runner/laidp/D003/D003.localAnc.txt","/Users/xudaxing/Desktop/LAIDP_development/twoWay/004_runner/laidp/D003/D003.localAnc_new.txt");
+//        MD5.checkTwoFileMD5("/Users/xudaxing/Desktop/LAIDP_development/twoWay_ancient/005_evaluation/evaluation_contingencyTable.txt","/Users/xudaxing/Desktop/LAIDP_development/twoWay_ancient/005_evaluation/evaluation.txt");
+
 
 
 
@@ -113,20 +116,38 @@ public class Start {
 //        evaluate_pearsonCorrelation_meanDeviation_contingencyTable(DemographicModelTools.N_way.TWO_WAY, outDir);
 //        evaluate_pearsonCorrelation_meanDeviation_contingencyTable(DemographicModelTools.N_way.THREE_WAY,outDir2);
 //        evaluate_pearsonCorrelation_meanDeviation_contingencyTable(DemographicModelTools.N_way.FOUR_WAY, outDir3);
-//
-        String outDir = "/Users/xudaxing/Desktop/LAIDP_development/twoWay";
-////////////////////////////////////        String outDir3 = "/Users/xudaxing/Desktop/fourWay";
-        evaluate_contingencyTable(DemographicModelTools.N_way.TWO_WAY, outDir);
+
+//        String outDir = "/Users/xudaxing/Desktop/LAIDP_development/twoWay_100M";
+//////////////////////////////////////////////////////////////////////////////////////        String outDir3 = "/Users/xudaxing/Desktop/fourWay";
+//        evaluate_contingencyTable(DemographicModelTools.N_way.TWO_WAY, outDir);
+//        evaluate_contingencyTable(DemographicModelTools.N_way.THREE_WAY, outDir);
 //        System.out.println();
 
-//        MD5.checkTwoFileMD5("/Users/xudaxing/Desktop/LAIDP_development/twoWay_100M/004_runner/laidp_viterbi/D001/D001.localAnc.txt",
-//                "/Users/xudaxing/Desktop/LAIDP_development/twoWay_100M/004_runner/laidp/D001/D001.localAnc.txt");
+//        MD5.checkTwoFileMD5("/Users/xudaxing/Desktop/LAIDP_development/twoWay_ancient/005_evaluation/evaluation_contingencyTable_2way_bitset.txt",
+//                "/Users/xudaxing/Desktop/LAIDP_development/twoWay_ancient/005_evaluation/evaluation.txt");
 
 //        int[] gridSource_fragment = {1,1,2,2,2,2,2,1,1};
 //        int n_wayAdmixture = 3;
 //        int windowSize = 5;
 //        double[][]  res = GenotypeTable.get_state_trans_prob2(gridSource_fragment, n_wayAdmixture, windowSize);
 //        System.out.println();
+//
+//        GenotypeTable genotypeTable = new GenotypeTable("/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/003_twoWay_proportion0.1_generation100/002_simulatedGenotype/simulate_proportion0.1_generation100_addAncestral.vcf");
+//        int windowSize = 200;
+//        int stepSize = 100;
+//        String taxaGroupFile = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/taxaGroup.txt";
+//        BitSet[] ancestralAlleleBitSet = genotypeTable.getAncestralAlleleBitSet("simulation");
+//        int threadsNum = 2;
+//        String fdOutDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/003_twoWay_proportion0.1_generation100/004_fd/007_fd_threshold";
+//        String individualLocalAncestryDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/003_twoWay_proportion0.1_generation100/004_fd/008_localAnc";
+//        genotypeTable.calculateLocalAncestry_check_fd_gridSource(windowSize, stepSize, taxaGroupFile,
+//                ancestralAlleleBitSet, threadsNum, fdOutDir, individualLocalAncestryDir);
+
+//        String file1 = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt" +
+//                "/021_Simulation/003_twoWay_proportion0.1_generation100/004_fd/004_individualLocalAncestry/IndividualFd_tsk_61simulated.txt";
+//        String file2 = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt" +
+//                "/021_Simulation/003_twoWay_proportion0.1_generation100/004_fd/temp/SimulatedLocalAncestry_tsk_61simulated.txt";
+//        MD5.checkTwoFileMD5(file1,file2);
 
 
 //        int[][] srcGenotype = {{0,1,0,1,0,1,0,0,0,0,1,1},
@@ -273,7 +294,7 @@ public class Start {
 
         final String[] DIRS = {"001_parameterFile","002_demes","003_simulation","004_runner","log",
                 "005_evaluation"};
-        final String[] SOFTWARE = {"loter","elai","mosaic","laidp"};
+        final String[] SOFTWARE = {"loter","elai","laidp"};
 
         File[] dirsFile = new File[DIRS.length];
         for (int i = 0; i < dirsFile.length; i++) {
@@ -299,8 +320,9 @@ public class Start {
         simulation.run_simulation();
 
         SimulationMetadata simulationMetadata = new SimulationMetadata(simulationMetadataOutFile);
-        double[][][][] actual_values = LocalAncestry.extractLocalAncestry_actualValue(simulationMetadata, dirsFile[2].getAbsolutePath());
-
+//        double[][][][] actual_values = LocalAncestry.extractLocalAncestry_actualValue(simulationMetadata, dirsFile[2].getAbsolutePath());
+        BitSet[][][] actual_values = LocalAncestry.extractLocalAncestry_actualValue_bitset(simulationMetadata,
+                dirsFile[2].getAbsolutePath());
 
         GenotypeMetaData genotypeMetaData = new GenotypeMetaData(simulationMetadataOutFile, dirsFile[2].getAbsolutePath());
         int[][][][] software_contingencyTable = new int[SOFTWARE.length][][][];
@@ -312,22 +334,22 @@ public class Start {
                 case "loter":
                     Loter_runner loterRunner = new Loter_runner.Builder(genotypeMetaData, logFiles[i], softwareSubDir[i]).build();
                     loterRunner.startRun();
-                    software_contingencyTable[i]=loterRunner.contingencyTable2(actual_values);
+                    software_contingencyTable[i]=loterRunner.contingencyTable_2way_bitset(actual_values);
                     break;
                 case "elai":
                     ELAI_runner elaiRunner = new ELAI_runner.Builder(genotypeMetaData, logFiles[i], softwareSubDir[i]).build();
                     elaiRunner.startRun();
-                    software_contingencyTable[i]=elaiRunner.contingencyTable2(actual_values);
+                    software_contingencyTable[i]=elaiRunner.contingencyTable_2way_bitset(actual_values);
                     break;
                 case "mosaic":
                     Mosaic_runner mosaicRunner = new Mosaic_runner.Builder(genotypeMetaData, logFiles[i], softwareSubDir[i]).build();
                     mosaicRunner.startRun();
-                    software_contingencyTable[i] = mosaicRunner.contingencyTable2(actual_values);
+                    software_contingencyTable[i] = mosaicRunner.contingencyTable_2way_bitset(actual_values);
                     break;
                 case "laidp":
                     LAIDP_runner laidpRunner = new LAIDP_runner.Builder(genotypeMetaData, logFiles[i], softwareSubDir[i]).build();
                     laidpRunner.startRun();
-                    software_contingencyTable[i] = laidpRunner.contingencyTable2(actual_values);
+                    software_contingencyTable[i] = laidpRunner.contingencyTable_2way_bitset(actual_values);
                 default:
                     break;
             }
