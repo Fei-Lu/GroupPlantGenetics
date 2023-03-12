@@ -12,6 +12,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -294,6 +295,49 @@ public class Loter_runner extends LocalAncestry {
                         localAncestry[i][j][k] = localAnc[i][j][k].toDoubleArray();
                     }
                 }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return localAncestry;
+    }
+
+    @Override
+    public BitSet[][][] extractLocalAncestry2(){
+        BitSet[][][] localAncestry = new BitSet[genotypeMetaData.genotypeID.length][][];
+        for (int i = 0; i < localAncestry.length; i++) {
+            localAncestry[i] = new BitSet[genotypeMetaData.getTaxaInfo(i).getPopSampleSize(genotypeMetaData.admixedPop[i])][];
+            for (int j = 0; j < localAncestry[i].length; j++) {
+                localAncestry[i][j] = new BitSet[genotypeMetaData.nWayAdmixture[i]];
+                for (int k = 0; k < localAncestry[i][j].length; k++) {
+                    localAncestry[i][j][k] = new BitSet();
+                }
+            }
+        }
+        BufferedReader br;
+        try {
+            String line;
+            List<String> temp;
+            for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
+                br = IOTool.getReader(new File(subDirFile[2], genotypeMetaData.genotypeID[i]+".lai.txt"));
+                int haplotypeIndex=0;
+                while ((line=br.readLine())!=null){
+                    temp =PStringUtils.fastSplit(line, " ");
+                    for (int j = 0; j < genotypeMetaData.referencePopList[i].size(); j++) {
+                        int variantIndex = 0;
+                        for (String s : temp) {
+                            if (Integer.parseInt(s) == j) {
+                                localAncestry[i][haplotypeIndex][j].set(variantIndex, true);
+                            } else {
+                                localAncestry[i][haplotypeIndex][j].set(variantIndex, false);
+                            }
+                            variantIndex++;
+                        }
+                    }
+                    haplotypeIndex++;
+                    br.readLine();
+                }
+                br.close();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

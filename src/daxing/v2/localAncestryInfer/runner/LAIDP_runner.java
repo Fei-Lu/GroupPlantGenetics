@@ -12,6 +12,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -174,7 +175,7 @@ public class LAIDP_runner extends LocalAncestry {
         /**
          * Optional parameters
          */
-        String softPath= "/Users/xudaxing/Software/LAIDP/LAIDP.jar";
+        String softPath= "/Users/xudaxing/Software/LAIDP/LAIDP_single.jar";
         int windowSize = 200;
         int stepSize = 100;
         String ancestralAllele = "simulation";
@@ -280,6 +281,54 @@ public class LAIDP_runner extends LocalAncestry {
                         localAncestry[i][j][k] = localAnc[i][j][k].toDoubleArray();
                     }
                 }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return localAncestry;
+    }
+
+    @Override
+    public BitSet[][][] extractLocalAncestry2() {
+        BitSet[][][] localAncestry = new BitSet[genotypeMetaData.genotypeID.length][][];
+        TaxaInfo taxaInfo;
+        for (int i = 0; i < localAncestry.length; i++) {
+            taxaInfo = new TaxaInfo(genotypeMetaData.taxaInfoPath[i]);
+            localAncestry[i] = new BitSet[taxaInfo.getPopSampleSize(genotypeMetaData.admixedPop[i])][];
+            for (int j = 0; j < localAncestry[i].length; j++) {
+                localAncestry[i][j] = new BitSet[genotypeMetaData.nWayAdmixture[i]];
+                for (int k = 0; k < localAncestry[i][j].length; k++) {
+                    localAncestry[i][j][k] = new BitSet();
+                }
+            }
+        }
+        BufferedReader br;
+        try {
+            String line;
+            List<String> temp, tem;
+            for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
+                int variantIndex = 0;
+                boolean ancestryValue;
+                br = IOTool.getReader(new File(workingDir[i], genotypeMetaData.genotypeID[i]+".localAnc.txt"));
+                br.readLine();
+                while ((line=br.readLine())!=null){
+                    temp = PStringUtils.fastSplit(line);
+                    for (int j = 1; j < temp.size(); j++) {
+                        tem = PStringUtils.fastSplit(temp.get(j), ",");
+                        for (int k = 0; k < tem.size(); k++) {
+                            ancestryValue = Integer.parseInt(tem.get(k)) > 0.5 ? true : false;
+                            if (k == 0){
+                                // k=0, native ancestry
+                                localAncestry[i][j-1][tem.size()-1].set(variantIndex, ancestryValue);
+                            }else {
+                                // k > 0, introgressed ancestry
+                                localAncestry[i][j-1][k-1].set(variantIndex, ancestryValue);
+                            }
+                        }
+                    }
+                    variantIndex++;
+                }
+                br.close();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

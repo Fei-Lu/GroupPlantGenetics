@@ -413,5 +413,50 @@ public class Mosaic_runner extends LocalAncestry {
         return localAncestry;
     }
 
+    @Override
+    public BitSet[][][] extractLocalAncestry2() {
+        BitSet[][][] localAncestry = new BitSet[genotypeMetaData.genotypeID.length][][];
+        for (int i = 0; i < localAncestry.length; i++) {
+            localAncestry[i] = new BitSet[this.genotypeMetaData.getTaxaInfo(i).getPopSampleSize(genotypeMetaData.admixedPop[i])][];
+            for (int j = 0; j < localAncestry[i].length; j++) {
+                localAncestry[i][j] = new BitSet[genotypeMetaData.nWayAdmixture[i]];
+                for (int k = 0; k < localAncestry[i][j].length; k++) {
+                    localAncestry[i][j][k] = new BitSet();
+                }
+            }
+        }
+        File currentWorkingDir;
+        File mosaicResDir;
+        List<File> ancestryFiles;
+        BufferedReader br;
+        try {
+            String line;
+            List<String> temp;
+            for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
+                currentWorkingDir = workingDir[i];
+                mosaicResDir = currentWorkingDir.listFiles(dir -> dir.getName().startsWith("MOSAIC_RESULTS"))[0];
+                ancestryFiles = IOTool.getFileListInDirStartsWith(mosaicResDir.getAbsolutePath(), "ancestry");
+                for (int j = 0; j < ancestryFiles.size(); j++) {
+                    br = IOTool.getReader(ancestryFiles.get(j));
+                    br.readLine();
+                    int variantIndex = 0 ;
+                    boolean ancestryValue;
+                    while ((line=br.readLine())!=null){
+                        temp = PStringUtils.fastSplit(line);
+                        for (int k = 0; k < temp.size(); k++) {
+                            ancestryValue = Double.parseDouble(temp.get(k)) > 0.5 ? true : false;
+                            localAncestry[i][k][j].set(variantIndex, ancestryValue);
+                        }
+                        variantIndex++;
+                    }
+                    br.close();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return localAncestry;
+    }
+
 
 }

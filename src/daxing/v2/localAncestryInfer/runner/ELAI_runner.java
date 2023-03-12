@@ -13,6 +13,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -334,6 +335,50 @@ public class ELAI_runner extends LocalAncestry {
             }
         } catch (Exception e) {
            e.printStackTrace();
+        }
+        return localAncestry;
+    }
+
+    @Override
+    public BitSet[][][] extractLocalAncestry2(){
+        BitSet[][][] localAncestry = new BitSet[genotypeMetaData.genotypeID.length][][];
+        TaxaInfo taxaInfo;
+        for (int i = 0; i < localAncestry.length; i++) {
+            taxaInfo = new TaxaInfo(genotypeMetaData.taxaInfoPath[i]);
+            localAncestry[i] = new BitSet[taxaInfo.getPopSampleSize(genotypeMetaData.admixedPop[i])][];
+            for (int j = 0; j < localAncestry[i].length; j++) {
+                localAncestry[i][j] = new BitSet[genotypeMetaData.nWayAdmixture[i]];
+                for (int k = 0; k < localAncestry[i][j].length; k++) {
+                    localAncestry[i][j][k] = new BitSet();
+                }
+            }
+        }
+        BufferedReader br;
+        try {
+            String line;
+            List<String> temp;
+            int ancestryPopIndex, snpIndex;
+            File outputFile;
+            for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
+                outputFile = new File(workingDir[i], "output");
+                br = IOTool.getReader(new File(outputFile, genotypeMetaData.genotypeID[i]+".ps21.txt"));
+                int haplotypeIndex=0;
+                boolean ancestryValue;
+                while ((line=br.readLine())!=null){
+                    temp =PStringUtils.fastSplit(line, " ");
+                    for (int j = 0; j < temp.size()-1; j++) {
+                        ancestryPopIndex = j % genotypeMetaData.nWayAdmixture[i];
+                        snpIndex  = j / genotypeMetaData.nWayAdmixture[i];
+                        ancestryValue = Double.parseDouble(temp.get(j)) > 0.5 ? true : false;
+                        localAncestry[i][haplotypeIndex][ancestryPopIndex].set(snpIndex, ancestryValue);
+                    }
+                    br.readLine();
+                    haplotypeIndex ++;
+                }
+                br.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return localAncestry;
     }

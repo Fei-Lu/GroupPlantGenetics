@@ -12,10 +12,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -31,14 +28,16 @@ public abstract class LocalAncestry {
      */
     abstract protected double[][][][] extractLocalAncestry();
 
+    abstract protected BitSet[][][] extractLocalAncestry2();
+
     public int[][][] contingencyTable(double[][][][] actual_values){
         double[][][][] inferredValue = this.extractLocalAncestry();
         return LocalAncestry.contingencyTable(inferredValue, actual_values);
     }
 
-    public int[][][] contingencyTable2(double[][][][] actual_values){
+    public int[][][] contingencyTable_2way(double[][][][] actual_values){
         double[][][][] inferredValue = this.extractLocalAncestry();
-        return LocalAncestry.contingencyTable2(inferredValue, actual_values);
+        return LocalAncestry.contingencyTable_2way(inferredValue, actual_values);
     }
 
     public double[][] pearsonCorrelation(double[][][][] actual_values){
@@ -162,7 +161,7 @@ public abstract class LocalAncestry {
      * @return contingencyTable, dim1 is different run, dim2 is admixed taxon index, dim is one of
      * [count_truePositive, count_falseNegative, count_falsePositive, count_trueNegative]
      */
-    public static int[][][] contingencyTable2(double[][][][] inferredValue, double[][][][] actualValue){
+    public static int[][][] contingencyTable_2way(double[][][][] inferredValue, double[][][][] actualValue){
         int runNum = inferredValue.length;
         int admixedTaxaNum = inferredValue[0].length;
         int contingencyTableNum = 4;
@@ -239,7 +238,7 @@ public abstract class LocalAncestry {
      * @param tractFile simulation tract file
      * @param admixedSampleSize sample size of admixed population
      * @param refPopList introgressed population, native population
-     * @return actualValue, dim1 is admixed taxon index, dim2 is different haplotype (ordered by introgressed,
+     * @return actualValue, dim1 is admixed taxon index, dim2 is different source (ordered by introgressed,
      * native), dim3 is variant index
      */
     private static double[][][] extractLocalAncestry_actualValue(File genotypFile, File tractFile,
