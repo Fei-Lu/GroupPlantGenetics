@@ -42,9 +42,9 @@ public abstract class LocalAncestry {
         return LocalAncestry.contingencyTable_bitset(inferredValue, actual_values);
     }
 
-    public int[][][] contingencyTable_2way(double[][][][] actual_values){
-        double[][][][] inferredValue = this.extractLocalAncestry();
-        return LocalAncestry.contingencyTable_2way(inferredValue, actual_values);
+    public int[][][] contingencyTable_2way_bitset(BitSet[][][] actual_values){
+        BitSet[][][] inferredValue = this.extractLocalAncestry_bitset();
+        return LocalAncestry.contingencyTable_2way_bitset(inferredValue, actual_values);
     }
 
     public double[][] pearsonCorrelation(double[][][][] actual_values){
@@ -105,8 +105,8 @@ public abstract class LocalAncestry {
         }
         List<Double> res = CommandUtils.run_commands(callableList, 32);
         double[][] result = new double[inferredValue.length][inferredValue[0].length];
-        for (int i = 0; i < result.length; i++) {
-            Arrays.fill(result[i], -1);
+        for (double[] doubles : result) {
+            Arrays.fill(doubles, -1);
         }
         for (int i = 0; i < res.size(); i++) {
             int a = i/inferredValue[0].length;
@@ -189,11 +189,11 @@ public abstract class LocalAncestry {
                         actual = actualValue[runIndex][admixedTaxonIndex][sourceIndex].get(variantIndex);
                         if (actual && inferred){
                             count_truePositive++;
-                        }else if (actual && (!inferred)){
+                        }else if (actual){
                             count_falseNegative++;
-                        }else if ((!actual) && inferred){
+                        }else if (inferred){
                             count_falsePositive++;
-                        }else if ((!actual) && (!inferred)){
+                        }else {
                             count_trueNegative++;
                         }
                     }
@@ -214,41 +214,43 @@ public abstract class LocalAncestry {
      * @return contingencyTable, dim1 is different run, dim2 is admixed taxon index, dim is one of
      * [count_truePositive, count_falseNegative, count_falsePositive, count_trueNegative]
      */
-    public static int[][][] contingencyTable_2way(double[][][][] inferredValue, double[][][][] actualValue){
+    public static int[][][] contingencyTable_2way_bitset(BitSet[][][] inferredValue, BitSet[][][] actualValue){
         int runNum = inferredValue.length;
         int admixedTaxaNum = inferredValue[0].length;
         int contingencyTableNum = 4;
         int[][][] contingencyTable = new int[runNum][admixedTaxaNum][contingencyTableNum];
-        double inferred0, inferred1, actual0, actual1;
+        boolean inferred0, inferred1, actual0, actual1;
         int inferredSource, actualSource;
+        int variantNum;
         for (int runIndex = 0; runIndex < runNum; runIndex++) {
+            variantNum = LocalAncestry.variantNum[runIndex];
             for (int admixedTaxonIndex = 0; admixedTaxonIndex < admixedTaxaNum; admixedTaxonIndex++) {
                 int count_truePositive=0;
                 int count_falseNegative=0;
                 int count_falsePositive=0;
                 int count_trueNegative=0;
-                for (int variantIndex = 0; variantIndex < inferredValue[runIndex][admixedTaxonIndex][0].length; variantIndex++) {
-                    inferred0 = inferredValue[runIndex][admixedTaxonIndex][0][variantIndex]; // introgressed ancestry
-                    inferred1 = inferredValue[runIndex][admixedTaxonIndex][1][variantIndex]; // native ancestry
-                    actual0 = actualValue[runIndex][admixedTaxonIndex][0][variantIndex]; // introgressed ancestry
-                    actual1 = actualValue[runIndex][admixedTaxonIndex][1][variantIndex]; // native ancestry
+                for (int variantIndex = 0; variantIndex < variantNum; variantIndex++) {
+                    inferred0 = inferredValue[runIndex][admixedTaxonIndex][0].get(variantIndex); // introgressed ancestry
+                    inferred1 = inferredValue[runIndex][admixedTaxonIndex][1].get(variantIndex); // native ancestry
+                    actual0 = actualValue[runIndex][admixedTaxonIndex][0].get(variantIndex); // introgressed ancestry
+                    actual1 = actualValue[runIndex][admixedTaxonIndex][1].get(variantIndex); // native ancestry
                     inferredSource = -1;
-                    if (inferred0 > 0.5 && inferred1 < 0.5){
+                    if (inferred0 && (!inferred1)){
                         inferredSource = 1; // here 1 means introgressed ancestry
-                    }else if (inferred0 < 0.5 && inferred1 > 0.5){
+                    }else if ((!inferred0) && inferred1){
                         inferredSource = 0; // here 0 means native ancestry
                     }else {
                         inferredSource = 0; // default ancestry is native
                     }
-                    actualSource = actual0 > 0.5 ? 1 : 0;
+                    actualSource = actual0 ? 1 : 0;
 
                     if (actualSource == 1 && inferredSource == 1){
                         count_truePositive++;
-                    }else if (actualSource == 1 && inferredSource == 0){
+                    }else if (actualSource == 1){
                         count_falseNegative++;
-                    }else if (actualSource == 0  && inferredSource == 1){
+                    }else if (inferredSource == 1){
                         count_falsePositive++;
-                    }else if (actualSource == 0 && inferredSource == 0){
+                    }else {
                         count_trueNegative++;
                     }
                 }
@@ -334,8 +336,8 @@ public abstract class LocalAncestry {
         // the final ele of refPopList is native pop
         String nativePop = refPopList.get(refPopList.size()-1);
         int nativePopIndex = pop2Index.get(nativePop);
-        for (int i = 0; i < localAncestry_actualValue.length; i++) {
-            Arrays.fill(localAncestry_actualValue[i][nativePopIndex], 1);
+        for (double[][] doubles : localAncestry_actualValue) {
+            Arrays.fill(doubles[nativePopIndex], 1);
         }
         int refPopIndex;
         try (BufferedReader br = IOTool.getReader(tractFile)) {
@@ -385,8 +387,8 @@ public abstract class LocalAncestry {
         // the final ele of refPopList is native pop
         String nativePop = refPopList.get(refPopList.size()-1);
         int nativePopIndex = pop2Index.get(nativePop);
-        for (int i = 0; i < localAncestry_actualValue.length; i++) {
-            localAncestry_actualValue[i][nativePopIndex].set(0, genotypeTable.getSiteNumber(), true);
+        for (BitSet[] bitSets : localAncestry_actualValue) {
+            bitSets[nativePopIndex].set(0, genotypeTable.getSiteNumber(), true);
         }
         int refPopIndex;
         try (BufferedReader br = IOTool.getReader(tractFile)) {
