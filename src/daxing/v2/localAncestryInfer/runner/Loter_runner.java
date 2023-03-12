@@ -303,7 +303,7 @@ public class Loter_runner extends LocalAncestry {
     }
 
     @Override
-    public BitSet[][][] extractLocalAncestry2(){
+    public BitSet[][][] extractLocalAncestry_bitset(){
         BitSet[][][] localAncestry = new BitSet[genotypeMetaData.genotypeID.length][][];
         for (int i = 0; i < localAncestry.length; i++) {
             localAncestry[i] = new BitSet[genotypeMetaData.getTaxaInfo(i).getPopSampleSize(genotypeMetaData.admixedPop[i])][];

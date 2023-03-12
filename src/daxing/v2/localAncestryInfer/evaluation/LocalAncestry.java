@@ -19,6 +19,8 @@ import java.util.stream.IntStream;
 
 public abstract class LocalAncestry {
 
+    static int[] variantNum;
+
     /**
      * @return local ancestry matrix,
      * dim1 is different run,
@@ -28,11 +30,16 @@ public abstract class LocalAncestry {
      */
     abstract protected double[][][][] extractLocalAncestry();
 
-    abstract protected BitSet[][][] extractLocalAncestry2();
+    abstract protected BitSet[][][] extractLocalAncestry_bitset();
 
     public int[][][] contingencyTable(double[][][][] actual_values){
         double[][][][] inferredValue = this.extractLocalAncestry();
         return LocalAncestry.contingencyTable(inferredValue, actual_values);
+    }
+
+    public int[][][] contingencyTable_bitset(BitSet[][][] actual_values){
+        BitSet[][][] inferredValue = this.extractLocalAncestry_bitset();
+        return LocalAncestry.contingencyTable_bitset(inferredValue, actual_values);
     }
 
     public int[][][] contingencyTable_2way(double[][][][] actual_values){
@@ -161,6 +168,52 @@ public abstract class LocalAncestry {
      * @return contingencyTable, dim1 is different run, dim2 is admixed taxon index, dim is one of
      * [count_truePositive, count_falseNegative, count_falsePositive, count_trueNegative]
      */
+    public static int[][][] contingencyTable_bitset(BitSet[][][] inferredValue, BitSet[][][] actualValue){
+        int runNum = inferredValue.length;
+        int admixedTaxaNum = inferredValue[0].length;
+        int contingencyTableNum = 4;
+        int sourceNum = inferredValue[0][0].length;
+        int[][][] contingencyTable = new int[runNum][admixedTaxaNum][contingencyTableNum];
+        boolean inferred, actual;
+        int variantNum;
+        for (int runIndex = 0; runIndex < runNum; runIndex++) {
+            variantNum = LocalAncestry.variantNum[runIndex];
+            for (int admixedTaxonIndex = 0; admixedTaxonIndex < admixedTaxaNum; admixedTaxonIndex++) {
+                int count_truePositive=0;
+                int count_falseNegative=0;
+                int count_falsePositive=0;
+                int count_trueNegative=0;
+                for (int sourceIndex = 0; sourceIndex < sourceNum; sourceIndex++) {
+                    for (int variantIndex = 0; variantIndex < variantNum; variantIndex++) {
+                        inferred = inferredValue[runIndex][admixedTaxonIndex][sourceIndex].get(variantIndex);
+                        actual = actualValue[runIndex][admixedTaxonIndex][sourceIndex].get(variantIndex);
+                        if (actual && inferred){
+                            count_truePositive++;
+                        }else if (actual && (!inferred)){
+                            count_falseNegative++;
+                        }else if ((!actual) && inferred){
+                            count_falsePositive++;
+                        }else if ((!actual) && (!inferred)){
+                            count_trueNegative++;
+                        }
+                    }
+                }
+                contingencyTable[runIndex][admixedTaxonIndex][0] = count_truePositive;
+                contingencyTable[runIndex][admixedTaxonIndex][1] = count_falseNegative;
+                contingencyTable[runIndex][admixedTaxonIndex][2] = count_falsePositive;
+                contingencyTable[runIndex][admixedTaxonIndex][3] = count_trueNegative;
+            }
+        }
+        return contingencyTable;
+    }
+
+    /**
+     *
+     * @param inferredValue
+     * @param actualValue
+     * @return contingencyTable, dim1 is different run, dim2 is admixed taxon index, dim is one of
+     * [count_truePositive, count_falseNegative, count_falsePositive, count_trueNegative]
+     */
     public static int[][][] contingencyTable_2way(double[][][][] inferredValue, double[][][][] actualValue){
         int runNum = inferredValue.length;
         int admixedTaxaNum = inferredValue[0].length;
@@ -234,6 +287,34 @@ public abstract class LocalAncestry {
 
     /**
      *
+     * @param simulationMetadata simulationMetadata
+     * @param simulationDir simulationDir
+     * @return actualValue dim1 is different run, dim2 is different haplotype, dim3 is source population (ordered by
+     * introgressed, native), dim4 is variants
+     */
+    public static BitSet[][][] extractLocalAncestry_actualValue_bitset(SimulationMetadata simulationMetadata,
+                                                                       String simulationDir){
+        String[] demesID = simulationMetadata.getDemesID();
+        BitSet[][][] actualValue = new BitSet[demesID.length][][];
+        int[] admixedSampleSize = simulationMetadata.getAdmixedPopSampleSize();
+        List<String>[] referencePopList = simulationMetadata.getReferencePopList();
+        File[] tractFiles = new File[demesID.length];
+        File[] genotypeFiles = new File[demesID.length];
+        GenotypeTable[] genotypeTables = new GenotypeTable[demesID.length];
+        LocalAncestry.variantNum = new int[demesID.length];
+        for (int i = 0; i < demesID.length; i++) {
+            tractFiles[i] = new File(simulationDir, demesID[i]+".tract");
+            genotypeFiles[i] = new File(simulationDir, demesID[i]+".vcf");
+            genotypeTables[i] = new GenotypeTable(genotypeFiles[i].getAbsolutePath());
+            LocalAncestry.variantNum[i] = genotypeTables[i].getSiteNumber();
+            actualValue[i] = extractLocalAncestry_actualValue_bitset(genotypeTables[i], tractFiles[i], admixedSampleSize[i],
+                    referencePopList[i]);
+        }
+        return actualValue;
+    }
+
+    /**
+     *
      * @param genotypFile genotype file
      * @param tractFile simulation tract file
      * @param admixedSampleSize sample size of admixed population
@@ -272,6 +353,57 @@ public abstract class LocalAncestry {
                 endIndex = endHit < 0 ? -endHit-1 : endHit;
                 Arrays.fill(localAncestry_actualValue[haplotypeIndex][refPopIndex], startIndex, endIndex, 1);
                 Arrays.fill(localAncestry_actualValue[haplotypeIndex][nativePopIndex], startIndex, endIndex, 0);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return localAncestry_actualValue;
+    }
+
+    /**
+     *
+     * @param genotypeTable genotype file
+     * @param tractFile simulation tract file
+     * @param admixedSampleSize sample size of admixed population
+     * @param refPopList introgressed population, native population
+     * @return actualValue, dim1 is admixed taxon index, dim2 is different source (ordered by introgressed,
+     * native), dim3 is variant index
+     */
+    private static BitSet[][] extractLocalAncestry_actualValue_bitset(GenotypeTable genotypeTable, File tractFile,
+                                                                      int admixedSampleSize,
+                                                                      List<String> refPopList){
+        BitSet[][] localAncestry_actualValue = new BitSet[admixedSampleSize][refPopList.size()];
+        for (int i = 0; i < localAncestry_actualValue.length; i++) {
+            for (int j = 0; j < localAncestry_actualValue[i].length; j++) {
+                localAncestry_actualValue[i][j] = new BitSet();
+            }
+        }
+        Map<String, Integer> pop2Index =
+                IntStream.range(0, refPopList.size()).boxed().collect(Collectors.toMap(refPopList::get, i -> i));
+
+        // tractFile only hava introgressed pop info, so here we set default values of native pop to 1
+        // the final ele of refPopList is native pop
+        String nativePop = refPopList.get(refPopList.size()-1);
+        int nativePopIndex = pop2Index.get(nativePop);
+        for (int i = 0; i < localAncestry_actualValue.length; i++) {
+            localAncestry_actualValue[i][nativePopIndex].set(0, genotypeTable.getSiteNumber(), true);
+        }
+        int refPopIndex;
+        try (BufferedReader br = IOTool.getReader(tractFile)) {
+            String line;
+            List<String> temp;
+            br.readLine();
+            int haplotypeIndex, startHit, endHit, startIndex, endIndex;
+            while ((line=br.readLine())!=null){
+                temp = PStringUtils.fastSplit(line);
+                haplotypeIndex = Integer.parseInt(PStringUtils.fastSplit(temp.get(0), "_").get(1));
+                refPopIndex = pop2Index.get(temp.get(1));
+                startHit = genotypeTable.getSiteIndex("1", Integer.parseInt(temp.get(2)));
+                endHit  = genotypeTable.getSiteIndex("1", Integer.parseInt(temp.get(3)));
+                startIndex = startHit < 0 ?  -startHit-1 : startHit;
+                endIndex = endHit < 0 ? -endHit-1 : endHit;
+                localAncestry_actualValue[haplotypeIndex][refPopIndex].set(startIndex, endIndex, true);
+                localAncestry_actualValue[haplotypeIndex][nativePopIndex].set(startIndex, endIndex, false);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

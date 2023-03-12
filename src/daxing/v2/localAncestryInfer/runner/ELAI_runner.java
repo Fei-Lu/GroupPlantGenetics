@@ -340,7 +340,7 @@ public class ELAI_runner extends LocalAncestry {
     }
 
     @Override
-    public BitSet[][][] extractLocalAncestry2(){
+    public BitSet[][][] extractLocalAncestry_bitset(){
         BitSet[][][] localAncestry = new BitSet[genotypeMetaData.genotypeID.length][][];
         TaxaInfo taxaInfo;
         for (int i = 0; i < localAncestry.length; i++) {
@@ -359,6 +359,7 @@ public class ELAI_runner extends LocalAncestry {
             List<String> temp;
             int ancestryPopIndex, snpIndex;
             File outputFile;
+            Double inferredValue;
             for (int i = 0; i < genotypeMetaData.genotypeID.length; i++) {
                 outputFile = new File(workingDir[i], "output");
                 br = IOTool.getReader(new File(outputFile, genotypeMetaData.genotypeID[i]+".ps21.txt"));
@@ -369,7 +370,8 @@ public class ELAI_runner extends LocalAncestry {
                     for (int j = 0; j < temp.size()-1; j++) {
                         ancestryPopIndex = j % genotypeMetaData.nWayAdmixture[i];
                         snpIndex  = j / genotypeMetaData.nWayAdmixture[i];
-                        ancestryValue = Double.parseDouble(temp.get(j)) > 0.5 ? true : false;
+                        inferredValue = Double.parseDouble(temp.get(j));
+                        ancestryValue = inferredValue > 0.5 ? true : false;
                         localAncestry[i][haplotypeIndex][ancestryPopIndex].set(snpIndex, ancestryValue);
                     }
                     br.readLine();
