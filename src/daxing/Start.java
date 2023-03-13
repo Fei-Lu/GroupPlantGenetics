@@ -3,14 +3,13 @@ package daxing;
 import com.google.common.base.Joiner;
 import com.google.common.primitives.Ints;
 import daxing.common.utiles.IOTool;
-import daxing.common.utiles.MD5;
 import daxing.v2.localAncestryInfer.demography.DemographicModelTools;
 import daxing.v2.localAncestryInfer.evaluation.LocalAncestry;
-import daxing.v2.localAncestryInfer.laidp.GenotypeTable;
+import daxing.v2.localAncestryInfer.laidp.LAIDP_CLI;
 import daxing.v2.localAncestryInfer.runner.*;
 import daxing.v2.localAncestryInfer.simulation.Simulation;
 import daxing.v2.localAncestryInfer.simulation.SimulationMetadata;
-import pgl.infra.utils.Benchmark;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -22,38 +21,38 @@ import java.util.stream.IntStream;
 public class Start {
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        String genotypeFile = "/Users/xudaxing/Desktop/LAIDP_development/twoWay_100M/003_simulation/D014.vcf";
-        int windowSize = 200;
-        int stepSize = 100;
-        String taxaGroupFile = "/Users/xudaxing/Desktop/LAIDP_development/twoWay_100M/004_runner/laidp/D014/D014.taxaGroup.txt";
-        String ancestryAllele = "simulation";
-        int conjunctionNum = 2;
-        double switchCostScore = 1.5;
-        int maxSolutionCount = 32;
-        String localAnceOutFile = "/Users/xudaxing/Desktop/LAIDP_development/twoWay_100M/004_runner/laidp/D014/D014" +
-                ".localAnc_2.txt";
-        int threadsNum = 2;
-//////
-//////
-//////        String outDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/004_laidpRes/temp";
-
-//        String genotypeFile = args[0];
-//        int windowSize =Integer.parseInt(args[1]);
-//        int stepSize = Integer.parseInt(args[2]);
-//        String taxaGroupFile = args[3];
-//        String ancestryAllele = args[4];
-//        int conjunctionNum = Integer.parseInt(args[5]);
-//        double switchCostScore = Double.parseDouble(args[6]);
-//        String localAnceOutFile = args[7];
-//        int threadsNum = Integer.parseInt(args[8]);
-//////////////
-        long start = System.nanoTime();
-        GenotypeTable.run_LAIDP(genotypeFile, windowSize, stepSize, taxaGroupFile, ancestryAllele, conjunctionNum,
-                switchCostScore, maxSolutionCount, localAnceOutFile, threadsNum);
-
-        System.out.println(Benchmark.getTimeSpanSeconds(start)+" s");
-
-        MD5.checkTwoFileMD5("/Users/xudaxing/Desktop/LAIDP_development/twoWay_100M/004_runner/laidp/D014/D014.localAnc.txt","/Users/xudaxing/Desktop/LAIDP_development/twoWay_100M/004_runner/laidp/D014/D014.localAnc_2.txt");
+//        String genotypeFile = "/Users/xudaxing/Desktop/LAIDP_development/twoWay_100M/003_simulation/D014.vcf";
+//        int windowSize = 200;
+//        int stepSize = 100;
+//        String taxaGroupFile = "/Users/xudaxing/Desktop/LAIDP_development/twoWay_100M/004_runner/laidp/D014/D014.taxaGroup.txt";
+//        String ancestryAllele = "simulation";
+//        int conjunctionNum = 2;
+//        double switchCostScore = 1.5;
+//        int maxSolutionCount = 32;
+//        String localAnceOutFile = "/Users/xudaxing/Desktop/LAIDP_development/twoWay_100M/004_runner/laidp/D014/D014" +
+//                ".localAnc_2.txt";
+//        int threadsNum = 2;
+////////
+////////
+////////        String outDir = "/Users/xudaxing/Documents/deleteriousMutation/001_analysis/007_vmap2_1062_spelt/021_Simulation/005_twoWay/004_laidpRes/temp";
+//
+////        String genotypeFile = args[0];
+////        int windowSize =Integer.parseInt(args[1]);
+////        int stepSize = Integer.parseInt(args[2]);
+////        String taxaGroupFile = args[3];
+////        String ancestryAllele = args[4];
+////        int conjunctionNum = Integer.parseInt(args[5]);
+////        double switchCostScore = Double.parseDouble(args[6]);
+////        String localAnceOutFile = args[7];
+////        int threadsNum = Integer.parseInt(args[8]);
+////////////////
+//        long start = System.nanoTime();
+//        GenotypeTable.run_LAIDP(genotypeFile, windowSize, stepSize, taxaGroupFile, ancestryAllele, conjunctionNum,
+//                switchCostScore, maxSolutionCount, localAnceOutFile, threadsNum);
+//
+//        System.out.println(Benchmark.getTimeSpanSeconds(start)+" s");
+//
+//        MD5.checkTwoFileMD5("/Users/xudaxing/Desktop/LAIDP_development/twoWay_100M/004_runner/laidp/D014/D014.localAnc.txt","/Users/xudaxing/Desktop/LAIDP_development/twoWay_100M/004_runner/laidp/D014/D014.localAnc_2.txt");
 //        System.out.println(Benchmark.getTimeSpanSeconds(start)+" s ");
 
 //        String outDir = "/Users/xudaxing/Desktop/LAIDP_development/twoWay_2";
@@ -65,6 +64,8 @@ public class Start {
 
 //        String outDir = "/Users/xudaxing/Desktop/LAIDP_development/twoWay_100M";
 //        evaluate_contingencyTable(DemographicModelTools.N_way.TWO_WAY, outDir);
+
+        LAIDP_CLI.startFromCLI(args);
 
     }
 
