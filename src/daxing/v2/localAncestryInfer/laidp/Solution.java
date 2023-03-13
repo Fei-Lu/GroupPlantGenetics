@@ -9,8 +9,8 @@ public class Solution {
     /**
      * 需要性能优化
      * @param srcGenotype the first dim is haplotype, the second dim is SNP position
-     * @param queryGenotype
-     * @param switchCostScore
+     * @param queryGenotype queryGenotype, 0 means reference allele, 1 means alternative allele
+     * @param switchCostScore switchCostScore
      * @return mini cost score matrix, the first dim is haplotype, the second dim is SNP position
      */
     public static double[][] getMiniCostScore(int[][] srcGenotype, int[] queryGenotype,
@@ -79,11 +79,11 @@ public class Solution {
 
     /**
      * 需要性能优化
-     * @param srcGenotype
-     * @param queryGenotype
-     * @param switchCostScore
-     * @param srcIndiList
-     * @param taxaSourceMap
+     * @param srcGenotype the first dim is haplotype, the second dim is SNP position
+     * @param queryGenotype queryGenotype, 0 means reference allele, 1 means alternative allele
+     * @param switchCostScore switchCostScore
+     * @param srcIndiList srcIndiList, order must same as srcGenotype
+     * @param taxaSourceMap taxaSourceMap
      * @return candidate solution, it consists of multiple solutions with the same mini cost score
      * dim1 is mini cost score index, dim2 is solution
      * Solution consists of multiple groups, every three numbers as a group, representing a tract
@@ -165,9 +165,9 @@ public class Solution {
 
     /**
      * 合并miniCost和path
-     * @param srcGenotype
-     * @param queryGenotype
-     * @param switchCostScore
+     * @param srcGenotype the first dim is haplotype, the second dim is SNP position
+     * @param queryGenotype queryGenotype, 0 means reference allele, 1 means alternative allele
+     * @param switchCostScore switchCostScore
      * @return
      */
     public static IntSet[] getCandidateSolution2(int[][] srcGenotype, int[] queryGenotype, double switchCostScore){
@@ -255,14 +255,6 @@ public class Solution {
         return path;
     }
 
-
-    /**
-     * 需要性能优化
-     * @param sourceIndexSet
-     * @param srcIndiList
-     * @param taxaSourceMap
-     * @return
-     */
     private static int getSourceFutureFrom(IntSet sourceIndexSet, List<String> srcIndiList,
                                            Map<String, Source> taxaSourceMap){
         EnumSet<Source> sourceEnumSet = EnumSet.noneOf(Source.class);
@@ -323,8 +315,8 @@ public class Solution {
     public static int getMiniOptimalSolutionSize(IntList[] solutions){
         int[] size = Solution.getOptimalSolutionsSize(solutions);
         int mini = Integer.MAX_VALUE;
-        for (int i = 0; i < size.length; i++) {
-            mini = size[i] < mini ? size[i] : mini;
+        for (int j : size) {
+            mini = j < mini ? j : mini;
         }
         return mini;
     }
@@ -377,8 +369,8 @@ public class Solution {
 
     public static int getMiniSolutionEleCount(IntList[] solutions){
         int miniSolutionEleCount = Integer.MAX_VALUE;
-        for (int i = 0; i < solutions.length; i++) {
-            miniSolutionEleCount = solutions[i].size() < miniSolutionEleCount ? solutions[i].size() : miniSolutionEleCount;
+        for (IntList solution : solutions) {
+            miniSolutionEleCount = solution.size() < miniSolutionEleCount ? solution.size() : miniSolutionEleCount;
 
         }
         return miniSolutionEleCount;
@@ -401,10 +393,10 @@ public class Solution {
         }
         List<IntList> solutionList = new ArrayList<>(solutionSet);
         if (solutionList.size()==0) return new IntArrayList();
-        int[] targetSourceCumLen = SolutionUtils.getTargetSourceCumLen(solutionList);
+        int[] targetSourceCumLen = Solution.getTargetSourceCumLen(solutionList);
         int miniTargetSourceCumLen = Integer.MAX_VALUE;
-        for (int i = 0; i < targetSourceCumLen.length; i++) {
-            miniTargetSourceCumLen = targetSourceCumLen[i] < miniTargetSourceCumLen ? targetSourceCumLen[i] : miniTargetSourceCumLen;
+        for (int j : targetSourceCumLen) {
+            miniTargetSourceCumLen = j < miniTargetSourceCumLen ? j : miniTargetSourceCumLen;
         }
         IntList miniTargetSourceCumLenSolution=null;
         for (int i = 0; i < targetSourceCumLen.length; i++) {
@@ -439,10 +431,10 @@ public class Solution {
         }
         List<IntList> solutionList = new ArrayList<>(solutionSet);
         if (solutionList.size()==0) return new IntArrayList();
-        int[] targetSourceCumLen = SolutionUtils.getTargetSourceCumLen(solutionList);
+        int[] targetSourceCumLen = Solution.getTargetSourceCumLen(solutionList);
         int miniTargetSourceCumLen = Integer.MAX_VALUE;
-        for (int i = 0; i < targetSourceCumLen.length; i++) {
-            miniTargetSourceCumLen = targetSourceCumLen[i] < miniTargetSourceCumLen ? targetSourceCumLen[i] :
+        for (int j : targetSourceCumLen) {
+            miniTargetSourceCumLen = j < miniTargetSourceCumLen ? j :
                     miniTargetSourceCumLen;
         }
         IntList miniTargetSourceCumLenSolution=null;
@@ -492,7 +484,7 @@ public class Solution {
                     // make sure final range is right
                     if (reverseSolution.getInt(reverseSolution.size()-4) > forwardSolution.getInt(forwardSolution.size()-2)){
                         forwardSolution.set((forwardCount-1)*3+2, reverseSolution.getInt((reverseCount-2)*3+2));
-                        forwardSolution.add(reverseSolution.getInt((reverseCount-1)*3+0));
+                        forwardSolution.add(reverseSolution.getInt((reverseCount - 1) * 3));
                         forwardSolution.add(reverseSolution.getInt((reverseCount-1)*3+1));
                         forwardSolution.add(reverseSolution.getInt((reverseCount-1)*3+2));
                         return forwardSolution;
@@ -503,5 +495,18 @@ public class Solution {
         }
 //        IntList engravedSolution = SolutionUtils.engrave(forwardSolution);
         return forwardSolution;
+    }
+
+    public static int[] getTargetSourceCumLen(List<IntList> solutions){
+        int[] cumLen = new int[solutions.size()];
+        IntList singleSourceFeatureList = SourceType.getSingleSourceFeatureList();
+        for (int i = 0; i < solutions.size(); i++) {
+            for (int j = 0; j < solutions.get(i).size(); j=j+3) {
+                if (singleSourceFeatureList.contains(solutions.get(i).getInt(j))){
+                    cumLen[i]+=(solutions.get(i).getInt(j+1)) - (solutions.get(i).getInt(j+2));
+                }
+            }
+        }
+        return cumLen;
     }
 }
