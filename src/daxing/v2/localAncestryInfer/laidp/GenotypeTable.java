@@ -1319,7 +1319,7 @@ public class GenotypeTable {
         BitSet[][] localAnc = genotypeTable.calculateLocalAncestry(windowSize, stepSize, taxaGroupFile,
                 ancestralAlleleBitSet, conjunctionNum, switchCostScore, maxSolutionCount, threadsNum);
 //        BitSet[][] localAnc = genotypeTable.calculateLocalAncestry_singleThread(windowSize, stepSize, taxaGroupFile,
-//                ancestralAlleleBitSet, conjunctionNum, threadsNum);
+//                ancestralAlleleBitSet, conjunctionNum, switchCostScore, maxSolutionCount, threadsNum);
         genotypeTable.write_localAncestry(localAnc, localAnceOutFile, taxaGroupFile);
     }
 
