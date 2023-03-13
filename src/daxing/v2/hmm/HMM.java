@@ -1,4 +1,4 @@
-package daxing.v2.localAncestryInfer.laidp;
+package daxing.v2.hmm;
 
 import it.unimi.dsi.fastutil.ints.*;
 import java.util.Arrays;
