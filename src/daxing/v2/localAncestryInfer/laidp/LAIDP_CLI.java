@@ -1,6 +1,7 @@
 package daxing.v2.localAncestryInfer.laidp;
 
 import org.apache.commons.cli.*;
+import pgl.infra.utils.Benchmark;
 import java.util.BitSet;
 
 public class LAIDP_CLI {
@@ -76,11 +77,11 @@ public class LAIDP_CLI {
         Option genotypeFile = new Option("g", "genotypeFile",true,"<fileName>, path of genotype file in vcf format");
         Option windowSize = new Option("w", "windowSize", true, "<integer> window size in variants");
         Option stepSize = new Option("s", "stepSize", true, "<integer> step size in variants");
-        Option taxaGroupFile = new Option("taxaGroup","taxaGroupFile", true, "<fileName> or <int[]>, path of taxaGroup" +
-                " file or outGroup taxa indices");
+        Option taxaGroupFile = new Option("taxaGroup","taxaGroupFile", true, "<fileName>, path of taxaGroup" +
+                " file");
         Option ancestalyAllele = new Option("ancestral", "ancestralAllele", true, "<integer|fileName> ancestral " +
                 "allele, " +
-                "integer represent outGroup sample, separated by comma when multiple outGoups exists; when it " +
+                "integer represent outGroup sample index, separated by comma when multiple outGoups exists; when it " +
                 "is string, ancestral allele file is required");
         Option conjunctionNum = new Option("conjunctionNum", "conjunctionNum", true, "the number of grid when define local " +
                 "introgressed interval");
@@ -104,19 +105,42 @@ public class LAIDP_CLI {
         return options;
     }
 
+    private static String getCmdLineSyntax(){
+        return "java -jar LAIDP.jar -g genotypeFile" + " " +
+                "-taxaGroup taxaGroupFile" + " " +
+                "-ancestral ancestral" + " " +
+                "-out outFile";
+    }
+
+    private static String getHeader(){
+        return "LAIDP v1.0";
+    }
+
+    private static String getFooter(){
+        return "Author: Daxing Xu, email: dxxu@genetics.ac.cn" + "\n" +
+                "See below for detailed documentation" + "\n" +
+                "https://github.com/";
+    }
+
     public static void startFromCLI(String[] args){
         Options options = LAIDP_CLI.SetOptions();
         CommandLineParser parser = new DefaultParser();
         CommandLine line;
         HelpFormatter helpFormatter = new HelpFormatter();
-        try {
-            line=parser.parse(options, args);
-            LAIDP_CLI laidpCli = new LAIDP_CLI(line);
-            laidpCli.startRun();
-        } catch (ParseException e) {
-            System.err.println("Parsing failed.  Reason: " + e.getMessage());
-            helpFormatter.printHelp("LAIDP", options);
+        if (args.length < 1) {
+            helpFormatter.printHelp(getCmdLineSyntax(), getHeader(), options,getFooter());
             System.exit(1);
         }
+        long start = System.nanoTime();
+        try {
+            line=parser.parse(options, args);
+            new LAIDP_CLI(line).startRun();
+        } catch (ParseException e) {
+            System.err.println("Parsing failed.  Reason: " + e.getMessage());
+            helpFormatter.printHelp(getCmdLineSyntax(), getHeader(), options, getFooter());
+            System.exit(1);
+        }
+        System.out.println("Completed in "+ Benchmark.getTimeSpanMinutes(start)+" minutes");
+        System.out.println("Done");
     }
 }
