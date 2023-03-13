@@ -293,8 +293,8 @@ public class Solution {
             if (miniSolutionSizeArray[i]!=miniSolutionSize) continue;
             if (solutions[i].size()!=miniSolutionEleCount) continue;
             solutionEleCount =  solutions[i].size();
-            // filter Source is NONE
-            if (solutionEleCount==3 && (solutions[i].getInt(0)==16)) continue;
+            // filter Source is NATIVE
+            if (solutionEleCount==3 && (solutions[i].getInt(0)==Source.NATIVE.getFeature())) continue;
             solutionSet.add(solutions[i]);
         }
         List<IntList> solutionList = new ArrayList<>(solutionSet);
@@ -331,8 +331,8 @@ public class Solution {
             if (miniSolutionSizeArray[i]!=miniSolutionSize) continue;
             if (solutions[i].size()!=miniSolutionEleCount) continue;
             solutionEleCount =  solutions[i].size();
-            // filter Source is NONE
-            if (solutionEleCount==3 && (solutions[i].getInt(0)==16)) continue;
+            // filter Source is NATIVE
+            if (solutionEleCount==3 && (solutions[i].getInt(0)==Source.NATIVE.getFeature())) continue;
             solutionSet.add(solutions[i]);
         }
         List<IntList> solutionList = new ArrayList<>(solutionSet);
