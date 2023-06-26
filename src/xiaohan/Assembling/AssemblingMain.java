@@ -1,6 +1,6 @@
 package xiaohan.Assembling;
 
-import smile.math.Random;
+
 import xiaohan.utils.IOUtils;
 
 import java.io.BufferedReader;
@@ -8,6 +8,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Random;
 
 /**
  * @ author: yxh
