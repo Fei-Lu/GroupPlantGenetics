@@ -8,8 +8,6 @@ import daxing.v2.localAncestryInfer.evaluation.LocalAncestry;
 import daxing.v2.localAncestryInfer.runner.*;
 import daxing.v2.localAncestryInfer.simulation.Simulation;
 import daxing.v2.localAncestryInfer.simulation.SimulationMetadata;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import pgl.infra.utils.PStringUtils;
 
 import java.io.BufferedReader;
@@ -127,11 +125,6 @@ public class Start {
 //        }
 //        sb.deleteCharAt(sb.length()-1);
 //        System.out.println(sb);
-
-        IntList integers = new IntArrayList();
-        integers.add(3);
-        System.out.println(integers.getInt(0));
-        System.out.println("ok");
     }
 
     /**
