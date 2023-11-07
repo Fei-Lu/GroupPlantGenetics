@@ -1,6 +1,5 @@
 package xiaohan.eQTL.javapractice;
 
-import smile.sort.Sort;
 
 /**
  * Test for sortings
