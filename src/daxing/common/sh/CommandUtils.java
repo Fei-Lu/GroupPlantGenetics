@@ -62,6 +62,25 @@ public class CommandUtils {
         return exitCode;
     }
 
+    private static Integer runOneCommand(String[] commandOption,
+                                         String workingDirectory, File logFile, boolean ifRedictStandoutToLog){
+        ProcessBuilder processBuilder = new ProcessBuilder(commandOption);
+        processBuilder.directory(new File(workingDirectory));
+        processBuilder.redirectErrorStream(true);
+        if (ifRedictStandoutToLog){
+            processBuilder.redirectOutput(ProcessBuilder.Redirect.appendTo(logFile));
+        }
+        Process process;
+        int exitCode=-1;
+        try {
+            process = processBuilder.start();
+            exitCode = process.waitFor();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        return exitCode;
+    }
+
     /**
      * Standard output and standard error will be redirected to same destination, logFile
      * @param command one simple linux commandOption with or without options, can't be a compound commandOption: et al. ls | wc
@@ -102,6 +121,21 @@ public class CommandUtils {
         commandOption[1] = "-c";
         commandOption[2] = multipleCommands;
         return CommandUtils.runOneCommand(commandOption, workingDirectory, logFile);
+    }
+
+    /**
+     * Standard output and standard error will be redirected to same destination, logFile
+     * @param multipleCommands  a compound commandOption, such as ls | wc
+     * @param workingDirectory current working dir
+     * @param logFile contain commandOption log and error log
+     * @return 0 indicates normal termination
+     */
+    public static Integer runMultipleCommands(String multipleCommands, String workingDirectory, File logFile, boolean ifRedictStandoutToLog){
+        String[] commandOption = new String[3];
+        commandOption[0] = "bash";
+        commandOption[1] = "-c";
+        commandOption[2] = multipleCommands;
+        return CommandUtils.runOneCommand(commandOption, workingDirectory, logFile, ifRedictStandoutToLog);
     }
 
     /**
@@ -206,7 +240,7 @@ public class CommandUtils {
      * @param threadsNum thread number
      */
     public static void runSH_multipleCommands(String title, String shFile, String workingDirectory, String logDir,
-                                        int threadsNum){
+                                              boolean ifRedictStandoutToLog, int threadsNum){
         System.out.println(DateTime.getDateTimeOfNow());
         long start=System.nanoTime();
         List<String> commandList= IOTool.readAllLines(shFile);
@@ -214,7 +248,8 @@ public class CommandUtils {
         List<Callable<Integer>> callableList = new ArrayList<>();
         for (int i = 0; i < commandList.size(); i++) {
             int finalI = i;
-            callableList.add(()-> runMultipleCommands(commandList.get(finalI), workingDirectory, logFiles.get(finalI)));
+            callableList.add(()-> runMultipleCommands(commandList.get(finalI), workingDirectory, logFiles.get(finalI)
+                    , ifRedictStandoutToLog));
         }
         ExecutorService executorService = Executors.newFixedThreadPool(threadsNum);
         List<Integer> exitCodes = new ArrayList<>();
