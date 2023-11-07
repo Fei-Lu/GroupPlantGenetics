@@ -5,16 +5,21 @@ import com.google.common.primitives.Ints;
 import daxing.common.utiles.IOTool;
 import daxing.v2.localAncestryInfer.demography.DemographicModelTools;
 import daxing.v2.localAncestryInfer.evaluation.LocalAncestry;
-import daxing.v2.localAncestryInfer.laidp.LAIDP_CLI;
 import daxing.v2.localAncestryInfer.runner.*;
 import daxing.v2.localAncestryInfer.simulation.Simulation;
 import daxing.v2.localAncestryInfer.simulation.SimulationMetadata;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+import pgl.infra.utils.PStringUtils;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -65,8 +70,68 @@ public class Start {
 //        String outDir = "/Users/xudaxing/Desktop/LAIDP_development/twoWay_100M";
 //        evaluate_contingencyTable(DemographicModelTools.N_way.TWO_WAY, outDir);
 
-        LAIDP_CLI.startFromCLI(args);
+//        LAIDP_CLI.startFromCLI(args);
+//        GenotypeTable genotypeTable = new GenotypeTable("/Users/xudaxing/Desktop/LAIDP_development/twoWay_recent_test/003_simulation/D001.vcf");
+//        String title = args[0];
+//        String shFile = args[1];
+//        String workingDirectory = args[2];
+//        String logDir = args[3];
+//        int threadsNum = Integer.parseInt(args[4]);
+//        CommandUtils.runSH_multipleCommands(title, shFile, workingDirectory, logDir, threadsNum);
+//        String genoMatrixFile = args[0];
+//        String outVCF = args[1];
+//        transform2VCF(genoMatrixFile,outVCF);
 
+//        rename(args[0]);
+//        rename("/Users/xudaxing/Desktop/temp");
+
+//        String title = args[0];
+//        String shFile = args[1];
+//        String workingDirectory = args[2];
+//        String logDir = args[3];
+//        boolean ifRedictStandoutToLog = args[4].equals("T") ? true : false;
+//        int threadsNum = Integer.parseInt(args[5]);
+//        CommandUtils.runSH_multipleCommands(title, shFile, workingDirectory, logDir, ifRedictStandoutToLog, threadsNum);
+
+//        String a = "/Users/xudaxing/Desktop/btau_buffalo.txt";
+//        String b = "/Users/xudaxing/Desktop/btau_buffalo2.txt";
+//        temp(a, b);
+
+//        String genomeFaFile = args[0];
+////        String prefix = args[1];
+//        String outFile = args[1];
+//
+//        FastaBit fastaBit= new FastaBit(genomeFaFile);
+//        int seqNum = fastaBit.getSeqNumber();
+//        StringBuilder sb = new StringBuilder();
+//        for (int i = 0; i < seqNum; i++) {
+//            sb.setLength(0);
+////            sb.append(prefix).append("_");
+//            sb.append(i+1);
+//            fastaBit.setName(sb.toString(), i);
+//        }
+//        fastaBit.writeFasta(outFile, IOFileFormat.Text);
+//        String title = args[0];
+//        String shFile = args[1];
+//        String workingDirectory = args[2];
+//        String logDir = args[3];
+////        boolean ifRedictStandoutToLog = Boolean.getBoolean(args[4]);
+//        int threadsNum = Integer.parseInt(args[4]);
+////        CommandUtils.runSH_multipleCommands(title, shFile, workingDirectory, logDir, ifRedictStandoutToLog, threadsNum);
+//        CommandUtils.runSH_OneCommand(title, shFile, workingDirectory, logDir, threadsNum);
+
+//        List<String> ab = WheatLineage.D.getChr();
+//        StringBuilder sb = new StringBuilder();
+//        for (int i = 0; i < ab.size(); i++) {
+//            sb.append("chr").append(ab.get(i)).append(" ");
+//        }
+//        sb.deleteCharAt(sb.length()-1);
+//        System.out.println(sb);
+
+        IntList integers = new IntArrayList();
+        integers.add(3);
+        System.out.println(integers.getInt(0));
+        System.out.println("ok");
     }
 
     /**
@@ -235,6 +300,126 @@ public class Start {
 
     }
 
+    public static void transform2VCF(String genoMatrixFile, String outVCF){
+        try (BufferedReader br = IOTool.getReader(genoMatrixFile);
+             BufferedWriter bw = IOTool.getWriter(outVCF)) {
+            String line;
+            List<String> temp, headerList;
+            StringBuilder sb = new StringBuilder();
+            sb.setLength(0);
+            sb.append("##fileformat=VCFv4.2\n");
+            SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
+            sb.append("##fileDate=").append(f.format(new Date())).append("\n");
+            sb.append("##FILTER=<ID=PASS,Description=\"All filters passed\">").append("\n");
+            sb.append("##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">").append("\n");
+            sb.append("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t");
+            headerList = PStringUtils.fastSplit(br.readLine());
+            sb.append(String.join("\t", headerList.subList(8, headerList.size())));
+            bw.write(sb.toString());
+            bw.newLine();
+            String refAllele, altAllele;
+            while ((line=br.readLine())!=null){
+                temp = PStringUtils.fastSplit(line);
+                refAllele = temp.get(2);
+                sb.setLength(0);
+                sb.append(temp.get(0)).append("\t");
+                sb.append(temp.get(1)).append("\t");
+                sb.append(temp.get(0)).append("_").append(temp.get(1)).append("\t");
+                sb.append(temp.get(2)).append("\t");
+                sb.append(temp.get(3)).append("\t");
+                sb.append(".").append("\t");
+                sb.append("PASS").append("\t");
+                sb.append(".").append("\t");
+//                sb.append("NS=").append(temp.get(4)).append(";");
+//                sb.append("MF=").append(temp.get(5)).append("\t");
+                sb.append("GT").append("\t");
+                for (int i = 8; i < temp.size(); i++) {
+                    if (temp.get(i).equals("-")){
+                        sb.append(".|.").append("\t");
+                    }else {
+                        sb.append(temp.get(i).equals(refAllele) ? 0 : 1).append("|").append(temp.get(i).equals(refAllele) ? 0 : 1).append("\t");
+                    }
+                }
+                sb.deleteCharAt(sb.length()-1);
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void rename(String faDir){
+        List<File> files = IOTool.getFileListInDirEndsWith(faDir, ".fa.gz");
+        int[] chrID = files.stream().map(File::getName).mapToInt(s -> Integer.parseInt(s.substring(3,6))).toArray();
+        String[] outNames = files.stream().map(File::getName).map(s -> s.replaceAll("fa.gz","fa")).toArray(String[]::new);
+        IntStream.range(0, files.size()).forEach(e->{
+            int chr = chrID[e];
+            File file = files.get(e);
+            try (BufferedReader br = IOTool.getReader(file);
+                 BufferedWriter bw = IOTool.getWriter(new File(faDir, outNames[e]))) {
+                boolean ifFirst = true;
+                String line;
+                StringBuilder sb = new StringBuilder();
+                while ((line= br.readLine())!=null){
+                    if (ifFirst){
+                        sb.setLength(0);
+                        sb.append(">chr").append(chr);
+                        bw.write(sb.toString());
+                        bw.newLine();
+                        ifFirst= false;
+                    }else {
+                        bw.write(line);
+                        bw.newLine();
+                    }
+                }
+                bw.flush();
+            }catch (Exception exception){
+                exception.printStackTrace();
+            }
+        });
+    }
+
+
+    public static void temp(String inputFile, String outFile){
+        try (BufferedReader br = IOTool.getReader(inputFile);
+             BufferedWriter bw = IOTool.getWriter(outFile)) {
+            String line;
+            List<String> temp;
+            StringBuilder sb = new StringBuilder();
+            int btauChr, buffaloChr;
+            while ((line=br.readLine())!=null){
+                temp = PStringUtils.fastSplit(line);
+                btauChr = Integer.parseInt(temp.get(1));
+                buffaloChr = Integer.parseInt(temp.get(0));
+                sb.setLength(0);
+                sb.append(PStringUtils.getNDigitNumber(3, btauChr)).append("\t");
+                sb.append(PStringUtils.getNDigitNumber(3, buffaloChr));
+                bw.write(sb.toString());
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void splitFasta(String fastaFile, String outDir){
+        try (BufferedReader br = IOTool.getReader(fastaFile)) {
+            String line;
+            List<String> temp;
+            StringBuilder sb = new StringBuilder();
+            while ((line=br.readLine())!=null){
+                sb.setLength(0);
+                if (line.startsWith(">")){
+                    sb.append(">").append(line.substring(4));
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 
 
