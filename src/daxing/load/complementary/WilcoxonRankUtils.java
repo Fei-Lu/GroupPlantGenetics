@@ -1,6 +1,5 @@
 package daxing.load.complementary;
 
-import com.ibm.icu.text.NumberFormat;
 import daxing.common.utiles.IOTool;
 import gnu.trove.list.array.TDoubleArrayList;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -10,6 +9,7 @@ import pgl.infra.utils.PStringUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

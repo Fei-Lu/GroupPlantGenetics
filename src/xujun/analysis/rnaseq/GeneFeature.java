@@ -377,12 +377,12 @@
              * @param outfileS
              */
             public void writeCDSSequence (FastaByte genomef, String outfileS) {
-                genomef.sortByName();
+                genomef.sortByDescription();
                 try {
                     BufferedWriter bw = IOUtils.getTextWriter(outfileS);
                     for (int i = 0; i < this.getGeneNumber(); i++) {
                         String title = String.valueOf(this.getGeneChromosome(i))+"_"+String.valueOf(this.getGeneStart(i)+"_"+String.valueOf(this.getGeneEnd(i))+"_"+String.valueOf(this.getGeneName(i)));
-                        int chrIndex = genomef.getIndexByName(String.valueOf(this.getGeneChromosome(i)));
+                        int chrIndex = genomef.getIndexByDescription(String.valueOf(this.getGeneChromosome(i)));
                         String chrseq = genomef.getSeq(chrIndex);
                         StringBuilder sb = new StringBuilder();
                         int longestTranscriptIndex = this.getLongestTranscriptIndex(i);
@@ -414,12 +414,12 @@
              * @param outfileS
              */
             public void writeGeneSequence (FastaByte genomef, String outfileS) {
-                genomef.sortByName();
+                genomef.sortByDescription();
                 try {
                     BufferedWriter bw = IOUtils.getTextWriter(outfileS);
                     for (int i = 0; i < this.getGeneNumber(); i++) {
                         String title = String.valueOf(this.getGeneChromosome(i))+"_"+String.valueOf(this.getGeneStart(i)+"_"+String.valueOf(this.getGeneEnd(i))+"_"+String.valueOf(this.getGeneName(i)));
-                        int chrIndex = genomef.getIndexByName(String.valueOf(this.getGeneChromosome(i)));
+                        int chrIndex = genomef.getIndexByDescription(String.valueOf(this.getGeneChromosome(i)));
                         String chrseq = genomef.getSeq(chrIndex);
                         String geneSeq = chrseq.substring(this.getGeneStart(i)-1, this.getGeneEnd(i)-1);
                         String[] geneSeqs = FStringUtils.getMultilineString(60, geneSeq);

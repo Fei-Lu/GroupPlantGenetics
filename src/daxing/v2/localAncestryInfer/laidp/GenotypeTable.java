@@ -230,7 +230,7 @@ public class GenotypeTable {
     }
 
     public byte getAlleleByte(int siteIndex, int taxonIndex){
-        if(this.isMissing(siteIndex, taxonIndex)) return AlleleEncoder.genotypeMissingByte;
+        if(this.isMissing(siteIndex, taxonIndex)) return AlleleEncoder.genotypeMissingCoding;
         byte referenceAlleleByte = this.getSnps()[siteIndex].getReferenceAlleleByte();
         byte alternativeAlleleByte = this.getSnps()[siteIndex].getAlternativeAlleleByte();
         return isAlternativeAllele(siteIndex, taxonIndex) ? alternativeAlleleByte : referenceAlleleByte;
@@ -238,7 +238,7 @@ public class GenotypeTable {
 
     public char getAlleleBase(int siteIndex, int taxonIndex){
         byte alleleByte = this.getAlleleByte(siteIndex, taxonIndex);
-        return AlleleEncoder.getAlleleBaseFromByte(alleleByte);
+        return AlleleEncoder.getAlleleBaseFromCoding(alleleByte);
     }
 
     /**

@@ -1,10 +1,9 @@
 package daxing.v2.annotation;
 
-import com.ibm.icu.text.NumberFormat;
 import daxing.common.factors.FunctionalElement;
+import daxing.common.table.RowTableTool;
 import daxing.common.utiles.IOTool;
 import daxing.common.wheat.PGF;
-import daxing.common.table.RowTableTool;
 import gnu.trove.list.array.TDoubleArrayList;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
@@ -13,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -100,7 +100,7 @@ public class GERP {
             gerpRes.add(calculateGERPGreaterThanZeroCount(file.getAbsolutePath()));
         }
         double[] gerpArray= gerpRes.toArray();
-        NumberFormat numberFormat=NumberFormat.getInstance();
+        NumberFormat numberFormat= NumberFormat.getInstance();
         numberFormat.setGroupingUsed(false);
         numberFormat.setMinimumFractionDigits(5);
         try (BufferedWriter bw = IOTool.getWriter(outFile)) {

@@ -63,8 +63,8 @@ public class BlockBinary implements Callable<BlockBinary> {
         short chr = bb.getShort();
         int pos = bb.getInt();
         byte geno = bb.get();
-        char refBase = AlleleEncoder.getAlleleBase1FromGenotypeByte(geno);
-        char altBase = AlleleEncoder.getAlleleBase2FromGenotypeByte(geno);
+        char refBase = AlleleEncoder.getAlleleBase1FromGenotypeCoding(geno);
+        char altBase = AlleleEncoder.getAlleleBase2FromGenotypeCoding(geno);
         byte refFeature = bb.get();
         byte altFeature = bb.get();
         int size = (bb.capacity()- GenotypeExport.getByteSizeOfSNPInBinary())/3;

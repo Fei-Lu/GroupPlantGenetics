@@ -1,8 +1,5 @@
 package xiaohan.utils;
 
-import com.ibm.icu.text.UForwardCharacterIterator;
-import javafx.beans.property.IntegerProperty;
-
 import java.util.HashMap;
 
 public class chrUtils {

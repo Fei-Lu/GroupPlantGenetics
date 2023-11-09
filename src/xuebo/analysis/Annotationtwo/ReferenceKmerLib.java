@@ -5,12 +5,12 @@ import com.koloboke.collect.set.hash.HashIntSet;
 import com.koloboke.collect.set.hash.HashIntSets;
 import com.koloboke.collect.set.hash.HashLongSet;
 import com.koloboke.collect.set.hash.HashLongSets;
-import java.io.DataOutputStream;
 import pgl.infra.dna.BaseEncoder;
 import pgl.infra.dna.FastaByte;
-
 import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
+
+import java.io.DataOutputStream;
 
 public class ReferenceKmerLib {
     int kmerLength = -1;
@@ -95,11 +95,12 @@ public class ReferenceKmerLib {
                 else {
                     mark = i + kmerLength;
                 }
-                long kmerL = BaseEncoder.getLongSeqFromSubByteArray(bArray, i, i + kmerLength);
+                long kmerL = BaseEncoder.getLongFromSubBaseCodingArray(bArray, i, i + kmerLength);
                 if (!kmerSet.contains(kmerL)) kmerSet.add(kmerL);
                 int pos = i+1;
                 if (pos%50000000 == 0) {
-                    System.out.println("Chromosome: "+f.getName(k)+". Length = "+String.valueOf(bArray.length)+"bp. Position: "+String.valueOf(pos) + ". Kmer set size: " + String.valueOf(kmerSet.size()));
+                    System.out.println("Chromosome: "+f.getDescription(k)+". Length = "+String.valueOf(bArray.length)+"bp. " +
+                            "Position: "+String.valueOf(pos) + ". Kmer set size: " + String.valueOf(kmerSet.size()));
                 }
             }
         }
@@ -133,11 +134,12 @@ public class ReferenceKmerLib {
                 else {
                     mark = i + kmerLength;
                 }
-                int kmerL = BaseEncoder.getIntSeqFromSubByteArray(bArray, i, i + kmerLength);
+                int kmerL = BaseEncoder.getIntSeqFromSubBaseCodingArray(bArray, i, i + kmerLength);
                 if (!kmerSet.contains(kmerL)) kmerSet.add(kmerL);
                 int pos = i+1;
                 if (pos%50000000 == 0) {
-                    System.out.println("Chromosome: "+f.getName(k)+". Length = "+String.valueOf(bArray.length)+"bp. Position: "+String.valueOf(pos) + ". Kmer set size: " + String.valueOf(kmerSet.size()));
+                    System.out.println("Chromosome: "+f.getDescription(k)+". Length = "+String.valueOf(bArray.length)+"bp. " +
+                            "Position: "+String.valueOf(pos) + ". Kmer set size: " + String.valueOf(kmerSet.size()));
                 }
             }
         }

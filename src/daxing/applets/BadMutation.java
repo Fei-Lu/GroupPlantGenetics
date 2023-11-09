@@ -54,7 +54,7 @@ public class BadMutation {
                                             File subsititonOutDir){
         int[] vcfPosOnChrArray=vcfPosOnChr.stream().mapToInt(Integer::parseInt).toArray();
         FastaByte chrFa=new FastaByte(chrGeneFaFile.getAbsolutePath());
-        String[] transcriptName=chrFa.getNames();
+        String[] transcriptName=chrFa.getDescriptions();
         TIntArrayList geneCDSPosList;
         int[] geneCDSPosArray;
         if (chrPgf.getGeneNumber()!=chrFa.getSeqNumber()){

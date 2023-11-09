@@ -1595,8 +1595,8 @@ public class VCF {
                         genotypeByte=genotypeGrid.getGenotypeByte(i,j);
                         refAllele = genotypeGrid.getReferenceAlleleBase(i);
                         altAllele = genotypeGrid.getAlternativeAlleleBase(i);
-                        allele1=AlleleEncoder.getAlleleBase1FromGenotypeByte(genotypeByte);
-                        allele2=AlleleEncoder.getAlleleBase2FromGenotypeByte(genotypeByte);
+                        allele1=AlleleEncoder.getAlleleBase1FromGenotypeCoding(genotypeByte);
+                        allele2=AlleleEncoder.getAlleleBase2FromGenotypeCoding(genotypeByte);
                         genotypeRecode = GenotypeRecode.newInstanceFromChar(refAllele,altAllele,allele1, allele2);
                         sb.append(genotypeRecode.getRecodeByte()).append("\t");
                     }

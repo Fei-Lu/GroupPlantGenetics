@@ -5,24 +5,21 @@
  */
 package xuebo.analysis.Annotationtwo;
 
-import com.koloboke.collect.map.hash.HashByteByteMap;
-import com.koloboke.collect.map.hash.HashIntIntMap;
-import com.koloboke.collect.map.hash.HashIntIntMaps;
-import com.koloboke.collect.map.hash.HashLongIntMap;
-import com.koloboke.collect.map.hash.HashLongIntMaps;
+import com.koloboke.collect.map.hash.*;
 import gnu.trove.list.array.TIntArrayList;
+import pgl.infra.dna.BaseEncoder;
+import pgl.infra.dna.FastaByte;
+import pgl.infra.utils.Benchmark;
+import pgl.infra.utils.IOUtils;
+import pgl.infra.utils.PArrayUtils;
+import pgl.infra.utils.PStringUtils;
+
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import pgl.infra.dna.BaseEncoder;
-import pgl.infra.dna.FastaByte;
-import pgl.infra.utils.Benchmark;
-import pgl.infra.utils.PArrayUtils;
-import pgl.infra.utils.PStringUtils;
-import pgl.infra.utils.IOUtils;
 
 /**
  *
@@ -51,7 +48,7 @@ public class GenomeProfiler {
         FastaByte f = new FastaByte(referenceGenomeFileS);
         HashMap<Integer, String> chrSeqMap = new HashMap();
         for (int i = 0; i < f.getSeqNumber(); i++) {
-            chrSeqMap.put(Integer.valueOf(f.getName(i)), f.getSeq(i));
+            chrSeqMap.put(Integer.valueOf(f.getDescription(i)), f.getSeq(i));
         }
         Set<Map.Entry<Integer, String>> chrSeqset = chrSeqMap.entrySet();
         System.out.println("Writing CpScore by chromosomes...");
@@ -100,11 +97,11 @@ public class GenomeProfiler {
                         int count = 0;
                         
                         if (intMap != null) {
-                            int query = BaseEncoder.getIntSeqFromSubByteArray(bArray, j, j + kmerLength);
+                            int query = BaseEncoder.getIntSeqFromSubBaseCodingArray(bArray, j, j + kmerLength);
                             count = intMap.get(query);
                         }
                         else if (longMap != null) {
-                            long query = BaseEncoder.getLongSeqFromSubByteArray(bArray, j, j + kmerLength);
+                            long query = BaseEncoder.getLongFromSubBaseCodingArray(bArray, j, j + kmerLength);
                             count = longMap.get(query);
                         }
                         int offSet = bound[i][0]-j;
@@ -183,13 +180,13 @@ public class GenomeProfiler {
                     else {
                         mark = j + kmerLength;
                     }
-                    int kmerV = BaseEncoder.getIntSeqFromSubByteArray(bArray, j, j + kmerLength);
+                    int kmerV = BaseEncoder.getIntSeqFromSubBaseCodingArray(bArray, j, j + kmerLength);
                     if (intMap.containsKey(kmerV)) intMap.addValue(kmerV, 1);
                     int rKmerV = BaseEncoder.getIntReverseComplement(kmerV, kmerLength);
                     if (intMap.containsKey(rKmerV)) intMap.addValue(rKmerV, 1);          
                     int pos = j+1;
                     if (pos%50000000 == 0) {
-                        System.out.println(inputGenomeFileS + ". Chromosome: "+f.getName(i)+". Length = "+String.valueOf(bArray.length)+"bp. Position: "+String.valueOf(pos));
+                        System.out.println(inputGenomeFileS + ". Chromosome: "+f.getDescription(i)+". Length = "+String.valueOf(bArray.length)+"bp. Position: "+String.valueOf(pos));
                     }
                 }
             }
@@ -218,13 +215,13 @@ public class GenomeProfiler {
                     else {
                         mark = j + kmerLength;
                     }
-                    long kmerV = BaseEncoder.getLongSeqFromSubByteArray(bArray, j, j + kmerLength);
+                    long kmerV = BaseEncoder.getLongFromSubBaseCodingArray(bArray, j, j + kmerLength);
                     if (longMap.containsKey(kmerV)) longMap.addValue(kmerV, 1);
                     long rKmerV = BaseEncoder.getLongReverseComplement(kmerV, kmerLength);
                     if (longMap.containsKey(rKmerV)) longMap.addValue(rKmerV, 1);
                     int pos = j+1;
                     if (pos%50000000 == 0) {
-                        System.out.println(inputGenomeFileS + ". Chromosome: "+f.getName(i)+". Length = "+String.valueOf(bArray.length)+"bp. Position: "+String.valueOf(pos));
+                        System.out.println(inputGenomeFileS + ". Chromosome: "+f.getDescription(i)+". Length = "+String.valueOf(bArray.length)+"bp. Position: "+String.valueOf(pos));
                     }
                 }
             }

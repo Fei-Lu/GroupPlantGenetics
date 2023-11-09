@@ -1,6 +1,5 @@
 package daxing.v2.ancestryHmm;
 
-import com.ibm.icu.text.NumberFormat;
 import daxing.common.factors.HexaploidBySubcontinent;
 import daxing.common.table.RowTableTool;
 import daxing.common.utiles.IOTool;
@@ -11,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.*;
 
 public class Panel {

@@ -8,8 +8,9 @@ import com.koloboke.collect.map.hash.HashCharCharMaps;
 import daxing.common.utiles.StringTool;
 import gnu.trove.list.array.TCharArrayList;
 import gnu.trove.list.array.TIntArrayList;
-import pgl.infra.dna.DNAUtils;
 import pgl.infra.dna.SequenceInterface;
+import pgl.infra.dna.SequenceUtils;
+
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.stream.IntStream;
@@ -150,16 +151,8 @@ public class SeqByte implements SequenceInterface {
     }
 
     @Override
-    public boolean isThereNonACGTNBase() {
-        for (int i = 0; i < this.getSequenceLength(); i++) {
-            if (this.seqByte[i] == 78) return true;
-        }
-        return false;
-    }
-
-    @Override
     public boolean isThereN() {
-        byte[] baseByteWithN = DNAUtils.getBaseWithNAscIIArray();
+        byte[] baseByteWithN = SequenceUtils.getBaseWithNAscIIArray();
         for (int i = 0; i < this.getSequenceLength(); i++) {
             int index = Arrays.binarySearch(baseByteWithN, this.getBaseByte(i));
             if (index < 0) {

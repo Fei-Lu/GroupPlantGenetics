@@ -8,7 +8,6 @@ package daxing.common.wheat;
 import daxing.common.utiles.CollectionTool;
 import daxing.common.utiles.IOTool;
 import daxing.common.utiles.StringTool;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
 import org.apache.commons.lang3.ArrayUtils;
@@ -21,6 +20,7 @@ import pgl.infra.utils.Benchmark;
 import pgl.infra.utils.IOUtils;
 import pgl.infra.utils.PStringUtils;
 import pgl.infra.utils.wheat.RefV1Utils;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -65,7 +65,6 @@ public class PGF {
      * Read from pgf file of gene annotation
      * @param infileS
      */
-    @SuppressFBWarnings("DM_BOXED_PRIMITIVE_FOR_PARSING")
     private void readFile (String infileS) {
         try {
             BufferedReader br = IOTool.getReader(infileS);
@@ -125,7 +124,7 @@ public class PGF {
      * @param outfileS
      */
     public void writeCDSSequence (FastaByte genomef, String outfileS) {
-        genomef.sortByName();
+        genomef.sortByDescription();
         try {
             BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             String title, chrseq, cdsSeq;
@@ -137,7 +136,7 @@ public class PGF {
                 sb.append(this.getGeneChromosome(i)).append("_").append(this.getGeneStart(i)).append("_");
                 sb.append(this.getGeneEnd(i)).append("_").append(this.getGeneName(i));
                 title=sb.toString();
-                int chrIndex = genomef.getIndexByName(String.valueOf(this.getGeneChromosome(i)));
+                int chrIndex = genomef.getIndexByDescription(String.valueOf(this.getGeneChromosome(i)));
                 chrseq = genomef.getSeq(chrIndex);
                 sb = new StringBuilder(2100);
                 int longestTranscriptIndex = this.getLongestTranscriptIndex(i);
@@ -203,7 +202,7 @@ public class PGF {
                 int longestTranscriptIndex = chrPGF.getLongestTranscriptIndex(i);
                 sb.append(chrPGF.getTranscriptName(i, longestTranscriptIndex));
                 title=sb.toString();
-                int chrIndex = chrFa.getIndexByName(String.valueOf(chr));
+                int chrIndex = chrFa.getIndexByDescription(String.valueOf(chr));
                 chrseq = chrFa.getSeq(chrIndex);
                 cdsList = chrPGF.getCDSList(i, longestTranscriptIndex);
                 sb = new StringBuilder(2100);
@@ -237,12 +236,12 @@ public class PGF {
      * @param outfileS
      */
     public void writeGeneSequence (FastaByte genomef, String outfileS) {
-        genomef.sortByName();
+        genomef.sortByDescription();
         try {
             BufferedWriter bw = IOUtils.getTextWriter(outfileS);
             for (int i = 0; i < this.getGeneNumber(); i++) {
                 String title = this.getGeneChromosome(i) +"_"+ this.getGeneStart(i) + "_" + this.getGeneEnd(i) + "_" + this.getGeneName(i);
-                int chrIndex = genomef.getIndexByName(String.valueOf(this.getGeneChromosome(i)));
+                int chrIndex = genomef.getIndexByDescription(String.valueOf(this.getGeneChromosome(i)));
                 String chrseq = genomef.getSeq(chrIndex);
                 String geneSeq = chrseq.substring(this.getGeneStart(i)-1, this.getGeneEnd(i)-1);
                 String[] geneSeqs = PStringUtils.getMultilineString(60, geneSeq);

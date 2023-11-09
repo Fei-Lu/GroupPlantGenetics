@@ -8,6 +8,7 @@ package xuebo.analysis.wheat_epi;
 import pgl.infra.dna.FastaByte;
 import pgl.infra.pos.ChrPos;
 import pgl.infra.range.Range;
+import pgl.infra.utils.PStringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -15,8 +16,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import pgl.infra.utils.PStringUtils;
 
 
 
@@ -52,13 +51,13 @@ public class WheatGeneFeature {
      * @param outfileS 
      */
     public void writeGeneSequence (FastaByte genomef, String outfileS) {
-        genomef.sortByName();
+        genomef.sortByDescription();
         try {
             BufferedWriter bw = XueboIOUtils.getTextWriter(outfileS);
             for (int i = 0; i < this.getGeneNumber(); i++) {
                 String title = String.valueOf(this.getGeneChromosome(i))+"_"+String.valueOf(this.getGeneStart(i)+"_"+String.valueOf(this.getGeneEnd(i))+"_"+String.valueOf(this.getGeneName(i)));   
                 int index = this.getGeneChromosome(i);
-                int chrIndex = genomef.getIndexByName(String.valueOf(index));
+                int chrIndex = genomef.getIndexByDescription(String.valueOf(index));
                 String chrseq = genomef.getSeq(chrIndex);
                 String geneSeq = chrseq.substring(this.getGeneStart(i)-1, this.getGeneEnd(i)-1);
                 String[] geneSeqs = PStringUtils.getMultilineString(60, geneSeq);

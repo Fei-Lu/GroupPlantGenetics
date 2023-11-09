@@ -104,8 +104,9 @@ public class SiteGeno extends BiSNP {
             if (isPhase2Alternative(taxaIndices[i])) p2.set(i);
             if (isMissing(taxaIndices[i])) m.set(i);
         }
-        SiteGeno sgb = new SiteGeno(this.getChromosome(),this.getPosition(), AlleleEncoder.getAlleleBaseFromByte(this.getReferenceAlleleByte()),
-                AlleleEncoder.getAlleleBaseFromByte(this.getAlternativeAlleleByte()), null, p1, p2, m, taxaIndices.length);
+        SiteGeno sgb = new SiteGeno(this.getChromosome(),this.getPosition(),
+                AlleleEncoder.getAlleleBaseFromCoding(this.getReferenceAlleleByte()),
+                AlleleEncoder.getAlleleBaseFromCoding(this.getAlternativeAlleleByte()), null, p1, p2, m, taxaIndices.length);
         return sgb;
     }
 
@@ -123,16 +124,16 @@ public class SiteGeno extends BiSNP {
      * @return
      */
     public byte getGenotypeByte (int taxonIndex) {
-        if (isMissing(taxonIndex)) return AlleleEncoder.genotypeMissingByte;
+        if (isMissing(taxonIndex)) return AlleleEncoder.genotypeMissingCoding;
         byte ref = this.getReferenceAlleleByte();
         byte alt = this.getAlternativeAlleleByte();
-        byte b1 = AlleleEncoder.alleleMissingByte;
-        byte b2 = AlleleEncoder.alleleMissingByte;
+        byte b1 = AlleleEncoder.genotypeMissingCoding;
+        byte b2 = AlleleEncoder.genotypeMissingCoding;
         if (isPhase1Alternative(taxonIndex)) b1 = alt;
         else b1 = ref;
         if (isPhase2Alternative(taxonIndex)) b2 = alt;
         else b2 = ref;
-        return AlleleEncoder.getGenotypeByte(b1, b2);
+        return AlleleEncoder.getGenotypeCoding(b1, b2);
     }
 
     /**
@@ -389,7 +390,7 @@ public class SiteGeno extends BiSNP {
     public ByteBuffer getBinaryOutput (ByteBuffer bb) {
         bb.putShort(this.getChromosome());
         bb.putInt(this.getPosition());
-        bb.put(AlleleEncoder.getGenotypeByte(this.getReferenceAlleleByte(), this.getAlternativeAlleleByte()));
+        bb.put(AlleleEncoder.getGenotypeCoding(this.getReferenceAlleleByte(), this.getAlternativeAlleleByte()));
         bb.put(this.getReferenceAlleleFeature());
         bb.put(this.getAlternativeAlleleFeature());
         int size = (bb.capacity()- GenotypeExport.getByteSizeOfSNPInBinary())/3;
@@ -420,8 +421,8 @@ public class SiteGeno extends BiSNP {
         short chr = bb.getShort();
         int pos = bb.getInt();
         byte geno = bb.get();
-        char refBase = AlleleEncoder.getAlleleBase1FromGenotypeByte(geno);
-        char altBase = AlleleEncoder.getAlleleBase2FromGenotypeByte(geno);
+        char refBase = AlleleEncoder.getAlleleBase1FromGenotypeCoding(geno);
+        char altBase = AlleleEncoder.getAlleleBase2FromGenotypeCoding(geno);
         byte refFeature = bb.get();
         byte altFeature = bb.get();
         int size = (bb.capacity()-GenotypeExport.getByteSizeOfSNPInBinary())/3;
